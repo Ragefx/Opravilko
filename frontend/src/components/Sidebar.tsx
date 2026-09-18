@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useBootstrap } from "../api/hooks";
 import { colorHex } from "../utils/colors";
 import { isDueToday, isOverdue } from "../utils/date";
+import { disconnect } from "../dropbox/auth";
 import {
   FilterIcon,
   InboxIcon,
@@ -17,6 +18,7 @@ import NewFilterModal from "./NewFilterModal";
 
 export default function Sidebar() {
   const { data } = useBootstrap();
+  const navigate = useNavigate();
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNewLabel, setShowNewLabel] = useState(false);
   const [showNewFilter, setShowNewFilter] = useState(false);
@@ -41,6 +43,16 @@ export default function Sidebar() {
       <div className="sidebar-user">
         <div className="sidebar-avatar">O</div>
         Opravilko
+        <button
+          className="btn-text"
+          style={{ marginLeft: "auto", fontSize: 12, padding: "4px 6px" }}
+          onClick={() => {
+            disconnect();
+            navigate("/connect", { replace: true });
+          }}
+        >
+          Disconnect
+        </button>
       </div>
 
       <button className="sidebar-add" onClick={() => setShowNewProject(true)}>

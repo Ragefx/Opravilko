@@ -12,6 +12,8 @@
   "dependencies": {
     "@tanstack/react-query": "^5.103.1",
     "date-fns": "^4.4.0",
+    "dropbox": "^10.46.0",
+    "nanoid": "^3.3.19",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4"

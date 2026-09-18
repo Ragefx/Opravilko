@@ -3,7 +3,9 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useBootstrap, useUpdateProject } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
 import BoardView from "../components/BoardView";
-import { BoardViewIcon, ListViewIcon } from "../components/icons";
+import CalendarView from "../components/CalendarView";
+import DisplayMenu from "../components/DisplayMenu";
+import { DEFAULT_DISPLAY_OPTIONS, filterTasks, groupKeyFor, sortTasks, type DisplayOptions } from "../utils/displayOptions";
 
 export default function ProjectView() {
   const { id } = useParams<{ id: string }>();
@@ -12,40 +14,60 @@ export default function ProjectView() {
   const updateProject = useUpdateProject();
   const [searchParams, setSearchParams] = useSearchParams();
   const [autoOpenId] = useState(() => searchParams.get("open"));
+  const [showDisplayMenu, setShowDisplayMenu] = useState(false);
+  const [display, setDisplay] = useState<DisplayOptions>(DEFAULT_DISPLAY_OPTIONS);
+  const [initializedFor, setInitializedFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("open")) setSearchParams({}, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (isLoading || !data) return null;
+  const project = data?.projects.find((p) => p.id === projectId);
 
-  const project = data.projects.find((p) => p.id === projectId);
+  // Seed the layout from the project's saved viewStyle once per project, without
+  // clobbering other in-session display tweaks (grouping/sort/filters) on re-renders.
+  useEffect(() => {
+    if (project && initializedFor !== project.id) {
+      setDisplay((d) => ({ ...d, layout: project.viewStyle || "list" }));
+      setInitializedFor(project.id);
+    }
+  }, [project, initializedFor]);
+
+  if (isLoading || !data) return null;
   if (!project) return <div className="empty-state">Project not found.</div>;
 
-  const viewStyle = project.viewStyle || "list";
+  function handleDisplayChange(next: DisplayOptions) {
+    setDisplay(next);
+    if (next.layout !== display.layout) {
+      updateProject.mutate({ id: project!.id, viewStyle: next.layout });
+    }
+  }
 
   const header = (
     <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
       <h1>{project.name}</h1>
-      <div className="view-toggle">
-        <button
-          className={viewStyle === "list" ? "active" : ""}
-          onClick={() => updateProject.mutate({ id: project.id, viewStyle: "list" })}
-        >
-          <ListViewIcon width={15} height={15} /> List
+      <div style={{ position: "relative" }}>
+        <button className="btn btn-secondary" onClick={() => setShowDisplayMenu((v) => !v)}>
+          Display
         </button>
-        <button
-          className={viewStyle === "board" ? "active" : ""}
-          onClick={() => updateProject.mutate({ id: project.id, viewStyle: "board" })}
-        >
-          <BoardViewIcon width={15} height={15} /> Board
-        </button>
+        {showDisplayMenu && (
+          <DisplayMenu
+            value={display}
+            onChange={handleDisplayChange}
+            labels={data.labels}
+            onClose={() => setShowDisplayMenu(false)}
+          />
+        )}
       </div>
     </div>
   );
 
-  if (viewStyle === "board") {
+  let tasks = data.tasks.filter((t) => t.projectId === projectId);
+  if (!display.showCompleted) tasks = tasks.filter((t) => !t.completed);
+  tasks = filterTasks(tasks, display);
+
+  if (display.layout === "board") {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
         <div style={{ padding: "16px 24px 0" }}>{header}</div>
@@ -54,14 +76,26 @@ export default function ProjectView() {
     );
   }
 
-  const tasks = data.tasks.filter((t) => t.projectId === projectId);
+  if (display.layout === "calendar") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+        <div style={{ padding: "16px 24px 0" }}>{header}</div>
+        <CalendarView tasks={tasks} projectId={project.id} />
+      </div>
+    );
+  }
+
+  const sorted = sortTasks(tasks, display);
+
   return (
     <TaskListView
       title={project.name}
-      tasks={tasks}
+      tasks={sorted}
       quickAddProjectId={project.id}
       header={header}
-      reorderable
+      reorderable={display.sorting === "manual" && display.grouping === "none"}
+      preserveOrder={display.sorting !== "manual"}
+      groupLabel={display.grouping !== "none" ? (t) => groupKeyFor(t, display.grouping) : undefined}
       autoOpenTaskId={autoOpenId || undefined}
     />
   );

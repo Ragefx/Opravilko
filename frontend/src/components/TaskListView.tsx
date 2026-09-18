@@ -22,6 +22,7 @@ export default function TaskListView({
   reorderable,
   autoOpenTaskId,
   groupExtra,
+  preserveOrder,
 }: {
   title: string;
   tasks: Task[];
@@ -38,6 +39,8 @@ export default function TaskListView({
   autoOpenTaskId?: string;
   /** Renders extra controls (e.g. a "Reschedule" button) next to a given group's title. */
   groupExtra?: (label: string, items: Task[]) => ReactNode;
+  /** Trusts the incoming order of `tasks` instead of re-sorting by the manual `order` field. */
+  preserveOrder?: boolean;
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -50,7 +53,9 @@ export default function TaskListView({
     if (t) setOpenTask(t);
   }, [autoOpenTaskId, tasks]);
 
-  const active = tasks.filter((t) => !t.completed).sort((a, b) => a.order - b.order);
+  const active = preserveOrder
+    ? tasks.filter((t) => !t.completed)
+    : tasks.filter((t) => !t.completed).sort((a, b) => a.order - b.order);
   const completed = tasks.filter((t) => t.completed);
 
   // A task is "top-level" for this view if its parent isn't also present here

@@ -16,7 +16,7 @@ export interface Project {
   isFavorite: boolean;
   isInboxProject?: boolean;
   parentId: string | null;
-  viewStyle?: "list" | "board";
+  viewStyle?: "list" | "board" | "calendar";
 }
 
 export interface Section {

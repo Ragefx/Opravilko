@@ -4,13 +4,16 @@ import { useBootstrap, useUpdateFilter, useUpdateLabel, useUpdateProject } from 
 import { colorHex } from "../utils/colors";
 import { isDueToday, isOverdue } from "../utils/date";
 import { disconnect } from "../dropbox/auth";
+import { currentEffectiveTheme, setTheme } from "../utils/theme";
 import {
   FilterIcon,
   InboxIcon,
   LabelIcon,
+  MoonIcon,
   PlusIcon,
   SearchIcon,
   StarIcon,
+  SunIcon,
   TodayIcon,
   UpcomingIcon,
 } from "./icons";
@@ -49,6 +52,13 @@ export default function Sidebar({ onSearch }: { onSearch: () => void }) {
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNewLabel, setShowNewLabel] = useState(false);
   const [showNewFilter, setShowNewFilter] = useState(false);
+  const [theme, setThemeState] = useState(currentEffectiveTheme);
+
+  function toggleTheme() {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    setThemeState(next);
+  }
 
   const counts = useMemo(() => {
     if (!data) return { today: 0, inbox: 0 };
@@ -75,16 +85,27 @@ export default function Sidebar({ onSearch }: { onSearch: () => void }) {
       <div className="sidebar-user">
         <div className="sidebar-avatar">O</div>
         Opravilko
-        <button
-          className="btn-text"
-          style={{ marginLeft: "auto", fontSize: 12, padding: "4px 6px" }}
-          onClick={() => {
-            disconnect();
-            navigate("/connect", { replace: true });
-          }}
-        >
-          Disconnect
-        </button>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 2 }}>
+          <button
+            className="btn-text"
+            style={{ padding: "4px 6px" }}
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
+          </button>
+          <button
+            className="btn-text"
+            style={{ fontSize: 12, padding: "4px 6px" }}
+            onClick={() => {
+              disconnect();
+              navigate("/connect", { replace: true });
+            }}
+          >
+            Disconnect
+          </button>
+        </div>
       </div>
 
       <button className="sidebar-add" onClick={() => setShowNewProject(true)}>

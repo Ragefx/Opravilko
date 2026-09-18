@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter } from "react-router-dom";
 import "./styles/global.css";
 import App from "./App";
+import { initTheme } from "./utils/theme";
+
+initTheme();
 
 const queryClient = new QueryClient({
   defaultOptions: {

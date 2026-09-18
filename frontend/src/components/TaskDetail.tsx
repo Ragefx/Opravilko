@@ -351,7 +351,7 @@ export default function TaskDetail({
         <div style={{ marginTop: 20 }}>
           <button
             className="btn btn-text"
-            style={{ color: "var(--color-accent)" }}
+            style={{ color: "var(--color-danger)" }}
             onClick={() => {
               deleteTask.mutate(task.id);
               onClose();

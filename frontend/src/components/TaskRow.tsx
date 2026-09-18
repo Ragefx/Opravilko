@@ -31,6 +31,7 @@ export default function TaskRow({
       {subtaskCount && (
         <button
           className="task-collapse-toggle"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={onToggleCollapse}
           aria-label={collapsed ? "Expand sub-tasks" : "Collapse sub-tasks"}
         >
@@ -40,6 +41,7 @@ export default function TaskRow({
       <button
         className={`task-checkbox ${task.completed ? "checked" : ""}`}
         style={{ ["--priority-color" as any]: priorityColor }}
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={() => completeTask.mutate({ id: task.id, completed: !task.completed })}
         aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
       >

@@ -144,6 +144,21 @@ a {
   color: var(--color-text-muted);
 }
 
+.sidebar-star {
+  margin-left: auto;
+  border: none;
+  background: none;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  flex-shrink: 0;
+}
+.sidebar-link:hover .sidebar-star,
+.sidebar-star:has(svg[fill="#ff9a14"]) {
+  opacity: 1;
+}
+
 .sidebar-section-title {
   display: flex;
   align-items: center;

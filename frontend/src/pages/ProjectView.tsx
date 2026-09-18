@@ -46,5 +46,13 @@ export default function ProjectView() {
   }
 
   const tasks = data.tasks.filter((t) => t.projectId === projectId);
-  return <TaskListView title={project.name} tasks={tasks} quickAddProjectId={project.id} header={header} />;
+  return (
+    <TaskListView
+      title={project.name}
+      tasks={tasks}
+      quickAddProjectId={project.id}
+      header={header}
+      reorderable
+    />
+  );
 }

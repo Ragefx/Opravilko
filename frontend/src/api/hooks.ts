@@ -205,6 +205,16 @@ export function useCreateLabel() {
   });
 }
 
+export function useUpdateLabel() {
+  return useLocalMutation<Partial<Label> & { id: string }, Label | null>((data, input) => {
+    const { id, ...rest } = input;
+    const label = data.labels.find((l) => l.id === id);
+    if (!label) return null;
+    Object.assign(label, rest);
+    return label;
+  });
+}
+
 export function useDeleteLabel() {
   return useLocalMutation<string, void>((data, id) => {
     const label = data.labels.find((l) => l.id === id);
@@ -223,6 +233,16 @@ export function useCreateFilter() {
     const { name, query, color = "grey" } = input;
     const filter: FilterDef = { id: nanoid(), name, query, color, order: nextOrder(data.filters), isFavorite: false };
     data.filters.push(filter);
+    return filter;
+  });
+}
+
+export function useUpdateFilter() {
+  return useLocalMutation<Partial<FilterDef> & { id: string }, FilterDef | null>((data, input) => {
+    const { id, ...rest } = input;
+    const filter = data.filters.find((f) => f.id === id);
+    if (!filter) return null;
+    Object.assign(filter, rest);
     return filter;
   });
 }

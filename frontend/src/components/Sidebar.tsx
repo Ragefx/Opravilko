@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useBootstrap } from "../api/hooks";
+import { useBootstrap, useUpdateFilter, useUpdateLabel, useUpdateProject } from "../api/hooks";
 import { colorHex } from "../utils/colors";
 import { isDueToday, isOverdue } from "../utils/date";
 import { disconnect } from "../dropbox/auth";
@@ -9,6 +9,7 @@ import {
   InboxIcon,
   LabelIcon,
   PlusIcon,
+  StarIcon,
   TodayIcon,
   UpcomingIcon,
 } from "./icons";
@@ -16,9 +17,34 @@ import NewProjectModal from "./NewProjectModal";
 import NewLabelModal from "./NewLabelModal";
 import NewFilterModal from "./NewFilterModal";
 
+function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
+  return (
+    <button
+      className="sidebar-star"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-label={active ? "Remove from favorites" : "Add to favorites"}
+      title={active ? "Remove from favorites" : "Add to favorites"}
+    >
+      <StarIcon
+        width={14}
+        height={14}
+        fill={active ? "#ff9a14" : "none"}
+        style={{ color: active ? "#ff9a14" : undefined }}
+      />
+    </button>
+  );
+}
+
 export default function Sidebar() {
   const { data } = useBootstrap();
   const navigate = useNavigate();
+  const updateProject = useUpdateProject();
+  const updateLabel = useUpdateLabel();
+  const updateFilter = useUpdateFilter();
   const [showNewProject, setShowNewProject] = useState(false);
   const [showNewLabel, setShowNewLabel] = useState(false);
   const [showNewFilter, setShowNewFilter] = useState(false);
@@ -37,6 +63,11 @@ export default function Sidebar() {
     .sort((a, b) => a.order - b.order);
   const labels = (data?.labels || []).slice().sort((a, b) => a.order - b.order);
   const filters = (data?.filters || []).slice().sort((a, b) => a.order - b.order);
+
+  const favoriteProjects = (data?.projects || []).filter((p) => p.isFavorite);
+  const favoriteLabels = labels.filter((l) => l.isFavorite);
+  const favoriteFilters = filters.filter((f) => f.isFavorite);
+  const hasFavorites = favoriteProjects.length + favoriteLabels.length + favoriteFilters.length > 0;
 
   return (
     <aside className="sidebar">
@@ -77,6 +108,46 @@ export default function Sidebar() {
         </NavLink>
       </nav>
 
+      {hasFavorites && (
+        <>
+          <div className="sidebar-section-title">
+            <span>Favorites</span>
+          </div>
+          <nav className="sidebar-nav">
+            {favoriteProjects.map((p) => (
+              <NavLink
+                key={p.id}
+                to={`/app/project/${p.id}`}
+                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+              >
+                <span className="color-dot" style={{ background: colorHex(p.color) }} />
+                {p.name}
+              </NavLink>
+            ))}
+            {favoriteLabels.map((l) => (
+              <NavLink
+                key={l.id}
+                to={`/app/label/${encodeURIComponent(l.name)}`}
+                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+              >
+                <LabelIcon className="icon" style={{ color: colorHex(l.color) }} />
+                {l.name}
+              </NavLink>
+            ))}
+            {favoriteFilters.map((f) => (
+              <NavLink
+                key={f.id}
+                to={`/app/filter/${f.id}`}
+                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+              >
+                <FilterIcon className="icon" style={{ color: colorHex(f.color) }} />
+                {f.name}
+              </NavLink>
+            ))}
+          </nav>
+        </>
+      )}
+
       <div className="sidebar-section-title">
         <span>Projects</span>
         <button onClick={() => setShowNewProject(true)} aria-label="Add project">
@@ -92,6 +163,10 @@ export default function Sidebar() {
           >
             <span className="color-dot" style={{ background: colorHex(p.color) }} />
             {p.name}
+            <StarToggle
+              active={p.isFavorite}
+              onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}
+            />
           </NavLink>
         ))}
         {topProjects.length === 0 && (
@@ -116,6 +191,10 @@ export default function Sidebar() {
           >
             <LabelIcon className="icon" style={{ color: colorHex(l.color) }} />
             {l.name}
+            <StarToggle
+              active={l.isFavorite}
+              onClick={() => updateLabel.mutate({ id: l.id, isFavorite: !l.isFavorite })}
+            />
           </NavLink>
         ))}
         {labels.length === 0 && (
@@ -140,6 +219,10 @@ export default function Sidebar() {
           >
             <FilterIcon className="icon" style={{ color: colorHex(f.color) }} />
             {f.name}
+            <StarToggle
+              active={f.isFavorite}
+              onClick={() => updateFilter.mutate({ id: f.id, isFavorite: !f.isFavorite })}
+            />
           </NavLink>
         ))}
         {filters.length === 0 && (

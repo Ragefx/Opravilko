@@ -17,7 +17,7 @@ import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
-import { CheckIcon } from "./icons";
+import { CheckIcon, RepeatIcon } from "./icons";
 
 const UNSECTIONED = "__none__";
 
@@ -184,7 +184,7 @@ export default function BoardView({ projectId }: { projectId: string }) {
         </div>
         <DragOverlay>{activeTask ? <BoardCardPreview task={activeTask} /> : null}</DragOverlay>
       </DndContext>
-      {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} />}
+      {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} onOpenTask={setOpenTask} />}
     </div>
   );
 }
@@ -262,6 +262,8 @@ function BoardColumn({
 function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
   const completeTask = useCompleteTask();
+  const { data } = useBootstrap();
+  const subtasks = (data?.tasks || []).filter((t) => t.parentId === task.id);
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -293,12 +295,20 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
         >
           {task.completed && <CheckIcon />}
         </button>
-        <div className="board-card-content">{task.content}</div>
+        <div className="board-card-content">
+          {task.content}
+          {subtasks.length > 0 && (
+            <span className="chip" style={{ marginLeft: 8 }}>
+              {subtasks.filter((s) => s.completed).length}/{subtasks.length}
+            </span>
+          )}
+        </div>
       </div>
       {(task.due || task.labels.length > 0) && (
         <div className="task-meta">
           {task.due && (
             <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
+              {task.due.isRecurring && <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />}{" "}
               {formatDueLabel(task.due)}
             </span>
           )}

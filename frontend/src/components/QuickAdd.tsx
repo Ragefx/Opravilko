@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useCreateTask } from "../api/hooks";
 import { parseNaturalDate } from "../utils/date";
-import type { Priority } from "../api/types";
+import { describeRecurrence, initialDueForRecurrence, parseNaturalRecurrence, serializeRecurrence } from "../utils/recurrence";
+import type { Due, Priority } from "../api/types";
 
 const PRIORITY_FLAG_RE = /\bp([1-4])\b/i;
 
@@ -34,11 +35,22 @@ export default function QuickAdd({
     const labelMatches = [...content.matchAll(/@(\w+)/g)].map((m) => m[1]);
     content = content.replace(/@(\w+)/g, "").trim();
 
-    let due = defaultDue ? { ...defaultDue, isRecurring: false } : null;
+    let due: Due | null = defaultDue ? { ...defaultDue, isRecurring: false } : null;
     if (!due) {
-      const parsed = parseNaturalDate(content);
-      due = parsed.due;
-      content = parsed.remaining;
+      const recurrence = parseNaturalRecurrence(content);
+      if (recurrence) {
+        content = content.replace(recurrence.matchedText, "").trim();
+        due = {
+          date: initialDueForRecurrence(recurrence.rule),
+          string: describeRecurrence(recurrence.rule),
+          isRecurring: true,
+          rrule: serializeRecurrence(recurrence.rule),
+        };
+      } else {
+        const parsed = parseNaturalDate(content);
+        due = parsed.due;
+        content = parsed.remaining;
+      }
     }
 
     content = content.replace(/\s+/g, " ").trim();
@@ -68,7 +80,7 @@ export default function QuickAdd({
     <div className="quick-add">
       <input
         autoFocus
-        placeholder="e.g. Draft proposal tomorrow p1 @work"
+        placeholder="e.g. Draft proposal every monday p1 @work"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {

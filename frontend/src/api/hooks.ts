@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { fetchAppData, scheduleSave } from "../dropbox/store";
+import { advanceDate, parseRecurrenceString } from "../utils/recurrence";
 import type { AppData, Due, FilterDef, Label, Priority, Project, Section, Task } from "./types";
 
 const BOOTSTRAP_KEY = ["bootstrap"];
@@ -88,6 +89,14 @@ export function useCompleteTask() {
   return useLocalMutation<{ id: string; completed: boolean }, Task | null>((data, { id, completed }) => {
     const task = data.tasks.find((t) => t.id === id);
     if (!task) return null;
+    if (completed && task.due?.isRecurring && task.due.rrule) {
+      const rule = parseRecurrenceString(task.due.rrule);
+      if (rule) {
+        task.due = { ...task.due, date: advanceDate(task.due.date, rule) };
+        task.updatedAt = new Date().toISOString();
+        return task;
+      }
+    }
     task.completed = completed;
     task.completedAt = completed ? new Date().toISOString() : null;
     return task;

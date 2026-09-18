@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import type { Task } from "../api/types";
-import { useBootstrap, useDeleteTask, useUpdateTask } from "../api/hooks";
+import { useBootstrap, useCompleteTask, useCreateTask, useDeleteTask, useUpdateTask } from "../api/hooks";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { makeDue, makeDueFromDateString } from "../utils/date";
-import { FlagIcon, CalendarIcon, TrashIcon, XIcon } from "./icons";
+import {
+  type RecurrenceFreq,
+  parseRecurrenceString,
+  serializeRecurrence,
+} from "../utils/recurrence";
+import { CheckIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
 
 function timeFromDatetime(datetime?: string): string {
   if (!datetime) return "";
@@ -11,12 +16,24 @@ function timeFromDatetime(datetime?: string): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-export default function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
+export default function TaskDetail({
+  task,
+  onClose,
+  onOpenTask,
+}: {
+  task: Task;
+  onClose: () => void;
+  onOpenTask?: (task: Task) => void;
+}) {
   const { data } = useBootstrap();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const createTask = useCreateTask();
+  const completeTask = useCompleteTask();
   const [content, setContent] = useState(task.content);
   const [description, setDescription] = useState(task.description);
+  const [addingSubtask, setAddingSubtask] = useState(false);
+  const [subtaskText, setSubtaskText] = useState("");
 
   useEffect(() => {
     setContent(task.content);
@@ -69,6 +86,37 @@ export default function TaskDetail({ task, onClose }: { task: Task; onClose: () 
     updateTask.mutate({ id: task.id, due: makeDueFromDateString(dateStr, timeStr || undefined) });
   }
 
+  function setRecurrence(freq: RecurrenceFreq | "none") {
+    if (!task.due) return;
+    if (freq === "none") {
+      updateTask.mutate({ id: task.id, due: { ...task.due, isRecurring: false, rrule: undefined } });
+      return;
+    }
+    updateTask.mutate({
+      id: task.id,
+      due: { ...task.due, isRecurring: true, rrule: serializeRecurrence({ freq }) },
+    });
+  }
+
+  const currentFreq = parseRecurrenceString(task.due?.rrule)?.freq;
+  const parentTask = task.parentId ? data?.tasks.find((t) => t.id === task.parentId) : undefined;
+  const subtasks = (data?.tasks || [])
+    .filter((t) => t.parentId === task.id)
+    .sort((a, b) => a.order - b.order);
+
+  function addSubtask() {
+    const value = subtaskText.trim();
+    if (!value) return;
+    createTask.mutate({
+      content: value,
+      projectId: task.projectId,
+      sectionId: task.sectionId,
+      parentId: task.id,
+    });
+    setSubtaskText("");
+    setAddingSubtask(false);
+  }
+
   return (
     <div className="overlay" onClick={onClose}>
       <div className="detail-panel" onClick={(e) => e.stopPropagation()}>
@@ -77,6 +125,16 @@ export default function TaskDetail({ task, onClose }: { task: Task; onClose: () 
             <XIcon />
           </button>
         </div>
+
+        {parentTask && (
+          <button
+            className="btn-text"
+            style={{ padding: "2px 0 8px", fontSize: 12, display: "block" }}
+            onClick={() => onOpenTask?.(parentTask)}
+          >
+            ↰ {parentTask.content}
+          </button>
+        )}
 
         <textarea
           className="detail-title"
@@ -157,6 +215,25 @@ export default function TaskDetail({ task, onClose }: { task: Task; onClose: () 
           </label>
         </div>
 
+        {task.due && (
+          <div className="detail-field-row">
+            <label className="field-pill" style={{ gap: 6 }}>
+              <RepeatIcon width={14} height={14} />
+              <select
+                className="detail-date-input"
+                value={currentFreq || "none"}
+                onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq | "none")}
+              >
+                <option value="none">Doesn't repeat</option>
+                <option value="daily">Every day</option>
+                <option value="weekdays">Every weekday</option>
+                <option value="weekly">Every week</option>
+                <option value="monthly">Every month</option>
+              </select>
+            </label>
+          </div>
+        )}
+
         <div className="detail-field-row">
           <select value={task.projectId} onChange={(e) => setProject(e.target.value)}>
             {(data?.projects || []).map((p) => (
@@ -167,7 +244,59 @@ export default function TaskDetail({ task, onClose }: { task: Task; onClose: () 
           </select>
         </div>
 
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: 20 }}>
+          <div className="task-section-title" style={{ margin: "0 0 8px" }}>
+            Sub-tasks{subtasks.length > 0 ? ` (${subtasks.filter((s) => s.completed).length}/${subtasks.length})` : ""}
+          </div>
+          {subtasks.map((s) => (
+            <div key={s.id} className="task-row" style={{ padding: "4px 0" }}>
+              <button
+                className={`task-checkbox ${s.completed ? "checked" : ""}`}
+                style={{ ["--priority-color" as any]: PRIORITY_META[s.priority].color }}
+                onClick={() => completeTask.mutate({ id: s.id, completed: !s.completed })}
+                aria-label={s.completed ? "Mark incomplete" : "Mark complete"}
+              >
+                {s.completed && <CheckIcon />}
+              </button>
+              <div
+                className={`task-content ${s.completed ? "completed" : ""}`}
+                style={{ fontSize: 13 }}
+                onClick={() => onOpenTask?.(s)}
+              >
+                {s.content}
+              </div>
+            </div>
+          ))}
+
+          {addingSubtask ? (
+            <div className="quick-add" style={{ marginTop: 4 }}>
+              <input
+                autoFocus
+                placeholder="Sub-task name"
+                value={subtaskText}
+                onChange={(e) => setSubtaskText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addSubtask();
+                  if (e.key === "Escape") setAddingSubtask(false);
+                }}
+              />
+              <div className="quick-add-actions">
+                <button className="btn btn-text" onClick={() => setAddingSubtask(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={addSubtask} disabled={!subtaskText.trim()}>
+                  Add
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button className="add-task-trigger" onClick={() => setAddingSubtask(true)}>
+              <span className="plus">+</span> Add sub-task
+            </button>
+          )}
+        </div>
+
+        <div style={{ marginTop: 20 }}>
           <button
             className="btn btn-text"
             style={{ color: "var(--color-accent)" }}

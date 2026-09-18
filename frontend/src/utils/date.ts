@@ -21,6 +21,30 @@ export function makeDue(date: Date, text: string): Due {
   };
 }
 
+/**
+ * Builds a Due from a "yyyy-MM-dd" date string and an optional "HH:mm" time string,
+ * e.g. from native <input type="date"> / <input type="time"> values.
+ */
+export function makeDueFromDateString(dateStr: string, timeStr?: string): Due {
+  const d = parseISO(dateStr);
+  if (timeStr) {
+    const [h, m] = timeStr.split(":").map(Number);
+    const withTime = new Date(d);
+    withTime.setHours(h, m, 0, 0);
+    return {
+      date: dateStr,
+      datetime: withTime.toISOString(),
+      string: format(withTime, "MMM d, yyyy 'at' h:mm a"),
+      isRecurring: false,
+    };
+  }
+  return {
+    date: dateStr,
+    string: format(d, "MMM d, yyyy"),
+    isRecurring: false,
+  };
+}
+
 export function isOverdue(due: Due | null): boolean {
   if (!due) return false;
   return isBefore(parseISO(due.date), startOfDay(new Date())) && !isToday(parseISO(due.date));
@@ -42,10 +66,11 @@ export function isDueWithinDays(due: Due | null, days: number): boolean {
 export function formatDueLabel(due: Due | null): string {
   if (!due) return "";
   const d = parseISO(due.date);
-  if (isToday(d)) return "Today";
-  if (isTomorrow(d)) return "Tomorrow";
-  if (isBefore(d, startOfDay(new Date()))) return format(d, "MMM d");
-  return format(d, "MMM d");
+  const dayLabel = isToday(d) ? "Today" : isTomorrow(d) ? "Tomorrow" : format(d, "MMM d");
+  if (due.datetime) {
+    return `${dayLabel} ${format(new Date(due.datetime), "h:mm a")}`;
+  }
+  return dayLabel;
 }
 
 /** Very small natural-language date parser for quick-add ("today", "tomorrow", "mon", "in 3 days", "9/20"). */

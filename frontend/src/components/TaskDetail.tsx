@@ -2,8 +2,14 @@ import { useEffect, useState } from "react";
 import type { Task } from "../api/types";
 import { useBootstrap, useDeleteTask, useUpdateTask } from "../api/hooks";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
-import { makeDue } from "../utils/date";
+import { makeDue, makeDueFromDateString } from "../utils/date";
 import { FlagIcon, CalendarIcon, TrashIcon, XIcon } from "./icons";
+
+function timeFromDatetime(datetime?: string): string {
+  if (!datetime) return "";
+  const d = new Date(datetime);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 
 export default function TaskDetail({ task, onClose }: { task: Task; onClose: () => void }) {
   const { data } = useBootstrap();
@@ -46,6 +52,21 @@ export default function TaskDetail({ task, onClose }: { task: Task; onClose: () 
 
   function setProject(projectId: string) {
     updateTask.mutate({ id: task.id, projectId, sectionId: null });
+  }
+
+  function setManualDate(dateStr: string) {
+    if (!dateStr) {
+      updateTask.mutate({ id: task.id, due: null });
+      return;
+    }
+    const timeStr = timeFromDatetime(task.due?.datetime);
+    updateTask.mutate({ id: task.id, due: makeDueFromDateString(dateStr, timeStr || undefined) });
+  }
+
+  function setManualTime(timeStr: string) {
+    const dateStr = task.due?.date;
+    if (!dateStr) return; // pick a date first
+    updateTask.mutate({ id: task.id, due: makeDueFromDateString(dateStr, timeStr || undefined) });
   }
 
   return (
@@ -106,6 +127,28 @@ export default function TaskDetail({ task, onClose }: { task: Task; onClose: () 
               <XIcon width={14} height={14} /> Clear date
             </button>
           )}
+        </div>
+
+        <div className="detail-field-row">
+          <label className="field-pill" style={{ gap: 6 }}>
+            <CalendarIcon width={14} height={14} />
+            <input
+              type="date"
+              className="detail-date-input"
+              value={task.due?.date || ""}
+              onChange={(e) => setManualDate(e.target.value)}
+            />
+          </label>
+          <label className="field-pill" style={{ gap: 6, opacity: task.due ? 1 : 0.5 }}>
+            time
+            <input
+              type="time"
+              className="detail-date-input"
+              value={timeFromDatetime(task.due?.datetime)}
+              disabled={!task.due}
+              onChange={(e) => setManualTime(e.target.value)}
+            />
+          </label>
         </div>
 
         <div className="detail-field-row">

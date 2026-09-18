@@ -405,6 +405,14 @@ a {
 .field-pill:hover {
   background: var(--color-hover);
 }
+.detail-date-input {
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+  background: none;
+  color: var(--color-text);
+}
 
 .modal-backdrop {
   position: fixed;

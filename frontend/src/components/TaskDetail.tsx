@@ -100,10 +100,16 @@ export default function TaskDetail({ task, onClose }: { task: Task; onClose: () 
             <button
               key={p}
               className="field-pill"
-              style={{
-                borderColor: task.priority === p ? PRIORITY_META[p].color : undefined,
-                color: task.priority === p ? PRIORITY_META[p].color : undefined,
-              }}
+              style={
+                task.priority === p
+                  ? {
+                      background: PRIORITY_META[p].color,
+                      borderColor: PRIORITY_META[p].color,
+                      color: "#fff",
+                      fontWeight: 600,
+                    }
+                  : undefined
+              }
               onClick={() => setPriority(p)}
             >
               <FlagIcon width={14} height={14} />

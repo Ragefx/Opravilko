@@ -111,6 +111,21 @@ export function useDeleteTask() {
   });
 }
 
+/** Batch-applies section/order changes from a board drag-and-drop, in one save. */
+export function useReorderTasks() {
+  return useLocalMutation<{ id: string; sectionId: string | null; order: number }[], void>((data, updates) => {
+    const now = new Date().toISOString();
+    for (const u of updates) {
+      const task = data.tasks.find((t) => t.id === u.id);
+      if (task) {
+        task.sectionId = u.sectionId;
+        task.order = u.order;
+        task.updatedAt = now;
+      }
+    }
+  });
+}
+
 // ---- projects ----
 export function useCreateProject() {
   return useLocalMutation<Partial<Project> & { name: string }, Project>((data, input) => {

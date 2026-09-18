@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import type { Task } from "../api/types";
 import TaskRow from "./TaskRow";
 import TaskDetail from "./TaskDetail";
@@ -12,6 +13,7 @@ export default function TaskListView({
   groupLabel,
   showProjectChip,
   projectNameById,
+  header,
 }: {
   title: string;
   tasks: Task[];
@@ -20,6 +22,8 @@ export default function TaskListView({
   groupLabel?: (task: Task) => string;
   showProjectChip?: boolean;
   projectNameById?: Record<string, string>;
+  /** Replaces the default title bar, e.g. to add a List/Board toggle. */
+  header?: ReactNode;
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
 
@@ -37,9 +41,11 @@ export default function TaskListView({
 
   return (
     <div className="content-scroll">
-      <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
-        <h1>{title}</h1>
-      </div>
+      {header ?? (
+        <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
+          <h1>{title}</h1>
+        </div>
+      )}
 
       {quickAddProjectId && <QuickAdd projectId={quickAddProjectId} defaultDue={quickAddDue} />}
 

@@ -94,3 +94,17 @@ export const TrashIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z" />
   </svg>
 );
+
+export const ListViewIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+  </svg>
+);
+
+export const BoardViewIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="3" y="4" width="6" height="16" rx="1" />
+    <rect x="10.5" y="4" width="6" height="10" rx="1" />
+    <rect x="18" y="4" width="3" height="7" rx="1" />
+  </svg>
+);

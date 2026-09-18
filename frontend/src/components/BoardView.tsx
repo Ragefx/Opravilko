@@ -28,7 +28,13 @@ interface Column {
   tasks: Task[];
 }
 
-export default function BoardView({ projectId }: { projectId: string }) {
+export default function BoardView({
+  projectId,
+  autoOpenTaskId,
+}: {
+  projectId: string;
+  autoOpenTaskId?: string;
+}) {
   const { data } = useBootstrap();
   const reorderTasks = useReorderTasks();
   const createSection = useCreateSection();
@@ -37,6 +43,12 @@ export default function BoardView({ projectId }: { projectId: string }) {
   const [newSectionName, setNewSectionName] = useState("");
   const [columns, setColumns] = useState<Column[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  useEffect(() => {
+    if (!autoOpenTaskId || !data) return;
+    const t = data.tasks.find((x) => x.id === autoOpenTaskId);
+    if (t) setOpenTask(t);
+  }, [autoOpenTaskId, data]);
 
   useEffect(() => {
     if (!data) return;

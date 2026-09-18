@@ -1,6 +1,7 @@
-import { useBootstrap } from "../api/hooks";
+import { useBootstrap, useRescheduleTasks } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
-import { isDueToday, isOverdue, todayISO } from "../utils/date";
+import type { Task } from "../api/types";
+import { isDueToday, isOverdue, makeDue, todayISO } from "../utils/date";
 
 export default function Today() {
   const { data, isLoading } = useBootstrap();
@@ -20,6 +21,20 @@ export default function Today() {
       groupLabel={(t) => (isOverdue(t.due) ? "Overdue" : "Today")}
       showProjectChip
       projectNameById={projectNameById}
+      groupExtra={(label, items) => (label === "Overdue" && items.length > 0 ? <RescheduleButton tasks={items} /> : undefined)}
     />
+  );
+}
+
+function RescheduleButton({ tasks }: { tasks: Task[] }) {
+  const rescheduleTasks = useRescheduleTasks();
+  return (
+    <button
+      className="btn-text"
+      style={{ fontSize: 12, padding: "2px 6px" }}
+      onClick={() => rescheduleTasks.mutate({ ids: tasks.map((t) => t.id), due: makeDue(new Date(), "Today") })}
+    >
+      Reschedule all to today
+    </button>
   );
 }

@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import type { Task } from "../api/types";
-import { useBootstrap, useCompleteTask, useCreateTask, useDeleteTask, useUpdateTask } from "../api/hooks";
+import {
+  useAddComment,
+  useBootstrap,
+  useCompleteTask,
+  useCreateTask,
+  useDeleteComment,
+  useDeleteTask,
+  useUpdateTask,
+} from "../api/hooks";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { makeDue, makeDueFromDateString } from "../utils/date";
 import {
@@ -30,10 +38,13 @@ export default function TaskDetail({
   const deleteTask = useDeleteTask();
   const createTask = useCreateTask();
   const completeTask = useCompleteTask();
+  const addComment = useAddComment();
+  const deleteComment = useDeleteComment();
   const [content, setContent] = useState(task.content);
   const [description, setDescription] = useState(task.description);
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState("");
+  const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
     setContent(task.content);
@@ -115,6 +126,13 @@ export default function TaskDetail({
     });
     setSubtaskText("");
     setAddingSubtask(false);
+  }
+
+  function submitComment() {
+    const value = commentText.trim();
+    if (!value) return;
+    addComment.mutate({ taskId: task.id, text: value });
+    setCommentText("");
   }
 
   return (
@@ -294,6 +312,40 @@ export default function TaskDetail({
               <span className="plus">+</span> Add sub-task
             </button>
           )}
+        </div>
+
+        <div style={{ marginTop: 20 }}>
+          <div className="task-section-title" style={{ margin: "0 0 8px" }}>
+            Comments{task.comments?.length ? ` (${task.comments.length})` : ""}
+          </div>
+          {(task.comments || []).map((c) => (
+            <div key={c.id} className="comment-row">
+              <div className="comment-text">{c.text}</div>
+              <div className="comment-meta">
+                <span>{new Date(c.createdAt).toLocaleString()}</span>
+                <button
+                  className="btn-text"
+                  style={{ padding: "0 0 0 8px", fontSize: 12 }}
+                  onClick={() => deleteComment.mutate({ taskId: task.id, commentId: c.id })}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+          <div className="quick-add" style={{ marginTop: 4 }}>
+            <input
+              placeholder="Add a comment"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitComment()}
+            />
+            <div className="quick-add-actions">
+              <button className="btn btn-primary" onClick={submitComment} disabled={!commentText.trim()}>
+                Comment
+              </button>
+            </div>
+          </div>
         </div>
 
         <div style={{ marginTop: 20 }}>

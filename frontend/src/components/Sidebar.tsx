@@ -9,6 +9,7 @@ import {
   InboxIcon,
   LabelIcon,
   PlusIcon,
+  SearchIcon,
   StarIcon,
   TodayIcon,
   UpcomingIcon,
@@ -39,7 +40,7 @@ function StarToggle({ active, onClick }: { active: boolean; onClick: () => void 
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ onSearch }: { onSearch: () => void }) {
   const { data } = useBootstrap();
   const navigate = useNavigate();
   const updateProject = useUpdateProject();
@@ -89,6 +90,12 @@ export default function Sidebar() {
       <button className="sidebar-add" onClick={() => setShowNewProject(true)}>
         <PlusIcon width={16} height={16} />
         Add project
+      </button>
+
+      <button className="sidebar-link" style={{ width: "100%", background: "none", border: "none" }} onClick={onSearch}>
+        <SearchIcon className="icon" />
+        Search
+        <span className="badge" style={{ marginLeft: "auto" }}>⌘K</span>
       </button>
 
       <nav className="sidebar-nav">

@@ -1,4 +1,5 @@
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useBootstrap, useUpdateProject } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
 import BoardView from "../components/BoardView";
@@ -9,6 +10,14 @@ export default function ProjectView() {
   const projectId = id || "inbox";
   const { data, isLoading } = useBootstrap();
   const updateProject = useUpdateProject();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [autoOpenId] = useState(() => searchParams.get("open"));
+
+  useEffect(() => {
+    if (searchParams.get("open")) setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (isLoading || !data) return null;
 
   const project = data.projects.find((p) => p.id === projectId);
@@ -40,7 +49,7 @@ export default function ProjectView() {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
         <div style={{ padding: "16px 24px 0" }}>{header}</div>
-        <BoardView projectId={project.id} />
+        <BoardView projectId={project.id} autoOpenTaskId={autoOpenId || undefined} />
       </div>
     );
   }
@@ -53,6 +62,7 @@ export default function ProjectView() {
       quickAddProjectId={project.id}
       header={header}
       reorderable
+      autoOpenTaskId={autoOpenId || undefined}
     />
   );
 }

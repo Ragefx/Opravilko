@@ -477,6 +477,42 @@ a {
   margin-top: 8px;
 }
 
+.search-modal {
+  width: 480px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+.search-modal input[type="text"] {
+  margin-bottom: 4px;
+}
+.search-group {
+  margin-top: 8px;
+}
+.search-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  padding: 4px 4px;
+}
+.search-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.search-result:hover {
+  background: var(--color-hover);
+}
+
 .color-swatch-grid {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
@@ -659,6 +695,21 @@ a {
   font-size: 14px;
   line-height: 1.4;
   flex: 1;
+}
+
+.comment-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.comment-text {
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+.comment-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-muted);
 }
 
 .empty-state {

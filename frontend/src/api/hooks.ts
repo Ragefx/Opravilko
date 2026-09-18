@@ -103,6 +103,25 @@ export function useCompleteTask() {
   });
 }
 
+export function useAddComment() {
+  return useLocalMutation<{ taskId: string; text: string }, Task | null>((data, { taskId, text }) => {
+    const task = data.tasks.find((t) => t.id === taskId);
+    if (!task) return null;
+    if (!task.comments) task.comments = [];
+    task.comments.push({ id: nanoid(), text, createdAt: new Date().toISOString() });
+    task.updatedAt = new Date().toISOString();
+    return task;
+  });
+}
+
+export function useDeleteComment() {
+  return useLocalMutation<{ taskId: string; commentId: string }, void>((data, { taskId, commentId }) => {
+    const task = data.tasks.find((t) => t.id === taskId);
+    if (!task || !task.comments) return;
+    task.comments = task.comments.filter((c) => c.id !== commentId);
+  });
+}
+
 export function useDeleteTask() {
   return useLocalMutation<string, void>((data, id) => {
     const idsToDelete = new Set([id]);
@@ -132,6 +151,20 @@ export function useReorderTasks() {
         task.updatedAt = now;
       }
     }
+  });
+}
+
+/** Batch-sets the due date for a set of tasks in one save, e.g. "reschedule all overdue to today". */
+export function useRescheduleTasks() {
+  return useLocalMutation<{ ids: string[]; due: Due }, void>((data, { ids, due }) => {
+    const idSet = new Set(ids);
+    const now = new Date().toISOString();
+    data.tasks.forEach((t) => {
+      if (idSet.has(t.id)) {
+        t.due = due;
+        t.updatedAt = now;
+      }
+    });
   });
 }
 

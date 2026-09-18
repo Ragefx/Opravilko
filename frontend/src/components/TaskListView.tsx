@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
@@ -20,6 +20,8 @@ export default function TaskListView({
   projectNameById,
   header,
   reorderable,
+  autoOpenTaskId,
+  groupExtra,
 }: {
   title: string;
   tasks: Task[];
@@ -32,11 +34,21 @@ export default function TaskListView({
   header?: ReactNode;
   /** Enables drag-to-reorder for the flat (non-grouped) top-level list, e.g. within a single project. */
   reorderable?: boolean;
+  /** Opens this task's detail panel as soon as it's found, e.g. from a search result deep link. */
+  autoOpenTaskId?: string;
+  /** Renders extra controls (e.g. a "Reschedule" button) next to a given group's title. */
+  groupExtra?: (label: string, items: Task[]) => ReactNode;
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const reorderTasks = useReorderTasks();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+
+  useEffect(() => {
+    if (!autoOpenTaskId) return;
+    const t = tasks.find((x) => x.id === autoOpenTaskId);
+    if (t) setOpenTask(t);
+  }, [autoOpenTaskId, tasks]);
 
   const active = tasks.filter((t) => !t.completed).sort((a, b) => a.order - b.order);
   const completed = tasks.filter((t) => t.completed);
@@ -116,7 +128,10 @@ export default function TaskListView({
       {groupLabel
         ? [...groups.entries()].map(([label, items]) => (
             <div key={label}>
-              <div className="task-section-title">{label}</div>
+              <div className="task-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span>{label}</span>
+                {groupExtra?.(label, items)}
+              </div>
               {items.map((t) => renderTaskAndChildren(t, 0))}
             </div>
           ))

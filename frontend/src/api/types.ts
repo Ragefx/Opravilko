@@ -43,6 +43,12 @@ export interface FilterDef {
   isFavorite: boolean;
 }
 
+export interface Comment {
+  id: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface Task {
   id: string;
   content: string;
@@ -58,6 +64,7 @@ export interface Task {
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  comments?: Comment[];
 }
 
 export interface AppData {

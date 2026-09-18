@@ -19,62 +19,22 @@ server. It talks to Dropbox directly from your browser:
 - **Hosting**: deployed as static files on GitHub Pages, same as your other
   Dropbox-backed projects. No server to run, nothing to keep warm.
 
-## One-time setup
+## Live app
 
-### 1. Create a Dropbox app
+**https://ragefx.github.io/Opravilko/**
 
-1. [Dropbox App Console](https://www.dropbox.com/developers/apps) → **Create app**.
-2. **Scoped access** → **App folder** access.
-3. Under **Permissions**, enable `files.content.write` and `files.content.read`,
-   then **Submit**.
-4. Under **Settings → OAuth 2 → Redirect URIs**, add the URL this app will be
-   deployed at, e.g.:
-   ```
-   https://<your-github-username>.github.io/Opravilko/
-   ```
-   (For local dev, also add `http://localhost:5173/`.)
-5. Copy the **App key** — that's all you need. The **App secret** is not used
-   anywhere in this app; the PKCE flow doesn't need it.
+Deployment is automatic: `.github/workflows/deploy.yml` builds and publishes
+`frontend/` to GitHub Pages on every push to `main`. Open the URL and click
+**Connect to Dropbox** to authorize (only needed once per browser).
 
-### 2. Configure the frontend
+## Local development
 
 ```
 cd frontend
-cp .env.example .env
-```
-
-Fill in `.env`:
-
-```
-VITE_DROPBOX_APP_KEY=<your app key>
-```
-
-### 3. Run it
-
-```
+cp .env.example .env   # fill in VITE_DROPBOX_APP_KEY
 npm install
 npm run dev
 ```
-
-Open the printed local URL, click **Connect to Dropbox**, approve access. That's the
-whole setup — the app stores your data itself from then on.
-
-## Deploying to GitHub Pages
-
-A workflow at `.github/workflows/deploy.yml` builds and deploys `frontend/` to
-GitHub Pages automatically on every push to `main`.
-
-1. In the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
-2. In **Settings → Secrets and variables → Actions → Variables**, add a repository
-   variable:
-   ```
-   DROPBOX_APP_KEY = <your app key>
-   ```
-   (It's a plain variable, not a secret — the key isn't sensitive — but either works.)
-3. Push to `main`. The workflow builds the app with the correct base path
-   (`/<repo-name>/`) and publishes it.
-4. Make sure the Dropbox app's redirect URIs (Settings tab, App Console) include the
-   resulting Pages URL, e.g. `https://<username>.github.io/Opravilko/`.
 
 ## Data model
 
@@ -107,6 +67,4 @@ on your phone if you ever want to eyeball or back up the raw data.
 
 - Recurring due dates (`rrule` field already exists on `Due`, just unused by the UI)
 - Comments per task
-- Drag-and-drop reordering
-- Board view for projects
 - Keyboard shortcuts (Todoist-style `q` for quick add, `x` complete, etc.)

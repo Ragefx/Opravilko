@@ -7,6 +7,7 @@ import {
   useCreateTask,
   useDeleteComment,
   useDeleteTask,
+  useRestoreTasks,
   useUpdateTask,
 } from "../api/hooks";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
@@ -16,7 +17,8 @@ import {
   parseRecurrenceString,
   serializeRecurrence,
 } from "../utils/recurrence";
-import { CheckIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
+import { CheckIcon, CopyIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
+import { useToast } from "./ToastProvider";
 
 function timeFromDatetime(datetime?: string): string {
   if (!datetime) return "";
@@ -36,10 +38,12 @@ export default function TaskDetail({
   const { data } = useBootstrap();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const restoreTasks = useRestoreTasks();
   const createTask = useCreateTask();
   const completeTask = useCompleteTask();
   const addComment = useAddComment();
   const deleteComment = useDeleteComment();
+  const showToast = useToast();
   const [content, setContent] = useState(task.content);
   const [description, setDescription] = useState(task.description);
   const [addingSubtask, setAddingSubtask] = useState(false);
@@ -133,6 +137,40 @@ export default function TaskDetail({
     if (!value) return;
     addComment.mutate({ taskId: task.id, text: value });
     setCommentText("");
+  }
+
+  function duplicateTask() {
+    createTask.mutate(
+      {
+        content: task.content,
+        description: task.description,
+        projectId: task.projectId,
+        sectionId: task.sectionId,
+        parentId: task.parentId,
+        priority: task.priority,
+        due: task.due,
+        labels: task.labels,
+      },
+      {
+        onSuccess: (created) => {
+          showToast({ message: "Task duplicated" });
+          onOpenTask?.(created);
+        },
+      }
+    );
+  }
+
+  function handleDelete() {
+    deleteTask.mutate(task.id, {
+      onSuccess: (removed) => {
+        showToast({
+          message: `"${task.content}" deleted`,
+          actionLabel: "Undo",
+          onAction: () => restoreTasks.mutate(removed),
+        });
+      },
+    });
+    onClose();
   }
 
   return (
@@ -348,15 +386,12 @@ export default function TaskDetail({
           </div>
         </div>
 
-        <div style={{ marginTop: 20 }}>
-          <button
-            className="btn btn-text"
-            style={{ color: "var(--color-danger)" }}
-            onClick={() => {
-              deleteTask.mutate(task.id);
-              onClose();
-            }}
-          >
+        <div style={{ marginTop: 20, display: "flex", gap: 4 }}>
+          <button className="btn btn-text" onClick={duplicateTask}>
+            <CopyIcon width={14} height={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
+            Duplicate
+          </button>
+          <button className="btn btn-text" style={{ color: "var(--color-danger)" }} onClick={handleDelete}>
             <TrashIcon width={14} height={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
             Delete task
           </button>

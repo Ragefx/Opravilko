@@ -122,8 +122,9 @@ export function useDeleteComment() {
   });
 }
 
+/** Returns the removed task(s) (including descendants) so callers can offer an undo. */
 export function useDeleteTask() {
-  return useLocalMutation<string, void>((data, id) => {
+  return useLocalMutation<string, Task[]>((data, id) => {
     const idsToDelete = new Set([id]);
     let changed = true;
     while (changed) {
@@ -135,7 +136,19 @@ export function useDeleteTask() {
         }
       }
     }
+    const removed = data.tasks.filter((t) => idsToDelete.has(t.id));
     data.tasks = data.tasks.filter((t) => !idsToDelete.has(t.id));
+    return removed;
+  });
+}
+
+/** Re-inserts previously removed tasks (from useDeleteTask) with their original ids/relationships. */
+export function useRestoreTasks() {
+  return useLocalMutation<Task[], void>((data, removed) => {
+    const existingIds = new Set(data.tasks.map((t) => t.id));
+    for (const t of removed) {
+      if (!existingIds.has(t.id)) data.tasks.push(t);
+    }
   });
 }
 

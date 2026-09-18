@@ -1034,6 +1034,31 @@ button:focus-visible {
   color: var(--color-text-muted);
 }
 
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 200;
+  animation: popIn 0.15s ease;
+}
+.toast-action {
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 13px;
+}
+
 .empty-state {
   color: var(--color-text-muted);
   text-align: center;

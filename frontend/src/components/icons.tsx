@@ -101,6 +101,13 @@ export const ChevronIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const CopyIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="9" y="9" width="13" height="13" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
 export const RepeatIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="m17 1 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />

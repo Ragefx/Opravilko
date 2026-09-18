@@ -3,6 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { isConnected } from "../dropbox/auth";
 import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
+import { ToastProvider } from "./ToastProvider";
 
 export default function Layout() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -21,12 +22,14 @@ export default function Layout() {
   if (!isConnected()) return <Navigate to="/connect" replace />;
 
   return (
-    <div className="app-shell">
-      <Sidebar onSearch={() => setSearchOpen(true)} />
-      <main className="main">
-        <Outlet />
-      </main>
-      {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
-    </div>
+    <ToastProvider>
+      <div className="app-shell">
+        <Sidebar onSearch={() => setSearchOpen(true)} />
+        <main className="main">
+          <Outlet />
+        </main>
+        {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
+      </div>
+    </ToastProvider>
   );
 }

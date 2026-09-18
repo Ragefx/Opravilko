@@ -35,7 +35,9 @@ jobs:
         working-directory: frontend
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
-          VITE_DROPBOX_APP_KEY: ${{ vars.DROPBOX_APP_KEY }}
+          # This is a Dropbox OAuth client ID, not a secret -- safe to commit.
+          # See README for where it comes from if it ever needs to change.
+          VITE_DROPBOX_APP_KEY: r3h3ykmuieiyd3x
           VITE_DROPBOX_DATA_PATH: /opravilko-data.json
         run: npm run build
 

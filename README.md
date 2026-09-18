@@ -1,8 +1,29 @@
 # Opravilko
 
 A personal task manager modeled on Todoist's look and workflow — projects, sections,
-labels, priorities, due dates, filters, Today/Upcoming views — with your data stored
+labels, priorities, due dates and times, recurring tasks, subtasks, comments,
+filters, favorites, search, Today/Upcoming/List/Board views — with your data stored
 in your own Dropbox account.
+
+## Features
+
+- **Projects & sections** — List and Board (drag-and-drop kanban) views per project,
+  toggle any time; sections are renamable inline.
+- **Tasks** — priorities (p1–p4, color-coded), due dates with optional time, labels,
+  descriptions, subtasks (nest, collapse, done/total badge), comments.
+- **Recurring due dates** — type `every day`, `every monday`, `every weekday`,
+  `every 3 days`, or `every month` in quick-add, or set it from the detail panel;
+  completing a recurring task advances it instead of archiving it.
+- **Today / Upcoming** — due-date-driven views, with a one-click "reschedule all
+  overdue to today".
+- **Labels & Filters** — a small filter query language (`today`, `overdue`, `p1`–`p4`,
+  `@label`, `#Project`, space-separated = AND).
+- **Favorites** — star any project/label/filter for a shortcut at the top of the
+  sidebar.
+- **Search** — Cmd/Ctrl+K (or the sidebar entry) to jump to any task, project, label,
+  or filter.
+- **Drag-and-drop reordering** — within a project's list, and between/within board
+  columns.
 
 ## How it's built
 
@@ -65,6 +86,7 @@ on your phone if you ever want to eyeball or back up the raw data.
 
 ## Roadmap ideas (not built yet)
 
-- Recurring due dates (`rrule` field already exists on `Due`, just unused by the UI)
-- Comments per task
-- Keyboard shortcuts (Todoist-style `q` for quick add, `x` complete, etc.)
+- Broader keyboard shortcuts (Todoist-style `q` for quick add, `x` complete, etc.)
+- Section drag-reorder (tasks reorder; section columns themselves don't yet)
+- File attachments on comments
+- Recurring rules beyond day/weekday/week/month/N-days (e.g. "last Friday of the month")

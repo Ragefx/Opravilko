@@ -567,6 +567,26 @@ a {
   color: var(--color-text-muted);
   font-weight: 500;
 }
+.board-column-header {
+  flex-wrap: nowrap;
+}
+.board-column-header span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.board-column-rename-input {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid var(--color-accent);
+  border-radius: 4px;
+  padding: 1px 4px;
+  outline: none;
+}
 
 .board-column-body {
   overflow-y: auto;

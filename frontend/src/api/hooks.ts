@@ -176,6 +176,16 @@ export function useCreateSection() {
   });
 }
 
+export function useUpdateSection() {
+  return useLocalMutation<Partial<Section> & { id: string }, Section | null>((data, input) => {
+    const { id, ...rest } = input;
+    const section = data.sections.find((s) => s.id === id);
+    if (!section) return null;
+    Object.assign(section, rest);
+    return section;
+  });
+}
+
 // ---- labels ----
 export function useCreateLabel() {
   return useLocalMutation<Partial<Label> & { name: string }, Label>((data, input) => {

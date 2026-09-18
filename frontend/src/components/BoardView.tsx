@@ -11,7 +11,7 @@ import {
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useBootstrap, useCompleteTask, useCreateSection, useReorderTasks } from "../api/hooks";
+import { useBootstrap, useCompleteTask, useCreateSection, useReorderTasks, useUpdateSection } from "../api/hooks";
 import type { Task } from "../api/types";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
@@ -199,10 +199,52 @@ function BoardColumn({
   projectId: string;
 }) {
   const { setNodeRef } = useDroppable({ id: column.key });
+  const updateSection = useUpdateSection();
+  const [renaming, setRenaming] = useState(false);
+  const [name, setName] = useState(column.name);
+  const canRename = column.sectionId !== null;
+
+  useEffect(() => {
+    setName(column.name);
+  }, [column.name]);
+
+  function saveName() {
+    setRenaming(false);
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === column.name) {
+      setName(column.name);
+      return;
+    }
+    updateSection.mutate({ id: column.sectionId!, name: trimmed });
+  }
+
   return (
     <div className="board-column">
       <div className="board-column-header">
-        <span>{column.name}</span>
+        {renaming ? (
+          <input
+            autoFocus
+            className="board-column-rename-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={saveName}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveName();
+              if (e.key === "Escape") {
+                setName(column.name);
+                setRenaming(false);
+              }
+            }}
+          />
+        ) : (
+          <span
+            onClick={() => canRename && setRenaming(true)}
+            style={canRename ? { cursor: "text" } : undefined}
+            title={canRename ? "Click to rename" : undefined}
+          >
+            {column.name}
+          </span>
+        )}
         <span className="badge">{column.tasks.length}</span>
       </div>
       <div ref={setNodeRef} className="board-column-body">

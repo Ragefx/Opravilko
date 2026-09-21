@@ -210,7 +210,7 @@ function BoardColumn({
   onOpenTask: (task: Task) => void;
   projectId: string;
 }) {
-  const { setNodeRef } = useDroppable({ id: column.key });
+  const { setNodeRef, isOver } = useDroppable({ id: column.key });
   const updateSection = useUpdateSection();
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(column.name);
@@ -231,7 +231,7 @@ function BoardColumn({
   }
 
   return (
-    <div className="board-column">
+    <div className={`board-column ${isOver ? "is-drop-target" : ""}`}>
       <div className="board-column-header">
         {renaming ? (
           <input

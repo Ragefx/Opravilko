@@ -1158,12 +1158,18 @@ kbd {
 .board-column {
   width: 288px;
   flex-shrink: 0;
-  background: var(--color-sidebar);
+  /* Columns stay transparent (Todoist-style) -- the cards carry the structure. */
+  background: transparent;
   border-radius: 8px;
-  padding: 10px;
+  padding: 4px 6px 10px;
   display: flex;
   flex-direction: column;
   max-height: 100%;
+  transition: background-color 0.15s ease;
+}
+/* Only tinted while a card hovers over it, so the drop target stays obvious. */
+.board-column.is-drop-target {
+  background: var(--color-selected);
 }
 
 .board-add-section-col {
@@ -1190,7 +1196,12 @@ kbd {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
+  flex: 0 1 auto;
+  max-width: 210px;
+}
+/* Count sits immediately after the name, Todoist-style, not at the far edge. */
+.board-column-header .badge {
+  margin-right: auto;
 }
 .board-column-rename-input {
   flex: 1;
@@ -1217,9 +1228,9 @@ kbd {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 10px 10px 8px;
+  padding: 12px;
   cursor: grab;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 .board-card:hover {

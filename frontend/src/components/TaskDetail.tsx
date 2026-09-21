@@ -269,6 +269,7 @@ export default function TaskDetail({
             <input
               type="time"
               className="detail-date-input"
+              lang="en-GB"
               value={timeFromDatetime(task.due?.datetime)}
               disabled={!task.due}
               onChange={(e) => setManualTime(e.target.value)}

@@ -34,7 +34,7 @@ export function makeDueFromDateString(dateStr: string, timeStr?: string): Due {
     return {
       date: dateStr,
       datetime: withTime.toISOString(),
-      string: format(withTime, "MMM d, yyyy 'at' h:mm a"),
+      string: format(withTime, "MMM d, yyyy 'at' HH:mm"),
       isRecurring: false,
     };
   }
@@ -68,7 +68,7 @@ export function formatDueLabel(due: Due | null): string {
   const d = parseISO(due.date);
   const dayLabel = isToday(d) ? "Today" : isTomorrow(d) ? "Tomorrow" : format(d, "MMM d");
   if (due.datetime) {
-    return `${dayLabel} ${format(new Date(due.datetime), "h:mm a")}`;
+    return `${dayLabel} ${format(new Date(due.datetime), "HH:mm")}`;
   }
   return dayLabel;
 }

@@ -69,7 +69,7 @@ export default function BoardView({
       cols.unshift({
         key: UNSECTIONED,
         sectionId: null,
-        name: sections.length === 0 ? "Tasks" : "No Section",
+        name: sections.length === 0 ? "Tasks" : "To-do",
         tasks: unsectioned,
       });
     }

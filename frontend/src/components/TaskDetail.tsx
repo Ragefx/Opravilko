@@ -27,7 +27,7 @@ function timeFromDatetime(datetime?: string): string {
 }
 
 export default function TaskDetail({
-  task,
+  task: initialTask,
   onClose,
   onOpenTask,
 }: {
@@ -36,6 +36,11 @@ export default function TaskDetail({
   onOpenTask?: (task: Task) => void;
 }) {
   const { data } = useBootstrap();
+  // The task prop is a snapshot from whichever list opened this panel. Once a
+  // mutation updates the bootstrap cache, re-derive from it so field pills
+  // (priority, due date, ...) reflect the change immediately instead of
+  // waiting for the panel to be closed and reopened.
+  const task = data?.tasks.find((t) => t.id === initialTask.id) ?? initialTask;
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const restoreTasks = useRestoreTasks();

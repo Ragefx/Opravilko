@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { isConnected } from "../dropbox/auth";
+import { useBootstrap } from "../api/hooks";
+import { checkDueReminders } from "../utils/notifications";
 import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
 import QuickAddModal from "./QuickAddModal";
@@ -25,8 +27,17 @@ export default function Layout() {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const navigate = useNavigate();
+  const tasks = useBootstrap().data?.tasks;
   // Tracks the "g" prefix of two-key navigation chords (g t, g u, g i).
   const goChord = useRef(false);
+
+  // Reminders only fire while the app is open -- there's no server to push them.
+  useEffect(() => {
+    if (!tasks) return;
+    checkDueReminders(tasks);
+    const id = window.setInterval(() => checkDueReminders(tasks), 60_000);
+    return () => window.clearInterval(id);
+  }, [tasks]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

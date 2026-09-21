@@ -16,9 +16,12 @@ import { colorHex } from "../utils/colors";
 import { isDueToday, isOverdue } from "../utils/date";
 import { disconnect } from "../dropbox/auth";
 import { currentEffectiveTheme, setTheme } from "../utils/theme";
+import { disableReminders, enableReminders, remindersEnabled } from "../utils/notifications";
 import {
+  BellIcon,
   EditIcon,
   FilterIcon,
+  ImportIcon,
   InboxIcon,
   LabelIcon,
   MoonIcon,
@@ -31,6 +34,7 @@ import {
   UpcomingIcon,
 } from "./icons";
 import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
+import ImportModal from "./ImportModal";
 import RowMenu from "./RowMenu";
 import { useToast } from "./ToastProvider";
 
@@ -73,7 +77,9 @@ export default function Sidebar({
   const restoreFilter = useRestoreFilter();
 
   const [modal, setModal] = useState<{ kind: EntityKind; existing?: EditableEntity } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [theme, setThemeState] = useState(currentEffectiveTheme);
+  const [remindersOn, setRemindersOn] = useState(remindersEnabled);
 
   function toggleTheme() {
     const next = theme === "dark" ? "light" : "dark";
@@ -159,6 +165,30 @@ export default function Sidebar({
         <RowMenu
           label="Account"
           items={[
+            {
+              label: "Import from Todoist",
+              icon: <ImportIcon width={14} height={14} />,
+              onClick: () => setImportOpen(true),
+            },
+            {
+              label: remindersOn ? "Turn off reminders" : "Turn on reminders",
+              icon: <BellIcon width={14} height={14} />,
+              onClick: async () => {
+                if (remindersOn) {
+                  disableReminders();
+                  setRemindersOn(false);
+                  showToast({ message: "Reminders off" });
+                } else {
+                  const ok = await enableReminders();
+                  setRemindersOn(ok);
+                  showToast({
+                    message: ok
+                      ? "Reminders on — you'll be notified for tasks with a time, while the app is open"
+                      : "Your browser blocked notifications",
+                  });
+                }
+              },
+            },
             {
               label: "Disconnect Dropbox",
               icon: <TrashIcon width={14} height={14} />,
@@ -365,6 +395,7 @@ export default function Sidebar({
       </nav>
 
       {modal && <EntityModal kind={modal.kind} existing={modal.existing} onClose={() => setModal(null)} />}
+      {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
     </aside>
   );
 }

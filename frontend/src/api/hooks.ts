@@ -244,6 +244,77 @@ export function useRestoreProject() {
   });
 }
 
+export interface ImportProjectInput {
+  projectName: string;
+  color?: string;
+  sections: string[];
+  tasks: {
+    content: string;
+    description: string;
+    priority: Priority;
+    due: Due | null;
+    indent: number;
+    sectionName: string | null;
+  }[];
+}
+
+/**
+ * Creates a whole project (sections + nested tasks) in one write, used by the
+ * Todoist CSV importer. Indent levels are resolved to parentId by tracking the
+ * most recent task seen at each shallower level.
+ */
+export function useImportProject() {
+  return useLocalMutation<ImportProjectInput, Project>((data, input) => {
+    const now = new Date().toISOString();
+    const project: Project = {
+      id: nanoid(),
+      name: input.projectName,
+      color: input.color ?? "grape",
+      order: nextOrder(data.projects),
+      isFavorite: false,
+      parentId: null,
+    };
+    data.projects.push(project);
+
+    const sectionIdByName = new Map<string, string>();
+    input.sections.forEach((name, idx) => {
+      const section: Section = { id: nanoid(), projectId: project.id, name, order: idx };
+      data.sections.push(section);
+      sectionIdByName.set(name, section.id);
+    });
+
+    // lastAtIndent[n] holds the id of the most recent task at indent level n.
+    const lastAtIndent = new Map<number, string>();
+    let order = 0;
+
+    for (const t of input.tasks) {
+      const id = nanoid();
+      const parentId = t.indent > 1 ? lastAtIndent.get(t.indent - 1) ?? null : null;
+      data.tasks.push({
+        id,
+        content: t.content,
+        description: t.description,
+        projectId: project.id,
+        sectionId: t.sectionName ? sectionIdByName.get(t.sectionName) ?? null : null,
+        parentId,
+        order: order++,
+        priority: t.priority,
+        due: t.due,
+        labels: [],
+        completed: false,
+        completedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      });
+      lastAtIndent.set(t.indent, id);
+      // A new task at this level invalidates any deeper levels beneath it.
+      [...lastAtIndent.keys()].filter((k) => k > t.indent).forEach((k) => lastAtIndent.delete(k));
+    }
+
+    return project;
+  });
+}
+
 // ---- sections ----
 export function useCreateSection() {
   return useLocalMutation<Partial<Section> & { name: string; projectId: string }, Section>((data, input) => {

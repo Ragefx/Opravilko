@@ -2,7 +2,8 @@ import type { Task } from "../api/types";
 import { useCompleteTask } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
-import { CheckIcon, ChevronIcon, RepeatIcon } from "./icons";
+import { ChevronIcon, RepeatIcon } from "./icons";
+import TaskCheckbox from "./TaskCheckbox";
 
 export default function TaskRow({
   task,
@@ -40,15 +41,12 @@ export default function TaskRow({
       ) : (
         <span className="task-collapse-spacer" />
       )}
-      <button
-        className={`task-checkbox ${task.completed ? "checked" : ""}`}
-        style={{ ["--priority-color" as any]: priorityColor }}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={() => completeTask.mutate({ id: task.id, completed: !task.completed })}
-        aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
-      >
-        {task.completed && <CheckIcon />}
-      </button>
+      <TaskCheckbox
+        completed={task.completed}
+        priorityColor={priorityColor}
+        recurring={!!task.due?.isRecurring}
+        onToggle={(next) => completeTask.mutate({ id: task.id, completed: next })}
+      />
       <div className="task-main">
         <div className={`task-content ${task.completed ? "completed" : ""}`} onClick={() => onOpen(task)}>
           {task.content}

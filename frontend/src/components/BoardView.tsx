@@ -15,9 +15,10 @@ import { useBootstrap, useCompleteTask, useCreateSection, useReorderTasks, useUp
 import type { Task } from "../api/types";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
+import TaskCheckbox from "./TaskCheckbox";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
-import { CheckIcon, RepeatIcon } from "./icons";
+import { RepeatIcon } from "./icons";
 
 const UNSECTIONED = "__none__";
 
@@ -295,18 +296,13 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
       onClick={() => onOpen(task)}
     >
       <div className="board-card-top">
-        <button
-          className={`task-checkbox ${task.completed ? "checked" : ""}`}
-          style={{ ["--priority-color" as any]: priorityColor }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            completeTask.mutate({ id: task.id, completed: true });
-          }}
-          aria-label="Mark complete"
-        >
-          {task.completed && <CheckIcon />}
-        </button>
+        <TaskCheckbox
+          completed={task.completed}
+          priorityColor={priorityColor}
+          recurring={!!task.due?.isRecurring}
+          onToggle={() => completeTask.mutate({ id: task.id, completed: true })}
+          ariaLabel="Mark complete"
+        />
         <div className="board-card-content">
           {task.content}
           {subtasks.length > 0 && (

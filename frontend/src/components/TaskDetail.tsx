@@ -17,8 +17,9 @@ import {
   parseRecurrenceString,
   serializeRecurrence,
 } from "../utils/recurrence";
-import { CheckIcon, CopyIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
+import { CopyIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
 import { useToast } from "./ToastProvider";
+import TaskCheckbox from "./TaskCheckbox";
 
 function timeFromDatetime(datetime?: string): string {
   if (!datetime) return "";
@@ -312,14 +313,12 @@ export default function TaskDetail({
           </div>
           {subtasks.map((s) => (
             <div key={s.id} className="task-row" style={{ padding: "4px 0" }}>
-              <button
-                className={`task-checkbox ${s.completed ? "checked" : ""}`}
-                style={{ ["--priority-color" as any]: PRIORITY_META[s.priority].color }}
-                onClick={() => completeTask.mutate({ id: s.id, completed: !s.completed })}
-                aria-label={s.completed ? "Mark incomplete" : "Mark complete"}
-              >
-                {s.completed && <CheckIcon />}
-              </button>
+              <TaskCheckbox
+                completed={s.completed}
+                priorityColor={PRIORITY_META[s.priority].color}
+                recurring={!!s.due?.isRecurring}
+                onToggle={(next) => completeTask.mutate({ id: s.id, completed: next })}
+              />
               <div
                 className={`task-content ${s.completed ? "completed" : ""}`}
                 style={{ fontSize: 13 }}

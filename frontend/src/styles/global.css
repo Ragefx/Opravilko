@@ -499,6 +499,16 @@ kbd {
   width: 11px;
   height: 11px;
   stroke: white;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+.task-checkbox.checked svg {
+  opacity: 1;
+}
+/* Hovering an unchecked circle previews the tick, signalling that a click completes it. */
+.task-checkbox:not(.checked):hover svg {
+  opacity: 1;
+  stroke: var(--priority-color, #c5c5c5);
 }
 
 .task-main {

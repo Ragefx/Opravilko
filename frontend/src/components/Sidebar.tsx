@@ -1,11 +1,23 @@
 import { useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useBootstrap, useUpdateFilter, useUpdateLabel, useUpdateProject } from "../api/hooks";
+import {
+  useBootstrap,
+  useDeleteFilter,
+  useDeleteLabel,
+  useDeleteProject,
+  useRestoreFilter,
+  useRestoreLabel,
+  useRestoreProject,
+  useUpdateFilter,
+  useUpdateLabel,
+  useUpdateProject,
+} from "../api/hooks";
 import { colorHex } from "../utils/colors";
 import { isDueToday, isOverdue } from "../utils/date";
 import { disconnect } from "../dropbox/auth";
 import { currentEffectiveTheme, setTheme } from "../utils/theme";
 import {
+  EditIcon,
   FilterIcon,
   InboxIcon,
   LabelIcon,
@@ -15,16 +27,17 @@ import {
   StarIcon,
   SunIcon,
   TodayIcon,
+  TrashIcon,
   UpcomingIcon,
 } from "./icons";
-import NewProjectModal from "./NewProjectModal";
-import NewLabelModal from "./NewLabelModal";
-import NewFilterModal from "./NewFilterModal";
+import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
+import RowMenu from "./RowMenu";
+import { useToast } from "./ToastProvider";
 
 function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
     <button
-      className="sidebar-star"
+      className={`sidebar-star ${active ? "is-favorite" : ""}`}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -33,25 +46,33 @@ function StarToggle({ active, onClick }: { active: boolean; onClick: () => void 
       aria-label={active ? "Remove from favorites" : "Add to favorites"}
       title={active ? "Remove from favorites" : "Add to favorites"}
     >
-      <StarIcon
-        width={14}
-        height={14}
-        fill={active ? "#ff9a14" : "none"}
-        style={{ color: active ? "#ff9a14" : undefined }}
-      />
+      <StarIcon width={14} height={14} fill={active ? "#ff9a14" : "none"} />
     </button>
   );
 }
 
-export default function Sidebar({ onSearch }: { onSearch: () => void }) {
+export default function Sidebar({
+  onSearch,
+  onQuickAdd,
+}: {
+  onSearch: () => void;
+  onQuickAdd: () => void;
+}) {
   const { data } = useBootstrap();
   const navigate = useNavigate();
+  const showToast = useToast();
+
   const updateProject = useUpdateProject();
   const updateLabel = useUpdateLabel();
   const updateFilter = useUpdateFilter();
-  const [showNewProject, setShowNewProject] = useState(false);
-  const [showNewLabel, setShowNewLabel] = useState(false);
-  const [showNewFilter, setShowNewFilter] = useState(false);
+  const deleteProject = useDeleteProject();
+  const deleteLabel = useDeleteLabel();
+  const deleteFilter = useDeleteFilter();
+  const restoreProject = useRestoreProject();
+  const restoreLabel = useRestoreLabel();
+  const restoreFilter = useRestoreFilter();
+
+  const [modal, setModal] = useState<{ kind: EntityKind; existing?: EditableEntity } | null>(null);
   const [theme, setThemeState] = useState(currentEffectiveTheme);
 
   function toggleTheme() {
@@ -80,43 +101,86 @@ export default function Sidebar({ onSearch }: { onSearch: () => void }) {
   const favoriteFilters = filters.filter((f) => f.isFavorite);
   const hasFavorites = favoriteProjects.length + favoriteLabels.length + favoriteFilters.length > 0;
 
+  function handleDeleteProject(id: string, name: string) {
+    deleteProject.mutate(id, {
+      onSuccess: (removed) => {
+        if (!removed) return;
+        navigate("/app/today");
+        showToast({
+          message: `Project “${name}” deleted`,
+          actionLabel: "Undo",
+          onAction: () => restoreProject.mutate(removed),
+        });
+      },
+    });
+  }
+
+  function handleDeleteLabel(id: string, name: string) {
+    deleteLabel.mutate(id, {
+      onSuccess: (removed) => {
+        if (!removed) return;
+        navigate("/app/today");
+        showToast({
+          message: `Label “${name}” deleted`,
+          actionLabel: "Undo",
+          onAction: () => restoreLabel.mutate(removed),
+        });
+      },
+    });
+  }
+
+  function handleDeleteFilter(id: string, name: string) {
+    deleteFilter.mutate(id, {
+      onSuccess: (removed) => {
+        if (!removed) return;
+        navigate("/app/today");
+        showToast({
+          message: `Filter “${name}” deleted`,
+          actionLabel: "Undo",
+          onAction: () => restoreFilter.mutate(removed),
+        });
+      },
+    });
+  }
+
   return (
     <aside className="sidebar">
       <div className="sidebar-user">
         <div className="sidebar-avatar">O</div>
-        Opravilko
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 2 }}>
-          <button
-            className="btn-text"
-            style={{ padding: "4px 6px" }}
-            onClick={toggleTheme}
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
-          </button>
-          <button
-            className="btn-text"
-            style={{ fontSize: 12, padding: "4px 6px" }}
-            onClick={() => {
-              disconnect();
-              navigate("/connect", { replace: true });
-            }}
-          >
-            Disconnect
-          </button>
-        </div>
+        <span className="sidebar-brand">Opravilko</span>
+        <button
+          className="sidebar-icon-btn"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
+        </button>
+        <RowMenu
+          label="Account"
+          items={[
+            {
+              label: "Disconnect Dropbox",
+              icon: <TrashIcon width={14} height={14} />,
+              danger: true,
+              onClick: () => {
+                disconnect();
+                navigate("/connect", { replace: true });
+              },
+            },
+          ]}
+        />
       </div>
 
-      <button className="sidebar-add" onClick={() => setShowNewProject(true)}>
-        <PlusIcon width={16} height={16} />
-        Add project
+      <button className="sidebar-add-task" onClick={onQuickAdd}>
+        <PlusIcon width={18} height={18} />
+        Add task
       </button>
 
-      <button className="sidebar-link" style={{ width: "100%", background: "none", border: "none" }} onClick={onSearch}>
+      <button className="sidebar-link sidebar-search" onClick={onSearch}>
         <SearchIcon className="icon" />
         Search
-        <span className="badge" style={{ marginLeft: "auto" }}>⌘K</span>
+        <kbd className="sidebar-kbd">/</kbd>
       </button>
 
       <nav className="sidebar-nav">
@@ -178,7 +242,7 @@ export default function Sidebar({ onSearch }: { onSearch: () => void }) {
 
       <div className="sidebar-section-title">
         <span>Projects</span>
-        <button onClick={() => setShowNewProject(true)} aria-label="Add project">
+        <button onClick={() => setModal({ kind: "project" })} aria-label="Add project">
           <PlusIcon width={14} height={14} />
         </button>
       </div>
@@ -190,23 +254,35 @@ export default function Sidebar({ onSearch }: { onSearch: () => void }) {
             className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
           >
             <span className="color-dot" style={{ background: colorHex(p.color) }} />
-            {p.name}
+            <span className="sidebar-link-label">{p.name}</span>
             <StarToggle
               active={p.isFavorite}
               onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}
             />
+            <RowMenu
+              label={p.name}
+              items={[
+                {
+                  label: "Edit project",
+                  icon: <EditIcon width={14} height={14} />,
+                  onClick: () => setModal({ kind: "project", existing: { id: p.id, name: p.name, color: p.color } }),
+                },
+                {
+                  label: "Delete project",
+                  icon: <TrashIcon width={14} height={14} />,
+                  danger: true,
+                  onClick: () => handleDeleteProject(p.id, p.name),
+                },
+              ]}
+            />
           </NavLink>
         ))}
-        {topProjects.length === 0 && (
-          <span style={{ color: "var(--color-text-muted)", padding: "4px 8px", fontSize: 13 }}>
-            No projects yet
-          </span>
-        )}
+        {topProjects.length === 0 && <span className="sidebar-empty">No projects yet</span>}
       </nav>
 
       <div className="sidebar-section-title">
         <span>Labels</span>
-        <button onClick={() => setShowNewLabel(true)} aria-label="Add label">
+        <button onClick={() => setModal({ kind: "label" })} aria-label="Add label">
           <PlusIcon width={14} height={14} />
         </button>
       </div>
@@ -218,23 +294,35 @@ export default function Sidebar({ onSearch }: { onSearch: () => void }) {
             className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
           >
             <LabelIcon className="icon" style={{ color: colorHex(l.color) }} />
-            {l.name}
+            <span className="sidebar-link-label">{l.name}</span>
             <StarToggle
               active={l.isFavorite}
               onClick={() => updateLabel.mutate({ id: l.id, isFavorite: !l.isFavorite })}
             />
+            <RowMenu
+              label={l.name}
+              items={[
+                {
+                  label: "Edit label",
+                  icon: <EditIcon width={14} height={14} />,
+                  onClick: () => setModal({ kind: "label", existing: { id: l.id, name: l.name, color: l.color } }),
+                },
+                {
+                  label: "Delete label",
+                  icon: <TrashIcon width={14} height={14} />,
+                  danger: true,
+                  onClick: () => handleDeleteLabel(l.id, l.name),
+                },
+              ]}
+            />
           </NavLink>
         ))}
-        {labels.length === 0 && (
-          <span style={{ color: "var(--color-text-muted)", padding: "4px 8px", fontSize: 13 }}>
-            No labels yet
-          </span>
-        )}
+        {labels.length === 0 && <span className="sidebar-empty">No labels yet</span>}
       </nav>
 
       <div className="sidebar-section-title">
         <span>Filters</span>
-        <button onClick={() => setShowNewFilter(true)} aria-label="Add filter">
+        <button onClick={() => setModal({ kind: "filter" })} aria-label="Add filter">
           <PlusIcon width={14} height={14} />
         </button>
       </div>
@@ -246,23 +334,37 @@ export default function Sidebar({ onSearch }: { onSearch: () => void }) {
             className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
           >
             <FilterIcon className="icon" style={{ color: colorHex(f.color) }} />
-            {f.name}
+            <span className="sidebar-link-label">{f.name}</span>
             <StarToggle
               active={f.isFavorite}
               onClick={() => updateFilter.mutate({ id: f.id, isFavorite: !f.isFavorite })}
             />
+            <RowMenu
+              label={f.name}
+              items={[
+                {
+                  label: "Edit filter",
+                  icon: <EditIcon width={14} height={14} />,
+                  onClick: () =>
+                    setModal({
+                      kind: "filter",
+                      existing: { id: f.id, name: f.name, color: f.color, query: f.query },
+                    }),
+                },
+                {
+                  label: "Delete filter",
+                  icon: <TrashIcon width={14} height={14} />,
+                  danger: true,
+                  onClick: () => handleDeleteFilter(f.id, f.name),
+                },
+              ]}
+            />
           </NavLink>
         ))}
-        {filters.length === 0 && (
-          <span style={{ color: "var(--color-text-muted)", padding: "4px 8px", fontSize: 13 }}>
-            No filters yet
-          </span>
-        )}
+        {filters.length === 0 && <span className="sidebar-empty">No filters yet</span>}
       </nav>
 
-      {showNewProject && <NewProjectModal onClose={() => setShowNewProject(false)} />}
-      {showNewLabel && <NewLabelModal onClose={() => setShowNewLabel(false)} />}
-      {showNewFilter && <NewFilterModal onClose={() => setShowNewFilter(false)} />}
+      {modal && <EntityModal kind={modal.kind} existing={modal.existing} onClose={() => setModal(null)} />}
     </aside>
   );
 }

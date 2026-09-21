@@ -208,11 +208,39 @@ export function useUpdateProject() {
   });
 }
 
+export interface DeletedProject {
+  project: Project;
+  sections: Section[];
+  tasks: Task[];
+}
+
+/**
+ * Deletes a project along with its sections and tasks, returning them so the
+ * caller can offer an undo. Inbox is never deletable.
+ */
 export function useDeleteProject() {
-  return useLocalMutation<string, void>((data, id) => {
-    data.projects = data.projects.filter((p) => p.id !== id && !p.isInboxProject);
+  return useLocalMutation<string, DeletedProject | null>((data, id) => {
+    const project = data.projects.find((p) => p.id === id);
+    if (!project || project.isInboxProject) return null;
+
+    const sections = data.sections.filter((s) => s.projectId === id);
+    const tasks = data.tasks.filter((t) => t.projectId === id);
+
+    data.projects = data.projects.filter((p) => p.id !== id);
     data.sections = data.sections.filter((s) => s.projectId !== id);
     data.tasks = data.tasks.filter((t) => t.projectId !== id);
+
+    return { project, sections, tasks };
+  });
+}
+
+export function useRestoreProject() {
+  return useLocalMutation<DeletedProject, void>((data, { project, sections, tasks }) => {
+    if (!data.projects.some((p) => p.id === project.id)) data.projects.push(project);
+    const sectionIds = new Set(data.sections.map((s) => s.id));
+    sections.forEach((s) => !sectionIds.has(s.id) && data.sections.push(s));
+    const taskIds = new Set(data.tasks.map((t) => t.id));
+    tasks.forEach((t) => !taskIds.has(t.id) && data.tasks.push(t));
   });
 }
 
@@ -256,20 +284,47 @@ export function useUpdateLabel() {
     const { id, ...rest } = input;
     const label = data.labels.find((l) => l.id === id);
     if (!label) return null;
+    const previousName = label.name;
     Object.assign(label, rest);
+    // Tasks reference labels by name, so a rename has to be carried across them.
+    if (rest.name && rest.name !== previousName) {
+      data.tasks.forEach((t) => {
+        t.labels = t.labels.map((n) => (n === previousName ? label.name : n));
+      });
+    }
     return label;
   });
 }
 
+export interface DeletedLabel {
+  label: Label;
+  /** Ids of tasks the label was stripped from, so an undo can re-tag them. */
+  taskIds: string[];
+}
+
 export function useDeleteLabel() {
-  return useLocalMutation<string, void>((data, id) => {
+  return useLocalMutation<string, DeletedLabel | null>((data, id) => {
     const label = data.labels.find((l) => l.id === id);
+    if (!label) return null;
     data.labels = data.labels.filter((l) => l.id !== id);
-    if (label) {
-      data.tasks.forEach((t) => {
+    const taskIds: string[] = [];
+    data.tasks.forEach((t) => {
+      if (t.labels.includes(label.name)) {
+        taskIds.push(t.id);
         t.labels = t.labels.filter((n) => n !== label.name);
-      });
-    }
+      }
+    });
+    return { label, taskIds };
+  });
+}
+
+export function useRestoreLabel() {
+  return useLocalMutation<DeletedLabel, void>((data, { label, taskIds }) => {
+    if (!data.labels.some((l) => l.id === label.id)) data.labels.push(label);
+    const ids = new Set(taskIds);
+    data.tasks.forEach((t) => {
+      if (ids.has(t.id) && !t.labels.includes(label.name)) t.labels.push(label.name);
+    });
   });
 }
 
@@ -294,7 +349,16 @@ export function useUpdateFilter() {
 }
 
 export function useDeleteFilter() {
-  return useLocalMutation<string, void>((data, id) => {
+  return useLocalMutation<string, FilterDef | null>((data, id) => {
+    const filter = data.filters.find((f) => f.id === id);
+    if (!filter) return null;
     data.filters = data.filters.filter((f) => f.id !== id);
+    return filter;
+  });
+}
+
+export function useRestoreFilter() {
+  return useLocalMutation<FilterDef, void>((data, filter) => {
+    if (!data.filters.some((f) => f.id === filter.id)) data.filters.push(filter);
   });
 }

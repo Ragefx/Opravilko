@@ -28,7 +28,7 @@ export default function TaskRow({
 
   return (
     <div className="task-row" style={depth > 0 ? { paddingLeft: depth * 28 } : undefined}>
-      {subtaskCount && (
+      {onToggleCollapse ? (
         <button
           className="task-collapse-toggle"
           onPointerDown={(e) => e.stopPropagation()}
@@ -37,6 +37,8 @@ export default function TaskRow({
         >
           <ChevronIcon width={14} height={14} style={{ transform: collapsed ? "rotate(-90deg)" : undefined }} />
         </button>
+      ) : (
+        <span className="task-collapse-spacer" />
       )}
       <button
         className={`task-checkbox ${task.completed ? "checked" : ""}`}

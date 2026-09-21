@@ -85,7 +85,28 @@ export default function ProjectView() {
     );
   }
 
-  const sorted = sortTasks(tasks, display);
+  let sorted = sortTasks(tasks, display);
+
+  // With no explicit grouping chosen, fall back to the project's own sections so
+  // they don't disappear when switching from Board to List.
+  const sections = data.sections
+    .filter((s) => s.projectId === projectId)
+    .sort((a, b) => a.order - b.order);
+  const groupBySection = display.grouping === "none" && sections.length > 0;
+
+  if (groupBySection) {
+    const sectionRank = new Map(sections.map((s, i) => [s.id, i + 1]));
+    sorted = [...sorted].sort(
+      (a, b) => (a.sectionId ? sectionRank.get(a.sectionId) ?? 99 : 0) - (b.sectionId ? sectionRank.get(b.sectionId) ?? 99 : 0)
+    );
+  }
+
+  const sectionNameById = new Map(sections.map((s) => [s.id, s.name]));
+  const groupLabel = groupBySection
+    ? (t: (typeof sorted)[number]) => (t.sectionId ? sectionNameById.get(t.sectionId) ?? "Other" : "No section")
+    : display.grouping !== "none"
+      ? (t: (typeof sorted)[number]) => groupKeyFor(t, display.grouping)
+      : undefined;
 
   return (
     <TaskListView
@@ -93,9 +114,9 @@ export default function ProjectView() {
       tasks={sorted}
       quickAddProjectId={project.id}
       header={header}
-      reorderable={display.sorting === "manual" && display.grouping === "none"}
-      preserveOrder={display.sorting !== "manual"}
-      groupLabel={display.grouping !== "none" ? (t) => groupKeyFor(t, display.grouping) : undefined}
+      reorderable={display.sorting === "manual" && display.grouping === "none" && !groupBySection}
+      preserveOrder={display.sorting !== "manual" || groupBySection}
+      groupLabel={groupLabel}
       autoOpenTaskId={autoOpenId || undefined}
     />
   );

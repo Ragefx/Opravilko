@@ -5,13 +5,15 @@ import type { DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task } from "../api/types";
-import { useReorderTasks } from "../api/hooks";
+import { useBootstrap, useReorderTasks } from "../api/hooks";
 import TaskRow from "./TaskRow";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
+import { CheckCircleIcon } from "./icons";
 
 export default function TaskListView({
   title,
+  subtitle,
   tasks,
   quickAddProjectId,
   quickAddDue,
@@ -25,6 +27,8 @@ export default function TaskListView({
   preserveOrder,
 }: {
   title: string;
+  /** Secondary line under the title, e.g. the date and task count. */
+  subtitle?: string;
   tasks: Task[];
   quickAddProjectId?: string;
   quickAddDue?: { date: string; string: string } | null;
@@ -45,6 +49,7 @@ export default function TaskListView({
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const reorderTasks = useReorderTasks();
+  const allTasks = useBootstrap().data?.tasks;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   useEffect(() => {
@@ -62,7 +67,16 @@ export default function TaskListView({
   // (e.g. the parent has a different due date and got filtered out of a Today/filter view).
   const activeIds = new Set(active.map((t) => t.id));
   const isTopLevel = (t: Task) => !t.parentId || !activeIds.has(t.parentId);
+  /** Rendered children: only the ones still open, since completed rows live in their own section. */
   const childrenOf = (id: string) => active.filter((t) => t.parentId === id);
+  /**
+   * Progress is counted against the full dataset, not `tasks` -- callers filter
+   * completed items out before passing them in, which would pin the badge at 0/n.
+   */
+  const subtaskProgress = (id: string) => {
+    const all = (allTasks ?? tasks).filter((t) => t.parentId === id);
+    return all.length > 0 ? { done: all.filter((t) => t.completed).length, total: all.length } : undefined;
+  };
   const topLevel = active.filter(isTopLevel);
 
   function toggleCollapse(id: string) {
@@ -94,13 +108,9 @@ export default function TaskListView({
           onOpen={setOpenTask}
           depth={depth}
           projectLabel={showProjectChip ? projectNameById?.[t.projectId] : undefined}
-          subtaskCount={
-            children.length > 0
-              ? { done: children.filter((c) => c.completed).length, total: children.length }
-              : undefined
-          }
+          subtaskCount={subtaskProgress(t.id)}
           collapsed={isCollapsed}
-          onToggleCollapse={() => toggleCollapse(t.id)}
+          onToggleCollapse={children.length > 0 ? () => toggleCollapse(t.id) : undefined}
         />
         {!isCollapsed && children.map((c) => renderTaskAndChildren(c, depth + 1))}
       </div>
@@ -119,15 +129,22 @@ export default function TaskListView({
   return (
     <div className="content-scroll">
       {header ?? (
-        <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
-          <h1>{title}</h1>
+        <div className="page-header">
+          <div>
+            <h1>{title}</h1>
+            {subtitle && <div className="page-subtitle">{subtitle}</div>}
+          </div>
         </div>
       )}
 
       {quickAddProjectId && <QuickAdd projectId={quickAddProjectId} defaultDue={quickAddDue} />}
 
       {active.length === 0 && completed.length === 0 && (
-        <div className="empty-state">Nothing here. Enjoy the quiet.</div>
+        <div className="empty-state">
+          <CheckCircleIcon width={40} height={40} />
+          <p>All clear</p>
+          <span>Nothing due here. Add a task above, or press q from anywhere.</span>
+        </div>
       )}
 
       {groupLabel

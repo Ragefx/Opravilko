@@ -5,8 +5,10 @@ import { HashRouter } from "react-router-dom";
 import "./styles/global.css";
 import App from "./App";
 import { initTheme } from "./utils/theme";
+import { installSyncGuards } from "./dropbox/store";
 
 initTheme();
+installSyncGuards();
 
 const queryClient = new QueryClient({
   defaultOptions: {

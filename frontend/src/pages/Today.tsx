@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { useBootstrap, useRescheduleTasks } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
 import type { Task } from "../api/types";
@@ -15,6 +16,7 @@ export default function Today() {
   return (
     <TaskListView
       title="Today"
+      subtitle={`${format(new Date(), "EEEE d MMMM")} · ${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`}
       tasks={tasks}
       quickAddProjectId="inbox"
       quickAddDue={{ date: todayISO(), string: "today" }}

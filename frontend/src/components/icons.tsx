@@ -101,6 +101,45 @@ export const ChevronIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const CheckCircleIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} strokeWidth={1.5}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8.5 12.5 2.5 2.5 4.5-5" />
+  </svg>
+);
+
+export const CloudIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97 6 6 0 0 0-11.6-1.4A4 4 0 0 0 6.5 19h11Z" />
+  </svg>
+);
+
+export const CloudOffIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M17.5 19a4.5 4.5 0 0 0 1.74-8.66M9 5.2A6 6 0 0 1 18 10M6.4 8.6A4 4 0 0 0 6.5 19h8M2 2l20 20" />
+  </svg>
+);
+
+export const RefreshIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+  </svg>
+);
+
+export const MoreIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="19" r="1.6" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const EditIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+  </svg>
+);
+
 export const CopyIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="9" y="9" width="13" height="13" rx="2" />

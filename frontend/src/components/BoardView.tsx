@@ -310,6 +310,7 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
               {subtasks.filter((s) => s.completed).length}/{subtasks.length}
             </span>
           )}
+          {task.description && <div className="board-card-description">{task.description}</div>}
         </div>
       </div>
       {(task.due || task.labels.length > 0) && (

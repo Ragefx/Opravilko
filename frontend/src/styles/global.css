@@ -1279,6 +1279,16 @@ kbd {
   line-height: 1.4;
   flex: 1;
 }
+.board-card-description {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .comment-row {
   padding: 8px 0;

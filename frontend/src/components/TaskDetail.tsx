@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Task } from "../api/types";
 import {
   useAddComment,
@@ -26,6 +26,12 @@ function timeFromDatetime(datetime?: string): string {
   const d = new Date(datetime);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
+
+// Native <input type="time"> follows the OS/browser locale for 12h/24h display
+// no matter what `lang` is set to on some browsers, so the time field is built
+// from two plain <select>s instead -- always shows and stores 00:00-23:59.
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 
 export default function TaskDetail({
   task: initialTask,
@@ -55,11 +61,21 @@ export default function TaskDetail({
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState("");
   const [commentText, setCommentText] = useState("");
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setContent(task.content);
     setDescription(task.description);
   }, [task.id]);
+
+  // Grows the description box to fit its content -- on open and as it's
+  // typed into -- instead of a fixed row count that clips longer text.
+  useEffect(() => {
+    const el = descriptionRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [description]);
 
   function saveContent() {
     if (content.trim() && content !== task.content) {
@@ -120,6 +136,7 @@ export default function TaskDetail({
   }
 
   const currentFreq = parseRecurrenceString(task.due?.rrule)?.freq;
+  const [timeHour, timeMinute] = timeFromDatetime(task.due?.datetime).split(":");
   const parentTask = task.parentId ? data?.tasks.find((t) => t.id === task.parentId) : undefined;
   const subtasks = (data?.tasks || [])
     .filter((t) => t.parentId === task.id)
@@ -207,12 +224,18 @@ export default function TaskDetail({
         />
 
         <textarea
+          ref={descriptionRef}
           placeholder="Description"
           value={description}
-          rows={4}
+          rows={1}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={saveDescription}
-          style={{ color: "var(--color-text-secondary)", fontSize: 13 }}
+          style={{
+            color: "var(--color-text-secondary)",
+            fontSize: 13,
+            minHeight: 64,
+            overflow: "hidden",
+          }}
         />
 
         <div className="detail-field-row">
@@ -265,16 +288,35 @@ export default function TaskDetail({
               onChange={(e) => setManualDate(e.target.value)}
             />
           </label>
-          <label className="field-pill" style={{ gap: 6, opacity: task.due ? 1 : 0.5 }}>
+          <label className="field-pill" style={{ gap: 4, opacity: task.due ? 1 : 0.5 }}>
             time
-            <input
-              type="time"
+            <select
               className="detail-date-input"
-              lang="en-GB"
-              value={timeFromDatetime(task.due?.datetime)}
+              value={timeHour || ""}
               disabled={!task.due}
-              onChange={(e) => setManualTime(e.target.value)}
-            />
+              onChange={(e) => setManualTime(`${e.target.value}:${timeMinute || "00"}`)}
+            >
+              {!timeHour && <option value="" />}
+              {HOURS.map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
+            </select>
+            :
+            <select
+              className="detail-date-input"
+              value={timeMinute || ""}
+              disabled={!task.due}
+              onChange={(e) => setManualTime(`${timeHour || "00"}:${e.target.value}`)}
+            >
+              {!timeMinute && <option value="" />}
+              {MINUTES.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
 

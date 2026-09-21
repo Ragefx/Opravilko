@@ -3,6 +3,8 @@ import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
+import { type RecurrenceFreq, applyRecurrence } from "../utils/recurrence";
+import { RepeatIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 
 /** App-wide "add task from anywhere" box, opened with `q`. */
@@ -12,9 +14,11 @@ export default function QuickAddModal({ onClose }: { onClose: () => void }) {
   const showToast = useToast();
   const [text, setText] = useState("");
   const [projectId, setProjectId] = useState("inbox");
+  const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
 
   const projects = data?.projects || [];
   const preview = text.trim() ? parseQuickAddInput(text) : null;
+  const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
 
   // A typed "#ProjectName" wins over the dropdown, matching Todoist.
   const typedProject = preview?.projectName
@@ -29,7 +33,7 @@ export default function QuickAddModal({ onClose }: { onClose: () => void }) {
         content: preview.content,
         projectId: targetProject?.id || "inbox",
         priority: preview.priority,
-        due: preview.due,
+        due: applyRecurrence(preview.due, recurrence),
         labels: preview.labels,
       },
       {
@@ -54,9 +58,16 @@ export default function QuickAddModal({ onClose }: { onClose: () => void }) {
           }}
         />
 
-        {preview && (preview.due || preview.labels.length > 0 || preview.priority !== 1) && (
+        {preview && (previewDue || preview.labels.length > 0 || preview.priority !== 1) && (
           <div className="quick-add-preview">
-            {preview.due && <span className="chip">{formatDueLabel(preview.due)}</span>}
+            {previewDue && (
+              <span className="chip">
+                {formatDueLabel(previewDue)}
+                {previewDue.isRecurring && (
+                  <RepeatIcon width={11} height={11} style={{ verticalAlign: "-1px" }} />
+                )}
+              </span>
+            )}
             {preview.priority !== 1 && (
               <span className="chip" style={{ color: PRIORITY_META[preview.priority].color }}>
                 {PRIORITY_META[preview.priority].label}
@@ -71,18 +82,35 @@ export default function QuickAddModal({ onClose }: { onClose: () => void }) {
         )}
 
         <div className="modal-actions" style={{ justifyContent: "space-between", alignItems: "center" }}>
-          <select
-            value={typedProject?.id ?? projectId}
-            disabled={Boolean(typedProject)}
-            onChange={(e) => setProjectId(e.target.value)}
-            title={typedProject ? "Set by the #project you typed" : "Choose a project"}
-          >
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
+            <select
+              style={{ flex: "1 1 auto", minWidth: 0 }}
+              value={typedProject?.id ?? projectId}
+              disabled={Boolean(typedProject)}
+              onChange={(e) => setProjectId(e.target.value)}
+              title={typedProject ? "Set by the #project you typed" : "Choose a project"}
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <label className="field-pill" style={{ gap: 6, flexShrink: 0 }}>
+              <RepeatIcon width={14} height={14} />
+              <select
+                className="detail-date-input"
+                value={recurrence}
+                onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq | "none")}
+              >
+                <option value="none">Doesn't repeat</option>
+                <option value="daily">Every day</option>
+                <option value="weekdays">Every weekday</option>
+                <option value="weekly">Every week</option>
+                <option value="monthly">Every month</option>
+              </select>
+            </label>
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-text" onClick={onClose}>
               Cancel

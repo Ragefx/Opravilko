@@ -1,4 +1,5 @@
 import { addDays, addMonths, format, getDay, parseISO, startOfDay } from "date-fns";
+import type { Due } from "../api/types";
 
 export type RecurrenceFreq = "daily" | "weekly" | "monthly" | "weekdays" | "every_n_days";
 
@@ -81,6 +82,25 @@ export function initialDueForRecurrence(rule: RecurrenceRule): string {
     while (getDay(d) !== target) d = addDays(d, 1);
   }
   return format(d, "yyyy-MM-dd");
+}
+
+/**
+ * Layers a picked recurrence frequency onto a due date built from quick-add
+ * text. If the text already set its own recurrence (typed "every monday"),
+ * that wins. Otherwise reuses the typed date/time when there is one, or
+ * picks the rule's own first matching date.
+ */
+export function applyRecurrence(due: Due | null, freq: RecurrenceFreq | "none"): Due | null {
+  if (freq === "none" || due?.isRecurring) return due;
+  const rule: RecurrenceRule = { freq };
+  const date = due?.date ?? initialDueForRecurrence(rule);
+  return {
+    date,
+    datetime: due?.datetime,
+    string: describeRecurrence(rule),
+    isRecurring: true,
+    rrule: serializeRecurrence(rule),
+  };
 }
 
 /** Detects phrases like "every day", "every weekday", "every monday", "every 3 days" in quick-add text. */

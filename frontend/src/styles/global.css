@@ -765,6 +765,16 @@ kbd {
   border-radius: 6px;
   margin-bottom: 12px;
 }
+/* Overrides ".modal select { width: 100% }" -- inside a field-pill (the
+   recurrence picker) a select shares a flex row with the project picker, and
+   both wanting 100% collapses each other down to a sliver. */
+.modal .field-pill select {
+  width: auto;
+  min-width: 110px;
+  margin-bottom: 0;
+  border: none;
+  padding: 0;
+}
 .modal-actions {
   display: flex;
   justify-content: flex-end;

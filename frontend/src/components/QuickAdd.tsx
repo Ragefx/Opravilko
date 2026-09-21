@@ -3,6 +3,8 @@ import { useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
+import { type RecurrenceFreq, applyRecurrence } from "../utils/recurrence";
+import { RepeatIcon } from "./icons";
 
 export default function QuickAdd({
   projectId,
@@ -15,9 +17,11 @@ export default function QuickAdd({
 }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+  const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
   const createTask = useCreateTask();
 
   const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
+  const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
 
   function submit() {
     if (!text.trim()) return;
@@ -29,10 +33,11 @@ export default function QuickAdd({
       projectId,
       sectionId,
       priority: parsed.priority,
-      due: parsed.due,
+      due: applyRecurrence(parsed.due, recurrence),
       labels: parsed.labels,
     });
     setText("");
+    setRecurrence("none");
     setOpen(false);
   }
 
@@ -59,9 +64,16 @@ export default function QuickAdd({
           }
         }}
       />
-      {preview && (preview.due || preview.labels.length > 0 || preview.priority !== 1) && (
+      {preview && (previewDue || preview.labels.length > 0 || preview.priority !== 1) && (
         <div className="quick-add-preview">
-          {preview.due && <span className="chip">{formatDueLabel(preview.due)}</span>}
+          {previewDue && (
+            <span className="chip">
+              {formatDueLabel(previewDue)}
+              {previewDue.isRecurring && (
+                <RepeatIcon width={11} height={11} style={{ verticalAlign: "-1px" }} />
+              )}
+            </span>
+          )}
           {preview.priority !== 1 && (
             <span className="chip" style={{ color: PRIORITY_META[preview.priority].color }}>
               {PRIORITY_META[preview.priority].label}
@@ -75,6 +87,20 @@ export default function QuickAdd({
         </div>
       )}
       <div className="quick-add-actions">
+        <label className="field-pill" style={{ gap: 6, marginRight: "auto" }}>
+          <RepeatIcon width={14} height={14} />
+          <select
+            className="detail-date-input"
+            value={recurrence}
+            onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq | "none")}
+          >
+            <option value="none">Doesn't repeat</option>
+            <option value="daily">Every day</option>
+            <option value="weekdays">Every weekday</option>
+            <option value="weekly">Every week</option>
+            <option value="monthly">Every month</option>
+          </select>
+        </label>
         <button className="btn btn-text" onClick={() => setOpen(false)}>
           Cancel
         </button>

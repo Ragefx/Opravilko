@@ -24,6 +24,14 @@ in your own Dropbox account.
   or filter.
 - **Drag-and-drop reordering** — within a project's list, and between/within board
   columns.
+- **Import from Todoist** — point it at a Todoist project CSV export (⋯ → Manage data
+  → Export as CSV) and it rebuilds sections, sub-tasks, priorities, descriptions and
+  due dates (including recurrence phrases). Comments and attachments aren't carried
+  over.
+- **Keyboard shortcuts** — `q` add task anywhere, `/` or Cmd/Ctrl+K search,
+  `g` then `t`/`u`/`i` to jump to Today/Upcoming/Inbox, `?` for the full list.
+- **Reminders** — opt-in browser notifications for tasks with a due *time*, while the
+  app is open.
 
 ## How it's built
 
@@ -37,6 +45,11 @@ server. It talks to Dropbox directly from your browser:
 - **Storage**: all your data — projects, sections, tasks, labels, filters — lives in
   a single JSON file (`opravilko-data.json`) inside your Dropbox app folder. The app
   downloads it on load and uploads it (debounced) after every change.
+- **Sync safety**: uploads carry the file's Dropbox `rev`, so if the same file was
+  changed elsewhere (another tab or device) the write is rejected rather than
+  silently overwriting — you're asked whether to keep yours or load theirs. Pending
+  writes are flushed when the tab is hidden or closed, and a failed save surfaces a
+  Retry instead of failing quietly.
 - **Hosting**: deployed as static files on GitHub Pages, same as your other
   Dropbox-backed projects. No server to run, nothing to keep warm.
 
@@ -86,7 +99,9 @@ on your phone if you ever want to eyeball or back up the raw data.
 
 ## Roadmap ideas (not built yet)
 
-- Broader keyboard shortcuts (Todoist-style `q` for quick add, `x` complete, etc.)
+- Bulk multi-select (complete/move/reschedule several tasks at once)
 - Section drag-reorder (tasks reorder; section columns themselves don't yet)
-- File attachments on comments
+- File attachments — worth doing since the Dropbox connection is already there
+- Completed-task history / activity log
 - Recurring rules beyond day/weekday/week/month/N-days (e.g. "last Friday of the month")
+- Display settings (grouping/sort/filters) persist per project rather than per session

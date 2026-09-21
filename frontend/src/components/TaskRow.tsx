@@ -2,7 +2,7 @@ import type { Task } from "../api/types";
 import { useCompleteTask } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
-import { ChevronIcon, RepeatIcon } from "./icons";
+import { CalendarIcon, ChevronIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 
 export default function TaskRow({
@@ -60,8 +60,10 @@ export default function TaskRow({
           <div className="task-meta">
             {task.due && (
               <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
-                {task.due.isRecurring && <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />}{" "}
-                {formatDueLabel(task.due)}
+                <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}
+                {task.due.isRecurring && (
+                  <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
+                )}
               </span>
             )}
             {task.labels.map((l) => (

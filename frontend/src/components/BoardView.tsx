@@ -18,7 +18,7 @@ import QuickAdd from "./QuickAdd";
 import TaskCheckbox from "./TaskCheckbox";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
-import { RepeatIcon } from "./icons";
+import { CalendarIcon, RepeatIcon } from "./icons";
 
 const UNSECTIONED = "__none__";
 
@@ -316,8 +316,10 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
         <div className="task-meta">
           {task.due && (
             <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
-              {task.due.isRecurring && <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />}{" "}
-              {formatDueLabel(task.due)}
+              <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}
+              {task.due.isRecurring && (
+                <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
+              )}
             </span>
           )}
           {task.labels.map((l) => (

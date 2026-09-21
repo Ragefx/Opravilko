@@ -16,16 +16,17 @@ import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
 
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 3;
+const WEEK_OPTS = { weekStartsOn: 1 as const };
 
 export default function CalendarView({ tasks, projectId }: { tasks: Task[]; projectId: string }) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [addingFor, setAddingFor] = useState<string | null>(null);
 
-  const gridStart = startOfWeek(startOfMonth(month));
-  const gridEnd = endOfWeek(endOfMonth(month));
+  const gridStart = startOfWeek(startOfMonth(month), WEEK_OPTS);
+  const gridEnd = endOfWeek(endOfMonth(month), WEEK_OPTS);
   const days: Date[] = [];
   for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) days.push(d);
 

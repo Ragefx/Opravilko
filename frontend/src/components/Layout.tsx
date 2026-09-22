@@ -6,6 +6,13 @@ import { REMINDERS_CHANGED, checkDueReminders, syncNativeReminders } from "../ut
 import { useQueryClient } from "@tanstack/react-query";
 import { hasPendingWrite } from "../dropbox/store";
 import { onAppResume } from "../native/android";
+import {
+  WIDGET_QUICK_ADD,
+  onWidgetDataChanged,
+  pushWidgetData,
+  takeQuickAddRequest,
+  type QuickAddRequest,
+} from "../native/widget";
 import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
 import QuickAddModal from "./QuickAddModal";
@@ -29,6 +36,8 @@ function isTyping(target: EventTarget | null): boolean {
 export default function Layout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  // Set when the Android widget's + opened quick add (its project / due today).
+  const [quickAddPreset, setQuickAddPreset] = useState<QuickAddRequest | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const navigate = useNavigate();
@@ -38,7 +47,8 @@ export default function Layout() {
   useEffect(() => {
     setNavOpen(false);
   }, [location.pathname]);
-  const tasks = useBootstrap().data?.tasks;
+  const appData = useBootstrap().data;
+  const tasks = appData?.tasks;
   const syncAllCalendarFeeds = useSyncAllCalendarFeeds();
   // Tracks the "g" prefix of two-key navigation chords (g t, g u, g i).
   const goChord = useRef(false);
@@ -74,6 +84,32 @@ export default function Layout() {
       }),
     [queryClient]
   );
+
+  // Android home-screen widget: keep its copy of the tasks current, reload when
+  // it completed something itself, and open quick add from its + button.
+  useEffect(() => {
+    if (!isNativeApp || !appData) return;
+    const t = window.setTimeout(() => pushWidgetData(appData), 800);
+    return () => window.clearTimeout(t);
+  }, [appData]);
+  useEffect(
+    () =>
+      onWidgetDataChanged(() => {
+        if (!hasPendingWrite()) void queryClient.invalidateQueries({ queryKey: ["bootstrap"] });
+      }),
+    [queryClient]
+  );
+  useEffect(() => {
+    const open = () => {
+      const request = takeQuickAddRequest();
+      if (!request) return;
+      setQuickAddPreset(request);
+      setQuickAddOpen(true);
+    };
+    open(); // asked for before this mounted (cold start)
+    window.addEventListener(WIDGET_QUICK_ADD, open);
+    return () => window.removeEventListener(WIDGET_QUICK_ADD, open);
+  }, []);
 
   // Subscribed calendar feeds have no push either -- refresh once on load, then
   // hourly for as long as the tab stays open.
@@ -158,8 +194,14 @@ export default function Layout() {
         {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
         {quickAddOpen && (
           <QuickAddModal
-            onClose={() => setQuickAddOpen(false)}
-            defaultProjectId={location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox"}
+            onClose={() => {
+              setQuickAddOpen(false);
+              setQuickAddPreset(null);
+            }}
+            defaultProjectId={
+              quickAddPreset?.projectId ?? location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox"
+            }
+            defaultToday={quickAddPreset?.today}
           />
         )}
         {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}

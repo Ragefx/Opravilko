@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mirrors the web app's light theme (src/styles/global.css). -->
+<resources>
+    <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_text">#1C1F26</color>
+    <color name="widget_text_secondary">#676E7A</color>
+    <color name="widget_accent">#3E63DD</color>
+    <color name="widget_due_overdue">#E0433A</color>
+    <color name="widget_due_today">#1F9254</color>
+    <color name="widget_due_tomorrow">#B8860B</color>
+    <color name="widget_due_later">#8347D9</color>
+</resources>

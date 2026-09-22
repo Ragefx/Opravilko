@@ -83,6 +83,13 @@ What's different from the website:
 - **Sign-in** opens Dropbox in the phone's browser; the website's callback page
   hands the result back to the app (`opravilko://oauth`), so no extra redirect URI
   has to be registered with Dropbox.
+- **Home-screen widget**, like Todoist's: long-press the home screen → Widgets →
+  Opravilko, then pick Today, Upcoming, Inbox or a project. Tap a circle to complete
+  a task (it syncs to Dropbox in the background, even offline-then-online), tap a
+  task to open it, or **+** to add one. It refreshes from Dropbox about every 30
+  minutes and whenever the app is open. The code is in
+  `frontend/android/app/src/main/java/com/opravilko/app/widget/`; its task rules
+  (`TaskLogic.java`) mirror the web app's and must be kept in step.
 
 **Signing.** By default CI builds a debug-signed APK, and each build has a different
 signature, so installing a newer one means uninstalling the old one first (your

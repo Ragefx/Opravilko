@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Completion circle, colored like the app's priority 1 (stored as 4). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#1AE44332" />
+    <stroke android:width="2dp" android:color="#E44332" />
+    <size android:width="20dp" android:height="20dp" />
+</shape>

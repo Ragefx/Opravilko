@@ -1,5 +1,14 @@
 package com.opravilko.app;
 
-import com.getcapacitor.BridgeActivity;
+import android.os.Bundle;
 
-public class MainActivity extends BridgeActivity {}
+import com.getcapacitor.BridgeActivity;
+import com.opravilko.app.widget.WidgetBridgePlugin;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(WidgetBridgePlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}

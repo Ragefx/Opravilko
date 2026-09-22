@@ -34,6 +34,11 @@ export function getRedirectUri(): string {
 // stop the app meanwhile, so its PKCE verifier has to outlive the session.
 const verifierStore = (): Storage => (isNativeApp ? localStorage : sessionStorage);
 
+/** What the Android widget needs to reach the Dropbox file on its own. */
+export function getWidgetAuth(): { appKey: string; refreshToken: string | null } {
+  return { appKey: APP_KEY, refreshToken: localStorage.getItem(LS_REFRESH_TOKEN) };
+}
+
 export function isConnected(): boolean {
   return Boolean(localStorage.getItem(LS_REFRESH_TOKEN));
 }

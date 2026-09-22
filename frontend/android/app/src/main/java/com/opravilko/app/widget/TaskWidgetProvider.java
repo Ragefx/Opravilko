@@ -1,0 +1,100 @@
+package com.opravilko.app.widget;
+
+import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.widget.RemoteViews;
+
+import com.opravilko.app.MainActivity;
+import com.opravilko.app.R;
+
+import org.json.JSONObject;
+
+/**
+ * The home-screen task list widget: a header (view name, task count, add
+ * button) over a scrolling list of tasks. Rows come from TaskWidgetService;
+ * taps on rows go to WidgetActionActivity via one PendingIntent template.
+ */
+public class TaskWidgetProvider extends AppWidgetProvider {
+    static final String EXTRA_ACTION = "com.opravilko.app.widget.ACTION";
+    static final String EXTRA_TASK_ID = "com.opravilko.app.widget.TASK_ID";
+    static final String EXTRA_PROJECT_ID = "com.opravilko.app.widget.PROJECT_ID";
+    static final String EXTRA_DUE_DATE = "com.opravilko.app.widget.DUE_DATE";
+    static final String ACTION_COMPLETE = "complete";
+    static final String ACTION_OPEN = "open";
+
+    /** Refresh from Dropbox on the periodic update if the copy is older than this. */
+    private static final long REFRESH_AFTER_MS = 15 * 60 * 1000;
+
+    @Override
+    public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
+        for (int id : appWidgetIds) manager.updateAppWidget(id, buildViews(context, id));
+        manager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list);
+        WidgetStore store = new WidgetStore(context);
+        if (store.hasAuth() && System.currentTimeMillis() - store.getLastRefresh() > REFRESH_AFTER_MS) {
+            WidgetSyncJob.schedule(context);
+        }
+    }
+
+    @Override
+    public void onDeleted(Context context, int[] appWidgetIds) {
+        WidgetStore store = new WidgetStore(context);
+        for (int id : appWidgetIds) store.removeView(id);
+    }
+
+    /** Redraws every Opravilko widget from the stored data. */
+    public static void updateAll(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, TaskWidgetProvider.class));
+        if (ids == null || ids.length == 0) return;
+        for (int id : ids) manager.updateAppWidget(id, buildViews(context, id));
+        manager.notifyAppWidgetViewDataChanged(ids, R.id.widget_list);
+    }
+
+    static RemoteViews buildViews(Context context, int appWidgetId) {
+        WidgetStore store = new WidgetStore(context);
+        String view = store.getView(appWidgetId);
+        JSONObject data = store.getSnapshot();
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_task_list);
+
+        views.setTextViewText(R.id.widget_title, TaskLogic.viewTitle(data, view));
+        int count = TaskLogic.rowsForView(data, view).size();
+        views.setTextViewText(R.id.widget_count, count > 0 ? String.valueOf(count) : "");
+        views.setTextViewText(R.id.widget_empty, data == null
+                ? context.getString(R.string.widget_empty_signed_out)
+                : context.getString(R.string.widget_empty));
+
+        // The list's rows are built by TaskWidgetService; a unique data URI
+        // per widget keeps Android from sharing one adapter between widgets.
+        Intent service = new Intent(context, TaskWidgetService.class);
+        service.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        service.setData(Uri.parse(service.toUri(Intent.URI_INTENT_SCHEME)));
+        views.setRemoteAdapter(R.id.widget_list, service);
+        views.setEmptyView(R.id.widget_list, R.id.widget_empty);
+
+        // One template for all row taps (complete / open); rows fill in the details.
+        Intent template = new Intent(context, WidgetActionActivity.class);
+        template.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        PendingIntent templatePi = PendingIntent.getActivity(context, appWidgetId, template,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+        views.setPendingIntentTemplate(R.id.widget_list, templatePi);
+
+        views.setOnClickPendingIntent(R.id.widget_header,
+                openApp(context, appWidgetId * 4 + 1, "opravilko://open?view=" + Uri.encode(view)));
+        String addUri = "opravilko://add?project=" + Uri.encode(TaskLogic.viewProjectId(view))
+                + (WidgetStore.VIEW_TODAY.equals(view) ? "&today=1" : "");
+        views.setOnClickPendingIntent(R.id.widget_add, openApp(context, appWidgetId * 4 + 2, addUri));
+        return views;
+    }
+
+    static PendingIntent openApp(Context context, int requestCode, String uri) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri), context, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return PendingIntent.getActivity(context, requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+}

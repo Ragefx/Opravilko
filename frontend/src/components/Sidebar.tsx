@@ -42,6 +42,7 @@ import ImportModal from "./ImportModal";
 import CalendarFeedsModal from "./CalendarFeedsModal";
 import RowMenu from "./RowMenu";
 import { useToast } from "./ToastProvider";
+import { clearWidget } from "../native/widget";
 
 function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
@@ -324,6 +325,7 @@ export default function Sidebar({
               danger: true,
               onClick: () => {
                 disconnect();
+                clearWidget();
                 navigate("/connect", { replace: true });
               },
             },

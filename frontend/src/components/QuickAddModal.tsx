@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
-import { formatDueLabel } from "../utils/date";
+import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
 import { type RecurrenceFreq, applyRecurrence } from "../utils/recurrence";
 import { RepeatIcon } from "./icons";
@@ -11,10 +11,13 @@ import { useToast } from "./ToastProvider";
 export default function QuickAddModal({
   onClose,
   defaultProjectId = "inbox",
+  defaultToday = false,
 }: {
   onClose: () => void;
   /** The project being viewed, so "add task" from there lands in it. */
   defaultProjectId?: string;
+  /** Due today unless a date is typed (the Android widget's Today list). */
+  defaultToday?: boolean;
 }) {
   const { data } = useBootstrap();
   const createTask = useCreateTask();
@@ -24,7 +27,8 @@ export default function QuickAddModal({
   const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
 
   const projects = data?.projects || [];
-  const preview = text.trim() ? parseQuickAddInput(text) : null;
+  const [defaultDue] = useState(() => (defaultToday ? { date: todayISO(), string: "today" } : null));
+  const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
   const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
 
   // A typed "#ProjectName" wins over the dropdown, matching Todoist.

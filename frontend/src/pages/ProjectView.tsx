@@ -17,16 +17,24 @@ export default function ProjectView() {
   const { data, isLoading } = useBootstrap();
   const updateProject = useUpdateProject();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [autoOpenId] = useState(() => searchParams.get("open"));
+  const [autoOpenId, setAutoOpenId] = useState(() => searchParams.get("open"));
   const [showDisplayMenu, setShowDisplayMenu] = useState(false);
   const [showArchivedMenu, setShowArchivedMenu] = useState(false);
   const [display, setDisplay] = useState<DisplayOptions>(DEFAULT_DISPLAY_OPTIONS);
   const [initializedFor, setInitializedFor] = useState<string | null>(null);
 
+  // ?open=<task id> opens that task (also when it arrives while this page is
+  // already showing, e.g. from the Android widget); then drop it from the URL.
   useEffect(() => {
-    if (searchParams.get("open")) setSearchParams({}, { replace: true });
+    const open = searchParams.get("open");
+    if (!open) return;
+    setSearchParams({}, { replace: true });
+    setAutoOpenId(null);
+    // Cleared first so the same task opens again if it's picked twice. (No
+    // cancel on cleanup: clearing the URL above re-runs this effect.)
+    window.requestAnimationFrame(() => setAutoOpenId(open));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   const project = data?.projects.find((p) => p.id === projectId);
 

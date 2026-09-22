@@ -1,7 +1,7 @@
 import { getDropboxClient } from "./auth";
 import type { AppData } from "../api/types";
 
-const DATA_PATH = import.meta.env.VITE_DROPBOX_DATA_PATH || "/opravilko-data.json";
+export const DATA_PATH = import.meta.env.VITE_DROPBOX_DATA_PATH || "/opravilko-data.json";
 const WRITE_DEBOUNCE_MS = 1200;
 
 export type SyncStatus = "idle" | "saving" | "saved" | "error" | "conflict" | "offline";

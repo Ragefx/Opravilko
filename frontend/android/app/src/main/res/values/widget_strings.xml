@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">Opravilko tasks</string>
+    <string name="widget_description">Today, upcoming, your inbox or a project. Tick tasks off right from the home screen.</string>
+    <string name="widget_default_title">Today</string>
+    <string name="widget_empty">All clear</string>
+    <string name="widget_empty_signed_out">Open Opravilko and connect Dropbox to see your tasks here.</string>
+    <string name="widget_add_task">Add task</string>
+    <string name="widget_complete_task">Complete task</string>
+    <string name="widget_config_title">What should this widget show?</string>
+    <string name="widget_config_hint">Open the app once to list your projects here too.</string>
+</resources>

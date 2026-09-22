@@ -18,6 +18,7 @@ import {
   isConnected,
   isNativeApp,
 } from "./dropbox/auth";
+import { parseWidgetLink, requestQuickAdd } from "./native/widget";
 
 /**
  * Dropbox redirects back to the site root with ?code=... (or ?error=...) in the
@@ -83,7 +84,10 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
   useEffect(() => {
     if (!isNativeApp) return;
     const listener = NativeApp.addListener("appUrlOpen", async ({ url }) => {
-      if (!url.startsWith(NATIVE_OAUTH_CALLBACK)) return;
+      if (!url.startsWith(NATIVE_OAUTH_CALLBACK)) {
+        handleWidgetLink(url);
+        return;
+      }
       void Browser.close().catch(() => {});
       const params = new URL(url).searchParams;
       const code = params.get("code");
@@ -98,6 +102,22 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
         onError(err?.message || "Failed to connect to Dropbox.");
       }
     });
+    // Cold start from a widget tap: the link arrives as the launch URL instead.
+    void NativeApp.getLaunchUrl().then((launch) => {
+      if (launch?.url && !launch.url.startsWith(NATIVE_OAUTH_CALLBACK)) handleWidgetLink(launch.url);
+    });
+
+    function handleWidgetLink(url: string) {
+      const link = parseWidgetLink(url);
+      if (!link || !isConnected()) return;
+      if ("route" in link) {
+        navigate(link.route);
+        return;
+      }
+      if (!window.location.hash.startsWith("#/app")) navigate("/app/today");
+      requestQuickAdd(link.quickAdd);
+    }
+
     return () => {
       void listener.then((l) => l.remove());
     };

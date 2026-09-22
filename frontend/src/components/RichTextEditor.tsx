@@ -25,6 +25,11 @@ export default function RichTextEditor({
   // tasks) -- never on every render, or the cursor jumps to the start on each
   // keystroke since we're also the ones calling onChange from input events.
   const lastExternalHtml = useRef<string | null>(null);
+  // Whether the editor already had focus *before* this click, captured on
+  // mousedown (which is what actually moves focus) so the click handler can
+  // tell "just clicking a link to open it" apart from "clicking a link while
+  // already editing, to place the caret in it".
+  const hadFocusBeforeClick = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -128,13 +133,23 @@ export default function RichTextEditor({
           suppressContentEditableWarning
           onInput={handleInput}
           onBlur={handleBlur}
-          onClick={(e) => {
+          onMouseDown={() => {
+            hadFocusBeforeClick.current = document.activeElement === ref.current;
+          }}
+          onMouseUp={(e) => {
+            // Chromium doesn't fire a `click` event for the first click that
+            // both focuses an unfocused contentEditable *and* lands on a link
+            // inside it -- it's consumed for entering edit mode instead. Using
+            // mouseup (which always fires) avoids that first-click miss.
             const link = (e.target as HTMLElement).closest("a");
-            // Plain clicks just move the caret, like any other text -- only
-            // Ctrl/Cmd+click opens it, so editing a link's text doesn't fight
-            // with following it.
-            if (link && (e.metaKey || e.ctrlKey)) {
-              e.preventDefault();
+            if (!link) return;
+            const selection = window.getSelection();
+            if (selection && !selection.isCollapsed) return; // was a text-selection drag, not a click
+            // A plain click opens it, like anywhere else on the web -- unless
+            // you were already editing (had focus before this interaction),
+            // in which case it just places the caret so link text can still
+            // be fixed; Ctrl/Cmd+click always opens it regardless.
+            if (!hadFocusBeforeClick.current || e.metaKey || e.ctrlKey) {
               window.open(link.href, "_blank", "noopener,noreferrer");
             }
           }}

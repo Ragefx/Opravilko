@@ -834,12 +834,13 @@ kbd {
   border-color: var(--color-border);
 }
 .rich-text-toolbar {
-  display: none;
+  /* Always visible (not shown only on :focus-within): toggling it on focus
+     reflowed the content below it, so the very click that focused the editor
+     could land past wherever it had just shifted to -- most noticeably, a
+     click on a link could miss the link entirely. */
+  display: flex;
   gap: 2px;
   padding: 2px 0 6px;
-}
-.rich-text-editor:focus-within .rich-text-toolbar {
-  display: flex;
 }
 .rich-text-btn {
   width: 26px;

@@ -17,7 +17,7 @@ import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MAX_VISIBLE_PER_DAY = 3;
+const MAX_VISIBLE_PER_DAY = 4;
 const WEEK_OPTS = { weekStartsOn: 1 as const };
 
 export default function CalendarView({ tasks, projectId }: { tasks: Task[]; projectId: string }) {
@@ -29,6 +29,7 @@ export default function CalendarView({ tasks, projectId }: { tasks: Task[]; proj
   const gridEnd = endOfWeek(endOfMonth(month), WEEK_OPTS);
   const days: Date[] = [];
   for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) days.push(d);
+  const weekCount = days.length / 7;
 
   const tasksByDate = new Map<string, Task[]>();
   for (const t of tasks) {
@@ -39,8 +40,8 @@ export default function CalendarView({ tasks, projectId }: { tasks: Task[]; proj
   }
 
   return (
-    <div className="content-scroll" style={{ maxWidth: 960 }}>
-      <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
+    <div className="calendar-view">
+      <div className="topbar" style={{ padding: "0 0 16px", border: "none", flexShrink: 0 }}>
         <h1>{format(month, "MMMM yyyy")}</h1>
         <div className="view-toggle">
           <button onClick={() => setMonth((m) => subMonths(m, 1))} aria-label="Previous month">
@@ -53,12 +54,15 @@ export default function CalendarView({ tasks, projectId }: { tasks: Task[]; proj
         </div>
       </div>
 
-      <div className="calendar-grid">
+      <div className="calendar-weekdays-row">
         {WEEKDAY_LABELS.map((w) => (
           <div key={w} className="calendar-weekday">
             {w}
           </div>
         ))}
+      </div>
+
+      <div className="calendar-days-grid" style={{ gridTemplateRows: `repeat(${weekCount}, 1fr)` }}>
         {days.map((day) => {
           const key = format(day, "yyyy-MM-dd");
           const dayTasks = (tasksByDate.get(key) || []).sort((a, b) => a.priority - b.priority);

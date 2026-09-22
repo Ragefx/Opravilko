@@ -1562,11 +1562,31 @@ kbd {
 }
 
 /* ---------- Calendar view ---------- */
-.calendar-grid {
+/* Fills the rest of the page (its ProjectView wrapper is a flex column with
+   the project header above it) instead of the reading-width, scrolling
+   .content-scroll other views use -- a month grid wants the whole screen. */
+.calendar-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 24px;
+  overflow: hidden;
+}
+.calendar-weekdays-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   border-top: 1px solid var(--color-border);
   border-left: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.calendar-days-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-left: 1px solid var(--color-border);
+  overflow-y: auto;
 }
 
 .calendar-weekday {
@@ -1587,6 +1607,7 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  overflow-y: auto;
 }
 .calendar-cell.outside-month {
   background: var(--color-sidebar);

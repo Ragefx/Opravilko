@@ -8,12 +8,19 @@ import { RepeatIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 
 /** App-wide "add task from anywhere" box, opened with `q`. */
-export default function QuickAddModal({ onClose }: { onClose: () => void }) {
+export default function QuickAddModal({
+  onClose,
+  defaultProjectId = "inbox",
+}: {
+  onClose: () => void;
+  /** The project being viewed, so "add task" from there lands in it. */
+  defaultProjectId?: string;
+}) {
   const { data } = useBootstrap();
   const createTask = useCreateTask();
   const showToast = useToast();
   const [text, setText] = useState("");
-  const [projectId, setProjectId] = useState("inbox");
+  const [projectId, setProjectId] = useState(defaultProjectId);
   const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
 
   const projects = data?.projects || [];
@@ -81,8 +88,8 @@ export default function QuickAddModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
-        <div className="modal-actions" style={{ justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
+        <div className="modal-actions quick-add-modal-actions">
+          <div className="quick-add-modal-options">
             <select
               style={{ flex: "1 1 auto", minWidth: 0 }}
               value={typedProject?.id ?? projectId}

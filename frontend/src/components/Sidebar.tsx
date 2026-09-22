@@ -61,9 +61,12 @@ function StarToggle({ active, onClick }: { active: boolean; onClick: () => void 
 export default function Sidebar({
   onSearch,
   onQuickAdd,
+  mobileOpen = false,
 }: {
   onSearch: () => void;
   onQuickAdd: () => void;
+  /** On narrow screens the sidebar is an off-canvas drawer; this slides it in. */
+  mobileOpen?: boolean;
 }) {
   const { data } = useBootstrap();
   const navigate = useNavigate();
@@ -162,7 +165,7 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
       <div className="sidebar-user">
         <div className="sidebar-avatar">O</div>
         <span className="sidebar-brand">Opravilko</span>

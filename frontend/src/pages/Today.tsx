@@ -73,7 +73,7 @@ export default function Today() {
 
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
+        <div className="page-header-pad">{header}</div>
         <DateBoardView columns={columns} projectNameById={projectNameById} />
       </div>
     );
@@ -91,6 +91,10 @@ export default function Today() {
       projectNameById={projectNameById}
       groupExtra={(label, items) => (label === "Overdue" && items.length > 0 ? <RescheduleButton tasks={items} /> : undefined)}
       eventsByDate={eventsByDate}
+      dateGroups={[
+        { label: "Overdue", date: null },
+        { label: "Today", date: todayISO() },
+      ]}
     />
   );
 }

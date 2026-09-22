@@ -51,6 +51,10 @@ export default function ProjectView() {
     }
   }
 
+  // Filters persist across visits, so flag when one is quietly hiding tasks.
+  const filtersActive =
+    display.filterDate !== "all" || display.filterPriority !== "all" || display.filterLabel !== "all";
+
   const archivedSections = data.sections.filter((s) => s.projectId === projectId && s.archived);
   const archivedTaskCounts = Object.fromEntries(
     archivedSections.map((s) => [s.id, data.tasks.filter((t) => t.sectionId === s.id).length])
@@ -76,8 +80,13 @@ export default function ProjectView() {
           </div>
         )}
         <div style={{ position: "relative" }}>
-          <button className="btn btn-secondary" onClick={() => setShowDisplayMenu((v) => !v)}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowDisplayMenu((v) => !v)}
+            title={filtersActive ? "Some tasks are hidden by a filter" : undefined}
+          >
             Display
+            {filtersActive && <span className="display-filter-dot" aria-label="filters active" />}
           </button>
           {showDisplayMenu && (
             <DisplayMenu
@@ -102,7 +111,7 @@ export default function ProjectView() {
   if (display.layout === "board") {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
+        <div className="page-header-pad">{header}</div>
         <BoardView projectId={project.id} autoOpenTaskId={autoOpenId || undefined} display={display} />
       </div>
     );
@@ -111,7 +120,7 @@ export default function ProjectView() {
   if (display.layout === "calendar") {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
+        <div className="page-header-pad">{header}</div>
         <CalendarView
           tasks={tasks}
           projectId={project.id}

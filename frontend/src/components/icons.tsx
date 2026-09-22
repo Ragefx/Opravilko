@@ -12,6 +12,12 @@ const base = (props: SVGProps<SVGSVGElement>) => ({
   ...props,
 });
 
+export const MenuIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
 export const InboxIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M22 12h-6l-2 3h-4l-2-3H2" />

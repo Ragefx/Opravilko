@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { isConnected } from "../dropbox/auth";
 import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
 import { checkDueReminders } from "../utils/notifications";
@@ -9,6 +9,7 @@ import QuickAddModal from "./QuickAddModal";
 import ShortcutsModal from "./ShortcutsModal";
 import SyncIndicator from "./SyncIndicator";
 import { ToastProvider } from "./ToastProvider";
+import { MenuIcon, PlusIcon, SearchIcon } from "./icons";
 
 /** True when focus is in a text field, where single-letter shortcuts must not fire. */
 function isTyping(target: EventTarget | null): boolean {
@@ -26,7 +27,14 @@ export default function Layout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Picking a destination in the mobile drawer should close it.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
   const tasks = useBootstrap().data?.tasks;
   const syncAllCalendarFeeds = useSyncAllCalendarFeeds();
   // Tracks the "g" prefix of two-key navigation chords (g t, g u, g i).
@@ -98,13 +106,35 @@ export default function Layout() {
   return (
     <ToastProvider>
       <div className="app-shell">
-        <Sidebar onSearch={() => setSearchOpen(true)} onQuickAdd={() => setQuickAddOpen(true)} />
+        <Sidebar
+          onSearch={() => setSearchOpen(true)}
+          onQuickAdd={() => setQuickAddOpen(true)}
+          mobileOpen={navOpen}
+        />
+        {navOpen && <div className="sidebar-scrim" onClick={() => setNavOpen(false)} />}
         <main className="main">
+          <div className="mobile-appbar">
+            <button className="mobile-appbar-btn" onClick={() => setNavOpen(true)} aria-label="Open menu">
+              <MenuIcon width={22} height={22} />
+            </button>
+            <span className="mobile-appbar-title">Opravilko</span>
+            <button className="mobile-appbar-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
+              <SearchIcon width={20} height={20} />
+            </button>
+            <button className="mobile-appbar-btn" onClick={() => setQuickAddOpen(true)} aria-label="Add task">
+              <PlusIcon width={22} height={22} />
+            </button>
+          </div>
           <SyncIndicator />
           <Outlet />
         </main>
         {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
-        {quickAddOpen && <QuickAddModal onClose={() => setQuickAddOpen(false)} />}
+        {quickAddOpen && (
+          <QuickAddModal
+            onClose={() => setQuickAddOpen(false)}
+            defaultProjectId={location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox"}
+          />
+        )}
         {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
       </div>
     </ToastProvider>

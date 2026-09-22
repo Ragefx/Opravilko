@@ -17,6 +17,7 @@ import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
 import TaskCheckbox from "./TaskCheckbox";
 import SectionMenu from "./SectionMenu";
+import TaskMenu from "./TaskMenu";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
@@ -285,6 +286,7 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
   const completeTask = useCompleteTask();
   const { data } = useBootstrap();
   const subtasks = (data?.tasks || []).filter((t) => t.parentId === task.id);
+  const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -311,7 +313,7 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
           onToggle={() => completeTask.mutate({ id: task.id, completed: true })}
           ariaLabel="Mark complete"
         />
-        <div className="board-card-content">
+        <div className="board-card-content" style={{ minWidth: 0 }}>
           {task.content}
           {subtasks.length > 0 && (
             <span className="chip" style={{ marginLeft: 8 }}>
@@ -340,6 +342,7 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
             </div>
           )}
         </div>
+        <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 import type { Task } from "../api/types";
-import { useCompleteTask } from "../api/hooks";
+import { useBootstrap, useCompleteTask } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
 import { CalendarIcon, ChevronIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
+import TaskMenu from "./TaskMenu";
 
 export default function TaskRow({
   task,
@@ -23,9 +24,11 @@ export default function TaskRow({
   onToggleCollapse?: () => void;
 }) {
   const completeTask = useCompleteTask();
+  const { data } = useBootstrap();
   const priorityColor = PRIORITY_META[task.priority].color;
   const overdue = isOverdue(task.due);
   const dueToday = isDueToday(task.due);
+  const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
 
   return (
     <div className="task-row" style={depth > 0 ? { paddingLeft: depth * 28 } : undefined}>
@@ -75,6 +78,7 @@ export default function TaskRow({
           </div>
         )}
       </div>
+      <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
     </div>
   );
 }

@@ -665,6 +665,10 @@ kbd {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
+  /* Without this, long content (a long description, lots of comments, ...)
+     just grows the panel past the viewport instead of scrolling inside it --
+     .detail-scroll below is the only thing that should ever scroll. */
+  overflow: hidden;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
   animation: popIn 0.14s ease;
 }
@@ -691,6 +695,10 @@ kbd {
   flex-shrink: 0;
 }
 .detail-scroll {
+  /* flex:1 + min-height:0 is what lets this shrink to the panel's remaining
+     space instead of growing it -- a flex child ignores overflow otherwise. */
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 20px;
 }

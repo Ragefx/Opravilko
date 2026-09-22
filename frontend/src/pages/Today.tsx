@@ -7,11 +7,17 @@ import type { DateBoardColumn } from "../components/DateBoardView";
 import type { Task } from "../api/types";
 import { isDueToday, isOverdue, makeDue, todayISO } from "../utils/date";
 import { CheckCircleIcon, ListViewIcon, BoardViewIcon } from "../components/icons";
+import { getStoredLayout, setStoredLayout, type ViewLayout } from "../utils/viewLayout";
 
 export default function Today() {
   const { data, isLoading } = useBootstrap();
-  const [layout, setLayout] = useState<"list" | "board">("list");
+  const [layout, setLayoutState] = useState<ViewLayout>(() => getStoredLayout("today") || "list");
   if (isLoading || !data) return null;
+
+  function setLayout(next: ViewLayout) {
+    setLayoutState(next);
+    setStoredLayout("today", next);
+  }
 
   const tasks = data.tasks
     .filter((t) => !t.completed && (isDueToday(t.due) || isOverdue(t.due)))

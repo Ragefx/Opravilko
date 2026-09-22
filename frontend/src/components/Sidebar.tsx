@@ -19,6 +19,7 @@ import { currentEffectiveTheme, setTheme } from "../utils/theme";
 import { disableReminders, enableReminders, remindersEnabled } from "../utils/notifications";
 import {
   BellIcon,
+  CheckCircleIcon,
   EditIcon,
   FilterIcon,
   ImportIcon,
@@ -227,6 +228,10 @@ export default function Sidebar({
         <NavLink to="/app/upcoming" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <UpcomingIcon className="icon" />
           Upcoming
+        </NavLink>
+        <NavLink to="/app/completed" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+          <CheckCircleIcon className="icon" />
+          Completed
         </NavLink>
       </nav>
 

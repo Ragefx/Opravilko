@@ -50,7 +50,9 @@ export default function Layout() {
 
       if (goChord.current) {
         goChord.current = false;
-        const dest = { t: "/app/today", u: "/app/upcoming", i: "/app/inbox" }[e.key.toLowerCase()];
+        const dest = { t: "/app/today", u: "/app/upcoming", i: "/app/inbox", c: "/app/completed" }[
+          e.key.toLowerCase()
+        ];
         if (dest) {
           e.preventDefault();
           navigate(dest);

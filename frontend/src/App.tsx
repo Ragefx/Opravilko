@@ -4,6 +4,7 @@ import Layout from "./components/Layout";
 import Connect from "./pages/Connect";
 import Today from "./pages/Today";
 import Upcoming from "./pages/Upcoming";
+import CompletedView from "./pages/CompletedView";
 import ProjectView from "./pages/ProjectView";
 import LabelView from "./pages/LabelView";
 import FilterView from "./pages/FilterView";
@@ -62,6 +63,7 @@ export default function App() {
         <Route index element={<Navigate to="today" replace />} />
         <Route path="today" element={<Today />} />
         <Route path="upcoming" element={<Upcoming />} />
+        <Route path="completed" element={<CompletedView />} />
         <Route path="inbox" element={<ProjectView />} />
         <Route path="project/:id" element={<ProjectView />} />
         <Route path="label/:name" element={<LabelView />} />

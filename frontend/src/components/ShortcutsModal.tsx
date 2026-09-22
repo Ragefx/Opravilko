@@ -5,6 +5,7 @@ const SHORTCUTS: { keys: string; label: string }[] = [
   { keys: "g then t", label: "Go to Today" },
   { keys: "g then u", label: "Go to Upcoming" },
   { keys: "g then i", label: "Go to Inbox" },
+  { keys: "g then c", label: "Go to Completed" },
   { keys: "?", label: "Show this list" },
   { keys: "Esc", label: "Close whatever is open" },
 ];

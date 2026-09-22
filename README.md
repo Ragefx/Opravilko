@@ -18,7 +18,11 @@ in your own Dropbox account.
   `every 3 days`, or `every month` in quick-add, or set it from the detail panel;
   completing a recurring task advances it instead of archiving it.
 - **Today / Upcoming** — due-date-driven views, with a one-click "reschedule all
-  overdue to today".
+  overdue to today"; Today also has a List/Board toggle (remembered per browser).
+- **Completed** — every completed task across all projects, grouped by day,
+  searchable and filterable by project, with one click to restore a task
+  (undoes completion and puts it back on its board/list) -- covers both
+  browsing history and fixing an accidental complete.
 - **Labels & Filters** — a small filter query language (`today`, `overdue`, `p1`–`p4`,
   `@label`, `#Project`, space-separated = AND).
 - **Favorites** — star any project/label/filter for a shortcut at the top of the
@@ -105,6 +109,5 @@ on your phone if you ever want to eyeball or back up the raw data.
 - Bulk multi-select (complete/move/reschedule several tasks at once)
 - Section drag-reorder (tasks reorder; section columns themselves don't yet)
 - File attachments — worth doing since the Dropbox connection is already there
-- Completed-task history / activity log
 - Recurring rules beyond day/weekday/week/month/N-days (e.g. "last Friday of the month")
 - Display settings (grouping/sort/filters) persist per project rather than per session

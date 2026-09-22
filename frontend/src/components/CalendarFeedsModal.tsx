@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useBootstrap,
   useCreateCalendarFeed,
@@ -80,6 +80,7 @@ export default function CalendarFeedsModal({ onClose }: { onClose: () => void })
                 feed={feed}
                 syncing={syncingId === feed.id}
                 onToggle={(enabled) => updateFeed.mutate({ id: feed.id, enabled })}
+                onRename={(newName) => updateFeed.mutate({ id: feed.id, name: newName })}
                 onRefresh={() => refresh(feed.id)}
                 onDelete={() => deleteFeed.mutate(feed.id)}
               />
@@ -131,22 +132,62 @@ function CalendarFeedRow({
   feed,
   syncing,
   onToggle,
+  onRename,
   onRefresh,
   onDelete,
 }: {
   feed: CalendarFeed;
   syncing: boolean;
   onToggle: (enabled: boolean) => void;
+  onRename: (name: string) => void;
   onRefresh: () => void;
   onDelete: () => void;
 }) {
+  const [renaming, setRenaming] = useState(false);
+  const [name, setName] = useState(feed.name);
+
+  useEffect(() => {
+    setName(feed.name);
+  }, [feed.name]);
+
+  function saveName() {
+    setRenaming(false);
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === feed.name) {
+      setName(feed.name);
+      return;
+    }
+    onRename(trimmed);
+  }
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "1px solid var(--color-border)" }}>
       <span style={{ width: 10, height: 10, borderRadius: "50%", background: feed.color, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {feed.name}
-        </div>
+        {renaming ? (
+          <input
+            autoFocus
+            style={{ fontSize: 13, fontWeight: 600, padding: "1px 4px", width: "100%" }}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={saveName}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveName();
+              if (e.key === "Escape") {
+                setName(feed.name);
+                setRenaming(false);
+              }
+            }}
+          />
+        ) : (
+          <div
+            onClick={() => setRenaming(true)}
+            style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", cursor: "text" }}
+            title="Click to rename"
+          >
+            {feed.name}
+          </div>
+        )}
         <div style={{ fontSize: 11, color: feed.lastError ? "var(--color-danger)" : "var(--color-text-muted)" }}>
           {feed.lastError
             ? feed.lastError

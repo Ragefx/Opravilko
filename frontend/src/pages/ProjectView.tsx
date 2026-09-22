@@ -100,7 +100,7 @@ export default function ProjectView() {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
         <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
-        <BoardView projectId={project.id} autoOpenTaskId={autoOpenId || undefined} />
+        <BoardView projectId={project.id} autoOpenTaskId={autoOpenId || undefined} display={display} />
       </div>
     );
   }

@@ -22,6 +22,7 @@ import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
 import { stripHtml } from "../utils/html";
+import { DEFAULT_DISPLAY_OPTIONS, filterTasks, sortTasks, type DisplayOptions } from "../utils/displayOptions";
 
 const UNSECTIONED = "__none__";
 
@@ -35,9 +36,11 @@ interface Column {
 export default function BoardView({
   projectId,
   autoOpenTaskId,
+  display = DEFAULT_DISPLAY_OPTIONS,
 }: {
   projectId: string;
   autoOpenTaskId?: string;
+  display?: DisplayOptions;
 }) {
   const { data } = useBootstrap();
   const reorderTasks = useReorderTasks();
@@ -59,16 +62,18 @@ export default function BoardView({
     const sections = data.sections
       .filter((s) => s.projectId === projectId && !s.archived)
       .sort((a, b) => a.order - b.order);
-    const allTasks = data.tasks.filter((t) => t.projectId === projectId && !t.completed && !t.parentId);
+    let allTasks = data.tasks.filter((t) => t.projectId === projectId && !t.parentId);
+    if (!display.showCompleted) allTasks = allTasks.filter((t) => !t.completed);
+    allTasks = sortTasks(filterTasks(allTasks, display), display);
 
     const cols: Column[] = sections.map((s) => ({
       key: s.id,
       sectionId: s.id,
       name: s.name,
-      tasks: allTasks.filter((t) => t.sectionId === s.id).sort((a, b) => a.order - b.order),
+      tasks: allTasks.filter((t) => t.sectionId === s.id),
     }));
 
-    const unsectioned = allTasks.filter((t) => t.sectionId === null).sort((a, b) => a.order - b.order);
+    const unsectioned = allTasks.filter((t) => t.sectionId === null);
     if (unsectioned.length > 0 || sections.length === 0) {
       cols.unshift({
         key: UNSECTIONED,
@@ -78,7 +83,9 @@ export default function BoardView({
       });
     }
     setColumns(cols);
-  }, [data, projectId]);
+  }, [data, projectId, display]);
+
+  const reorderable = display.sorting === "manual";
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -90,11 +97,13 @@ export default function BoardView({
   }
 
   function handleDragStart(event: DragStartEvent) {
+    if (!reorderable) return;
     const task = columns.flatMap((c) => c.tasks).find((t) => t.id === event.active.id);
     setActiveTask(task || null);
   }
 
   function handleDragOver(event: DragOverEvent) {
+    if (!reorderable) return;
     const { active, over } = event;
     if (!over) return;
     const activeId = String(active.id);
@@ -122,7 +131,7 @@ export default function BoardView({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveTask(null);
-    if (!over) return;
+    if (!reorderable || !over) return;
     const activeId = String(active.id);
     const overId = String(over.id);
 
@@ -167,7 +176,7 @@ export default function BoardView({
       >
         <div className="board">
           {columns.map((col) => (
-            <BoardColumn key={col.key} column={col} onOpenTask={setOpenTask} projectId={projectId} />
+            <BoardColumn key={col.key} column={col} onOpenTask={setOpenTask} projectId={projectId} reorderable={reorderable} />
           ))}
           <div className="board-column board-add-section-col">
             {addingSection ? (
@@ -209,10 +218,12 @@ function BoardColumn({
   column,
   onOpenTask,
   projectId,
+  reorderable,
 }: {
   column: Column;
   onOpenTask: (task: Task) => void;
   projectId: string;
+  reorderable: boolean;
 }) {
   const { data } = useBootstrap();
   const { setNodeRef, isOver } = useDroppable({ id: column.key });
@@ -272,7 +283,7 @@ function BoardColumn({
       <div ref={setNodeRef} className="board-column-body">
         <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {column.tasks.map((t) => (
-            <BoardCard key={t.id} task={t} onOpen={onOpenTask} />
+            <BoardCard key={t.id} task={t} onOpen={onOpenTask} reorderable={reorderable} />
           ))}
         </SortableContext>
       </div>
@@ -281,8 +292,19 @@ function BoardColumn({
   );
 }
 
-function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
+function BoardCard({
+  task,
+  onOpen,
+  reorderable,
+}: {
+  task: Task;
+  onOpen: (task: Task) => void;
+  reorderable: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+    disabled: !reorderable,
+  });
   const completeTask = useCompleteTask();
   const { data } = useBootstrap();
   const subtasks = (data?.tasks || []).filter((t) => t.parentId === task.id);

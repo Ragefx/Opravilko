@@ -35,7 +35,8 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - uses: android-actions/setup-android@v3
+      # The ubuntu runner ships the Android SDK (ANDROID_HOME) with licenses
+      # accepted; Gradle downloads any missing platform/build-tools itself.
 
       - name: Install dependencies
         working-directory: frontend

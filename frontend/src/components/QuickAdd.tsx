@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCreateTask } from "../api/hooks";
+import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
@@ -19,6 +19,7 @@ export default function QuickAdd({
   const [text, setText] = useState("");
   const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
   const createTask = useCreateTask();
+  const { data } = useBootstrap();
 
   const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
   const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
@@ -27,11 +28,15 @@ export default function QuickAdd({
     if (!text.trim()) return;
     const parsed = parseQuickAddInput(text, defaultDue);
     if (!parsed.content) return;
+    // A typed "#Project" sends the task there (and out of this section).
+    const typedProject = parsed.projectName
+      ? data?.projects.find((p) => p.name.toLowerCase() === parsed.projectName!.toLowerCase())
+      : undefined;
 
     createTask.mutate({
       content: parsed.content,
-      projectId,
-      sectionId,
+      projectId: typedProject?.id ?? projectId,
+      sectionId: typedProject && typedProject.id !== projectId ? null : sectionId,
       priority: parsed.priority,
       due: applyRecurrence(parsed.due, recurrence),
       labels: parsed.labels,

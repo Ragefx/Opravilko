@@ -8,8 +8,10 @@ import {
 } from "./recurrence";
 
 const PRIORITY_FLAG_RE = /\bp([1-4])\b/i;
-const LABEL_RE = /@(\w+)/g;
-const PROJECT_RE = /#([\w-]+)/g;
+// Unicode-aware (so "@služba" isn't cut to "@slu") and anchored to a word
+// start, so an email address like "ana@example.com" isn't read as a label.
+const LABEL_RE = /(?<=^|\s)@([\p{L}\p{N}_-]+)/gu;
+const PROJECT_RE = /(?<=^|\s)#([\p{L}\p{N}_-]+)/gu;
 
 export interface ParsedQuickAdd {
   content: string;
@@ -43,23 +45,24 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
   const projectName = projectMatches[0] ?? null;
   content = content.replace(PROJECT_RE, "").trim();
 
-  let due: Due | null = defaultDue ? { ...defaultDue, isRecurring: false } : null;
-  if (!due) {
-    const recurrence = parseNaturalRecurrence(content);
-    if (recurrence) {
-      content = content.replace(recurrence.matchedText, "").trim();
-      due = {
-        date: initialDueForRecurrence(recurrence.rule),
-        string: describeRecurrence(recurrence.rule),
-        isRecurring: true,
-        rrule: serializeRecurrence(recurrence.rule),
-      };
-    } else {
-      const parsed = parseNaturalDate(content);
-      due = parsed.due;
-      content = parsed.remaining;
-    }
+  // A date typed into the text wins over the view's default (e.g. typing
+  // "tomorrow" into Today's quick add), matching Todoist.
+  let due: Due | null = null;
+  const recurrence = parseNaturalRecurrence(content);
+  if (recurrence) {
+    content = content.replace(recurrence.matchedText, "").trim();
+    due = {
+      date: initialDueForRecurrence(recurrence.rule),
+      string: describeRecurrence(recurrence.rule),
+      isRecurring: true,
+      rrule: serializeRecurrence(recurrence.rule),
+    };
+  } else {
+    const parsed = parseNaturalDate(content);
+    due = parsed.due;
+    content = parsed.remaining;
   }
+  if (!due && defaultDue) due = { ...defaultDue, isRecurring: false };
 
   return {
     content: content.replace(/\s+/g, " ").trim(),

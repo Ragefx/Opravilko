@@ -1,5 +1,6 @@
 import { addDays, addMonths, format, getDay, parseISO, startOfDay } from "date-fns";
 import type { Due } from "../api/types";
+import { WEEKDAY_PATTERN } from "./date";
 
 export type RecurrenceFreq = "daily" | "weekly" | "monthly" | "weekdays" | "every_n_days";
 
@@ -125,10 +126,10 @@ export function parseNaturalRecurrence(text: string): { rule: RecurrenceRule; ma
     return { rule: { freq: "monthly" }, matchedText: m[0] };
   }
 
-  const weekdayRe = new RegExp(`\\bevery (${WEEKDAY_NAMES.join("|")})[a-z]*\\b`, "i");
+  const weekdayRe = new RegExp(`\\bevery (${WEEKDAY_PATTERN}|sun|sat)\\b`, "i");
   const wm = text.match(weekdayRe);
   if (wm) {
-    const idx = WEEKDAY_NAMES.indexOf(wm[1].toLowerCase());
+    const idx = WEEKDAY_NAMES.indexOf(wm[1].slice(0, 3).toLowerCase());
     return { rule: { freq: "weekly", byDay: [idx] }, matchedText: wm[0] };
   }
 

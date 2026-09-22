@@ -8,6 +8,7 @@ import { isDueToday, isDueWithinDays, isOverdue } from "./date";
 export function matchesQuery(task: Task, query: string, data: AppData): boolean {
   const tokens = query
     .toLowerCase()
+    .replace(/\bno date\b/g, "no_date")
     .split(/\s+/)
     .filter(Boolean);
 
@@ -15,7 +16,7 @@ export function matchesQuery(task: Task, query: string, data: AppData): boolean 
     if (token === "today") return isDueToday(task.due);
     if (token === "overdue") return isOverdue(task.due);
     if (token === "upcoming") return isDueWithinDays(task.due, 7);
-    if (token === "no" || token === "date") return true; // handled by "no date" pair below
+    if (token === "no_date") return !task.due;
     if (token === "p1") return task.priority === 4;
     if (token === "p2") return task.priority === 3;
     if (token === "p3") return task.priority === 2;

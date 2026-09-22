@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
-import { addMonths, subMonths } from "date-fns";
+import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } from "date-fns";
 import { fetchAppData, scheduleSave } from "../dropbox/store";
 import { advanceDate, parseRecurrenceString } from "../utils/recurrence";
+import { todayISO } from "../utils/date";
 import { fetchIcsText } from "../utils/calendarSync";
 import { parseIcs } from "../utils/ics";
 import type {
@@ -30,6 +31,37 @@ export function useBootstrap() {
 
 function nextOrder(items: { order: number }[]): number {
   return items.reduce((max, i) => Math.max(max, i.order), -1) + 1;
+}
+
+/**
+ * Tasks reference labels by name, so a label typed in quick add ("@errands")
+ * or the detail panel needs a matching Label record to show up in the
+ * sidebar. Reuses an existing label's exact casing when one matches.
+ */
+function ensureLabels(data: AppData, names: string[]): string[] {
+  return names.map((name) => {
+    const existing = data.labels.find((l) => l.name.toLowerCase() === name.toLowerCase());
+    if (existing) return existing.name;
+    data.labels.push({ id: nanoid(), name, color: "grey", order: nextOrder(data.labels), isFavorite: false });
+    return name;
+  });
+}
+
+/** Every descendant of a task (sub-tasks, their sub-tasks, ...). */
+function descendantIds(tasks: Task[], rootId: string): Set<string> {
+  const ids = new Set<string>();
+  let frontier = [rootId];
+  while (frontier.length) {
+    const next: string[] = [];
+    for (const t of tasks) {
+      if (t.parentId && frontier.includes(t.parentId) && !ids.has(t.id)) {
+        ids.add(t.id);
+        next.push(t.id);
+      }
+    }
+    frontier = next;
+  }
+  return ids;
 }
 
 /**
@@ -78,7 +110,7 @@ export function useCreateTask() {
       order: nextOrder(siblings),
       priority: priority as Priority,
       due: due as Due | null,
-      labels,
+      labels: ensureLabels(data, labels),
       completed: false,
       completedAt: null,
       createdAt: now,
@@ -94,25 +126,59 @@ export function useUpdateTask() {
     const { id, ...rest } = input;
     const task = data.tasks.find((t) => t.id === id);
     if (!task) return null;
+    if (rest.labels) rest.labels = ensureLabels(data, rest.labels);
     Object.assign(task, rest, { updatedAt: new Date().toISOString() });
     return task;
   });
+}
+
+/**
+ * Moves a recurring task to its next occurrence. Missed occurrences are
+ * skipped rather than stepped through one completion at a time, and a set
+ * time moves along with the date (reminders key off the datetime).
+ */
+function advanceRecurringDue(due: Due): Due | null {
+  const rule = parseRecurrenceString(due.rrule);
+  if (!rule) return null;
+  const today = todayISO();
+  let next = advanceDate(due.date, rule);
+  while (next < today) next = advanceDate(next, rule);
+  let datetime = due.datetime;
+  if (datetime) {
+    const dayShift = differenceInCalendarDays(parseISO(next), parseISO(due.date));
+    datetime = addDays(new Date(datetime), dayShift).toISOString();
+  }
+  return { ...due, date: next, datetime };
 }
 
 export function useCompleteTask() {
   return useLocalMutation<{ id: string; completed: boolean }, Task | null>((data, { id, completed }) => {
     const task = data.tasks.find((t) => t.id === id);
     if (!task) return null;
+    const now = new Date().toISOString();
     if (completed && task.due?.isRecurring && task.due.rrule) {
-      const rule = parseRecurrenceString(task.due.rrule);
-      if (rule) {
-        task.due = { ...task.due, date: advanceDate(task.due.date, rule) };
-        task.updatedAt = new Date().toISOString();
+      const nextDue = advanceRecurringDue(task.due);
+      if (nextDue) {
+        task.due = nextDue;
+        task.updatedAt = now;
         return task;
       }
     }
     task.completed = completed;
-    task.completedAt = completed ? new Date().toISOString() : null;
+    task.completedAt = completed ? now : null;
+    task.updatedAt = now;
+    // Completing a task closes its open sub-tasks too, like Todoist; otherwise
+    // they'd linger as orphans in Today/Upcoming. Un-completing leaves them be.
+    if (completed) {
+      const childIds = descendantIds(data.tasks, id);
+      for (const t of data.tasks) {
+        if (childIds.has(t.id) && !t.completed) {
+          t.completed = true;
+          t.completedAt = now;
+          t.updatedAt = now;
+        }
+      }
+    }
     return task;
   });
 }
@@ -588,6 +654,12 @@ async function runFeedSync(qc: QueryClient, feedId: string): Promise<void> {
   const latest = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? current;
   const data: AppData = structuredClone(latest);
   const f = data.calendarFeeds?.find((x) => x.id === feedId);
+  const previousEvents = (data.calendarEvents || []).filter((e) => e.feedId === feedId);
+  // Only a changed feed (new/moved events, or a new error) is worth a Dropbox
+  // write. Syncing runs on every load and hourly, so writing unconditionally
+  // meant constant uploads, and with two devices open, needless conflicts.
+  const changed =
+    (f?.lastError ?? null) !== error || (!error && JSON.stringify(previousEvents) !== JSON.stringify(events));
   if (f) {
     f.lastSyncedAt = new Date().toISOString();
     f.lastError = error;
@@ -596,7 +668,7 @@ async function runFeedSync(qc: QueryClient, feedId: string): Promise<void> {
     data.calendarEvents = [...(data.calendarEvents || []).filter((e) => e.feedId !== feedId), ...events];
   }
   qc.setQueryData(BOOTSTRAP_KEY, data);
-  scheduleSave(data);
+  if (changed) scheduleSave(data);
   if (error) throw new Error(error);
 }
 

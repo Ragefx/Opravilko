@@ -27,6 +27,7 @@ export default function TaskListView({
   groupExtra,
   preserveOrder,
   eventsByDate,
+  dateGroups,
 }: {
   title: string;
   /** Secondary line under the title, e.g. the date and task count. */
@@ -49,6 +50,12 @@ export default function TaskListView({
   preserveOrder?: boolean;
   /** Subscribed-calendar events to show under each date group, keyed by "yyyy-MM-dd". */
   eventsByDate?: Map<string, CalendarEvent[]>;
+  /**
+   * The date groups to show, in order, each matched to tasks by `groupLabel`.
+   * Lets a day with only calendar events (no tasks) still appear, and keeps
+   * days in date order regardless of the tasks' manual order.
+   */
+  dateGroups?: { label: string; date: string | null }[];
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -121,14 +128,24 @@ export default function TaskListView({
     );
   }
 
-  const groups = new Map<string, Task[]>();
+  const tasksByLabel = new Map<string, Task[]>();
   if (groupLabel) {
     for (const t of topLevel) {
       const key = groupLabel(t);
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key)!.push(t);
+      if (!tasksByLabel.has(key)) tasksByLabel.set(key, []);
+      tasksByLabel.get(key)!.push(t);
     }
   }
+  const eventsFor = (date: string | null | undefined) => (date ? eventsByDate?.get(date) ?? [] : []);
+  const groups: { label: string; items: Task[]; events: CalendarEvent[] }[] = dateGroups
+    ? [
+        ...dateGroups.map((g) => ({ label: g.label, items: tasksByLabel.get(g.label) ?? [], events: eventsFor(g.date) })),
+        ...[...tasksByLabel.entries()]
+          .filter(([label]) => !dateGroups.some((g) => g.label === label))
+          .map(([label, items]) => ({ label, items, events: [] })),
+      ].filter((g) => g.items.length > 0 || g.events.length > 0)
+    : [...tasksByLabel.entries()].map(([label, items]) => ({ label, items, events: eventsFor(items[0]?.due?.date) }));
+  const hasEvents = groups.some((g) => g.events.length > 0);
 
   return (
     <div className="content-scroll">
@@ -143,7 +160,7 @@ export default function TaskListView({
 
       {quickAddProjectId && <QuickAdd projectId={quickAddProjectId} defaultDue={quickAddDue} />}
 
-      {active.length === 0 && completed.length === 0 && (
+      {active.length === 0 && completed.length === 0 && !hasEvents && (
         <div className="empty-state">
           <CheckCircleIcon width={40} height={40} />
           <p>All clear</p>
@@ -152,20 +169,18 @@ export default function TaskListView({
       )}
 
       {groupLabel
-        ? [...groups.entries()].map(([label, items]) => {
-            const dateKey = items[0]?.due?.date;
-            const events = dateKey ? eventsByDate?.get(dateKey) : undefined;
-            return (
-              <div key={label}>
-                <div className="task-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span>{label}</span>
-                  {groupExtra?.(label, items)}
-                </div>
-                {events?.map((e) => <CalendarEventRow key={e.id} event={e} />)}
-                {items.map((t) => renderTaskAndChildren(t, 0))}
+        ? groups.map(({ label, items, events }) => (
+            <div key={label}>
+              <div className="task-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span>{label}</span>
+                {groupExtra?.(label, items)}
               </div>
-            );
-          })
+              {events.map((e) => (
+                <CalendarEventRow key={e.id} event={e} />
+              ))}
+              {items.map((t) => renderTaskAndChildren(t, 0))}
+            </div>
+          ))
         : reorderable
           ? (
               <DndContext

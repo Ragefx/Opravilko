@@ -9,6 +9,15 @@ import {
 } from "date-fns";
 import type { Due } from "../api/types";
 
+/**
+ * Only real weekday names/abbreviations ("mon", "monday", "tues", "thurs"), so
+ * words that merely start with one ("Monitor", "Wedding", "Satellite") aren't
+ * read as a date. "sun"/"sat" must be spelled out since they're ordinary words.
+ * The weekday is the matched text's first three letters.
+ */
+export const WEEKDAY_PATTERN =
+  "(?:sunday|mon(?:day)?|tue(?:s|sday)?|wed(?:nesday)?|thu(?:rs?|rsday)?|fri(?:day)?|saturday)";
+
 export function todayISO(): string {
   return format(new Date(), "yyyy-MM-dd");
 }
@@ -98,7 +107,7 @@ export function parseNaturalDate(text: string): { due: Due | null; remaining: st
     },
   ];
   const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  const weekdayRe = new RegExp(`\\b(${weekdays.join("|")})[a-z]*\\b`, "i");
+  const weekdayRe = new RegExp(`\\b${WEEKDAY_PATTERN}\\b`, "i");
 
   for (const p of patterns) {
     const m = text.match(p.re);
@@ -110,7 +119,7 @@ export function parseNaturalDate(text: string): { due: Due | null; remaining: st
 
   const wm = text.match(weekdayRe);
   if (wm) {
-    const targetIdx = weekdays.indexOf(wm[1].toLowerCase());
+    const targetIdx = weekdays.indexOf(wm[0].slice(0, 3).toLowerCase());
     const now = new Date();
     let diff = (targetIdx - now.getDay() + 7) % 7;
     if (diff === 0) diff = 7;

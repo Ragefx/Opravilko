@@ -19,7 +19,7 @@ import TaskCheckbox from "./TaskCheckbox";
 import SectionMenu from "./SectionMenu";
 import TaskMenu from "./TaskMenu";
 import { PRIORITY_META } from "../utils/priority";
-import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
+import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
 import { stripHtml } from "../utils/html";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, sortTasks, type DisplayOptions } from "../utils/displayOptions";
@@ -315,8 +315,6 @@ function BoardCard({
     opacity: isDragging ? 0.4 : 1,
   };
   const priorityColor = PRIORITY_META[task.priority].color;
-  const overdue = isOverdue(task.due);
-  const dueToday = isDueToday(task.due);
 
   return (
     <div
@@ -348,7 +346,7 @@ function BoardCard({
           {(task.due || task.labels.length > 0) && (
             <div className="task-meta">
               {task.due && (
-                <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
+                <span className={`due ${dueDateClass(task.due)}`}>
                   <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
                   {formatDueLabel(task.due)}
                   {task.due.isRecurring && (

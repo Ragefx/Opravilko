@@ -55,6 +55,20 @@ export function isDueToday(due: Due | null): boolean {
   return isToday(parseISO(due.date));
 }
 
+export function isDueTomorrow(due: Due | null): boolean {
+  if (!due) return false;
+  return isTomorrow(parseISO(due.date));
+}
+
+/** One of the four buckets a due date's color follows: overdue (red), today
+ * (green), tomorrow (yellow), or later (purple). */
+export function dueDateClass(due: Due | null): string {
+  if (isOverdue(due)) return "overdue";
+  if (isDueToday(due)) return "today";
+  if (isDueTomorrow(due)) return "tomorrow";
+  return "later";
+}
+
 export function isDueWithinDays(due: Due | null, days: number): boolean {
   if (!due) return false;
   const d = startOfDay(parseISO(due.date));

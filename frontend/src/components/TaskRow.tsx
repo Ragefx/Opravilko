@@ -1,7 +1,7 @@
 import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
-import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
+import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, ChevronIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import TaskMenu from "./TaskMenu";
@@ -26,8 +26,6 @@ export default function TaskRow({
   const completeTask = useCompleteTask();
   const { data } = useBootstrap();
   const priorityColor = PRIORITY_META[task.priority].color;
-  const overdue = isOverdue(task.due);
-  const dueToday = isDueToday(task.due);
   const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
 
   return (
@@ -62,7 +60,7 @@ export default function TaskRow({
         {(task.due || task.labels.length > 0 || projectLabel) && (
           <div className="task-meta">
             {task.due && (
-              <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
+              <span className={`due ${dueDateClass(task.due)}`}>
                 <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}
                 {task.due.isRecurring && (
                   <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />

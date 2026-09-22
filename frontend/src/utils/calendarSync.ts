@@ -8,7 +8,9 @@
  * has explicitly accepted that trade-off; this is named plainly so it's
  * never a surprise later, and surfaced in the "Add calendar" UI.
  */
+import { CapacitorHttp } from "@capacitor/core";
 import type { CalendarEvent, CalendarFeed } from "../api/types";
+import { isNativeApp } from "../dropbox/auth";
 
 export const CORS_PROXY_NAME = "codetabs.com";
 
@@ -31,6 +33,15 @@ export function proxiedUrl(feedUrl: string): string {
 }
 
 export async function fetchIcsText(feedUrl: string): Promise<string> {
+  // The Android app isn't bound by browser CORS rules, so it fetches feeds
+  // directly -- no third-party relay sees the URL.
+  if (isNativeApp) {
+    const res = await CapacitorHttp.get({ url: feedUrl, responseType: "text" });
+    if (res.status < 200 || res.status >= 300) throw new Error(`Feed request failed (HTTP ${res.status})`);
+    const text = typeof res.data === "string" ? res.data : String(res.data ?? "");
+    if (!text.includes("BEGIN:VCALENDAR")) throw new Error("That URL doesn't look like an iCal (.ics) feed");
+    return text;
+  }
   const failures: string[] = [];
   for (const proxy of PROXIES) {
     try {

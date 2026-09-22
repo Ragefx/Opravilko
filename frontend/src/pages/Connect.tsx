@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { startConnect } from "../dropbox/auth";
+import { isNativeApp, startConnect } from "../dropbox/auth";
 
 export default function Connect({ initialError = null }: { initialError?: string | null }) {
   const [error, setError] = useState<string | null>(initialError);
@@ -10,6 +10,9 @@ export default function Connect({ initialError = null }: { initialError?: string
     setConnecting(true);
     try {
       await startConnect();
+      // In the app, sign-in continues in the browser and returns via a deep
+      // link; don't leave the button stuck if the user backs out of it.
+      if (isNativeApp) setConnecting(false);
     } catch (err: any) {
       setError(err?.message || "Failed to start Dropbox connection.");
       setConnecting(false);

@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { isConnected } from "../dropbox/auth";
+import { isConnected, isNativeApp } from "../dropbox/auth";
 import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
-import { checkDueReminders } from "../utils/notifications";
+import { REMINDERS_CHANGED, checkDueReminders, syncNativeReminders } from "../utils/notifications";
+import { useQueryClient } from "@tanstack/react-query";
+import { hasPendingWrite } from "../dropbox/store";
+import { onAppResume } from "../native/android";
 import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
 import QuickAddModal from "./QuickAddModal";
@@ -40,13 +43,37 @@ export default function Layout() {
   // Tracks the "g" prefix of two-key navigation chords (g t, g u, g i).
   const goChord = useRef(false);
 
-  // Reminders only fire while the app is open -- there's no server to push them.
+  const [remindersVersion, setRemindersVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setRemindersVersion((v) => v + 1);
+    window.addEventListener(REMINDERS_CHANGED, bump);
+    return () => window.removeEventListener(REMINDERS_CHANGED, bump);
+  }, []);
+
   useEffect(() => {
     if (!tasks) return;
+    // The Android app hands reminders to the OS ahead of time (they fire even
+    // when it's closed); rebuild that schedule shortly after tasks change.
+    if (isNativeApp) {
+      const t = window.setTimeout(() => void syncNativeReminders(tasks).catch(() => {}), 1500);
+      return () => window.clearTimeout(t);
+    }
+    // On the website, reminders only fire while the tab is open.
     checkDueReminders(tasks);
     const id = window.setInterval(() => checkDueReminders(tasks), 60_000);
     return () => window.clearInterval(id);
-  }, [tasks]);
+  }, [tasks, remindersVersion]);
+
+  // Coming back to the app after a while: pick up edits made on other devices,
+  // unless we have unsaved edits of our own (those win the usual conflict check).
+  const queryClient = useQueryClient();
+  useEffect(
+    () =>
+      onAppResume(() => {
+        if (!hasPendingWrite()) void queryClient.invalidateQueries({ queryKey: ["bootstrap"] });
+      }),
+    [queryClient]
+  );
 
   // Subscribed calendar feeds have no push either -- refresh once on load, then
   // hourly for as long as the tab stays open.

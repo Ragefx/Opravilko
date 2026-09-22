@@ -1,4 +1,6 @@
 import { Dropbox, DropboxAuth } from "dropbox";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 
 const APP_KEY = import.meta.env.VITE_DROPBOX_APP_KEY || "";
 
@@ -7,10 +9,30 @@ const LS_ACCESS_EXPIRES = "opravilko.dbx.access_token_expires_at";
 const LS_REFRESH_TOKEN = "opravilko.dbx.refresh_token";
 const SS_CODE_VERIFIER = "opravilko.dbx.code_verifier";
 
-/** The URL Dropbox redirects back to after the user approves access. */
+/** True inside the Android app (Capacitor), false on the website. */
+export const isNativeApp = Capacitor.isNativePlatform();
+
+/** The public website, whose address is the redirect URI registered with Dropbox. */
+const WEB_URL = import.meta.env.VITE_WEB_URL || "https://ragefx.github.io/Opravilko/";
+
+/** Marks a sign-in started from the app, so the website knows to hand the code back to it. */
+export const NATIVE_OAUTH_STATE = "opravilko-app";
+
+/** Deep link the website forwards the app's authorization code to (see AndroidManifest.xml). */
+export const NATIVE_OAUTH_CALLBACK = "opravilko://oauth";
+
+/**
+ * The URL Dropbox redirects back to after the user approves access. The app
+ * has no web address of its own, so it borrows the website's (already
+ * registered with Dropbox), and the website forwards the code into the app.
+ */
 export function getRedirectUri(): string {
-  return `${window.location.origin}${import.meta.env.BASE_URL}`;
+  return isNativeApp ? WEB_URL : `${window.location.origin}${import.meta.env.BASE_URL}`;
 }
+
+// The app's sign-in round-trips through the system browser, and Android may
+// stop the app meanwhile, so its PKCE verifier has to outlive the session.
+const verifierStore = (): Storage => (isNativeApp ? localStorage : sessionStorage);
 
 export function isConnected(): boolean {
   return Boolean(localStorage.getItem(LS_REFRESH_TOKEN));
@@ -35,7 +57,7 @@ export async function startConnect(): Promise<void> {
   const redirectUri = getRedirectUri();
   const authUrl = await auth.getAuthenticationUrl(
     redirectUri,
-    undefined,
+    isNativeApp ? NATIVE_OAUTH_STATE : undefined,
     "code",
     "offline",
     undefined,
@@ -43,13 +65,17 @@ export async function startConnect(): Promise<void> {
     true // usePKCE
   );
   const verifier = auth.getCodeVerifier();
-  sessionStorage.setItem(SS_CODE_VERIFIER, verifier);
-  window.location.assign(authUrl.toString());
+  verifierStore().setItem(SS_CODE_VERIFIER, verifier);
+  if (isNativeApp) {
+    await Browser.open({ url: authUrl.toString() });
+  } else {
+    window.location.assign(authUrl.toString());
+  }
 }
 
 /** Completes the flow after Dropbox redirects back with ?code=... in the URL. */
 export async function completeConnect(code: string): Promise<void> {
-  const verifier = sessionStorage.getItem(SS_CODE_VERIFIER);
+  const verifier = verifierStore().getItem(SS_CODE_VERIFIER);
   if (!verifier) {
     throw new Error("Missing PKCE verifier for this browser session. Please try connecting again.");
   }
@@ -63,7 +89,7 @@ export async function completeConnect(code: string): Promise<void> {
     refresh_token: string;
   };
   saveTokens(result.access_token, Date.now() + result.expires_in * 1000, result.refresh_token);
-  sessionStorage.removeItem(SS_CODE_VERIFIER);
+  verifierStore().removeItem(SS_CODE_VERIFIER);
 }
 
 async function ensureFreshAccessToken(): Promise<string> {

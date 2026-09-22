@@ -9,6 +9,7 @@ import {
 import type { CalendarFeed } from "../api/types";
 import { COLOR_NAMES, colorHex } from "../utils/colors";
 import { CORS_PROXY_NAME } from "../utils/calendarSync";
+import { isNativeApp } from "../dropbox/auth";
 import { RefreshIcon, TrashIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 
@@ -66,10 +67,16 @@ export default function CalendarFeedsModal({ onClose }: { onClose: () => void })
           Subscribe to a read-only .ics feed (a TV listing calendar, a Gmail holiday or birthday
           calendar's "Secret address in iCal format", ...). These show up as events alongside your
           tasks in Today, Upcoming and Calendar view -- they're never turned into tasks, and there's
-          nothing here to check off. Fetching a feed routes it through a public relay (
-          <strong>{CORS_PROXY_NAME}</strong>, with a fallback if that one's unreachable) since
-          browsers can't fetch most feeds directly; for a private link that's worth knowing before
-          you add it.
+          nothing here to check off.{" "}
+          {isNativeApp ? (
+            <>The app fetches feeds directly from their source.</>
+          ) : (
+            <>
+              Fetching a feed routes it through a public relay (<strong>{CORS_PROXY_NAME}</strong>, with a
+              fallback if that one's unreachable) since browsers can't fetch most feeds directly; for a
+              private link that's worth knowing before you add it. The Android app fetches directly.
+            </>
+          )}
         </p>
 
         {feeds.length > 0 && (

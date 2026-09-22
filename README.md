@@ -68,6 +68,32 @@ Deployment is automatic: `.github/workflows/deploy.yml` builds and publishes
 `frontend/` to GitHub Pages on every push to `main`. Open the URL and click
 **Connect to Dropbox** to authorize (only needed once per browser).
 
+## Android app
+
+The same app, packaged for Android with [Capacitor](https://capacitorjs.com)
+(`frontend/android/`). `.github/workflows/android.yml` builds an APK on every push
+to `main` that touches `frontend/`, and publishes it as a GitHub release: open the
+repo's **Releases** page on your phone, download `Opravilko.apk`, and open it to
+install (Android will ask you to allow installs from your browser once).
+
+What's different from the website:
+
+- **Reminders are scheduled with Android**, so they fire even when the app is closed.
+- **Calendar feeds are fetched directly**, not through a public relay.
+- **Sign-in** opens Dropbox in the phone's browser; the website's callback page
+  hands the result back to the app (`opravilko://oauth`), so no extra redirect URI
+  has to be registered with Dropbox.
+
+**Signing.** By default CI builds a debug-signed APK, and each build has a different
+signature, so installing a newer one means uninstalling the old one first (your
+tasks are safe in Dropbox; you'd only need to sign in again). To get in-place
+updates, add a signing key as repository secrets: `ANDROID_KEYSTORE_BASE64` (the
+`.jks` file, base64-encoded), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and
+`ANDROID_KEY_PASSWORD`. Keep that key safe; every future update must use it.
+
+To build locally you need the Android SDK: `cd frontend && npm run build:android`,
+then open `frontend/android` in Android Studio.
+
 ## Local development
 
 ```

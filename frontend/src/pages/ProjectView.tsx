@@ -8,6 +8,7 @@ import DisplayMenu from "../components/DisplayMenu";
 import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
 import { ArchiveIcon } from "../components/icons";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, groupKeyFor, sortTasks, type DisplayOptions } from "../utils/displayOptions";
+import { groupEventsByDate } from "../utils/calendarSync";
 
 export default function ProjectView() {
   const { id } = useParams<{ id: string }>();
@@ -108,7 +109,11 @@ export default function ProjectView() {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
         <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
-        <CalendarView tasks={tasks} projectId={project.id} />
+        <CalendarView
+          tasks={tasks}
+          projectId={project.id}
+          eventsByDate={groupEventsByDate(data?.calendarEvents, data?.calendarFeeds)}
+        />
       </div>
     );
   }

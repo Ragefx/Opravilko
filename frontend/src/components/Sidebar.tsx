@@ -19,6 +19,7 @@ import { currentEffectiveTheme, setTheme } from "../utils/theme";
 import { disableReminders, enableReminders, remindersEnabled } from "../utils/notifications";
 import {
   BellIcon,
+  CalendarIcon,
   CheckCircleIcon,
   EditIcon,
   FilterIcon,
@@ -36,6 +37,7 @@ import {
 } from "./icons";
 import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
 import ImportModal from "./ImportModal";
+import CalendarFeedsModal from "./CalendarFeedsModal";
 import RowMenu from "./RowMenu";
 import { useToast } from "./ToastProvider";
 
@@ -79,6 +81,7 @@ export default function Sidebar({
 
   const [modal, setModal] = useState<{ kind: EntityKind; existing?: EditableEntity } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [calendarsOpen, setCalendarsOpen] = useState(false);
   const [theme, setThemeState] = useState(currentEffectiveTheme);
   const [remindersOn, setRemindersOn] = useState(remindersEnabled);
 
@@ -170,6 +173,11 @@ export default function Sidebar({
               label: "Import from Todoist",
               icon: <ImportIcon width={14} height={14} />,
               onClick: () => setImportOpen(true),
+            },
+            {
+              label: "Calendars",
+              icon: <CalendarIcon width={14} height={14} />,
+              onClick: () => setCalendarsOpen(true),
             },
             {
               label: remindersOn ? "Turn off reminders" : "Turn on reminders",
@@ -401,6 +409,7 @@ export default function Sidebar({
 
       {modal && <EntityModal kind={modal.kind} existing={modal.existing} onClose={() => setModal(null)} />}
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
+      {calendarsOpen && <CalendarFeedsModal onClose={() => setCalendarsOpen(false)} />}
     </aside>
   );
 }

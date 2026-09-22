@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { isConnected } from "../dropbox/auth";
-import { useBootstrap } from "../api/hooks";
+import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
 import { checkDueReminders } from "../utils/notifications";
 import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
@@ -28,6 +28,7 @@ export default function Layout() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const navigate = useNavigate();
   const tasks = useBootstrap().data?.tasks;
+  const syncAllCalendarFeeds = useSyncAllCalendarFeeds();
   // Tracks the "g" prefix of two-key navigation chords (g t, g u, g i).
   const goChord = useRef(false);
 
@@ -38,6 +39,15 @@ export default function Layout() {
     const id = window.setInterval(() => checkDueReminders(tasks), 60_000);
     return () => window.clearInterval(id);
   }, [tasks]);
+
+  // Subscribed calendar feeds have no push either -- refresh once on load, then
+  // hourly for as long as the tab stays open.
+  useEffect(() => {
+    void syncAllCalendarFeeds();
+    const id = window.setInterval(() => void syncAllCalendarFeeds(), 60 * 60_000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

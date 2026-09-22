@@ -69,6 +69,34 @@ export interface Task {
   comments?: Comment[];
 }
 
+/** A subscribed external iCal (.ics) feed -- read-only, never turned into tasks. */
+export interface CalendarFeed {
+  id: string;
+  name: string;
+  url: string;
+  color: string;
+  enabled: boolean;
+  lastSyncedAt: string | null;
+  lastError: string | null;
+}
+
+/** One VEVENT parsed out of a feed (recurring events are pre-expanded into instances). */
+export interface CalendarEvent {
+  id: string;
+  feedId: string;
+  /** Denormalized from the feed's color at sync time, for row/chip styling. */
+  color: string;
+  /** The VEVENT's own UID, so re-syncing can replace instead of duplicate. */
+  uid: string;
+  title: string;
+  /** ISO date ("yyyy-MM-dd") the event falls on, for day-bucket lookups. */
+  date: string;
+  /** Full ISO datetime, if the event has a time (absent for all-day events). */
+  start: string | null;
+  end: string | null;
+  allDay: boolean;
+}
+
 export interface AppData {
   version: number;
   projects: Project[];
@@ -76,4 +104,6 @@ export interface AppData {
   labels: Label[];
   filters: FilterDef[];
   tasks: Task[];
+  calendarFeeds?: CalendarFeed[];
+  calendarEvents?: CalendarEvent[];
 }

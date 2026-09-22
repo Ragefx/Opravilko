@@ -6,6 +6,7 @@ import DateBoardView from "../components/DateBoardView";
 import type { DateBoardColumn } from "../components/DateBoardView";
 import type { Task } from "../api/types";
 import { isDueToday, isOverdue, makeDue, todayISO } from "../utils/date";
+import { groupEventsByDate } from "../utils/calendarSync";
 import { CheckCircleIcon, ListViewIcon, BoardViewIcon } from "../components/icons";
 import { getStoredLayout, setStoredLayout, type ViewLayout } from "../utils/viewLayout";
 
@@ -23,6 +24,7 @@ export default function Today() {
     .filter((t) => !t.completed && (isDueToday(t.due) || isOverdue(t.due)))
     .sort((a, b) => (a.due?.date || "").localeCompare(b.due?.date || ""));
   const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));
+  const eventsByDate = groupEventsByDate(data.calendarEvents, data.calendarFeeds);
 
   const header = (
     <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
@@ -88,6 +90,7 @@ export default function Today() {
       showProjectChip
       projectNameById={projectNameById}
       groupExtra={(label, items) => (label === "Overdue" && items.length > 0 ? <RescheduleButton tasks={items} /> : undefined)}
+      eventsByDate={eventsByDate}
     />
   );
 }

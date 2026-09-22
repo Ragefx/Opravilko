@@ -11,7 +11,7 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import type { Task } from "../api/types";
+import type { CalendarEvent, Task } from "../api/types";
 import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
@@ -20,7 +20,15 @@ const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 4;
 const WEEK_OPTS = { weekStartsOn: 1 as const };
 
-export default function CalendarView({ tasks, projectId }: { tasks: Task[]; projectId: string }) {
+export default function CalendarView({
+  tasks,
+  projectId,
+  eventsByDate,
+}: {
+  tasks: Task[];
+  projectId: string;
+  eventsByDate?: Map<string, CalendarEvent[]>;
+}) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [addingFor, setAddingFor] = useState<string | null>(null);
@@ -66,6 +74,7 @@ export default function CalendarView({ tasks, projectId }: { tasks: Task[]; proj
         {days.map((day) => {
           const key = format(day, "yyyy-MM-dd");
           const dayTasks = (tasksByDate.get(key) || []).sort((a, b) => a.priority - b.priority);
+          const dayEvents = eventsByDate?.get(key) || [];
           const inMonth = isSameMonth(day, month);
           return (
             <div
@@ -82,6 +91,16 @@ export default function CalendarView({ tasks, projectId }: { tasks: Task[]; proj
                   +
                 </button>
               </div>
+              {dayEvents.map((e) => (
+                <div
+                  key={e.id}
+                  className="calendar-event-chip"
+                  style={{ borderLeftColor: e.color }}
+                  title={e.title}
+                >
+                  {e.title}
+                </div>
+              ))}
               {dayTasks.slice(0, MAX_VISIBLE_PER_DAY).map((t) => (
                 <button
                   key={t.id}

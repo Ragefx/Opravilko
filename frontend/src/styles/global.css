@@ -483,6 +483,31 @@ kbd {
   background: var(--color-hover);
 }
 
+.calendar-event-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 6px 6px 10px;
+  margin-bottom: 2px;
+  border-left: 3px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-hover);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.calendar-event-time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.calendar-event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .task-collapse-toggle {
   width: 16px;
   height: 18px;
@@ -1663,6 +1688,20 @@ kbd {
   font-size: 11px;
   color: var(--color-text-muted);
   padding: 0 4px;
+}
+
+.calendar-event-chip {
+  border-left: 3px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---------- Board view ---------- */

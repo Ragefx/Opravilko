@@ -4,11 +4,12 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from 
 import type { DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Task } from "../api/types";
+import type { CalendarEvent, Task } from "../api/types";
 import { useBootstrap, useReorderTasks } from "../api/hooks";
 import TaskRow from "./TaskRow";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
+import CalendarEventRow from "./CalendarEventRow";
 import { CheckCircleIcon } from "./icons";
 
 export default function TaskListView({
@@ -25,6 +26,7 @@ export default function TaskListView({
   autoOpenTaskId,
   groupExtra,
   preserveOrder,
+  eventsByDate,
 }: {
   title: string;
   /** Secondary line under the title, e.g. the date and task count. */
@@ -45,6 +47,8 @@ export default function TaskListView({
   groupExtra?: (label: string, items: Task[]) => ReactNode;
   /** Trusts the incoming order of `tasks` instead of re-sorting by the manual `order` field. */
   preserveOrder?: boolean;
+  /** Subscribed-calendar events to show under each date group, keyed by "yyyy-MM-dd". */
+  eventsByDate?: Map<string, CalendarEvent[]>;
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -148,15 +152,20 @@ export default function TaskListView({
       )}
 
       {groupLabel
-        ? [...groups.entries()].map(([label, items]) => (
-            <div key={label}>
-              <div className="task-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span>{label}</span>
-                {groupExtra?.(label, items)}
+        ? [...groups.entries()].map(([label, items]) => {
+            const dateKey = items[0]?.due?.date;
+            const events = dateKey ? eventsByDate?.get(dateKey) : undefined;
+            return (
+              <div key={label}>
+                <div className="task-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>{label}</span>
+                  {groupExtra?.(label, items)}
+                </div>
+                {events?.map((e) => <CalendarEventRow key={e.id} event={e} />)}
+                {items.map((t) => renderTaskAndChildren(t, 0))}
               </div>
-              {items.map((t) => renderTaskAndChildren(t, 0))}
-            </div>
-          ))
+            );
+          })
         : reorderable
           ? (
               <DndContext

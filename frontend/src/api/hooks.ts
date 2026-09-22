@@ -1,8 +1,22 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
+import { addMonths, subMonths } from "date-fns";
 import { fetchAppData, scheduleSave } from "../dropbox/store";
 import { advanceDate, parseRecurrenceString } from "../utils/recurrence";
-import type { AppData, Due, FilterDef, Label, Priority, Project, Section, Task } from "./types";
+import { fetchIcsText } from "../utils/calendarSync";
+import { parseIcs } from "../utils/ics";
+import type {
+  AppData,
+  CalendarEvent,
+  CalendarFeed,
+  Due,
+  FilterDef,
+  Label,
+  Priority,
+  Project,
+  Section,
+  Task,
+} from "./types";
 
 const BOOTSTRAP_KEY = ["bootstrap"];
 
@@ -512,4 +526,98 @@ export function useRestoreFilter() {
   return useLocalMutation<FilterDef, void>((data, filter) => {
     if (!data.filters.some((f) => f.id === filter.id)) data.filters.push(filter);
   });
+}
+
+// ---- calendar feeds (read-only external .ics subscriptions) ----
+
+export function useCreateCalendarFeed() {
+  return useLocalMutation<{ name: string; url: string; color?: string }, CalendarFeed>((data, input) => {
+    if (!data.calendarFeeds) data.calendarFeeds = [];
+    const feed: CalendarFeed = {
+      id: nanoid(),
+      name: input.name,
+      url: input.url,
+      color: input.color || "#7048e8",
+      enabled: true,
+      lastSyncedAt: null,
+      lastError: null,
+    };
+    data.calendarFeeds.push(feed);
+    return feed;
+  });
+}
+
+export function useUpdateCalendarFeed() {
+  return useLocalMutation<Partial<CalendarFeed> & { id: string }, void>((data, input) => {
+    const { id, ...rest } = input;
+    const feed = data.calendarFeeds?.find((f) => f.id === id);
+    if (feed) Object.assign(feed, rest);
+  });
+}
+
+export function useDeleteCalendarFeed() {
+  return useLocalMutation<string, void>((data, id) => {
+    data.calendarFeeds = (data.calendarFeeds || []).filter((f) => f.id !== id);
+    data.calendarEvents = (data.calendarEvents || []).filter((e) => e.feedId !== id);
+  });
+}
+
+/**
+ * Fetches one feed's .ics text (through the CORS proxy), parses it, and
+ * replaces that feed's cached events -- shared by the per-feed manual
+ * refresh mutation and the bulk auto-sync run on load, so both apply the
+ * exact same window and merge logic.
+ */
+async function runFeedSync(qc: QueryClient, feedId: string): Promise<void> {
+  const current = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? (await fetchAppData());
+  const feed = current.calendarFeeds?.find((f) => f.id === feedId);
+  if (!feed) throw new Error("Calendar not found");
+
+  const windowStart = subMonths(new Date(), 1);
+  const windowEnd = addMonths(new Date(), 12);
+
+  let events: CalendarEvent[] = [];
+  let error: string | null = null;
+  try {
+    const text = await fetchIcsText(feed.url);
+    events = parseIcs(text, feedId, feed.color, windowStart, windowEnd);
+  } catch (e) {
+    error = e instanceof Error ? e.message : "Sync failed";
+  }
+
+  const latest = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? current;
+  const data: AppData = structuredClone(latest);
+  const f = data.calendarFeeds?.find((x) => x.id === feedId);
+  if (f) {
+    f.lastSyncedAt = new Date().toISOString();
+    f.lastError = error;
+  }
+  if (!error) {
+    data.calendarEvents = [...(data.calendarEvents || []).filter((e) => e.feedId !== feedId), ...events];
+  }
+  qc.setQueryData(BOOTSTRAP_KEY, data);
+  scheduleSave(data);
+  if (error) throw new Error(error);
+}
+
+/** Manual per-feed refresh, with mutation state (isPending/error) for the Calendars UI. */
+export function useSyncCalendarFeed() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (feedId: string) => runFeedSync(qc, feedId),
+  });
+}
+
+/** Syncs every enabled feed in turn -- called once on load and periodically while open. */
+export function useSyncAllCalendarFeeds() {
+  const qc = useQueryClient();
+  return async () => {
+    const current = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? (await fetchAppData());
+    const feeds = (current.calendarFeeds || []).filter((f) => f.enabled);
+    for (const feed of feeds) {
+      await runFeedSync(qc, feed.id).catch(() => {
+        /* per-feed error is already stored on the feed itself (lastError) */
+      });
+    }
+  };
 }

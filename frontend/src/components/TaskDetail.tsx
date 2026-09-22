@@ -22,6 +22,7 @@ import { useToast } from "./ToastProvider";
 import TaskCheckbox from "./TaskCheckbox";
 import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
+import DateQuickIcons from "./DateQuickIcons";
 
 function timeFromDatetime(datetime?: string): string {
   if (!datetime) return "";
@@ -377,16 +378,8 @@ export default function TaskDetail({
 
               <div className="detail-sidebar-field">
                 <div className="detail-sidebar-label">Date</div>
-                <div className="detail-field-row">
-                  <button className="field-pill" onClick={() => setDueOffset(0)}>
-                    <CalendarIcon width={14} height={14} /> Today
-                  </button>
-                  <button className="field-pill" onClick={() => setDueOffset(1)}>
-                    <CalendarIcon width={14} height={14} /> Tomorrow
-                  </button>
-                  <button className="field-pill" onClick={() => setDueOffset(7)}>
-                    <CalendarIcon width={14} height={14} /> Next week
-                  </button>
+                <div className="detail-field-row" style={{ alignItems: "center" }}>
+                  <DateQuickIcons onPick={setDueOffset} />
                   {task.due && (
                     <button className="field-pill" onClick={() => setDueOffset(null)}>
                       <XIcon width={14} height={14} /> Clear date

@@ -921,6 +921,254 @@ kbd {
   cursor: pointer;
 }
 
+/* ---------- Date quick-pick icons (task menu, task detail sidebar) ---------- */
+.date-quick-icons {
+  display: flex;
+  gap: 6px;
+}
+.date-quick-btn {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+.date-quick-btn:hover {
+  background: var(--color-hover);
+}
+.date-quick-btn.today {
+  color: #2f9e44;
+  border-color: #2f9e44;
+}
+.date-quick-btn.tomorrow {
+  color: #f2994a;
+  border-color: #f2994a;
+}
+.date-quick-btn.weekend {
+  color: #4263eb;
+  border-color: #4263eb;
+}
+.date-quick-btn.nextweek {
+  color: #7048e8;
+  border-color: #7048e8;
+}
+.date-quick-btn.more {
+  color: var(--color-text-secondary);
+  border-style: dashed;
+}
+
+/* ---------- Full date picker popup ---------- */
+.date-picker-panel {
+  width: 280px;
+  padding: 8px;
+}
+.date-picker-input {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  background: none;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+.date-picker-quick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 7px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-text);
+  text-align: left;
+}
+.date-picker-quick-row:hover {
+  background: var(--color-hover);
+}
+.date-picker-quick-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+.date-picker-quick-icon.today {
+  color: #2f9e44;
+}
+.date-picker-quick-icon.tomorrow {
+  color: #f2994a;
+}
+.date-picker-quick-icon.weekend {
+  color: #4263eb;
+}
+.date-picker-quick-icon.nextweek {
+  color: #7048e8;
+}
+.date-picker-quick-day {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.date-picker-calendar {
+  margin: 6px 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+}
+.date-picker-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 4px 8px;
+}
+.date-picker-cal-header div {
+  display: flex;
+  gap: 4px;
+}
+.date-picker-cal-header button {
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 4px;
+}
+.date-picker-cal-header button:hover {
+  background: var(--color-hover);
+}
+.date-picker-cal-weekdays,
+.date-picker-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.date-picker-cal-weekdays span {
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding-bottom: 4px;
+}
+.date-picker-cal-day {
+  border: none;
+  background: none;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  font-size: 12px;
+  color: var(--color-text);
+}
+.date-picker-cal-day:hover {
+  background: var(--color-hover);
+}
+.date-picker-cal-day.outside {
+  color: var(--color-text-muted);
+}
+.date-picker-cal-day.is-today {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+.date-picker-cal-day.selected {
+  background: var(--color-accent);
+  color: #fff;
+}
+.date-picker-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: var(--color-hover);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--color-text);
+  margin-top: 4px;
+}
+.date-picker-action-btn:hover {
+  background: var(--color-border);
+}
+.date-picker-repeat-wrap {
+  position: relative;
+}
+.date-picker-repeat-flyout {
+  position: absolute;
+  top: 0;
+  /* Opens to the left, not the right: the date picker panel itself is
+     right-anchored near the viewport edge, so a right-opening flyout could
+     run off-screen. */
+  right: 100%;
+  margin-right: 6px;
+  min-width: 200px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  z-index: 99;
+}
+.date-picker-repeat-flyout button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-text);
+}
+.date-picker-repeat-flyout button:hover {
+  background: var(--color-hover);
+}
+
+/* ---------- Time picker popup ---------- */
+.time-picker-panel {
+  width: 220px;
+  padding: 12px;
+}
+.time-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.time-picker-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.time-picker-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.time-picker-inputs select {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 13px;
+  background: none;
+  color: var(--color-text);
+}
+.time-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 @media (max-width: 720px) {
   .detail-panel {
     width: 100%;

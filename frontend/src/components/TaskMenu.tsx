@@ -5,7 +5,9 @@ import { useCreateTask, useDeleteTask, useRestoreTasks, useUpdateTask } from "..
 import { useToast } from "./ToastProvider";
 import { makeDue } from "../utils/date";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
-import { CalendarIcon, ChevronIcon, CopyIcon, EditIcon, FlagIcon, LinkIcon, MoreIcon, MoveIcon, TrashIcon, XIcon } from "./icons";
+import { ChevronIcon, CopyIcon, EditIcon, FlagIcon, LinkIcon, MoreIcon, MoveIcon, TrashIcon } from "./icons";
+import DateQuickIcons from "./DateQuickIcons";
+import DatePickerPopup from "./DatePickerPopup";
 
 /**
  * The per-task "⋯" menu shown on hover in list rows and board cards,
@@ -27,6 +29,7 @@ export default function TaskMenu({
 }) {
   const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null);
   const [showMoveTo, setShowMoveTo] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const updateTask = useUpdateTask();
   const createTask = useCreateTask();
@@ -37,6 +40,7 @@ export default function TaskMenu({
   function close() {
     setAnchor(null);
     setShowMoveTo(false);
+    setShowDatePicker(false);
   }
 
   function toggle(e: React.MouseEvent) {
@@ -183,20 +187,7 @@ export default function TaskMenu({
 
                   <div className="task-menu-section-label">Date</div>
                   <div className="task-menu-inline-row">
-                    <button className="field-pill" onClick={() => setDueOffset(0)}>
-                      <CalendarIcon width={13} height={13} /> Today
-                    </button>
-                    <button className="field-pill" onClick={() => setDueOffset(1)}>
-                      <CalendarIcon width={13} height={13} /> Tomorrow
-                    </button>
-                    <button className="field-pill" onClick={() => setDueOffset(7)}>
-                      <CalendarIcon width={13} height={13} /> Next week
-                    </button>
-                    {task.due && (
-                      <button className="field-pill" onClick={() => setDueOffset(null)}>
-                        <XIcon width={13} height={13} /> No date
-                      </button>
-                    )}
+                    <DateQuickIcons onPick={setDueOffset} onMore={() => setShowDatePicker(true)} />
                   </div>
 
                   <div className="task-menu-section-label">Priority</div>
@@ -269,6 +260,13 @@ export default function TaskMenu({
           </>,
           document.body
         )}
+      {showDatePicker && anchor && (
+        <DatePickerPopup
+          taskId={task.id}
+          anchor={{ top: anchor.top, right: Math.max(0, anchor.right - 280) }}
+          onClose={close}
+        />
+      )}
     </span>
   );
 }

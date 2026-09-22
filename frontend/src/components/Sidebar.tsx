@@ -103,6 +103,14 @@ export default function Sidebar({
   const topProjects = (data?.projects || [])
     .filter((p) => !p.isInboxProject)
     .sort((a, b) => a.order - b.order);
+  const projectTaskCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of data?.tasks || []) {
+      if (t.completed) continue;
+      counts[t.projectId] = (counts[t.projectId] || 0) + 1;
+    }
+    return counts;
+  }, [data]);
   const labels = (data?.labels || []).slice().sort((a, b) => a.order - b.order);
   const filters = (data?.filters || []).slice().sort((a, b) => a.order - b.order);
 
@@ -255,8 +263,11 @@ export default function Sidebar({
                 to={`/app/project/${p.id}`}
                 className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
               >
-                <span className="color-dot" style={{ background: colorHex(p.color) }} />
-                {p.name}
+                <span className="project-hash" style={{ color: colorHex(p.color) }}>
+                  #
+                </span>
+                <span className="sidebar-link-label">{p.name}</span>
+                {projectTaskCounts[p.id] > 0 && <span className="badge">{projectTaskCounts[p.id]}</span>}
               </NavLink>
             ))}
             {favoriteLabels.map((l) => (
@@ -296,8 +307,11 @@ export default function Sidebar({
             to={`/app/project/${p.id}`}
             className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
           >
-            <span className="color-dot" style={{ background: colorHex(p.color) }} />
+            <span className="project-hash" style={{ color: colorHex(p.color) }}>
+              #
+            </span>
             <span className="sidebar-link-label">{p.name}</span>
+            {projectTaskCounts[p.id] > 0 && <span className="badge">{projectTaskCounts[p.id]}</span>}
             <StarToggle
               active={p.isFavorite}
               onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}

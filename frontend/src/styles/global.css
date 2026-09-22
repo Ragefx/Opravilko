@@ -429,6 +429,15 @@ kbd {
   flex-shrink: 0;
 }
 
+.project-hash {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  width: 14px;
+  text-align: center;
+}
+
 /* ---------- Main content ---------- */
 .main {
   flex: 1;

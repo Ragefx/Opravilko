@@ -10,37 +10,40 @@
  */
 import type { CalendarEvent, CalendarFeed } from "../api/types";
 
-export const CORS_PROXY_NAME = "allorigins.win";
+export const CORS_PROXY_NAME = "codetabs.com";
 
 /**
- * Relays tried in order. corsproxy.io started rejecting anonymous requests
- * with HTTP 401 (it now wants a registered origin/API key), so allorigins
- * is primary and corsproxy.io stays as a fallback in case allorigins is
- * ever down instead.
+ * Relays tried in order, each named so a failure says which one refused.
+ * corsproxy.io rejects anonymous requests outright (HTTP 401, it now wants
+ * a registered origin/API key), and allorigins.win has started failing the
+ * same way for some targets (Google's servers in particular). codetabs is
+ * primary since it's held up for both; the other two stay as fallbacks in
+ * case it's ever down instead.
  */
-const PROXIES: ((feedUrl: string) => string)[] = [
-  (feedUrl) => `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`,
-  (feedUrl) => `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}`,
+const PROXIES: { name: string; url: (feedUrl: string) => string }[] = [
+  { name: "codetabs.com", url: (feedUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(feedUrl)}` },
+  { name: "allorigins.win", url: (feedUrl) => `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}` },
+  { name: "corsproxy.io", url: (feedUrl) => `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}` },
 ];
 
 export function proxiedUrl(feedUrl: string): string {
-  return PROXIES[0](feedUrl);
+  return PROXIES[0].url(feedUrl);
 }
 
 export async function fetchIcsText(feedUrl: string): Promise<string> {
-  let lastError: unknown;
-  for (const toProxyUrl of PROXIES) {
+  const failures: string[] = [];
+  for (const proxy of PROXIES) {
     try {
-      const res = await fetch(toProxyUrl(feedUrl));
-      if (!res.ok) throw new Error(`Feed request failed (HTTP ${res.status})`);
+      const res = await fetch(proxy.url(feedUrl));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
-      if (!text.includes("BEGIN:VCALENDAR")) throw new Error("That URL doesn't look like an iCal (.ics) feed");
+      if (!text.includes("BEGIN:VCALENDAR")) throw new Error("not an iCal feed");
       return text;
     } catch (e) {
-      lastError = e;
+      failures.push(`${proxy.name}: ${e instanceof Error ? e.message : "failed"}`);
     }
   }
-  throw lastError instanceof Error ? lastError : new Error("Sync failed");
+  throw new Error(`All relays failed -- ${failures.join("; ")}`);
 }
 
 /** Buckets events from enabled feeds by their "yyyy-MM-dd" date, sorted by start time. */

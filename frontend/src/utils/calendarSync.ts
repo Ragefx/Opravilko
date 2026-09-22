@@ -10,18 +10,37 @@
  */
 import type { CalendarEvent, CalendarFeed } from "../api/types";
 
-export const CORS_PROXY_NAME = "corsproxy.io";
+export const CORS_PROXY_NAME = "allorigins.win";
+
+/**
+ * Relays tried in order. corsproxy.io started rejecting anonymous requests
+ * with HTTP 401 (it now wants a registered origin/API key), so allorigins
+ * is primary and corsproxy.io stays as a fallback in case allorigins is
+ * ever down instead.
+ */
+const PROXIES: ((feedUrl: string) => string)[] = [
+  (feedUrl) => `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`,
+  (feedUrl) => `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}`,
+];
 
 export function proxiedUrl(feedUrl: string): string {
-  return `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}`;
+  return PROXIES[0](feedUrl);
 }
 
 export async function fetchIcsText(feedUrl: string): Promise<string> {
-  const res = await fetch(proxiedUrl(feedUrl));
-  if (!res.ok) throw new Error(`Feed request failed (HTTP ${res.status})`);
-  const text = await res.text();
-  if (!text.includes("BEGIN:VCALENDAR")) throw new Error("That URL doesn't look like an iCal (.ics) feed");
-  return text;
+  let lastError: unknown;
+  for (const toProxyUrl of PROXIES) {
+    try {
+      const res = await fetch(toProxyUrl(feedUrl));
+      if (!res.ok) throw new Error(`Feed request failed (HTTP ${res.status})`);
+      const text = await res.text();
+      if (!text.includes("BEGIN:VCALENDAR")) throw new Error("That URL doesn't look like an iCal (.ics) feed");
+      return text;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Sync failed");
 }
 
 /** Buckets events from enabled feeds by their "yyyy-MM-dd" date, sorted by start time. */

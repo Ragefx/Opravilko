@@ -66,9 +66,10 @@ export default function CalendarFeedsModal({ onClose }: { onClose: () => void })
           Subscribe to a read-only .ics feed (a TV listing calendar, a Gmail holiday or birthday
           calendar's "Secret address in iCal format", ...). These show up as events alongside your
           tasks in Today, Upcoming and Calendar view -- they're never turned into tasks, and there's
-          nothing here to check off. Fetching a feed routes it through the public relay{" "}
-          <strong>{CORS_PROXY_NAME}</strong> (browsers can't fetch most feeds directly); for a
-          private link that's worth knowing before you add it.
+          nothing here to check off. Fetching a feed routes it through a public relay (
+          <strong>{CORS_PROXY_NAME}</strong>, with a fallback if that one's unreachable) since
+          browsers can't fetch most feeds directly; for a private link that's worth knowing before
+          you add it.
         </p>
 
         {feeds.length > 0 && (

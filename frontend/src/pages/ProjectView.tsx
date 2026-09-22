@@ -8,6 +8,7 @@ import DisplayMenu from "../components/DisplayMenu";
 import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
 import { ArchiveIcon } from "../components/icons";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, groupKeyFor, sortTasks, type DisplayOptions } from "../utils/displayOptions";
+import { setStoredDisplayOptions, withStoredDisplayOptions } from "../utils/displayOptionsStorage";
 import { groupEventsByDate } from "../utils/calendarSync";
 
 export default function ProjectView() {
@@ -29,11 +30,12 @@ export default function ProjectView() {
 
   const project = data?.projects.find((p) => p.id === projectId);
 
-  // Seed the layout from the project's saved viewStyle once per project, without
-  // clobbering other in-session display tweaks (grouping/sort/filters) on re-renders.
+  // Seed grouping/sort/filters from this project's remembered choices, and
+  // layout from its saved viewStyle, once per project -- without clobbering
+  // in-session tweaks on re-renders.
   useEffect(() => {
     if (project && initializedFor !== project.id) {
-      setDisplay((d) => ({ ...d, layout: project.viewStyle || "list" }));
+      setDisplay(withStoredDisplayOptions(project.id, project.viewStyle || "list"));
       setInitializedFor(project.id);
     }
   }, [project, initializedFor]);
@@ -43,6 +45,7 @@ export default function ProjectView() {
 
   function handleDisplayChange(next: DisplayOptions) {
     setDisplay(next);
+    setStoredDisplayOptions(project!.id, next);
     if (next.layout !== display.layout) {
       updateProject.mutate({ id: project!.id, viewStyle: next.layout });
     }

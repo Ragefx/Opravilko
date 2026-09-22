@@ -353,6 +353,7 @@ kbd {
 }
 
 .sidebar-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -382,6 +383,27 @@ kbd {
   margin-left: auto;
   font-size: 12px;
   color: var(--color-text-muted);
+}
+
+/*
+ * Project rows pin the count to the exact spot the "..." menu trigger
+ * sits at rest, so hovering swaps one for the other in place instead of
+ * the count floating to the left of reserved-but-invisible icon space.
+ */
+.sidebar-project-count {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.sidebar-project-link .sidebar-star,
+.sidebar-project-link .row-menu-trigger {
+  display: none;
+}
+.sidebar-project-link:hover .sidebar-star,
+.sidebar-project-link:hover .row-menu-trigger,
+.sidebar-project-link .sidebar-star.is-favorite {
+  display: flex;
 }
 .sidebar-project-link:hover .sidebar-project-count {
   display: none;

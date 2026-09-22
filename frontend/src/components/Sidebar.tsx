@@ -305,13 +305,13 @@ export default function Sidebar({
           <NavLink
             key={p.id}
             to={`/app/project/${p.id}`}
-            className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+            className={({ isActive }) => `sidebar-link sidebar-project-link ${isActive ? "active" : ""}`}
           >
             <span className="project-hash" style={{ color: colorHex(p.color) }}>
               #
             </span>
             <span className="sidebar-link-label">{p.name}</span>
-            {projectTaskCounts[p.id] > 0 && <span className="badge">{projectTaskCounts[p.id]}</span>}
+            {projectTaskCounts[p.id] > 0 && <span className="badge sidebar-project-count">{projectTaskCounts[p.id]}</span>}
             <StarToggle
               active={p.isFavorite}
               onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}

@@ -130,7 +130,7 @@ export default function TaskMenu({
         onPointerDown={(e) => e.stopPropagation()}
         onClick={toggle}
       >
-        <MoreIcon width={14} height={14} />
+        <MoreIcon width={18} height={18} />
       </button>
       {anchor &&
         createPortal(

@@ -40,7 +40,7 @@ export default function DateQuickIcons({
       </button>
       {onMore && (
         <button type="button" className="date-quick-btn more" title="More date options" onClick={onMore}>
-          <MoreIcon width={14} height={14} />
+          <MoreIcon width={16} height={16} />
         </button>
       )}
     </div>

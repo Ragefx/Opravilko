@@ -85,7 +85,7 @@ export default function SectionMenu({
   return (
     <span className="row-menu">
       <button ref={triggerRef} className="row-menu-trigger" aria-label="Section options" onClick={toggle}>
-        <MoreIcon width={14} height={14} />
+        <MoreIcon width={18} height={18} />
       </button>
       {anchor &&
         createPortal(

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { useBootstrap, useRescheduleTasks } from "../api/hooks";
+import { useBootstrap } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
 import DateBoardView from "../components/DateBoardView";
 import type { DateBoardColumn } from "../components/DateBoardView";
-import type { Task } from "../api/types";
-import { isDueToday, isOverdue, makeDue, todayISO } from "../utils/date";
+import RescheduleButton from "../components/RescheduleButton";
+import { isDueToday, isOverdue, todayISO } from "../utils/date";
 import { groupEventsByDate } from "../utils/calendarSync";
 import { CheckCircleIcon, ListViewIcon, BoardViewIcon } from "../components/icons";
 import { getStoredLayout, setStoredLayout, type ViewLayout } from "../utils/viewLayout";
@@ -96,18 +96,5 @@ export default function Today() {
         { label: "Today", date: todayISO() },
       ]}
     />
-  );
-}
-
-function RescheduleButton({ tasks }: { tasks: Task[] }) {
-  const rescheduleTasks = useRescheduleTasks();
-  return (
-    <button
-      className="btn-text"
-      style={{ fontSize: 12, padding: "2px 6px", marginLeft: "auto" }}
-      onClick={() => rescheduleTasks.mutate({ ids: tasks.map((t) => t.id), due: makeDue(new Date(), "Today") })}
-    >
-      Reschedule all to today
-    </button>
   );
 }

@@ -15,6 +15,7 @@
   --color-success: #1f9254;
   --color-warning: #b8860b;
   --color-due-later: #8347d9;
+  --color-chart-bar: #3e63dd;
   --sidebar-width: 260px;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color-scheme: light;
@@ -38,6 +39,7 @@
     --color-success: #3cb677;
     --color-warning: #e0b13c;
     --color-due-later: #b18cf0;
+    --color-chart-bar: #6184fa;
     color-scheme: dark;
   }
 }
@@ -59,6 +61,7 @@
   --color-success: #3cb677;
   --color-warning: #e0b13c;
   --color-due-later: #b18cf0;
+  --color-chart-bar: #6184fa;
   color-scheme: dark;
 }
 
@@ -2122,6 +2125,19 @@ kbd {
     flex-wrap: wrap;
     gap: 8px;
   }
+  /* Pickers and task menus become bottom sheets instead of anchored popovers,
+     which would otherwise spill off a narrow screen. */
+  .date-picker-panel,
+  .time-picker-panel,
+  .task-menu-panel {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+  }
 }
 
 /* ---------- Touch screens: no hover, so show hover-only controls ---------- */
@@ -2137,4 +2153,260 @@ kbd {
     position: static;
     transform: none;
   }
+}
+
+/* ---------- Nested projects ---------- */
+.sidebar-project-toggle {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  padding: 0;
+  width: 12px;
+  margin-right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-project-toggle:hover {
+  color: var(--color-text);
+}
+.entity-parent-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.entity-parent-field select {
+  flex: 1;
+  max-width: 220px;
+}
+
+/* ---------- Swipe actions on task rows (touch) ---------- */
+.task-swipe-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.task-swipe-wrap .task-row {
+  /* Let the browser keep vertical scrolling while we handle sideways drags. */
+  touch-action: pan-y;
+}
+.task-swipe-wrap[data-swipe] .task-row {
+  transition: none;
+}
+.task-swipe-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0.6;
+}
+.task-swipe-bg.armed {
+  opacity: 1;
+}
+.task-swipe-wrap[data-swipe="right"] .task-swipe-bg {
+  justify-content: flex-start;
+  background: var(--color-success);
+}
+.task-swipe-wrap[data-swipe="left"] .task-swipe-bg {
+  justify-content: flex-end;
+  background: var(--color-due-later);
+}
+
+/* ---------- Productivity stats ---------- */
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 8px 0 20px;
+}
+.stat-tile {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  margin-top: 2px;
+  color: var(--color-text);
+}
+.stat-note {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+.stat-note.up {
+  color: var(--color-success);
+}
+.stat-note.down {
+  color: var(--color-danger);
+}
+.stats-card {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px 16px 16px;
+  margin-bottom: 16px;
+  background: var(--color-surface);
+}
+.stats-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.stats-card-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.stats-table-toggle {
+  font-size: 12px;
+}
+.stats-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Column chart: single series, recessive grid, bars capped at 24px. */
+.col-chart {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  grid-template-rows: 180px auto;
+  column-gap: 6px;
+}
+.col-chart-yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  transform: translateY(-6px);
+  height: calc(100% + 12px);
+  margin-bottom: -12px;
+}
+.col-chart-plot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+.col-chart-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--color-border);
+}
+.col-chart-slot {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: default;
+}
+.col-chart-bar {
+  position: relative;
+  width: min(24px, 60%);
+  background: var(--color-chart-bar);
+  border-radius: 4px 4px 0 0;
+  transition: opacity 0.12s ease;
+}
+.col-chart-bar.dim {
+  opacity: 0.45;
+}
+.col-chart-value {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.col-chart-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -6px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  pointer-events: none;
+}
+.col-chart-tooltip.align-right {
+  left: auto;
+  right: 0;
+  transform: translate(0, -6px);
+}
+.col-chart-xaxis {
+  grid-column: 2;
+  display: flex;
+  margin-top: 6px;
+}
+.col-chart-xaxis span {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.stats-table th,
+.stats-table td {
+  text-align: left;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+.stats-table th {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.stats-project-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.stats-project-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 14px;
+}
+.stats-project-list li:last-child {
+  border-bottom: none;
+}
+.stats-project-name {
+  flex: 1;
+}
+.stats-project-count {
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }

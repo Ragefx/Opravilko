@@ -36,6 +36,15 @@ export default function SyncIndicator() {
     );
   }
 
+  if (state.status === "offline") {
+    return (
+      <div className="sync-chip muted" title="Changes are kept on this device and upload when you're back online.">
+        <CloudOffIcon width={13} height={13} />
+        {state.pending ? "Offline · changes saved on this device" : "Offline"}
+      </div>
+    );
+  }
+
   if (state.status === "error") {
     return (
       <div className="sync-banner error">

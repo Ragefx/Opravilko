@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  useBootstrap,
   useCreateFilter,
   useCreateLabel,
   useCreateProject,
@@ -16,6 +17,7 @@ export interface EditableEntity {
   name: string;
   color: string;
   query?: string;
+  parentId?: string | null;
 }
 
 const TITLES: Record<EntityKind, { create: string; edit: string; placeholder: string }> = {
@@ -28,15 +30,39 @@ const TITLES: Record<EntityKind, { create: string; edit: string; placeholder: st
 export default function EntityModal({
   kind,
   existing,
+  defaultParentId,
   onClose,
 }: {
   kind: EntityKind;
   existing?: EditableEntity;
+  /** Pre-selects a parent when adding a sub-project. */
+  defaultParentId?: string;
   onClose: () => void;
 }) {
+  const { data } = useBootstrap();
   const [name, setName] = useState(existing?.name ?? "");
   const [query, setQuery] = useState(existing?.query ?? "");
   const [color, setColor] = useState(existing?.color ?? "charcoal");
+  const [parentId, setParentId] = useState<string | null>(existing?.parentId ?? defaultParentId ?? null);
+
+  // A project can't be nested under itself or anything already beneath it.
+  const excluded = new Set<string>();
+  if (existing) {
+    excluded.add(existing.id);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const p of data?.projects || []) {
+        if (p.parentId && excluded.has(p.parentId) && !excluded.has(p.id)) {
+          excluded.add(p.id);
+          grew = true;
+        }
+      }
+    }
+  }
+  const parentOptions = (data?.projects || [])
+    .filter((p) => !p.isInboxProject && !excluded.has(p.id))
+    .sort((a, b) => a.order - b.order);
 
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
@@ -54,8 +80,8 @@ export default function EntityModal({
     const done = { onSuccess: onClose };
 
     if (kind === "project") {
-      if (existing) updateProject.mutate({ id: existing.id, name: trimmed, color }, done);
-      else createProject.mutate({ name: trimmed, color }, done);
+      if (existing) updateProject.mutate({ id: existing.id, name: trimmed, color, parentId }, done);
+      else createProject.mutate({ name: trimmed, color, parentId }, done);
     } else if (kind === "label") {
       if (existing) updateLabel.mutate({ id: existing.id, name: trimmed, color }, done);
       else createLabel.mutate({ name: trimmed, color }, done);
@@ -66,7 +92,7 @@ export default function EntityModal({
     }
   }
 
-  const title = existing ? TITLES[kind].edit : TITLES[kind].create;
+  const title = existing ? TITLES[kind].edit : defaultParentId ? "Add sub-project" : TITLES[kind].create;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -94,6 +120,19 @@ export default function EntityModal({
               if (e.key === "Escape") onClose();
             }}
           />
+        )}
+        {kind === "project" && parentOptions.length > 0 && (
+          <label className="entity-parent-field">
+            <span>Parent project</span>
+            <select value={parentId ?? ""} onChange={(e) => setParentId(e.target.value || null)}>
+              <option value="">No parent</option>
+              {parentOptions.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
         )}
         <div className="color-swatch-grid">
           {COLOR_NAMES.map((c) => (

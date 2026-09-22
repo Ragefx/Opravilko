@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   useBootstrap,
@@ -20,7 +20,9 @@ import { disableReminders, enableReminders, remindersEnabled } from "../utils/no
 import {
   BellIcon,
   CalendarIcon,
+  ChartIcon,
   CheckCircleIcon,
+  ChevronIcon,
   EditIcon,
   FilterIcon,
   ImportIcon,
@@ -58,6 +60,24 @@ function StarToggle({ active, onClick }: { active: boolean; onClick: () => void 
   );
 }
 
+const COLLAPSED_KEY = "opravilko.collapsedProjects";
+
+function loadCollapsedProjects(): Set<string> {
+  try {
+    return new Set<string>(JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveCollapsedProjects(ids: Set<string>): void {
+  try {
+    localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...ids]));
+  } catch {
+    /* ignore */
+  }
+}
+
 export default function Sidebar({
   onSearch,
   onQuickAdd,
@@ -82,7 +102,22 @@ export default function Sidebar({
   const restoreLabel = useRestoreLabel();
   const restoreFilter = useRestoreFilter();
 
-  const [modal, setModal] = useState<{ kind: EntityKind; existing?: EditableEntity } | null>(null);
+  const [modal, setModal] = useState<{
+    kind: EntityKind;
+    existing?: EditableEntity;
+    defaultParentId?: string;
+  } | null>(null);
+  const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(loadCollapsedProjects);
+
+  function toggleProjectCollapsed(id: string) {
+    setCollapsedProjects((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      saveCollapsedProjects(next);
+      return next;
+    });
+  }
   const [importOpen, setImportOpen] = useState(false);
   const [calendarsOpen, setCalendarsOpen] = useState(false);
   const [theme, setThemeState] = useState(currentEffectiveTheme);
@@ -162,6 +197,80 @@ export default function Sidebar({
         });
       },
     });
+  }
+
+  // Projects form a tree via parentId; a project whose parent no longer
+  // exists is treated as top-level rather than disappearing.
+  const projectIds = new Set(topProjects.map((p) => p.id));
+  const childrenOf = (id: string) => topProjects.filter((p) => p.parentId === id);
+  const rootProjects = topProjects.filter((p) => !p.parentId || !projectIds.has(p.parentId));
+  // Reserve a slot for the collapse arrow only once some project is nested,
+  // so names stay aligned whether or not a row has children.
+  const anyNested = topProjects.some((p) => p.parentId && projectIds.has(p.parentId));
+
+  function renderProject(p: (typeof topProjects)[number], depth: number): ReactNode {
+    const children = childrenOf(p.id);
+    const collapsed = collapsedProjects.has(p.id);
+    return (
+      <Fragment key={p.id}>
+        <NavLink
+          to={`/app/project/${p.id}`}
+          className={({ isActive }) => `sidebar-link sidebar-project-link ${isActive ? "active" : ""}`}
+          style={depth > 0 ? { paddingLeft: 8 + depth * 18 } : undefined}
+        >
+          {children.length > 0 ? (
+            <button
+              className="sidebar-project-toggle"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleProjectCollapsed(p.id);
+              }}
+              aria-label={collapsed ? "Expand sub-projects" : "Collapse sub-projects"}
+            >
+              <ChevronIcon width={12} height={12} style={{ transform: collapsed ? "rotate(-90deg)" : undefined }} />
+            </button>
+          ) : anyNested ? (
+            <span className="sidebar-project-toggle" />
+          ) : null}
+          <span className="project-hash" style={{ color: colorHex(p.color) }}>
+            #
+          </span>
+          <span className="sidebar-link-label">{p.name}</span>
+          {projectTaskCounts[p.id] > 0 && <span className="badge sidebar-project-count">{projectTaskCounts[p.id]}</span>}
+          <StarToggle
+            active={p.isFavorite}
+            onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}
+          />
+          <RowMenu
+            label={p.name}
+            items={[
+              {
+                label: "Edit project",
+                icon: <EditIcon width={14} height={14} />,
+                onClick: () =>
+                  setModal({
+                    kind: "project",
+                    existing: { id: p.id, name: p.name, color: p.color, parentId: p.parentId },
+                  }),
+              },
+              {
+                label: "Add sub-project",
+                icon: <PlusIcon width={14} height={14} />,
+                onClick: () => setModal({ kind: "project", defaultParentId: p.id }),
+              },
+              {
+                label: "Delete project",
+                icon: <TrashIcon width={14} height={14} />,
+                danger: true,
+                onClick: () => handleDeleteProject(p.id, p.name),
+              },
+            ]}
+          />
+        </NavLink>
+        {!collapsed && children.map((c) => renderProject(c, depth + 1))}
+      </Fragment>
+    );
   }
 
   return (
@@ -252,6 +361,10 @@ export default function Sidebar({
           <CheckCircleIcon className="icon" />
           Completed
         </NavLink>
+        <NavLink to="/app/stats" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+          <ChartIcon className="icon" />
+          Productivity
+        </NavLink>
       </nav>
 
       {hasFavorites && (
@@ -304,39 +417,7 @@ export default function Sidebar({
         </button>
       </div>
       <nav className="sidebar-nav">
-        {topProjects.map((p) => (
-          <NavLink
-            key={p.id}
-            to={`/app/project/${p.id}`}
-            className={({ isActive }) => `sidebar-link sidebar-project-link ${isActive ? "active" : ""}`}
-          >
-            <span className="project-hash" style={{ color: colorHex(p.color) }}>
-              #
-            </span>
-            <span className="sidebar-link-label">{p.name}</span>
-            {projectTaskCounts[p.id] > 0 && <span className="badge sidebar-project-count">{projectTaskCounts[p.id]}</span>}
-            <StarToggle
-              active={p.isFavorite}
-              onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}
-            />
-            <RowMenu
-              label={p.name}
-              items={[
-                {
-                  label: "Edit project",
-                  icon: <EditIcon width={14} height={14} />,
-                  onClick: () => setModal({ kind: "project", existing: { id: p.id, name: p.name, color: p.color } }),
-                },
-                {
-                  label: "Delete project",
-                  icon: <TrashIcon width={14} height={14} />,
-                  danger: true,
-                  onClick: () => handleDeleteProject(p.id, p.name),
-                },
-              ]}
-            />
-          </NavLink>
-        ))}
+        {rootProjects.map((p) => renderProject(p, 0))}
         {topProjects.length === 0 && <span className="sidebar-empty">No projects yet</span>}
       </nav>
 
@@ -424,7 +505,14 @@ export default function Sidebar({
         {filters.length === 0 && <span className="sidebar-empty">No filters yet</span>}
       </nav>
 
-      {modal && <EntityModal kind={modal.kind} existing={modal.existing} onClose={() => setModal(null)} />}
+      {modal && (
+        <EntityModal
+          kind={modal.kind}
+          existing={modal.existing}
+          defaultParentId={modal.defaultParentId}
+          onClose={() => setModal(null)}
+        />
+      )}
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
       {calendarsOpen && <CalendarFeedsModal onClose={() => setCalendarsOpen(false)} />}
     </aside>

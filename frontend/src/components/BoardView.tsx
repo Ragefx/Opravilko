@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCorners,
   useDroppable,
   useSensor,
@@ -87,7 +88,11 @@ export default function BoardView({
 
   const reorderable = display.sorting === "manual";
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    // On touch, dragging needs a long-press so swipes and scrolling still work.
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } })
+  );
 
   function findColumnByTaskId(id: string): Column | undefined {
     return columns.find((c) => c.tasks.some((t) => t.id === id));

@@ -47,6 +47,28 @@ function ensureLabels(data: AppData, names: string[]): string[] {
   });
 }
 
+const COMPLETION_LOG_LIMIT = 5000;
+
+function logCompletion(data: AppData, task: Task, at: string): void {
+  if (!data.completionLog) data.completionLog = [];
+  data.completionLog.push({ taskId: task.id, projectId: task.projectId, content: task.content, at });
+  if (data.completionLog.length > COMPLETION_LOG_LIMIT) {
+    data.completionLog = data.completionLog.slice(-COMPLETION_LOG_LIMIT);
+  }
+}
+
+/** Drops a task's most recent completion entry, for un-completing or undo. */
+function unlogCompletion(data: AppData, taskId: string): void {
+  const log = data.completionLog;
+  if (!log) return;
+  for (let i = log.length - 1; i >= 0; i--) {
+    if (log[i].taskId === taskId) {
+      log.splice(i, 1);
+      return;
+    }
+  }
+}
+
 /** Every descendant of a task (sub-tasks, their sub-tasks, ...). */
 function descendantIds(tasks: Task[], rootId: string): Set<string> {
   const ids = new Set<string>();
@@ -161,9 +183,12 @@ export function useCompleteTask() {
       if (nextDue) {
         task.due = nextDue;
         task.updatedAt = now;
+        logCompletion(data, task, now);
         return task;
       }
     }
+    if (completed && !task.completed) logCompletion(data, task, now);
+    if (!completed && task.completed) unlogCompletion(data, id);
     task.completed = completed;
     task.completedAt = completed ? now : null;
     task.updatedAt = now;
@@ -176,10 +201,22 @@ export function useCompleteTask() {
           t.completed = true;
           t.completedAt = now;
           t.updatedAt = now;
+          logCompletion(data, t, now);
         }
       }
     }
     return task;
+  });
+}
+
+/** Undoes completing a repeating task: puts its due date back and drops the log entry. */
+export function useRevertRecurringCompletion() {
+  return useLocalMutation<{ id: string; due: Due | null }, void>((data, { id, due }) => {
+    const task = data.tasks.find((t) => t.id === id);
+    if (!task) return;
+    task.due = due;
+    task.updatedAt = new Date().toISOString();
+    unlogCompletion(data, id);
   });
 }
 
@@ -292,6 +329,8 @@ export interface DeletedProject {
   project: Project;
   sections: Section[];
   tasks: Task[];
+  /** Sub-projects moved up a level on delete, restored under it on undo. */
+  childIds?: string[];
 }
 
 /**
@@ -306,17 +345,30 @@ export function useDeleteProject() {
     const sections = data.sections.filter((s) => s.projectId === id);
     const tasks = data.tasks.filter((t) => t.projectId === id);
 
+    // Sub-projects aren't deleted with their parent; they move up a level.
+    const childIds: string[] = [];
+    for (const p of data.projects) {
+      if (p.parentId === id) {
+        p.parentId = project.parentId;
+        childIds.push(p.id);
+      }
+    }
+
     data.projects = data.projects.filter((p) => p.id !== id);
     data.sections = data.sections.filter((s) => s.projectId !== id);
     data.tasks = data.tasks.filter((t) => t.projectId !== id);
 
-    return { project, sections, tasks };
+    return { project, sections, tasks, childIds };
   });
 }
 
 export function useRestoreProject() {
-  return useLocalMutation<DeletedProject, void>((data, { project, sections, tasks }) => {
+  return useLocalMutation<DeletedProject, void>((data, { project, sections, tasks, childIds = [] }) => {
     if (!data.projects.some((p) => p.id === project.id)) data.projects.push(project);
+    const children = new Set(childIds);
+    data.projects.forEach((p) => {
+      if (children.has(p.id)) p.parentId = project.id;
+    });
     const sectionIds = new Set(data.sections.map((s) => s.id));
     sections.forEach((s) => !sectionIds.has(s.id) && data.sections.push(s));
     const taskIds = new Set(data.tasks.map((t) => t.id));

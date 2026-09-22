@@ -10,6 +10,14 @@ import { installSyncGuards } from "./dropbox/store";
 initTheme();
 installSyncGuards();
 
+// Lets the app open with no connection (production builds only, so the dev
+// server's hot reload isn't fighting a cache).
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
+  });
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false },

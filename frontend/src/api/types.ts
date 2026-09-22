@@ -67,6 +67,16 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   comments?: Comment[];
+  /** How long before the due time to notify; absent means at the due time itself. */
+  reminderMinutes?: number;
+}
+
+export interface CompletionEntry {
+  taskId: string;
+  projectId: string;
+  content: string;
+  /** ISO timestamp of the completion. */
+  at: string;
 }
 
 /** A subscribed external iCal (.ics) feed -- read-only, never turned into tasks. */
@@ -106,4 +116,9 @@ export interface AppData {
   tasks: Task[];
   calendarFeeds?: CalendarFeed[];
   calendarEvents?: CalendarEvent[];
+  /**
+   * One entry per completion, including each occurrence of a repeating task
+   * (which never stays "completed" itself), for the Productivity stats.
+   */
+  completionLog?: CompletionEntry[];
 }

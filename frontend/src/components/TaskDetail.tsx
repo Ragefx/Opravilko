@@ -17,7 +17,7 @@ import {
   parseRecurrenceString,
   serializeRecurrence,
 } from "../utils/recurrence";
-import { CopyIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
+import { BellIcon, CopyIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 import TaskCheckbox from "./TaskCheckbox";
 import RichTextEditor from "./RichTextEditor";
@@ -34,6 +34,15 @@ function timeFromDatetime(datetime?: string): string {
 // no matter what `lang` is set to on some browsers, so the time field is built
 // from two plain <select>s instead -- always shows and stores 00:00-23:59.
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const REMINDER_OPTIONS: [number, string][] = [
+  [0, "Remind at due time"],
+  [5, "5 min before"],
+  [15, "15 min before"],
+  [30, "30 min before"],
+  [60, "1 hour before"],
+  [120, "2 hours before"],
+  [1440, "1 day before"],
+];
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 
 export default function TaskDetail({
@@ -443,6 +452,24 @@ export default function TaskDetail({
                         <option value="weekdays">Every weekday</option>
                         <option value="weekly">Every week</option>
                         <option value="monthly">Every month</option>
+                      </select>
+                    </label>
+                  </div>
+                )}
+                {task.due?.datetime && (
+                  <div className="detail-field-row">
+                    <label className="field-pill" style={{ gap: 6 }} title="Needs reminders turned on in the account menu">
+                      <BellIcon width={14} height={14} />
+                      <select
+                        className="detail-date-input"
+                        value={task.reminderMinutes ?? 0}
+                        onChange={(e) => updateTask.mutate({ id: task.id, reminderMinutes: Number(e.target.value) })}
+                      >
+                        {REMINDER_OPTIONS.map(([minutes, label]) => (
+                          <option key={minutes} value={minutes}>
+                            {label}
+                          </option>
+                        ))}
                       </select>
                     </label>
                   </div>

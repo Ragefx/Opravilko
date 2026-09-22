@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -11,6 +11,16 @@ import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
 import CalendarEventRow from "./CalendarEventRow";
 import { CheckCircleIcon } from "./icons";
+
+export interface DateGroup {
+  label: string;
+  /** "yyyy-MM-dd" for looking up that day's calendar events. */
+  date: string | null;
+  /** Show the group even with no tasks or events (e.g. every day in Upcoming). */
+  keepEmpty?: boolean;
+  /** Adds a "+ Add task" at the end of the group, pre-filled with this project/date. */
+  quickAdd?: { projectId: string; due: { date: string; string: string } | null };
+}
 
 export default function TaskListView({
   title,
@@ -55,13 +65,17 @@ export default function TaskListView({
    * Lets a day with only calendar events (no tasks) still appear, and keeps
    * days in date order regardless of the tasks' manual order.
    */
-  dateGroups?: { label: string; date: string | null }[];
+  dateGroups?: DateGroup[];
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const reorderTasks = useReorderTasks();
   const allTasks = useBootstrap().data?.tasks;
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    // On touch, dragging needs a long-press so swipes and scrolling still work.
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } })
+  );
 
   useEffect(() => {
     if (!autoOpenTaskId) return;
@@ -137,13 +151,19 @@ export default function TaskListView({
     }
   }
   const eventsFor = (date: string | null | undefined) => (date ? eventsByDate?.get(date) ?? [] : []);
-  const groups: { label: string; items: Task[]; events: CalendarEvent[] }[] = dateGroups
-    ? [
-        ...dateGroups.map((g) => ({ label: g.label, items: tasksByLabel.get(g.label) ?? [], events: eventsFor(g.date) })),
+  type Group = { label: string; items: Task[]; events: CalendarEvent[]; spec?: DateGroup };
+  const groups: Group[] = dateGroups
+    ? ([
+        ...dateGroups.map((g): Group => ({
+          label: g.label,
+          items: tasksByLabel.get(g.label) ?? [],
+          events: eventsFor(g.date),
+          spec: g,
+        })),
         ...[...tasksByLabel.entries()]
           .filter(([label]) => !dateGroups.some((g) => g.label === label))
-          .map(([label, items]) => ({ label, items, events: [] })),
-      ].filter((g) => g.items.length > 0 || g.events.length > 0)
+          .map(([label, items]): Group => ({ label, items, events: [] })),
+      ] as Group[]).filter((g) => g.items.length > 0 || g.events.length > 0 || g.spec?.keepEmpty)
     : [...tasksByLabel.entries()].map(([label, items]) => ({ label, items, events: eventsFor(items[0]?.due?.date) }));
   const hasEvents = groups.some((g) => g.events.length > 0);
 
@@ -160,7 +180,7 @@ export default function TaskListView({
 
       {quickAddProjectId && <QuickAdd projectId={quickAddProjectId} defaultDue={quickAddDue} />}
 
-      {active.length === 0 && completed.length === 0 && !hasEvents && (
+      {active.length === 0 && completed.length === 0 && !hasEvents && !dateGroups?.some((g) => g.keepEmpty) && (
         <div className="empty-state">
           <CheckCircleIcon width={40} height={40} />
           <p>All clear</p>
@@ -169,8 +189,8 @@ export default function TaskListView({
       )}
 
       {groupLabel
-        ? groups.map(({ label, items, events }) => (
-            <div key={label}>
+        ? groups.map(({ label, items, events, spec }) => (
+            <div key={label} className="task-group">
               <div className="task-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span>{label}</span>
                 {groupExtra?.(label, items)}
@@ -179,6 +199,7 @@ export default function TaskListView({
                 <CalendarEventRow key={e.id} event={e} />
               ))}
               {items.map((t) => renderTaskAndChildren(t, 0))}
+              {spec?.quickAdd && <QuickAdd projectId={spec.quickAdd.projectId} defaultDue={spec.quickAdd.due} />}
             </div>
           ))
         : reorderable

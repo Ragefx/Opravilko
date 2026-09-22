@@ -70,14 +70,18 @@ export function checkDueReminders(tasks: Task[]): void {
 
   for (const task of tasks) {
     if (task.completed || !task.due?.datetime) continue;
-    // Key on the timestamp too, so a rescheduled or recurring task notifies again.
-    const key = `${task.id}@${task.due.datetime}`;
+    const lead = task.reminderMinutes ?? 0;
+    // Key on the timestamp and lead time too, so a rescheduled or recurring
+    // task (or a changed reminder) notifies again.
+    const key = `${task.id}@${task.due.datetime}@${lead}`;
     if (fired.has(key)) continue;
 
     const dueAt = new Date(task.due.datetime).getTime();
+    const remindAt = dueAt - lead * 60 * 1000;
     // Only fire for times that have just passed, not a backlog of old ones.
-    if (dueAt <= now && now - dueAt < 10 * 60 * 1000) {
-      new Notification(task.content, { body: "Due now · Opravilko", tag: key });
+    if (remindAt <= now && now - remindAt < 10 * 60 * 1000) {
+      const when = new Date(dueAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      new Notification(task.content, { body: `${lead ? `Due at ${when}` : "Due now"} · Opravilko`, tag: key });
       fired.add(key);
       changed = true;
     }

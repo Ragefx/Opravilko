@@ -18,6 +18,12 @@ export const MenuIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const ChartIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+  </svg>
+);
+
 export const InboxIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M22 12h-6l-2 3h-4l-2-3H2" />

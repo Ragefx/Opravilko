@@ -29,7 +29,12 @@ export default function TimePickerPopup({
   return createPortal(
     <>
       <div className="dropdown-backdrop" style={{ zIndex: 97 }} onClick={onCancel} />
-      <div className="dropdown-panel time-picker-panel" style={{ top: anchor.top, left: anchor.left, zIndex: 98 }}>
+      <div
+        className="dropdown-panel time-picker-panel"
+        style={{ top: anchor.top, left: anchor.left, zIndex: 98 }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="time-picker-row">
           <span className="time-picker-label">Time</span>
           <div className="time-picker-inputs">

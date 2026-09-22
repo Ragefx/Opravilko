@@ -91,7 +91,12 @@ export default function SectionMenu({
         createPortal(
           <>
             <div className="dropdown-backdrop" onClick={(e) => (e.preventDefault(), e.stopPropagation(), close())} />
-            <div className="dropdown-panel row-menu-panel" style={{ top: anchor.top, right: anchor.right }}>
+            <div
+              className="dropdown-panel row-menu-panel"
+              style={{ top: anchor.top, right: anchor.right }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
               {showMoveTo ? (
                 <>
                   <button

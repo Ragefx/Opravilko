@@ -1801,7 +1801,21 @@ kbd {
 }
 
 /* ---------- Board view ---------- */
+/* Board plus (on phones) its page dots. */
+.board-pager {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.board-page-dots {
+  display: none;
+}
+
 .board-scroll {
+  position: relative;
+  min-height: 0;
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
@@ -2128,8 +2142,68 @@ kbd {
   .calendar-view {
     padding: 12px 8px 16px;
   }
+  /* Phones: one column per page, swiped left/right with snapping; the next
+     column peeks in at the edge, and dots below show where you are (Todoist). */
   .board-scroll {
     padding: 12px 16px;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .board-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  /* Free scrolling while dragging a card, so auto-scroll can reach other columns. */
+  .board-scroll.is-dragging {
+    scroll-snap-type: none;
+  }
+  .board {
+    gap: 12px;
+  }
+  .board-column {
+    width: calc(100% - 28px);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .board-page-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0 calc(10px + var(--inset-bottom));
+    flex-shrink: 0;
+  }
+  .board-page-dot {
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    opacity: 0.35;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    /* Bigger tap target than the dot itself. */
+    box-shadow: 0 0 0 8px transparent;
+  }
+  .board-page-dot.is-active {
+    opacity: 1;
+    background: var(--color-text);
+    transform: scale(1.15);
+  }
+  .board-page-dot.is-add {
+    width: auto;
+    height: auto;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 16px;
+    line-height: 9px;
+    border-radius: 0;
+  }
+  .board-page-dot.is-add.is-active {
+    color: var(--color-text);
+    transform: none;
   }
   .topbar {
     flex-wrap: wrap;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { Task } from "../api/types";
 import { useCompleteTask } from "../api/hooks";
@@ -7,6 +7,7 @@ import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import TaskDetail from "./TaskDetail";
+import BoardPageDots from "./BoardPageDots";
 import QuickAdd from "./QuickAdd";
 
 export interface DateBoardColumn {
@@ -36,6 +37,7 @@ export default function DateBoardView({
   autoOpenTaskId?: string;
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!autoOpenTaskId) return;
@@ -44,29 +46,32 @@ export default function DateBoardView({
   }, [autoOpenTaskId, columns]);
 
   return (
-    <div className="board-scroll">
-      <div className="board">
-        {columns.map((col) => (
-          <div key={col.key} className="board-column">
-            <div className="board-column-header">
-              <span>{col.label}</span>
-              <span className="badge">{col.tasks.length}</span>
-              {col.extra}
+    <div className="board-pager">
+      <div ref={scrollRef} className="board-scroll">
+        <div className="board">
+          {columns.map((col) => (
+            <div key={col.key} className="board-column">
+              <div className="board-column-header">
+                <span>{col.label}</span>
+                <span className="badge">{col.tasks.length}</span>
+                {col.extra}
+              </div>
+              <div className="board-column-body">
+                {col.tasks.map((t) => (
+                  <DateBoardCard
+                    key={t.id}
+                    task={t}
+                    projectLabel={projectNameById?.[t.projectId]}
+                    onOpen={setOpenTask}
+                  />
+                ))}
+              </div>
+              {col.quickAdd && <QuickAdd projectId={col.quickAdd.projectId} defaultDue={col.quickAdd.due} />}
             </div>
-            <div className="board-column-body">
-              {col.tasks.map((t) => (
-                <DateBoardCard
-                  key={t.id}
-                  task={t}
-                  projectLabel={projectNameById?.[t.projectId]}
-                  onOpen={setOpenTask}
-                />
-              ))}
-            </div>
-            {col.quickAdd && <QuickAdd projectId={col.quickAdd.projectId} defaultDue={col.quickAdd.due} />}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+      <BoardPageDots scrollRef={scrollRef} count={columns.length} />
       {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} onOpenTask={setOpenTask} />}
     </div>
   );

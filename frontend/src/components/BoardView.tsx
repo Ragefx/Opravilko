@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -15,6 +15,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useBootstrap, useCompleteTask, useCreateSection, useReorderTasks, useUpdateSection } from "../api/hooks";
 import type { Task } from "../api/types";
 import TaskDetail from "./TaskDetail";
+import BoardPageDots from "./BoardPageDots";
 import QuickAdd from "./QuickAdd";
 import TaskCheckbox from "./TaskCheckbox";
 import SectionMenu from "./SectionMenu";
@@ -51,6 +52,7 @@ export default function BoardView({
   const [newSectionName, setNewSectionName] = useState("");
   const [columns, setColumns] = useState<Column[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!autoOpenTaskId || !data) return;
@@ -85,6 +87,15 @@ export default function BoardView({
     }
     setColumns(cols);
   }, [data, projectId, display]);
+
+  // Columns arrive a render after the "Add section" column; phone scroll
+  // snapping would stay snapped to that one and open on the last page.
+  const shownColumns = useRef(false);
+  useLayoutEffect(() => {
+    if (shownColumns.current || columns.length === 0) return;
+    shownColumns.current = true;
+    if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+  }, [columns.length]);
 
   const reorderable = display.sorting === "manual";
 
@@ -171,49 +182,52 @@ export default function BoardView({
   }
 
   return (
-    <div className="board-scroll">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="board">
-          {columns.map((col) => (
-            <BoardColumn key={col.key} column={col} onOpenTask={setOpenTask} projectId={projectId} reorderable={reorderable} />
-          ))}
-          <div className="board-column board-add-section-col">
-            {addingSection ? (
-              <div className="quick-add">
-                <input
-                  autoFocus
-                  placeholder="Section name"
-                  value={newSectionName}
-                  onChange={(e) => setNewSectionName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") submitNewSection();
-                    if (e.key === "Escape") setAddingSection(false);
-                  }}
-                />
-                <div className="quick-add-actions">
-                  <button className="btn btn-text" onClick={() => setAddingSection(false)}>
-                    Cancel
-                  </button>
-                  <button className="btn btn-primary" onClick={submitNewSection} disabled={!newSectionName.trim()}>
-                    Add
-                  </button>
+    <div className="board-pager">
+      <div ref={scrollRef} className={`board-scroll ${activeTask ? "is-dragging" : ""}`}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="board">
+            {columns.map((col) => (
+              <BoardColumn key={col.key} column={col} onOpenTask={setOpenTask} projectId={projectId} reorderable={reorderable} />
+            ))}
+            <div className="board-column board-add-section-col">
+              {addingSection ? (
+                <div className="quick-add">
+                  <input
+                    autoFocus
+                    placeholder="Section name"
+                    value={newSectionName}
+                    onChange={(e) => setNewSectionName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") submitNewSection();
+                      if (e.key === "Escape") setAddingSection(false);
+                    }}
+                  />
+                  <div className="quick-add-actions">
+                    <button className="btn btn-text" onClick={() => setAddingSection(false)}>
+                      Cancel
+                    </button>
+                    <button className="btn btn-primary" onClick={submitNewSection} disabled={!newSectionName.trim()}>
+                      Add
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <button className="add-task-trigger" onClick={() => setAddingSection(true)}>
-                <span className="plus">+</span> Add section
-              </button>
-            )}
+              ) : (
+                <button className="add-task-trigger" onClick={() => setAddingSection(true)}>
+                  <span className="plus">+</span> Add section
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-        <DragOverlay>{activeTask ? <BoardCardPreview task={activeTask} /> : null}</DragOverlay>
-      </DndContext>
+          <DragOverlay>{activeTask ? <BoardCardPreview task={activeTask} /> : null}</DragOverlay>
+        </DndContext>
+      </div>
+      <BoardPageDots scrollRef={scrollRef} count={columns.length + 1} withAdd />
       {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} onOpenTask={setOpenTask} />}
     </div>
   );

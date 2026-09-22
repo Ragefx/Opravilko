@@ -886,6 +886,11 @@ kbd {
   font-weight: 600;
   color: var(--color-text);
 }
+.rich-text-body a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 @media (max-width: 720px) {
   .detail-panel {

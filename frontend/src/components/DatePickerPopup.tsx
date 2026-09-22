@@ -113,7 +113,14 @@ export default function DatePickerPopup({
 
   return createPortal(
     <>
-      <div className="dropdown-backdrop" onClick={onClose} />
+      <div
+        className="dropdown-backdrop"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
+      />
       <div
         className="dropdown-panel date-picker-panel"
         style={{ top: anchor.top, right: anchor.right }}

@@ -28,7 +28,15 @@ export default function TimePickerPopup({
 
   return createPortal(
     <>
-      <div className="dropdown-backdrop" style={{ zIndex: 97 }} onClick={onCancel} />
+      <div
+        className="dropdown-backdrop"
+        style={{ zIndex: 97 }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onCancel();
+        }}
+      />
       <div
         className="dropdown-panel time-picker-panel"
         style={{ top: anchor.top, left: anchor.left, zIndex: 98 }}

@@ -15,7 +15,14 @@ export default function ArchivedSectionsMenu({
 
   return (
     <>
-      <div className="dropdown-backdrop" onClick={onClose} />
+      <div
+        className="dropdown-backdrop"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
+      />
       <div className="dropdown-panel display-menu" style={{ minWidth: 240 }}>
         <div className="display-menu-title">Archived sections</div>
         {sections.length === 0 ? (

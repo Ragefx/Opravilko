@@ -20,7 +20,14 @@ export default function DisplayMenu({
 
   return (
     <>
-      <div className="dropdown-backdrop" onClick={onClose} />
+      <div
+        className="dropdown-backdrop"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
+      />
       <div className="dropdown-panel display-menu">
         <div className="display-menu-title">Layout</div>
         <div className="layout-picker">

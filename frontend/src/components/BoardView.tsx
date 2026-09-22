@@ -16,6 +16,7 @@ import type { Task } from "../api/types";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
 import TaskCheckbox from "./TaskCheckbox";
+import SectionMenu from "./SectionMenu";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
@@ -55,7 +56,7 @@ export default function BoardView({
   useEffect(() => {
     if (!data) return;
     const sections = data.sections
-      .filter((s) => s.projectId === projectId)
+      .filter((s) => s.projectId === projectId && !s.archived)
       .sort((a, b) => a.order - b.order);
     const allTasks = data.tasks.filter((t) => t.projectId === projectId && !t.completed && !t.parentId);
 
@@ -212,11 +213,14 @@ function BoardColumn({
   onOpenTask: (task: Task) => void;
   projectId: string;
 }) {
+  const { data } = useBootstrap();
   const { setNodeRef, isOver } = useDroppable({ id: column.key });
   const updateSection = useUpdateSection();
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(column.name);
   const canRename = column.sectionId !== null;
+  const section = column.sectionId ? data?.sections.find((s) => s.id === column.sectionId) : undefined;
+  const otherProjects = (data?.projects || []).filter((p) => p.id !== projectId);
 
   useEffect(() => {
     setName(column.name);
@@ -260,6 +264,9 @@ function BoardColumn({
           </span>
         )}
         <span className="badge">{column.tasks.length}</span>
+        {section && (
+          <SectionMenu section={section} projects={otherProjects} onRename={() => setRenaming(true)} />
+        )}
       </div>
       <div ref={setNodeRef} className="board-column-body">
         <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
@@ -314,25 +321,26 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
           {task.description && (
             <div className="board-card-description">{stripHtml(task.description)}</div>
           )}
+          {(task.due || task.labels.length > 0) && (
+            <div className="task-meta">
+              {task.due && (
+                <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
+                  <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
+                  {formatDueLabel(task.due)}
+                  {task.due.isRecurring && (
+                    <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
+                  )}
+                </span>
+              )}
+              {task.labels.map((l) => (
+                <span key={l} className="chip">
+                  @{l}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      {(task.due || task.labels.length > 0) && (
-        <div className="task-meta">
-          {task.due && (
-            <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
-              <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}
-              {task.due.isRecurring && (
-                <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
-              )}
-            </span>
-          )}
-          {task.labels.map((l) => (
-            <span key={l} className="chip">
-              @{l}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

@@ -244,6 +244,7 @@ kbd {
 .sidebar-link:hover .row-menu-trigger,
 .sidebar-user .row-menu-trigger,
 .detail-header-actions .row-menu-trigger,
+.board-column-header .row-menu-trigger,
 .row-menu-trigger:focus-visible {
   opacity: 1;
 }
@@ -1374,7 +1375,10 @@ kbd {
   /* Columns stay transparent (Todoist-style) -- the cards carry the structure. */
   background: transparent;
   border-radius: 8px;
-  padding: 4px 6px 10px;
+  /* No horizontal padding: the column header and cards line up with the page
+     title (both inherit .board-scroll's 24px), and the gap between columns
+     comes entirely from .board's `gap`, matching Todoist's alignment. */
+  padding: 4px 0 10px;
   display: flex;
   flex-direction: column;
   max-height: 100%;
@@ -1396,7 +1400,7 @@ kbd {
   gap: 8px;
   font-weight: 700;
   font-size: 14px;
-  padding: 4px 6px 10px;
+  padding: 4px 0 10px;
 }
 .board-column-header .badge {
   color: var(--color-text-muted);
@@ -1465,7 +1469,7 @@ kbd {
 
 .board-card-content {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   flex: 1;
 }

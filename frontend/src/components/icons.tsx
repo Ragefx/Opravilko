@@ -198,3 +198,17 @@ export const BoardViewIcon = (p: SVGProps<SVGSVGElement>) => (
     <rect x="18" y="4" width="3" height="7" rx="1" />
   </svg>
 );
+
+export const ArchiveIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="3" y="3" width="18" height="5" rx="1" />
+    <path d="M4 8v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8M10 13h4" />
+  </svg>
+);
+
+export const MoveIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" />
+    <path d="M9 15h6M12 12l3 3-3 3" />
+  </svg>
+);

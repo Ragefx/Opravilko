@@ -5,6 +5,8 @@ import TaskListView from "../components/TaskListView";
 import BoardView from "../components/BoardView";
 import CalendarView from "../components/CalendarView";
 import DisplayMenu from "../components/DisplayMenu";
+import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
+import { ArchiveIcon } from "../components/icons";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, groupKeyFor, sortTasks, type DisplayOptions } from "../utils/displayOptions";
 
 export default function ProjectView() {
@@ -15,6 +17,7 @@ export default function ProjectView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [autoOpenId] = useState(() => searchParams.get("open"));
   const [showDisplayMenu, setShowDisplayMenu] = useState(false);
+  const [showArchivedMenu, setShowArchivedMenu] = useState(false);
   const [display, setDisplay] = useState<DisplayOptions>(DEFAULT_DISPLAY_OPTIONS);
   const [initializedFor, setInitializedFor] = useState<string | null>(null);
 
@@ -44,26 +47,51 @@ export default function ProjectView() {
     }
   }
 
+  const archivedSections = data.sections.filter((s) => s.projectId === projectId && s.archived);
+  const archivedTaskCounts = Object.fromEntries(
+    archivedSections.map((s) => [s.id, data.tasks.filter((t) => t.sectionId === s.id).length])
+  );
+
   const header = (
     <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
       <h1>{project.name}</h1>
-      <div style={{ position: "relative" }}>
-        <button className="btn btn-secondary" onClick={() => setShowDisplayMenu((v) => !v)}>
-          Display
-        </button>
-        {showDisplayMenu && (
-          <DisplayMenu
-            value={display}
-            onChange={handleDisplayChange}
-            labels={data.labels}
-            onClose={() => setShowDisplayMenu(false)}
-          />
+      <div style={{ display: "flex", gap: 8 }}>
+        {archivedSections.length > 0 && (
+          <div style={{ position: "relative" }}>
+            <button className="btn btn-secondary" onClick={() => setShowArchivedMenu((v) => !v)}>
+              <ArchiveIcon width={14} height={14} style={{ marginRight: 6, verticalAlign: "-2px" }} />
+              Archived ({archivedSections.length})
+            </button>
+            {showArchivedMenu && (
+              <ArchivedSectionsMenu
+                sections={archivedSections}
+                taskCountBySection={archivedTaskCounts}
+                onClose={() => setShowArchivedMenu(false)}
+              />
+            )}
+          </div>
         )}
+        <div style={{ position: "relative" }}>
+          <button className="btn btn-secondary" onClick={() => setShowDisplayMenu((v) => !v)}>
+            Display
+          </button>
+          {showDisplayMenu && (
+            <DisplayMenu
+              value={display}
+              onChange={handleDisplayChange}
+              labels={data.labels}
+              onClose={() => setShowDisplayMenu(false)}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
 
-  let tasks = data.tasks.filter((t) => t.projectId === projectId);
+  const archivedSectionIds = new Set(archivedSections.map((s) => s.id));
+  let tasks = data.tasks.filter(
+    (t) => t.projectId === projectId && !(t.sectionId && archivedSectionIds.has(t.sectionId))
+  );
   if (!display.showCompleted) tasks = tasks.filter((t) => !t.completed);
   tasks = filterTasks(tasks, display);
 
@@ -90,7 +118,7 @@ export default function ProjectView() {
   // With no explicit grouping chosen, fall back to the project's own sections so
   // they don't disappear when switching from Board to List.
   const sections = data.sections
-    .filter((s) => s.projectId === projectId)
+    .filter((s) => s.projectId === projectId && !s.archived)
     .sort((a, b) => a.order - b.order);
   const groupBySection = display.grouping === "none" && sections.length > 0;
 

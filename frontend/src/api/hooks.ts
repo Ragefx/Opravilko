@@ -340,6 +340,86 @@ export function useUpdateSection() {
   });
 }
 
+export interface DeletedSection {
+  section: Section;
+  tasks: Task[];
+}
+
+/** Deletes a section along with its tasks (and their sub-tasks), returning them for undo. */
+export function useDeleteSection() {
+  return useLocalMutation<string, DeletedSection | null>((data, id) => {
+    const section = data.sections.find((s) => s.id === id);
+    if (!section) return null;
+
+    const directIds = new Set(data.tasks.filter((t) => t.sectionId === id).map((t) => t.id));
+    // Sub-tasks default to their parent's section, but a sub-task's own sectionId
+    // is what we actually stored, so this only needs one pass -- not a project
+    // delete's whole-tree walk, since a sub-task can't reference a task outside
+    // this section as its parent without also being in a different section itself.
+    const tasks = data.tasks.filter((t) => directIds.has(t.id));
+
+    data.sections = data.sections.filter((s) => s.id !== id);
+    data.tasks = data.tasks.filter((t) => !directIds.has(t.id));
+
+    return { section, tasks };
+  });
+}
+
+export function useRestoreSection() {
+  return useLocalMutation<DeletedSection, void>((data, { section, tasks }) => {
+    if (!data.sections.some((s) => s.id === section.id)) data.sections.push(section);
+    const taskIds = new Set(data.tasks.map((t) => t.id));
+    tasks.forEach((t) => !taskIds.has(t.id) && data.tasks.push(t));
+  });
+}
+
+/** Duplicates a section: a new section plus copies of all its tasks (new ids, same content). */
+export function useDuplicateSection() {
+  return useLocalMutation<string, Section | null>((data, id) => {
+    const section = data.sections.find((s) => s.id === id);
+    if (!section) return null;
+
+    const newSection: Section = {
+      id: nanoid(),
+      projectId: section.projectId,
+      name: `${section.name} (copy)`,
+      order: nextOrder(data.sections.filter((s) => s.projectId === section.projectId)),
+    };
+    data.sections.push(newSection);
+
+    const original = data.tasks.filter((t) => t.sectionId === id && !t.parentId);
+    const now = new Date().toISOString();
+    original.forEach((t) => {
+      data.tasks.push({
+        ...t,
+        id: nanoid(),
+        sectionId: newSection.id,
+        completed: false,
+        completedAt: null,
+        comments: undefined,
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+
+    return newSection;
+  });
+}
+
+/** Moves a section, and all its tasks, to a different project. */
+export function useMoveSection() {
+  return useLocalMutation<{ id: string; projectId: string }, Section | null>((data, { id, projectId }) => {
+    const section = data.sections.find((s) => s.id === id);
+    if (!section) return null;
+    section.projectId = projectId;
+    section.order = nextOrder(data.sections.filter((s) => s.projectId === projectId && s.id !== id));
+    data.tasks.forEach((t) => {
+      if (t.sectionId === id) t.projectId = projectId;
+    });
+    return section;
+  });
+}
+
 // ---- labels ----
 export function useCreateLabel() {
   return useLocalMutation<Partial<Label> & { name: string }, Label>((data, input) => {

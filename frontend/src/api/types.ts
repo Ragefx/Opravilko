@@ -24,6 +24,8 @@ export interface Section {
   projectId: string;
   name: string;
   order: number;
+  /** Hidden from the board but not deleted; tasks stay put and can be restored. */
+  archived?: boolean;
 }
 
 export interface Label {

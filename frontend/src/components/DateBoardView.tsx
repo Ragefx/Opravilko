@@ -95,21 +95,24 @@ function DateBoardCard({
           recurring={!!task.due?.isRecurring}
           onToggle={() => completeTask.mutate({ id: task.id, completed: true })}
         />
-        <div className="board-card-content">{task.content}</div>
-      </div>
-      {(task.due || projectLabel) && (
-        <div className="task-meta">
-          {task.due && (
-            <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
-              <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}
-              {task.due.isRecurring && (
-                <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
+        <div className="board-card-content">
+          {task.content}
+          {(task.due || projectLabel) && (
+            <div className="task-meta">
+              {task.due && (
+                <span className={`due ${overdue ? "overdue" : ""} ${dueToday ? "today" : ""}`}>
+                  <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
+                  {formatDueLabel(task.due)}
+                  {task.due.isRecurring && (
+                    <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
+                  )}
+                </span>
               )}
-            </span>
+              {projectLabel && <span className="chip">{projectLabel}</span>}
+            </div>
           )}
-          {projectLabel && <span className="chip">{projectLabel}</span>}
         </div>
-      )}
+      </div>
     </div>
   );
 }

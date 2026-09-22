@@ -9,8 +9,11 @@ in your own Dropbox account.
 
 - **Projects & sections** — List and Board (drag-and-drop kanban) views per project,
   toggle any time; sections are renamable inline.
-- **Tasks** — priorities (p1–p4, color-coded), due dates with optional time, labels,
-  descriptions, subtasks (nest, collapse, done/total badge), comments.
+- **Tasks** — priorities (p1–p4, color-coded), due dates with an optional 24-hour
+  time, labels (editable per task), rich-text descriptions (bold, bulleted and
+  numbered lists), subtasks (nest, collapse, done/total badge), comments. The
+  detail view mirrors Todoist's layout: title/description/comments on the left,
+  project/date/priority/labels in a sidebar on the right.
 - **Recurring due dates** — type `every day`, `every monday`, `every weekday`,
   `every 3 days`, or `every month` in quick-add, or set it from the detail panel;
   completing a recurring task advances it instead of archiving it.

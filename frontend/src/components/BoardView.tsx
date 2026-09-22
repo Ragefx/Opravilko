@@ -19,6 +19,7 @@ import TaskCheckbox from "./TaskCheckbox";
 import { PRIORITY_META } from "../utils/priority";
 import { formatDueLabel, isDueToday, isOverdue } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
+import { stripHtml } from "../utils/html";
 
 const UNSECTIONED = "__none__";
 
@@ -310,7 +311,9 @@ function BoardCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void 
               {subtasks.filter((s) => s.completed).length}/{subtasks.length}
             </span>
           )}
-          {task.description && <div className="board-card-description">{task.description}</div>}
+          {task.description && (
+            <div className="board-card-description">{stripHtml(task.description)}</div>
+          )}
         </div>
       </div>
       {(task.due || task.labels.length > 0) && (

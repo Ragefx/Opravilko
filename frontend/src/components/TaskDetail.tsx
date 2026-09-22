@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Task } from "../api/types";
 import {
   useAddComment,
@@ -20,6 +20,8 @@ import {
 import { CopyIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 import TaskCheckbox from "./TaskCheckbox";
+import RichTextEditor from "./RichTextEditor";
+import RowMenu from "./RowMenu";
 
 function timeFromDatetime(datetime?: string): string {
   if (!datetime) return "";
@@ -61,21 +63,12 @@ export default function TaskDetail({
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState("");
   const [commentText, setCommentText] = useState("");
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const [labelInput, setLabelInput] = useState("");
 
   useEffect(() => {
     setContent(task.content);
     setDescription(task.description);
   }, [task.id]);
-
-  // Grows the description box to fit its content -- on open and as it's
-  // typed into -- instead of a fixed row count that clips longer text.
-  useEffect(() => {
-    const el = descriptionRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, [description]);
 
   function saveContent() {
     if (content.trim() && content !== task.content) {
@@ -135,12 +128,28 @@ export default function TaskDetail({
     });
   }
 
+  function addLabel() {
+    const value = labelInput.trim();
+    if (!value || task.labels.includes(value)) {
+      setLabelInput("");
+      return;
+    }
+    updateTask.mutate({ id: task.id, labels: [...task.labels, value] });
+    setLabelInput("");
+  }
+
+  function removeLabel(name: string) {
+    updateTask.mutate({ id: task.id, labels: task.labels.filter((l) => l !== name) });
+  }
+
   const currentFreq = parseRecurrenceString(task.due?.rrule)?.freq;
   const [timeHour, timeMinute] = timeFromDatetime(task.due?.datetime).split(":");
   const parentTask = task.parentId ? data?.tasks.find((t) => t.id === task.parentId) : undefined;
   const subtasks = (data?.tasks || [])
     .filter((t) => t.parentId === task.id)
     .sort((a, b) => a.order - b.order);
+  const project = data?.projects.find((p) => p.id === task.projectId);
+  const existingLabelNames = (data?.labels || []).map((l) => l.name).filter((n) => !task.labels.includes(n));
 
   function addSubtask() {
     const value = subtaskText.trim();
@@ -199,249 +208,313 @@ export default function TaskDetail({
   return (
     <div className="overlay" onClick={onClose}>
       <div className="detail-panel" onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-          <button className="btn-text" onClick={onClose} aria-label="Close">
-            <XIcon />
-          </button>
-        </div>
-
-        {parentTask && (
-          <button
-            className="btn-text"
-            style={{ padding: "2px 0 8px", fontSize: 12, display: "block" }}
-            onClick={() => onOpenTask?.(parentTask)}
-          >
-            ↰ {parentTask.content}
-          </button>
-        )}
-
-        <textarea
-          className="detail-title"
-          value={content}
-          rows={2}
-          onChange={(e) => setContent(e.target.value)}
-          onBlur={saveContent}
-        />
-
-        <textarea
-          ref={descriptionRef}
-          placeholder="Description"
-          value={description}
-          rows={1}
-          onChange={(e) => setDescription(e.target.value)}
-          onBlur={saveDescription}
-          style={{
-            color: "var(--color-text-secondary)",
-            fontSize: 13,
-            minHeight: 64,
-            overflow: "hidden",
-          }}
-        />
-
-        <div className="detail-field-row">
-          {PRIORITY_ORDER.map((p) => (
-            <button
-              key={p}
-              className="field-pill"
-              style={
-                task.priority === p
-                  ? {
-                      background: PRIORITY_META[p].color,
-                      borderColor: PRIORITY_META[p].color,
-                      color: "#fff",
-                      fontWeight: 600,
-                    }
-                  : undefined
-              }
-              onClick={() => setPriority(p)}
-            >
-              <FlagIcon width={14} height={14} />
-              {PRIORITY_META[p].label}
-            </button>
-          ))}
-        </div>
-
-        <div className="detail-field-row">
-          <button className="field-pill" onClick={() => setDueOffset(0)}>
-            <CalendarIcon width={14} height={14} /> Today
-          </button>
-          <button className="field-pill" onClick={() => setDueOffset(1)}>
-            <CalendarIcon width={14} height={14} /> Tomorrow
-          </button>
-          <button className="field-pill" onClick={() => setDueOffset(7)}>
-            <CalendarIcon width={14} height={14} /> Next week
-          </button>
-          {task.due && (
-            <button className="field-pill" onClick={() => setDueOffset(null)}>
-              <XIcon width={14} height={14} /> Clear date
-            </button>
+        <div className="detail-header">
+          {project && (
+            <div className="detail-breadcrumb">
+              {project.name}
+              {task.sectionId && data?.sections.find((s) => s.id === task.sectionId) && (
+                <> / {data.sections.find((s) => s.id === task.sectionId)?.name}</>
+              )}
+            </div>
           )}
-        </div>
-
-        <div className="detail-field-row">
-          <label className="field-pill" style={{ gap: 6 }}>
-            <CalendarIcon width={14} height={14} />
-            <input
-              type="date"
-              className="detail-date-input"
-              value={task.due?.date || ""}
-              onChange={(e) => setManualDate(e.target.value)}
+          <div className="detail-header-actions">
+            <RowMenu
+              label="Task"
+              items={[
+                { label: "Duplicate", icon: <CopyIcon width={14} height={14} />, onClick: duplicateTask },
+                {
+                  label: "Delete task",
+                  icon: <TrashIcon width={14} height={14} />,
+                  danger: true,
+                  onClick: handleDelete,
+                },
+              ]}
             />
-          </label>
-          <label className="field-pill" style={{ gap: 4, opacity: task.due ? 1 : 0.5 }}>
-            time
-            <select
-              className="detail-date-input"
-              value={timeHour || ""}
-              disabled={!task.due}
-              onChange={(e) => setManualTime(`${e.target.value}:${timeMinute || "00"}`)}
-            >
-              {!timeHour && <option value="" />}
-              {HOURS.map((h) => (
-                <option key={h} value={h}>
-                  {h}
-                </option>
-              ))}
-            </select>
-            :
-            <select
-              className="detail-date-input"
-              value={timeMinute || ""}
-              disabled={!task.due}
-              onChange={(e) => setManualTime(`${timeHour || "00"}:${e.target.value}`)}
-            >
-              {!timeMinute && <option value="" />}
-              {MINUTES.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {task.due && (
-          <div className="detail-field-row">
-            <label className="field-pill" style={{ gap: 6 }}>
-              <RepeatIcon width={14} height={14} />
-              <select
-                className="detail-date-input"
-                value={currentFreq || "none"}
-                onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq | "none")}
-              >
-                <option value="none">Doesn't repeat</option>
-                <option value="daily">Every day</option>
-                <option value="weekdays">Every weekday</option>
-                <option value="weekly">Every week</option>
-                <option value="monthly">Every month</option>
-              </select>
-            </label>
-          </div>
-        )}
-
-        <div className="detail-field-row">
-          <select value={task.projectId} onChange={(e) => setProject(e.target.value)}>
-            {(data?.projects || []).map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ marginTop: 20 }}>
-          <div className="task-section-title" style={{ margin: "0 0 8px" }}>
-            Sub-tasks{subtasks.length > 0 ? ` (${subtasks.filter((s) => s.completed).length}/${subtasks.length})` : ""}
-          </div>
-          {subtasks.map((s) => (
-            <div key={s.id} className="task-row" style={{ padding: "4px 0" }}>
-              <TaskCheckbox
-                completed={s.completed}
-                priorityColor={PRIORITY_META[s.priority].color}
-                recurring={!!s.due?.isRecurring}
-                onToggle={(next) => completeTask.mutate({ id: s.id, completed: next })}
-              />
-              <div
-                className={`task-content ${s.completed ? "completed" : ""}`}
-                style={{ fontSize: 13 }}
-                onClick={() => onOpenTask?.(s)}
-              >
-                {s.content}
-              </div>
-            </div>
-          ))}
-
-          {addingSubtask ? (
-            <div className="quick-add" style={{ marginTop: 4 }}>
-              <input
-                autoFocus
-                placeholder="Sub-task name"
-                value={subtaskText}
-                onChange={(e) => setSubtaskText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addSubtask();
-                  if (e.key === "Escape") setAddingSubtask(false);
-                }}
-              />
-              <div className="quick-add-actions">
-                <button className="btn btn-text" onClick={() => setAddingSubtask(false)}>
-                  Cancel
-                </button>
-                <button className="btn btn-primary" onClick={addSubtask} disabled={!subtaskText.trim()}>
-                  Add
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button className="add-task-trigger" onClick={() => setAddingSubtask(true)}>
-              <span className="plus">+</span> Add sub-task
+            <button className="btn-text" onClick={onClose} aria-label="Close">
+              <XIcon />
             </button>
-          )}
+          </div>
         </div>
 
-        <div style={{ marginTop: 20 }}>
-          <div className="task-section-title" style={{ margin: "0 0 8px" }}>
-            Comments{task.comments?.length ? ` (${task.comments.length})` : ""}
-          </div>
-          {(task.comments || []).map((c) => (
-            <div key={c.id} className="comment-row">
-              <div className="comment-text">{c.text}</div>
-              <div className="comment-meta">
-                <span>{new Date(c.createdAt).toLocaleString()}</span>
+        <div className="detail-scroll">
+          <div className="detail-columns">
+            <div className="detail-main">
+              {parentTask && (
                 <button
                   className="btn-text"
-                  style={{ padding: "0 0 0 8px", fontSize: 12 }}
-                  onClick={() => deleteComment.mutate({ taskId: task.id, commentId: c.id })}
+                  style={{ padding: "2px 0 8px", fontSize: 12, display: "block" }}
+                  onClick={() => onOpenTask?.(parentTask)}
                 >
-                  Delete
+                  ↰ {parentTask.content}
                 </button>
+              )}
+
+              <div className="detail-title-row">
+                <TaskCheckbox
+                  completed={task.completed}
+                  priorityColor={PRIORITY_META[task.priority].color}
+                  recurring={!!task.due?.isRecurring}
+                  onToggle={(next) => completeTask.mutate({ id: task.id, completed: next })}
+                />
+                <textarea
+                  className="detail-title"
+                  value={content}
+                  rows={2}
+                  onChange={(e) => setContent(e.target.value)}
+                  onBlur={saveContent}
+                />
+              </div>
+
+              <RichTextEditor
+                html={description}
+                onChange={setDescription}
+                onBlur={saveDescription}
+              />
+
+              <div style={{ marginTop: 20 }}>
+                <div className="task-section-title" style={{ margin: "0 0 8px" }}>
+                  Sub-tasks
+                  {subtasks.length > 0
+                    ? ` (${subtasks.filter((s) => s.completed).length}/${subtasks.length})`
+                    : ""}
+                </div>
+                {subtasks.map((s) => (
+                  <div key={s.id} className="task-row" style={{ padding: "4px 0" }}>
+                    <TaskCheckbox
+                      completed={s.completed}
+                      priorityColor={PRIORITY_META[s.priority].color}
+                      recurring={!!s.due?.isRecurring}
+                      onToggle={(next) => completeTask.mutate({ id: s.id, completed: next })}
+                    />
+                    <div
+                      className={`task-content ${s.completed ? "completed" : ""}`}
+                      style={{ fontSize: 13 }}
+                      onClick={() => onOpenTask?.(s)}
+                    >
+                      {s.content}
+                    </div>
+                  </div>
+                ))}
+
+                {addingSubtask ? (
+                  <div className="quick-add" style={{ marginTop: 4 }}>
+                    <input
+                      autoFocus
+                      placeholder="Sub-task name"
+                      value={subtaskText}
+                      onChange={(e) => setSubtaskText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") addSubtask();
+                        if (e.key === "Escape") setAddingSubtask(false);
+                      }}
+                    />
+                    <div className="quick-add-actions">
+                      <button className="btn btn-text" onClick={() => setAddingSubtask(false)}>
+                        Cancel
+                      </button>
+                      <button className="btn btn-primary" onClick={addSubtask} disabled={!subtaskText.trim()}>
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button className="add-task-trigger" onClick={() => setAddingSubtask(true)}>
+                    <span className="plus">+</span> Add sub-task
+                  </button>
+                )}
+              </div>
+
+              <div style={{ marginTop: 20 }}>
+                <div className="task-section-title" style={{ margin: "0 0 8px" }}>
+                  Comments{task.comments?.length ? ` (${task.comments.length})` : ""}
+                </div>
+                {(task.comments || []).map((c) => (
+                  <div key={c.id} className="comment-row">
+                    <div className="comment-text">{c.text}</div>
+                    <div className="comment-meta">
+                      <span>{new Date(c.createdAt).toLocaleString()}</span>
+                      <button
+                        className="btn-text"
+                        style={{ padding: "0 0 0 8px", fontSize: 12 }}
+                        onClick={() => deleteComment.mutate({ taskId: task.id, commentId: c.id })}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <div className="quick-add" style={{ marginTop: 4 }}>
+                  <input
+                    placeholder="Add a comment"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && submitComment()}
+                  />
+                  <div className="quick-add-actions">
+                    <button className="btn btn-primary" onClick={submitComment} disabled={!commentText.trim()}>
+                      Comment
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
-          <div className="quick-add" style={{ marginTop: 4 }}>
-            <input
-              placeholder="Add a comment"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && submitComment()}
-            />
-            <div className="quick-add-actions">
-              <button className="btn btn-primary" onClick={submitComment} disabled={!commentText.trim()}>
-                Comment
-              </button>
+
+            <div className="detail-sidebar">
+              <div className="detail-sidebar-field">
+                <div className="detail-sidebar-label">Project</div>
+                <select
+                  className="detail-sidebar-select"
+                  value={task.projectId}
+                  onChange={(e) => setProject(e.target.value)}
+                >
+                  {(data?.projects || []).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="detail-sidebar-field">
+                <div className="detail-sidebar-label">Date</div>
+                <div className="detail-field-row">
+                  <button className="field-pill" onClick={() => setDueOffset(0)}>
+                    <CalendarIcon width={14} height={14} /> Today
+                  </button>
+                  <button className="field-pill" onClick={() => setDueOffset(1)}>
+                    <CalendarIcon width={14} height={14} /> Tomorrow
+                  </button>
+                  <button className="field-pill" onClick={() => setDueOffset(7)}>
+                    <CalendarIcon width={14} height={14} /> Next week
+                  </button>
+                  {task.due && (
+                    <button className="field-pill" onClick={() => setDueOffset(null)}>
+                      <XIcon width={14} height={14} /> Clear date
+                    </button>
+                  )}
+                </div>
+                <div className="detail-field-row">
+                  <label className="field-pill" style={{ gap: 6 }}>
+                    <CalendarIcon width={14} height={14} />
+                    <input
+                      type="date"
+                      className="detail-date-input"
+                      value={task.due?.date || ""}
+                      onChange={(e) => setManualDate(e.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className="detail-field-row">
+                  <label className="field-pill" style={{ gap: 4, opacity: task.due ? 1 : 0.5 }}>
+                    time
+                    <select
+                      className="detail-date-input"
+                      value={timeHour || ""}
+                      disabled={!task.due}
+                      onChange={(e) => setManualTime(`${e.target.value}:${timeMinute || "00"}`)}
+                    >
+                      {!timeHour && <option value="" />}
+                      {HOURS.map((h) => (
+                        <option key={h} value={h}>
+                          {h}
+                        </option>
+                      ))}
+                    </select>
+                    :
+                    <select
+                      className="detail-date-input"
+                      value={timeMinute || ""}
+                      disabled={!task.due}
+                      onChange={(e) => setManualTime(`${timeHour || "00"}:${e.target.value}`)}
+                    >
+                      {!timeMinute && <option value="" />}
+                      {MINUTES.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {task.due && (
+                  <div className="detail-field-row">
+                    <label className="field-pill" style={{ gap: 6 }}>
+                      <RepeatIcon width={14} height={14} />
+                      <select
+                        className="detail-date-input"
+                        value={currentFreq || "none"}
+                        onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq | "none")}
+                      >
+                        <option value="none">Doesn't repeat</option>
+                        <option value="daily">Every day</option>
+                        <option value="weekdays">Every weekday</option>
+                        <option value="weekly">Every week</option>
+                        <option value="monthly">Every month</option>
+                      </select>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              <div className="detail-sidebar-field">
+                <div className="detail-sidebar-label">Priority</div>
+                <div className="detail-field-row">
+                  {PRIORITY_ORDER.map((p) => (
+                    <button
+                      key={p}
+                      className="field-pill"
+                      style={
+                        task.priority === p
+                          ? {
+                              background: PRIORITY_META[p].color,
+                              borderColor: PRIORITY_META[p].color,
+                              color: "#fff",
+                              fontWeight: 600,
+                            }
+                          : undefined
+                      }
+                      onClick={() => setPriority(p)}
+                    >
+                      <FlagIcon width={14} height={14} />
+                      {PRIORITY_META[p].label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="detail-sidebar-field">
+                <div className="detail-sidebar-label">Labels</div>
+                <div className="detail-label-chips">
+                  {task.labels.map((l) => (
+                    <span key={l} className="chip">
+                      @{l}
+                      <button
+                        className="chip-remove"
+                        onClick={() => removeLabel(l)}
+                        aria-label={`Remove label ${l}`}
+                      >
+                        <XIcon width={10} height={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <input
+                  className="detail-label-input"
+                  list="task-detail-existing-labels"
+                  placeholder="Add label…"
+                  value={labelInput}
+                  onChange={(e) => setLabelInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addLabel()}
+                  onBlur={addLabel}
+                />
+                <datalist id="task-detail-existing-labels">
+                  {existingLabelNames.map((n) => (
+                    <option key={n} value={n} />
+                  ))}
+                </datalist>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div style={{ marginTop: 20, display: "flex", gap: 4 }}>
-          <button className="btn btn-text" onClick={duplicateTask}>
-            <CopyIcon width={14} height={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
-            Duplicate
-          </button>
-          <button className="btn btn-text" style={{ color: "var(--color-danger)" }} onClick={handleDelete}>
-            <TrashIcon width={14} height={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
-            Delete task
-          </button>
         </div>
       </div>
     </div>

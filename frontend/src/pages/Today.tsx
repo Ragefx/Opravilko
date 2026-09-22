@@ -71,7 +71,7 @@ export default function Today() {
 
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px 0" }}>{header}</div>
+        <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
         <DateBoardView columns={columns} projectNameById={projectNameById} />
       </div>
     );

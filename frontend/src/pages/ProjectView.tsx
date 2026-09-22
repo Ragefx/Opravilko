@@ -98,7 +98,7 @@ export default function ProjectView() {
   if (display.layout === "board") {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px 0" }}>{header}</div>
+        <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
         <BoardView projectId={project.id} autoOpenTaskId={autoOpenId || undefined} />
       </div>
     );
@@ -107,7 +107,7 @@ export default function ProjectView() {
   if (display.layout === "calendar") {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px 0" }}>{header}</div>
+        <div style={{ padding: "16px 24px 0 32px" }}>{header}</div>
         <CalendarView tasks={tasks} projectId={project.id} />
       </div>
     );

@@ -2747,11 +2747,37 @@ kbd {
   min-height: 0;
   padding: 6px 6px 40px;
 }
+.calendar-week .calendar-cell {
+  gap: 5px;
+}
 .calendar-week .calendar-cell-header {
   justify-content: flex-start;
+  align-items: baseline;
   gap: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.calendar-week .calendar-cell-weekday {
+  font-size: 14px;
+}
+.calendar-week .calendar-cell.is-today .calendar-cell-header span {
+  width: 28px;
+  height: 28px;
+}
+/* The week has room: bigger, easier-to-read lines. */
+.calendar-week .calendar-task-chip,
+.calendar-week .calendar-event-chip {
+  font-size: 15px;
+  line-height: 1.35;
+  padding: 5px 8px;
+  border-left-width: 4px;
+  border-radius: 5px;
+}
+.calendar-week .calendar-chip-time {
+  display: block;
   font-size: 13px;
-  margin-bottom: 4px;
+  margin: 0 0 1px;
 }
 .calendar-cell-weekday {
   font-weight: 600;
@@ -2773,6 +2799,6 @@ kbd {
     padding-bottom: 12px;
   }
   .calendar-week .calendar-cell-header {
-    font-size: 14px;
+    font-size: 17px;
   }
 }

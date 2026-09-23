@@ -14,6 +14,8 @@ import {
   scaled,
   splitItems,
   splitSpokenItems,
+  SHOPPING_ADD_EVENT,
+  takeShoppingAdd,
   CATEGORIES,
   categoryById,
   guessCategory,
@@ -186,6 +188,22 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
       changed.forEach((c) => updateTask.mutate({ id: c.id, content: c.content, description: c.description }));
     };
   }
+
+  // Text shared from another app ("Share to Opravilko" -> this list).
+  useEffect(() => {
+    function take() {
+      const shared = takeShoppingAdd(projectId);
+      const parts = shared ? splitItems(shared) : [];
+      if (!parts.length) return;
+      void addItems(parts.map(parseItem)).then((undo) =>
+        showToast({ message: `Added ${parts.length} to the list`, actionLabel: "Undo", onAction: undo })
+      );
+    }
+    take();
+    window.addEventListener(SHOPPING_ADD_EVENT, take);
+    return () => window.removeEventListener(SHOPPING_ADD_EVENT, take);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   async function submit() {
     const parts = splitItems(text);

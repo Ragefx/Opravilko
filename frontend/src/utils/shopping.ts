@@ -419,3 +419,22 @@ export function splitSpokenItems(spoken: string): string[] {
     return [part];
   });
 }
+
+// ---------- things to add from elsewhere (a share from another app) ----------
+
+let queued: { projectId: string; text: string } | null = null;
+export const SHOPPING_ADD_EVENT = "opravilko:shopping-add";
+
+/** Hands text to a shopping list's own adding (so amounts count up as usual). */
+export function queueShoppingAdd(projectId: string, text: string): void {
+  queued = { projectId, text };
+  window.dispatchEvent(new Event(SHOPPING_ADD_EVENT));
+}
+
+/** The text waiting for this list, once. */
+export function takeShoppingAdd(projectId: string): string | null {
+  if (!queued || queued.projectId !== projectId) return null;
+  const { text } = queued;
+  queued = null;
+  return text;
+}

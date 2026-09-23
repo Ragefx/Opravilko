@@ -29,6 +29,9 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
   two items). Needs this build to be tested on a phone.
 - Long-press the app icon: Add task, Shopping list (the first project shown
   as a shopping list), Calendar.
+- Share to Opravilko: share a link, text or photos from any app; it becomes
+  a task (photos attached) in the project you pick, or items on the
+  shopping list.
 
 ## Known gaps (not started)
 

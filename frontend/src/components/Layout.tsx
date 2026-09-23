@@ -16,6 +16,7 @@ import {
 } from "../native/widget";
 import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
+import ShareSheet from "./ShareSheet";
 import QuickAddModal from "./QuickAddModal";
 import ShortcutsModal from "./ShortcutsModal";
 import CommandPalette from "./CommandPalette";
@@ -257,6 +258,7 @@ export default function Layout() {
             defaultDate={quickAddPreset?.date}
           />
         )}
+        <ShareSheet />
         {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
       </div>
     </ToastProvider>

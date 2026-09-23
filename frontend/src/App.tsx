@@ -14,7 +14,6 @@ import Setup from "./pages/Setup";
 import MidvaView from "./pages/MidvaView";
 import { isSignedIn } from "./data/store";
 import Home from "./pages/Home";
-import { useLook } from "./utils/look";
 import { App as NativeApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import {
@@ -146,7 +145,7 @@ function ReturnToApp({ url }: { url: string }) {
 
 /** /app opens on the look's home: Now / Next / Later in Soča, Today in classic. */
 function HomeRedirect() {
-  return <Navigate to={useLook() === "soca" ? "home" : "today"} replace />;
+  return <Navigate to="home" replace />;
 }
 
 export default function App() {

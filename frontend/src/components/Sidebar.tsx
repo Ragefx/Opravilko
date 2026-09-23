@@ -36,9 +36,7 @@ import {
   ShareIcon,
   StarIcon,
   SunIcon,
-  TodayIcon,
   TrashIcon,
-  UpcomingIcon,
 } from "./icons";
 import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
 import ShareModal from "./ShareModal";
@@ -379,6 +377,11 @@ export default function Sidebar({
       </button>
 
       <nav className="sidebar-nav">
+        <NavLink to="/app/home" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+          <FocusIcon className="icon" />
+          Now
+          {counts.today > 0 && <span className="badge">{counts.today}</span>}
+        </NavLink>
         <NavLink to="/app/inbox" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <InboxIcon className="icon" />
           Inbox
@@ -396,19 +399,6 @@ export default function Sidebar({
             {counts.midva > 0 && <span className="badge">{counts.midva}</span>}
           </NavLink>
         )}
-        <NavLink to="/app/home" className={({ isActive }) => `sidebar-link sidebar-soca-only ${isActive ? "active" : ""}`}>
-          <FocusIcon className="icon" />
-          Now · Next · Later
-        </NavLink>
-        <NavLink to="/app/today" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <TodayIcon className="icon" />
-          Today
-          {counts.today > 0 && <span className="badge">{counts.today}</span>}
-        </NavLink>
-        <NavLink to="/app/upcoming" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <UpcomingIcon className="icon" />
-          Upcoming
-        </NavLink>
         <NavLink to="/app/completed" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <CheckCircleIcon className="icon" />
           Completed

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the app icon: straight to adding a task, the shopping list or the calendar. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="add"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_add"
+        android:shortcutShortLabel="@string/shortcut_add">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.opravilko.app"
+            android:targetClass="com.opravilko.app.MainActivity"
+            android:data="opravilko://add?project=inbox" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="shopping"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_shopping"
+        android:shortcutShortLabel="@string/shortcut_shopping">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.opravilko.app"
+            android:targetClass="com.opravilko.app.MainActivity"
+            android:data="opravilko://open?view=shopping" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="calendar"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_calendar"
+        android:shortcutShortLabel="@string/shortcut_calendar">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.opravilko.app"
+            android:targetClass="com.opravilko.app.MainActivity"
+            android:data="opravilko://open?view=calendar" />
+    </shortcut>
+</shortcuts>

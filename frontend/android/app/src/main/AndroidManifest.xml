@@ -46,6 +46,11 @@
                 <data android:scheme="opravilko" android:host="add" />
             </intent-filter>
 
+            <!-- Long-press shortcuts on the app icon. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
         </activity>
 
         <!-- Home-screen task list widget. -->

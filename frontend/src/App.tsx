@@ -23,6 +23,7 @@ import {
   isNativeApp,
 } from "./dropbox/auth";
 import { parseWidgetLink, requestQuickAdd } from "./native/widget";
+import { useBootstrap } from "./api/hooks";
 
 /**
  * Dropbox redirects back to the site root with ?code=... (or ?error=...) in the
@@ -148,6 +149,15 @@ function HomeRedirect() {
   return <Navigate to="home" replace />;
 }
 
+/** "Shopping list" (the app icon's shortcut): the first project shown as a shopping list. */
+function ShoppingRedirect() {
+  const { data } = useBootstrap();
+  if (!data) return null;
+  const list = data.projects.find((p) => p.viewStyle === "shopping");
+  if (!list) return <Navigate to="/app/home" replace />;
+  return <Navigate to={list.isInboxProject ? "/app/inbox" : `/app/project/${encodeURIComponent(list.id)}`} replace />;
+}
+
 export default function App() {
   const { ready, error, forwardUrl } = useOAuthCallback();
   const [nativeError, setNativeError] = useState<string | null>(null);
@@ -178,6 +188,7 @@ export default function App() {
         <Route path="stats" element={<StatsView />} />
         <Route path="inbox" element={<ProjectView />} />
         <Route path="calendar" element={<InboxCalendar />} />
+        <Route path="shopping" element={<ShoppingRedirect />} />
         <Route path="project/:id" element={<ProjectView />} />
         <Route path="label/:name" element={<LabelView />} />
         <Route path="filter/:id" element={<FilterView />} />

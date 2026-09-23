@@ -87,7 +87,7 @@ export function onWidgetDataChanged(onChange: () => void): () => void {
 /**
  * Turns a widget link into an in-app route, or a quick-add request:
  *   opravilko://open?task=<id>&project=<id>   -> that task, opened
- *   opravilko://open?view=today|upcoming|inbox|project:<id>
+ *   opravilko://open?view=today|upcoming|inbox|calendar|shopping|project:<id>
  *   opravilko://add?project=<id>[&today=1]
  */
 export function parseWidgetLink(url: string): { route: string } | { quickAdd: QuickAddRequest } | null {
@@ -112,7 +112,7 @@ export function parseWidgetLink(url: string): { route: string } | { quickAdd: Qu
     return { route: `${base}?open=${encodeURIComponent(task)}` };
   }
   const view = q.get("view") || "today";
-  if (view === "today" || view === "upcoming" || view === "inbox") return { route: `/app/${view}` };
+  if (["today", "upcoming", "inbox", "calendar", "shopping"].includes(view)) return { route: `/app/${view}` };
   if (view.startsWith("project:")) {
     const id = view.slice("project:".length);
     return { route: id === "inbox" ? "/app/inbox" : `/app/project/${encodeURIComponent(id)}` };

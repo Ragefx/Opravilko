@@ -27,6 +27,8 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
 - Voice adding (Slovenian): a microphone in Add task and on the shopping
   list, using the phone's own voice input ("pol kile moke pa jajca" becomes
   two items). Needs this build to be tested on a phone.
+- Long-press the app icon: Add task, Shopping list (the first project shown
+  as a shopping list), Calendar.
 
 ## Known gaps (not started)
 

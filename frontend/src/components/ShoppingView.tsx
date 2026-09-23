@@ -14,22 +14,39 @@ import {
   saveCustomMeals,
   scaled,
   splitItems,
+  CATEGORIES,
+  categoryById,
+  guessCategory,
+  rememberCategory,
+  type Category,
   type Item,
   type Meal,
 } from "../utils/shopping";
 import { useToast } from "./ToastProvider";
 import { CheckIcon, XIcon } from "./icons";
 
-/** "za: Palačinke, Omleta" in the description says which meals an item is for. */
+/**
+ * An item's extras live in its description, one per line: "za: Palačinke,
+ * Omleta" (the meals it's for) and "kat: dairy" (a category picked by hand).
+ */
+function lineOf(description: string, key: string): string | undefined {
+  return description.match(new RegExp(`^${key}: (.+)$`, "m"))?.[1];
+}
+function withLine(description: string, key: string, value: string): string {
+  const others = description.split("\n").filter((l) => l.trim() && !l.startsWith(`${key}: `));
+  return [...others, `${key}: ${value}`].join("\n");
+}
 function mealsOf(t: Task): string[] {
-  const m = t.description.match(/^za: (.+)$/m);
-  return m ? m[1].split(", ").filter(Boolean) : [];
+  return (lineOf(t.description, "za") ?? "").split(", ").filter(Boolean);
 }
 function withMeal(description: string, meal: string | undefined): string {
   if (!meal) return description;
-  const current = description.match(/^za: (.+)$/m)?.[1].split(", ") ?? [];
+  const current = (lineOf(description, "za") ?? "").split(", ").filter(Boolean);
   if (current.includes(meal)) return description;
-  return `za: ${[...current, meal].join(", ")}`;
+  return withLine(description, "za", [...current, meal].join(", "));
+}
+function categoryOf(t: Task, name: string): Category {
+  return categoryById(lineOf(t.description, "kat") ?? guessCategory(name));
 }
 
 /** Keeps the phone screen on while the list is open (in the shop). */
@@ -65,6 +82,7 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const [mealsOpen, setMealsOpen] = useState(false);
+  const [editing, setEditing] = useState<Task | null>(null);
   useWakeLock();
 
   const archivedSections = useMemo(
@@ -174,7 +192,13 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
 
         <ul className="shopping-list">
           {open.map((t) => (
-            <ShoppingRow key={t.id} task={t} onToggle={() => toggle(t)} onDelete={() => deleteTask.mutate(t.id)} />
+            <ShoppingRow
+                key={t.id}
+                task={t}
+                onToggle={() => toggle(t)}
+                onDelete={() => deleteTask.mutate(t.id)}
+                onEdit={() => setEditing(t)}
+              />
           ))}
         </ul>
 
@@ -188,12 +212,40 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
             </div>
             <ul className="shopping-list is-ticked">
               {ticked.map((t) => (
-                <ShoppingRow key={t.id} task={t} onToggle={() => toggle(t)} onDelete={() => deleteTask.mutate(t.id)} />
+                <ShoppingRow
+                key={t.id}
+                task={t}
+                onToggle={() => toggle(t)}
+                onDelete={() => deleteTask.mutate(t.id)}
+                onEdit={() => setEditing(t)}
+              />
               ))}
             </ul>
           </>
         )}
       </div>
+
+      {editing && (
+        <ItemEditor
+          task={editing}
+          onClose={() => setEditing(null)}
+          onSave={(content, categoryId) => {
+            const name = parseItem(content).name;
+            const guessed = guessCategory(name);
+            let description = editing.description;
+            if (categoryId !== categoryOf(editing, parseItem(editing.content).name).id || categoryId !== guessed) {
+              description = withLine(description, "kat", categoryId);
+              rememberCategory(name, categoryId);
+            }
+            updateTask.mutate({ id: editing.id, content, description });
+            setEditing(null);
+          }}
+          onDelete={() => {
+            deleteTask.mutate(editing.id);
+            setEditing(null);
+          }}
+        />
+      )}
 
       {mealsOpen && (
         <MealPicker
@@ -214,26 +266,118 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
   );
 }
 
-function ShoppingRow({ task, onToggle, onDelete }: { task: Task; onToggle: () => void; onDelete: () => void }) {
+function ShoppingRow({
+  task,
+  onToggle,
+  onDelete,
+  onEdit,
+}: {
+  task: Task;
+  onToggle: () => void;
+  onDelete: () => void;
+  onEdit: () => void;
+}) {
   const item = parseItem(task.content);
   const amount = formatAmount(item.amount, item.unit);
   const meals = mealsOf(task);
+  const category = categoryOf(task, item.name);
   return (
     <li className={`shopping-row ${task.completed ? "is-done" : ""}`}>
-      <button className="shopping-row-main" onClick={onToggle} aria-pressed={task.completed}>
+      {/* The circle side ticks it off; the rest of the row opens it for editing. */}
+      <button
+        className="shopping-tick"
+        onClick={onToggle}
+        aria-pressed={task.completed}
+        aria-label={task.completed ? `Put ${item.name} back` : `Tick off ${item.name}`}
+      >
         <span className="shopping-check" aria-hidden="true">
           {task.completed && <CheckIcon width={14} height={14} />}
         </span>
+      </button>
+      <button className="shopping-row-main" onClick={onEdit} aria-label={`Edit ${item.name}`}>
         <span className="shopping-name">
           {item.name}
           {meals.length > 0 && <small>{meals.join(" · ")}</small>}
         </span>
         {amount && <span className="shopping-amount">{amount}</span>}
+        <span className="shopping-category" title={category.name}>
+          {category.emoji}
+        </span>
       </button>
       <button className="shopping-delete" onClick={onDelete} aria-label={`Remove ${item.name}`}>
         <XIcon width={14} height={14} />
       </button>
     </li>
+  );
+}
+
+function ItemEditor({
+  task,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  task: Task;
+  onClose: () => void;
+  onSave: (content: string, categoryId: string) => void;
+  onDelete: () => void;
+}) {
+  const item = parseItem(task.content);
+  const [name, setName] = useState(item.name);
+  const [amount, setAmount] = useState(formatAmount(item.amount, item.unit));
+  const [categoryId, setCategoryId] = useState(categoryOf(task, item.name).id);
+
+  function save() {
+    if (!name.trim()) return;
+    // Read back the same way as typing it into the list ("1,5 l", "4", "500 g").
+    const parsed = parseItem(`${name.trim()} ${amount.trim()}`.trim());
+    const next = amount.trim() && parsed.amount !== undefined ? parsed : { name: name.trim() };
+    onSave(itemTitle({ ...next, name: name.trim().replace(/^./, (c) => c.toLocaleUpperCase("sl")) }), categoryId);
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal item-editor" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Edit item">
+        <div className="item-editor-fields">
+          <label>
+            Item
+            <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} autoFocus />
+          </label>
+          <label className="item-editor-amount">
+            Amount
+            <input
+              value={amount}
+              placeholder="1 l, 4, 500 g"
+              onChange={(e) => setAmount(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && save()}
+            />
+          </label>
+        </div>
+        <div className="category-grid">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.id}
+              className={`category-option ${categoryId === c.id ? "is-current" : ""}`}
+              onClick={() => setCategoryId(c.id)}
+            >
+              <span>{c.emoji}</span>
+              {c.name}
+            </button>
+          ))}
+        </div>
+        <div className="modal-actions">
+          <button className="btn btn-text meal-danger" onClick={onDelete}>
+            Delete
+          </button>
+          <button className="btn btn-text" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={save} disabled={!name.trim()}>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -286,3 +286,97 @@ export function mealToText(meal: Meal, servings: number): string {
     .map((ing) => itemTitle({ name: ing.name, amount: ing.amount !== undefined ? ing.amount * servings : undefined, unit: ing.unit }))
     .join("\n");
 }
+
+// ---------- categories ----------
+
+export interface Category {
+  id: string;
+  emoji: string;
+  name: string;
+}
+
+export const CATEGORIES: Category[] = [
+  { id: "veg", emoji: "🥦", name: "Sadje in zelenjava" },
+  { id: "bread", emoji: "🥖", name: "Kruh in pecivo" },
+  { id: "dairy", emoji: "🥛", name: "Mlečni izdelki in jajca" },
+  { id: "meat", emoji: "🥩", name: "Meso in ribe" },
+  { id: "pantry", emoji: "🍝", name: "Shramba" },
+  { id: "spices", emoji: "🧂", name: "Začimbe, olja, omake" },
+  { id: "frozen", emoji: "🧊", name: "Zamrznjeno" },
+  { id: "sweets", emoji: "🍫", name: "Sladkarije in prigrizki" },
+  { id: "drinks", emoji: "🥤", name: "Pijače" },
+  { id: "household", emoji: "🧽", name: "Gospodinjstvo" },
+  { id: "care", emoji: "🧴", name: "Drogerija" },
+  { id: "pets", emoji: "🐾", name: "Živali" },
+  { id: "other", emoji: "🛒", name: "Drugo" },
+];
+
+export function categoryById(id: string | undefined): Category {
+  return CATEGORIES.find((c) => c.id === id) ?? CATEGORIES[CATEGORIES.length - 1];
+}
+
+/** Two-word names that the single words would get wrong ("mleta paprika" is a spice). */
+const PHRASES: [string, string][] = [
+  ["mleta paprika", "spices"], ["kislo mleko", "dairy"], ["kisla smetana", "dairy"], ["toaletni papir", "care"],
+  ["zobna pasta", "care"], ["arašidovo maslo", "pantry"], ["ledeni čaj", "drinks"], ["paradižnikova mezga", "pantry"],
+  ["pasirani paradižnik", "pantry"], ["jušna kocka", "pantry"], ["sojina omaka", "spices"], ["hrana za", "pets"],
+  ["vreče za smeti", "household"], ["vrečke za smeti", "household"], ["papirnate brisače", "household"],
+  ["cezarjev preliv", "spices"], ["riž za rižoto", "pantry"], ["toast kruh", "bread"], ["olivno olje", "spices"],
+  ["pomivalni stroj", "household"], ["mleto meso", "meat"], ["zamrznjen", "frozen"],
+];
+
+/** Word beginnings per category, checked word by word; short ones must be (nearly) the whole word. */
+const STEMS: Record<string, string[]> = {
+  care: ["šampon", "balzam", "gel", "milo", "zobn", "ščetk", "dezodorant", "krem", "vložk", "tampon", "plenic", "britvic", "robčk", "losjon", "parfum", "vatir", "higiensk", "toaletn"],
+  household: ["detergent", "praln", "mehčal", "čistil", "jar", "pomival", "vrečk", "folij", "papir", "brisač", "prtičk", "gobic", "krp", "vžigalic", "sveč", "baterij", "žarnic"],
+  pets: ["mačk", "pasj", "brikete", "pesek", "granul"],
+  frozen: ["sladoled", "zamrzn", "led"],
+  veg: ["jabolk", "hrušk", "banan", "pomaranč", "mandarin", "limon", "grozd", "jagod", "malin", "borovnic", "češnj", "breskv", "marelic", "sliv", "kivi", "ananas", "mang", "avokad", "lubenic", "melon", "granatn", "grenivk", "nektarin", "fig", "paradižnik", "kumar", "paprik", "solat", "zelj", "ohrovt", "brokol", "cvetač", "koren", "krompir", "čebul", "česen", "por", "zelen", "bučk", "jajčev", "gob", "šampinjon", "špinač", "blitv", "rukol", "radič", "redkv", "pesa", "pese", "koleraba", "peteršilj", "bazilik", "drobnjak", "koper", "ingver", "sadje", "zelenjav", "rožmarin"],
+  bread: ["kruh", "žemlj", "baget", "rogljič", "štručk", "toast", "kajzeric", "pecivo", "burek", "krof", "tortilj", "pita", "pite", "bombet"],
+  dairy: ["mlek", "jogurt", "sir", "skut", "smetan", "masl", "kefir", "jajc", "jajca", "mozzarel", "parmez", "mascarpon", "maskarpon", "feta", "gavd", "gaud", "ementaler", "edamer", "pinjenec", "margarin", "puding"],
+  meat: ["meso", "mesa", "mleto", "piščan", "puran", "svinj", "govej", "govedin", "teleti", "zrezk", "file", "bedr", "perutnin", "klobas", "hrenovk", "salam", "šunk", "pršut", "slanin", "pancet", "čevapčič", "pleskavic", "riba", "ribe", "tuna", "tune", "losos", "sardel", "škamp", "kozic", "lignj", "oslič", "postrv", "orad", "brancin", "jetr", "kotlet", "rebrc"],
+  pantry: ["mok", "testenin", "špaget", "makaron", "penne", "fusil", "lazanj", "njok", "riž", "kuskus", "kus-kus", "bulgur", "kvinoj", "ovsen", "kosmič", "musli", "žit", "sladkor", "kvas", "pecilni", "fižol", "čičerik", "leč", "konzerv", "pločevink", "pasiran", "mezg", "omak", "jušn", "drobtin", "oreh", "mandelj", "lešnik", "arašid", "med", "marmelad", "nutell", "namaz", "pašteta", "paštet", "polent", "zdrob", "kakav"],
+  spices: ["sol", "poper", "olje", "olj", "olivn", "kis", "ketchup", "kečap", "majonez", "gorčic", "senf", "začimb", "origano", "timijan", "cimet", "vanilij", "lovor", "curry", "kari", "balzamič", "čili", "muškat", "klinček", "preliv", "vegeta"],
+  sweets: ["čokolad", "bonbon", "piškot", "čips", "smoki", "kreker", "grisin", "napolitank", "žvečil", "keks", "tort", "gumi", "bombon", "ploščic"],
+  drinks: ["voda", "vode", "sok", "sokov", "pivo", "piv", "vino", "vin", "kava", "kav", "čaj", "mineral", "radensk", "cola", "kola", "sirup", "energijsk", "žgan", "radler", "tonik"],
+};
+const STEM_ORDER = ["care", "household", "pets", "frozen", "veg", "bread", "dairy", "meat", "pantry", "spices", "sweets", "drinks"];
+
+function stemMatches(word: string, stem: string): boolean {
+  if (stem.length <= 3) return word === stem || (word.startsWith(stem) && word.length === stem.length + 1);
+  return word.startsWith(stem);
+}
+
+// What you've picked for an item before, so it's remembered next time.
+const LEARNED_KEY = "opravilko.shopCategories";
+
+function learned(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(LEARNED_KEY) || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+
+export function rememberCategory(name: string, id: string): void {
+  try {
+    const map = learned();
+    map[name.toLocaleLowerCase("sl")] = id;
+    localStorage.setItem(LEARNED_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** The category for an item's name: your earlier pick, a known phrase, then word by word. */
+export function guessCategory(name: string): string {
+  const lower = name.toLocaleLowerCase("sl").trim();
+  const mine = learned()[lower];
+  if (mine) return mine;
+  for (const [phrase, id] of PHRASES) if (lower.includes(phrase)) return id;
+  const words = lower.split(/[^\p{L}-]+/u).filter(Boolean);
+  for (const w of words) {
+    for (const id of STEM_ORDER) if (STEMS[id].some((s) => stemMatches(w, s))) return id;
+  }
+  return "other";
+}

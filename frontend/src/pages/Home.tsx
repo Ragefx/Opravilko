@@ -62,7 +62,6 @@ export default function Home() {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [focusTask, setFocusTask] = useState<Task | null>(null);
   const [pane, setPane] = useState<Pane>("now");
-  const [laterOpen, setLaterOpen] = useState(false);
   // Re-render each minute so the "now" marker and late labels stay current.
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -280,7 +279,6 @@ export default function Home() {
     </section>
   );
 
-  const laterPreview = view.later.slice(0, 3).map((t) => t.content).join(", ");
   const laterPane = (
     <section className="home-later">
       <div className="home-label">
@@ -291,27 +289,17 @@ export default function Home() {
         <div className="home-day-empty">
           <span>Nothing scheduled beyond this week.</span>
         </div>
-      ) : laterOpen || pane === "later" ? (
-        <>
-          {view.later.map((t, i) => {
-            const month = format(parseISO(t.due!.date), "MMMM yyyy");
-            const showMonth = i === 0 || format(parseISO(view.later[i - 1].due!.date), "MMMM yyyy") !== month;
-            return (
-              <div key={t.id}>
-                {showMonth && <div className="home-day-label home-mono">{month.toUpperCase()}</div>}
-                <TaskRow task={t} onOpen={setOpenTask} projectLabel={projectLabel(t)} />
-              </div>
-            );
-          })}
-        </>
       ) : (
-        <button className="home-later-toggle" onClick={() => setLaterOpen(true)}>
-          <span>
-            {laterPreview}
-            {view.later.length > 3 && "…"}
-          </span>
-          <span className="home-mono">Show all →</span>
-        </button>
+        view.later.map((t, i) => {
+          const month = format(parseISO(t.due!.date), "MMMM yyyy");
+          const showMonth = i === 0 || format(parseISO(view.later[i - 1].due!.date), "MMMM yyyy") !== month;
+          return (
+            <div key={t.id}>
+              {showMonth && <div className="home-day-label home-mono">{month.toUpperCase()}</div>}
+              <TaskRow task={t} onOpen={setOpenTask} projectLabel={projectLabel(t)} />
+            </div>
+          );
+        })
       )}
     </section>
   );

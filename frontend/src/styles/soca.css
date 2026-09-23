@@ -822,32 +822,6 @@
   font-size: 11px;
   letter-spacing: 0.04em;
 }
-.home-later-toggle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius, 8px);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  text-align: left;
-}
-.home-later-toggle:hover {
-  border-color: var(--color-text-muted);
-  color: var(--color-text);
-}
-.home-later-toggle > span:first-child {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.home-later-toggle .home-mono {
-  flex-shrink: 0;
-}
 .home-segments {
   display: none;
 }

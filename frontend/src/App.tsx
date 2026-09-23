@@ -9,6 +9,8 @@ import StatsView from "./pages/StatsView";
 import ProjectView from "./pages/ProjectView";
 import LabelView from "./pages/LabelView";
 import FilterView from "./pages/FilterView";
+import Home from "./pages/Home";
+import { useLook } from "./utils/look";
 import { App as NativeApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import {
@@ -64,7 +66,7 @@ function useOAuthCallback() {
 
     completeConnect(code!)
       .then(() => {
-        navigate("/app/today", { replace: true });
+        navigate("/app", { replace: true });
       })
       .catch((err) => {
         setError(err?.message || "Failed to connect to Dropbox.");
@@ -97,7 +99,7 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
       }
       try {
         await completeConnect(code);
-        navigate("/app/today", { replace: true });
+        navigate("/app", { replace: true });
       } catch (err: any) {
         onError(err?.message || "Failed to connect to Dropbox.");
       }
@@ -114,7 +116,7 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
         navigate(link.route);
         return;
       }
-      if (!window.location.hash.startsWith("#/app")) navigate("/app/today");
+      if (!window.location.hash.startsWith("#/app")) navigate("/app");
       requestQuickAdd(link.quickAdd);
     }
 
@@ -139,6 +141,11 @@ function ReturnToApp({ url }: { url: string }) {
   );
 }
 
+/** /app opens on the look's home: Now / Next / Later in Soča, Today in classic. */
+function HomeRedirect() {
+  return <Navigate to={useLook() === "soca" ? "home" : "today"} replace />;
+}
+
 export default function App() {
   const { ready, error, forwardUrl } = useOAuthCallback();
   const [nativeError, setNativeError] = useState<string | null>(null);
@@ -159,7 +166,8 @@ export default function App() {
     <Routes>
       <Route path="/connect" element={<Connect key={nativeError ?? ""} initialError={nativeError ?? error} />} />
       <Route path="/app" element={<Layout />}>
-        <Route index element={<Navigate to="today" replace />} />
+        <Route index element={<HomeRedirect />} />
+        <Route path="home" element={<Home />} />
         <Route path="today" element={<Today />} />
         <Route path="upcoming" element={<Upcoming />} />
         <Route path="completed" element={<CompletedView />} />
@@ -169,7 +177,7 @@ export default function App() {
         <Route path="label/:name" element={<LabelView />} />
         <Route path="filter/:id" element={<FilterView />} />
       </Route>
-      <Route path="*" element={<Navigate to={isConnected() ? "/app/today" : "/connect"} replace />} />
+      <Route path="*" element={<Navigate to={isConnected() ? "/app" : "/connect"} replace />} />
     </Routes>
   );
 }

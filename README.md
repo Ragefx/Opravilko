@@ -40,6 +40,18 @@ in your own Dropbox account.
 - **Reminders** — opt-in browser notifications for tasks with a due *time*, while the
   app is open.
 
+### Looks
+
+**Settings** (the ⋯ menu next to the app name) has a **Look** switch, saved per device:
+
+- **Classic**: the original sidebar-and-lists layout.
+- **Soča**: no fixed sidebar. The home screen is **Now / Next / Later**:
+  - **Now** leads with a focus task (with a focus timer), then "on the clock" (timed tasks and calendar events, with a line marking the current time), then everything else due today.
+  - **Next** is the rest of the week, day by day.
+  - **Later** is everything further out.
+
+  Press `/` for the command bar to jump anywhere or type a new task. The ☰ menu opens the full project list, and priority shows as `!!!` / `!!` / `!`.
+
 ## How it's built
 
 Opravilko is a **static single-page app** — React + TypeScript + Vite, no backend

@@ -2,14 +2,23 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter } from "react-router-dom";
+import "@fontsource/schibsted-grotesk/400.css";
+import "@fontsource/schibsted-grotesk/500.css";
+import "@fontsource/schibsted-grotesk/600.css";
+import "@fontsource/schibsted-grotesk/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
 import "./styles/global.css";
+import "./styles/soca.css";
 import App from "./App";
 import { initTheme } from "./utils/theme";
+import { initLook } from "./utils/look";
 import { installSyncGuards } from "./dropbox/store";
 import { isNativeApp } from "./dropbox/auth";
 import { installBackButton } from "./native/android";
 
 initTheme();
+initLook();
 installSyncGuards();
 installBackButton();
 

@@ -8,6 +8,7 @@ import { CalendarIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import TaskDetail from "./TaskDetail";
 import BoardPageDots from "./BoardPageDots";
+import PriorityMark from "./PriorityMark";
 import QuickAdd from "./QuickAdd";
 
 export interface DateBoardColumn {
@@ -115,6 +116,7 @@ function DateBoardCard({
             </div>
           )}
         </div>
+        <PriorityMark priority={task.priority} />
       </div>
     </div>
   );

@@ -25,12 +25,14 @@ import {
   ChevronIcon,
   EditIcon,
   FilterIcon,
+  FocusIcon,
   ImportIcon,
   InboxIcon,
   LabelIcon,
   MoonIcon,
   PlusIcon,
   SearchIcon,
+  SettingsIcon,
   StarIcon,
   SunIcon,
   TodayIcon,
@@ -82,10 +84,12 @@ function saveCollapsedProjects(ids: Set<string>): void {
 export default function Sidebar({
   onSearch,
   onQuickAdd,
+  onOpenSettings,
   mobileOpen = false,
 }: {
   onSearch: () => void;
   onQuickAdd: () => void;
+  onOpenSettings: () => void;
   /** On narrow screens the sidebar is an off-canvas drawer; this slides it in. */
   mobileOpen?: boolean;
 }) {
@@ -162,7 +166,7 @@ export default function Sidebar({
     deleteProject.mutate(id, {
       onSuccess: (removed) => {
         if (!removed) return;
-        navigate("/app/today");
+        navigate("/app");
         showToast({
           message: `Project “${name}” deleted`,
           actionLabel: "Undo",
@@ -176,7 +180,7 @@ export default function Sidebar({
     deleteLabel.mutate(id, {
       onSuccess: (removed) => {
         if (!removed) return;
-        navigate("/app/today");
+        navigate("/app");
         showToast({
           message: `Label “${name}” deleted`,
           actionLabel: "Undo",
@@ -190,7 +194,7 @@ export default function Sidebar({
     deleteFilter.mutate(id, {
       onSuccess: (removed) => {
         if (!removed) return;
-        navigate("/app/today");
+        navigate("/app");
         showToast({
           message: `Filter “${name}” deleted`,
           actionLabel: "Undo",
@@ -291,6 +295,11 @@ export default function Sidebar({
           label="Account"
           items={[
             {
+              label: "Settings",
+              icon: <SettingsIcon width={14} height={14} />,
+              onClick: onOpenSettings,
+            },
+            {
               label: "Import from Todoist",
               icon: <ImportIcon width={14} height={14} />,
               onClick: () => setImportOpen(true),
@@ -349,6 +358,10 @@ export default function Sidebar({
           <InboxIcon className="icon" />
           Inbox
           {counts.inbox > 0 && <span className="badge">{counts.inbox}</span>}
+        </NavLink>
+        <NavLink to="/app/home" className={({ isActive }) => `sidebar-link sidebar-soca-only ${isActive ? "active" : ""}`}>
+          <FocusIcon className="icon" />
+          Now · Next · Later
         </NavLink>
         <NavLink to="/app/today" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <TodayIcon className="icon" />

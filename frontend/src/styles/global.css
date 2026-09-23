@@ -21,6 +21,9 @@
   --color-warning: #b8860b;
   --color-due-later: #8347d9;
   --color-chart-bar: #3e63dd;
+  /* Text/icons drawn on an accent-colored fill. */
+  --color-on-accent: #ffffff;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --sidebar-width: 260px;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color-scheme: light;
@@ -232,7 +235,7 @@ button:focus-visible {
   border: none;
   border-radius: 8px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   font-size: 14px;
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
@@ -388,7 +391,7 @@ kbd {
   height: 28px;
   border-radius: 50%;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -737,7 +740,7 @@ kbd {
 }
 .btn-primary {
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
 }
 .btn-primary:hover {
   background: var(--color-accent-hover);
@@ -1197,7 +1200,7 @@ kbd {
 }
 .date-picker-cal-day.selected {
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 .date-picker-action-btn {
   display: flex;
@@ -1736,7 +1739,7 @@ kbd {
 }
 .calendar-cell.is-today .calendar-cell-header span {
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   border-radius: 50%;
   width: 20px;
   height: 20px;

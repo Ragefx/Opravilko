@@ -33,6 +33,16 @@ export function setTheme(theme: ThemeChoice) {
   applyTheme(theme);
 }
 
+/** Back to following the device's light/dark setting. */
+export function clearTheme() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+  applyTheme(null);
+}
+
 export function currentEffectiveTheme(): ThemeChoice {
   const stored = getStoredTheme();
   if (stored) return stored;

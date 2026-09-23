@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { isConnected, isNativeApp } from "../dropbox/auth";
 import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
@@ -17,6 +17,10 @@ import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
 import QuickAddModal from "./QuickAddModal";
 import ShortcutsModal from "./ShortcutsModal";
+import CommandPalette from "./CommandPalette";
+import SettingsModal from "./SettingsModal";
+import SocaTopBar from "./SocaTopBar";
+import { useLook } from "../utils/look";
 import SyncIndicator from "./SyncIndicator";
 import { ToastProvider } from "./ToastProvider";
 import { MenuIcon, PlusIcon, SearchIcon } from "./icons";
@@ -39,6 +43,10 @@ export default function Layout() {
   // Set when the Android widget's + opened quick add (its project / due today).
   const [quickAddPreset, setQuickAddPreset] = useState<QuickAddRequest | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const look = useLook();
+  const openSettings = useCallback(() => setSettingsOpen(true), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
   const [navOpen, setNavOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -131,7 +139,7 @@ export default function Layout() {
 
       if (goChord.current) {
         goChord.current = false;
-        const dest = { t: "/app/today", u: "/app/upcoming", i: "/app/inbox", c: "/app/completed" }[
+        const dest = { h: "/app/home", t: "/app/today", u: "/app/upcoming", i: "/app/inbox", c: "/app/completed" }[
           e.key.toLowerCase()
         ];
         if (dest) {
@@ -168,14 +176,23 @@ export default function Layout() {
 
   return (
     <ToastProvider>
-      <div className="app-shell">
+      <div className={`app-shell ${look === "soca" ? "soca-shell" : ""}`}>
+        {/* In the Soča look the sidebar is a drawer at every width, opened from the top bar. */}
         <Sidebar
           onSearch={() => setSearchOpen(true)}
           onQuickAdd={() => setQuickAddOpen(true)}
+          onOpenSettings={openSettings}
           mobileOpen={navOpen}
         />
         {navOpen && <div className="sidebar-scrim" onClick={() => setNavOpen(false)} />}
         <main className="main">
+          {look === "soca" && (
+            <SocaTopBar
+              onMenu={() => setNavOpen(true)}
+              onCommand={() => setSearchOpen(true)}
+              onQuickAdd={() => setQuickAddOpen(true)}
+            />
+          )}
           <div className="mobile-appbar">
             <button className="mobile-appbar-btn" onClick={() => setNavOpen(true)} aria-label="Open menu">
               <MenuIcon width={22} height={22} />
@@ -188,10 +205,16 @@ export default function Layout() {
               <PlusIcon width={22} height={22} />
             </button>
           </div>
-          <SyncIndicator />
+          {look !== "soca" && <SyncIndicator />}
           <Outlet />
         </main>
-        {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
+        {searchOpen &&
+          (look === "soca" ? (
+            <CommandPalette onClose={closeSearch} onOpenSettings={openSettings} />
+          ) : (
+            <SearchModal onClose={closeSearch} />
+          ))}
+        {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
         {quickAddOpen && (
           <QuickAddModal
             onClose={() => {

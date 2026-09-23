@@ -20,6 +20,7 @@ import QuickAdd from "./QuickAdd";
 import TaskCheckbox from "./TaskCheckbox";
 import SectionMenu from "./SectionMenu";
 import TaskMenu from "./TaskMenu";
+import PriorityMark from "./PriorityMark";
 import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
@@ -381,6 +382,7 @@ function BoardCard({
             </div>
           )}
         </div>
+        <PriorityMark priority={task.priority} />
         <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
       </div>
     </div>

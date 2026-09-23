@@ -6,6 +6,7 @@ import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, CheckIcon, ChevronIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import TaskMenu from "./TaskMenu";
+import PriorityMark from "./PriorityMark";
 import DatePickerPopup from "./DatePickerPopup";
 import { useToast } from "./ToastProvider";
 
@@ -185,6 +186,7 @@ export default function TaskRow({
             </div>
           )}
         </div>
+        {!task.completed && <PriorityMark priority={task.priority} />}
         <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
       </div>
       {dateAnchor && <DatePickerPopup taskId={task.id} anchor={dateAnchor} onClose={() => setDateAnchor(null)} />}

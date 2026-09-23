@@ -16,7 +16,7 @@ export interface Project {
   isFavorite: boolean;
   isInboxProject?: boolean;
   parentId: string | null;
-  viewStyle?: "list" | "board" | "calendar";
+  viewStyle?: "list" | "board" | "calendar" | "shopping";
   /** Firebase only: who created it and who can see it (see firebase/sync.ts). */
   ownerId?: string;
   members?: string[];

@@ -47,6 +47,13 @@ export default function DisplayMenu({
             <BoardViewIcon width={18} height={18} />
             Board
           </button>
+          <button
+            className={value.layout === "shopping" ? "active" : ""}
+            onClick={() => set("layout", "shopping")}
+          >
+            <span style={{ fontSize: 16, lineHeight: "18px" }}>🛒</span>
+            Shopping
+          </button>
           {allowCalendar && (
             <button
               className={value.layout === "calendar" ? "active" : ""}

@@ -2,7 +2,7 @@ import type { Priority, Task } from "../api/types";
 import { PRIORITY_META } from "./priority";
 import { formatDueLabel, isDueToday, isDueWithinDays, isOverdue } from "./date";
 
-export type Layout = "list" | "board" | "calendar";
+export type Layout = "list" | "board" | "calendar" | "shopping";
 export type Grouping = "none" | "priority" | "label" | "dueDate";
 export type Sorting = "manual" | "date" | "priority" | "name" | "created";
 export type Direction = "asc" | "desc";

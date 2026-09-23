@@ -4,6 +4,7 @@ import { useBootstrap, useUpdateProject } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
 import BoardView from "../components/BoardView";
 import CalendarView from "../components/CalendarView";
+import ShoppingView from "../components/ShoppingView";
 import DisplayMenu from "../components/DisplayMenu";
 import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
 import { ArchiveIcon } from "../components/icons";
@@ -127,6 +128,10 @@ export default function ProjectView() {
         <BoardView projectId={project.id} autoOpenTaskId={autoOpenId || undefined} display={display} />
       </div>
     );
+  }
+
+  if (display.layout === "shopping") {
+    return <ShoppingView projectId={project.id} header={header} />;
   }
 
   if (display.layout === "calendar") {

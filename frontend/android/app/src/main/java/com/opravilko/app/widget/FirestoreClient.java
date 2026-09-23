@@ -104,6 +104,71 @@ final class FirestoreClient {
         throw new IOException("Saving the task failed (HTTP " + status + ")");
     }
 
+    // ---- queries (the widget's own refresh) ----
+
+    /** Documents where `field` == `value` (and, if given, `archived` == false), each with its "id". */
+    JSONArray whereEquals(String collection, String field, String value, boolean openOnly) throws IOException {
+        return query(collection, filter(field, "EQUAL", value), openOnly);
+    }
+
+    /** Documents whose array `field` contains `value`. */
+    JSONArray whereContains(String collection, String field, String value) throws IOException {
+        return query(collection, filter(field, "ARRAY_CONTAINS", value), false);
+    }
+
+    private static JSONObject filter(String field, String op, Object value) throws IOException {
+        try {
+            return new JSONObject().put("fieldFilter", new JSONObject()
+                    .put("field", new JSONObject().put("fieldPath", field))
+                    .put("op", op)
+                    .put("value", toValue(value)));
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+    private JSONArray query(String collection, JSONObject where, boolean openOnly) throws IOException {
+        JSONObject body;
+        try {
+            if (openOnly) {
+                where = new JSONObject().put("compositeFilter", new JSONObject()
+                        .put("op", "AND")
+                        .put("filters", new JSONArray().put(where).put(filter("archived", "EQUAL", false))));
+            }
+            body = new JSONObject().put("structuredQuery", new JSONObject()
+                    .put("from", new JSONArray().put(new JSONObject().put("collectionId", collection)))
+                    .put("where", where));
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+        HttpURLConnection conn = open("https://firestore.googleapis.com/v1/projects/" + enc(store.getFirebaseProjectId())
+                + "/databases/(default)/documents:runQuery", "POST");
+        conn.setRequestProperty("Authorization", "Bearer " + idToken());
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        write(conn, body.toString());
+        int status = conn.getResponseCode();
+        if (status == 401) {
+            store.setFirebaseIdToken(null, 0);
+            throw new IOException("ID token rejected");
+        }
+        if (status != 200) throw new IOException("Query on " + collection + " failed (HTTP " + status + ")");
+        try {
+            JSONArray rows = new JSONArray(read(conn.getInputStream()));
+            JSONArray out = new JSONArray();
+            for (int i = 0; i < rows.length(); i++) {
+                JSONObject doc = rows.getJSONObject(i).optJSONObject("document");
+                if (doc == null) continue; // progress-only rows carry no document
+                String name = doc.getString("name");
+                JSONObject item = fromFields(doc.optJSONObject("fields"));
+                item.put("id", name.substring(name.lastIndexOf('/') + 1));
+                out.put(item);
+            }
+            return out;
+        } catch (JSONException e) {
+            throw new IOException("Unexpected query response");
+        }
+    }
+
     // ---- Firestore's typed values <-> plain JSON ----
 
     static JSONObject fromFields(JSONObject fields) throws JSONException {

@@ -118,8 +118,7 @@ public class WidgetSyncJob extends JobService {
      * in the widget is applied to the task as it is now (so a repeating task
      * isn't advanced twice) and only the changed fields are written. The app,
      * if it's open, sees the change live; the widget's list was already
-     * updated when it was tapped. (The widget's list itself refreshes when
-     * the app runs.)
+     * updated when it was tapped. Then the list itself is read afresh.
      */
     private static void syncFirebase(Context context, WidgetStore store) throws IOException {
         FirestoreClient firestore = new FirestoreClient(store);
@@ -175,6 +174,69 @@ public class WidgetSyncJob extends JobService {
             store.removePending(processed);
             TaskWidgetProvider.updateAll(context);
         }
+        refreshFirebase(context, store, firestore, uid);
+    }
+
+    /**
+     * Reads the tasks afresh, as the app does (open tasks of every project
+     * you're on, plus tasks shared with you), so the widget shows what the
+     * other phone added or ticked even while this app is closed.
+     */
+    private static void refreshFirebase(Context context, WidgetStore store, FirestoreClient firestore, String uid)
+            throws IOException {
+        if (uid == null) return;
+        String myInbox = "inbox_" + uid;
+        try {
+            JSONArray projects = new JSONArray();
+            JSONArray tasks = new JSONArray();
+            Set<String> seen = new HashSet<>();
+            JSONArray found = firestore.whereContains("projects", "members", uid);
+            for (int i = 0; i < found.length(); i++) {
+                JSONObject p = found.getJSONObject(i);
+                String id = p.getString("id");
+                // Someone else's Inbox never shows, as in the app.
+                if (p.optBoolean("isInboxProject") && !myInbox.equals(id)) continue;
+                p.put("id", appProjectId(id, myInbox));
+                if (p.has("parentId") && !p.isNull("parentId")) p.put("parentId", appProjectId(p.getString("parentId"), myInbox));
+                projects.put(p);
+                JSONArray open = firestore.whereEquals("tasks", "projectId", id, true);
+                for (int k = 0; k < open.length(); k++) addTask(tasks, seen, open.getJSONObject(k), myInbox);
+            }
+            JSONArray shared = firestore.whereContains("tasks", "sharedWith", uid);
+            for (int k = 0; k < shared.length(); k++) {
+                JSONObject t = shared.getJSONObject(k);
+                if (!t.optBoolean("archived")) addTask(tasks, seen, t, myInbox);
+            }
+
+            JSONObject old = store.getSnapshot();
+            JSONObject data = old != null ? old : new JSONObject().put("version", 1);
+            data.put("projects", sortByOrder(projects));
+            data.put("tasks", tasks);
+            store.saveSnapshot(data, true);
+            store.setLastRefresh(System.currentTimeMillis());
+            TaskWidgetProvider.updateAll(context);
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+    private static void addTask(JSONArray tasks, Set<String> seen, JSONObject t, String myInbox) throws JSONException {
+        if (!seen.add(t.getString("id"))) return;
+        t.remove("archived");
+        t.put("projectId", appProjectId(t.optString("projectId"), myInbox));
+        tasks.put(t);
+    }
+
+    /** The app calls your own Inbox just "inbox". */
+    private static String appProjectId(String id, String myInbox) {
+        return myInbox.equals(id) ? "inbox" : id;
+    }
+
+    private static JSONArray sortByOrder(JSONArray items) throws JSONException {
+        java.util.List<JSONObject> list = new java.util.ArrayList<>();
+        for (int i = 0; i < items.length(); i++) list.add(items.getJSONObject(i));
+        list.sort((a, b) -> Double.compare(a.optDouble("order", 0), b.optDouble("order", 0)));
+        return new JSONArray(list);
     }
 
     /** The widget has no use for calendar events or the completion history. */

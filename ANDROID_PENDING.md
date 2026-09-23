@@ -32,8 +32,10 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
 - Share to Opravilko: share a link, text or photos from any app; it becomes
   a task (photos attached) in the project you pick, or items on the
   shopping list.
+- Widget refreshes its own list from Firebase (about every 30 minutes and
+  after a tick), so the partner's new tasks show up with the app closed.
 
-## Known gaps (not started)
+## Known gaps
 
-- Widget's own list refreshes only when the app runs (new tasks from the
-  partner show up in the widget after the app has been opened).
+- None right now. The native parts above (widget sync, arrival reminders,
+  voice, shortcuts, sharing) are compile-checked only by the next build.

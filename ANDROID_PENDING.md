@@ -18,6 +18,16 @@ arrival reminders, templates, shared meals and usual items.
   it, Calendar starts in Week view on the phone, Settings sections wrap,
   the board's "Add section" page no longer peeks in.
 
+- Widget redesign: header with the app's mark, what it shows + ▾ to switch
+  (Today / Upcoming / Inbox / a project), a mic (opens Add task already
+  listening) and a round + button. Lines between rows.
+  Today: "Overdue" (with Reschedule = all to today) then today.
+  Upcoming: "Overdue", then each day of the week ("Wednesday, 23 Sep ·
+  Today"), empty days greyed. Inbox / projects: loose tasks, then each
+  section with its count, empty sections greyed. Rows: priority circle
+  (grey for none), date with calendar icon (red overdue, green today,
+  purple this week), repeat and notes icons, project on the right.
+
 ## Known gaps
 
 - None known. Voice, sharing, the widget's own refresh and arrival

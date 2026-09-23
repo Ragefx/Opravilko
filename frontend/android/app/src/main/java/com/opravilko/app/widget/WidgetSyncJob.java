@@ -87,8 +87,7 @@ public class WidgetSyncJob extends JobService {
                     JSONObject p = pending.optJSONObject(i);
                     if (p == null) continue;
                     processed.add(p.optString("id"));
-                    changed |= TaskLogic.complete(data, p.optString("taskId"),
-                            WidgetStore.optStringOrNull(p, "dueDate"), p.optString("at"));
+                    changed |= WidgetStore.applyPending(data, p);
                 }
 
                 if (changed) {
@@ -136,6 +135,15 @@ public class WidgetSyncJob extends JobService {
                 JSONObject task = firestore.getTask(taskId);
                 if (task == null) {
                     processed.add(p.optString("id")); // deleted meanwhile, or no longer shared
+                    continue;
+                }
+                if (WidgetStore.OP_TODAY.equals(p.optString("op"))) {
+                    // Reschedule: only the date moves (if it's still overdue).
+                    JSONObject due = task.optJSONObject("due");
+                    if (TaskLogic.dueToToday(due)) {
+                        firestore.updateTask(taskId, new JSONObject().put("due", due).put("updatedAt", at));
+                    }
+                    processed.add(p.optString("id"));
                     continue;
                 }
                 // The task as it is now, plus its sub-tasks as the widget knows them.
@@ -189,6 +197,7 @@ public class WidgetSyncJob extends JobService {
         try {
             JSONArray projects = new JSONArray();
             JSONArray tasks = new JSONArray();
+            JSONArray sections = new JSONArray();
             Set<String> seen = new HashSet<>();
             JSONArray found = firestore.whereContains("projects", "members", uid);
             for (int i = 0; i < found.length(); i++) {
@@ -199,6 +208,12 @@ public class WidgetSyncJob extends JobService {
                 p.put("id", appProjectId(id, myInbox));
                 if (p.has("parentId") && !p.isNull("parentId")) p.put("parentId", appProjectId(p.getString("parentId"), myInbox));
                 projects.put(p);
+                JSONArray secs = firestore.whereEquals("sections", "projectId", id, false);
+                for (int k = 0; k < secs.length(); k++) {
+                    JSONObject sec = secs.getJSONObject(k);
+                    sec.put("projectId", appProjectId(id, myInbox));
+                    sections.put(sec);
+                }
                 JSONArray open = firestore.whereEquals("tasks", "projectId", id, true);
                 for (int k = 0; k < open.length(); k++) addTask(tasks, seen, open.getJSONObject(k), myInbox);
             }
@@ -212,6 +227,7 @@ public class WidgetSyncJob extends JobService {
             JSONObject data = old != null ? old : new JSONObject().put("version", 1);
             data.put("projects", sortByOrder(projects));
             data.put("tasks", tasks);
+            data.put("sections", sortByOrder(sections));
             store.saveSnapshot(data, true);
             store.setLastRefresh(System.currentTimeMillis());
             TaskWidgetProvider.updateAll(context);

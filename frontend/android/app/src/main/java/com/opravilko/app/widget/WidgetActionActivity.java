@@ -1,6 +1,7 @@
 package com.opravilko.app.widget;
 
 import android.app.Activity;
+import android.appwidget.AppWidgetManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,6 +25,8 @@ public class WidgetActionActivity extends Activity {
 
         if (TaskWidgetProvider.ACTION_COMPLETE.equals(action) && taskId != null) {
             complete(taskId, intent.getStringExtra(TaskWidgetProvider.EXTRA_DUE_DATE));
+        } else if (TaskWidgetProvider.ACTION_RESCHEDULE.equals(action)) {
+            rescheduleOverdue(intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID));
         } else if (TaskWidgetProvider.ACTION_OPEN.equals(action) && taskId != null) {
             String project = intent.getStringExtra(TaskWidgetProvider.EXTRA_PROJECT_ID);
             Uri uri = Uri.parse("opravilko://open?task=" + Uri.encode(taskId)
@@ -34,6 +37,24 @@ public class WidgetActionActivity extends Activity {
         }
         finish();
         overridePendingTransition(0, 0);
+    }
+
+    /** "Reschedule" on the Overdue heading: every overdue task in this widget's view moves to today. */
+    private void rescheduleOverdue(int appWidgetId) {
+        WidgetStore store = new WidgetStore(this);
+        JSONObject data = store.getSnapshot();
+        if (data == null) return;
+        String today = TaskLogic.todayStr();
+        String at = TaskLogic.nowIso();
+        boolean changed = false;
+        for (TaskLogic.Row row : TaskLogic.rowsForView(data, store.getView(appWidgetId))) {
+            if (row.dueDate == null || row.dueDate.compareTo(today) >= 0) continue;
+            store.addPending(row.id, null, at, WidgetStore.OP_TODAY);
+            changed |= TaskLogic.moveToToday(data, row.id, at);
+        }
+        if (changed) store.saveSnapshot(data, false);
+        TaskWidgetProvider.updateAll(this);
+        WidgetSyncJob.schedule(this);
     }
 
     private void complete(String taskId, String dueDate) {

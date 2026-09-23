@@ -259,6 +259,7 @@ export default function Layout() {
             }
             defaultToday={quickAddPreset?.today}
             defaultDate={quickAddPreset?.date}
+            listenOnOpen={quickAddPreset?.voice}
           />
         )}
         <ShareSheet />

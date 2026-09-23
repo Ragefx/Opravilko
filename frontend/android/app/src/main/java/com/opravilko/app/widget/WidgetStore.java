@@ -66,10 +66,18 @@ public final class WidgetStore {
             for (int i = 0; i < pending.length(); i++) {
                 JSONObject p = pending.optJSONObject(i);
                 if (p == null) continue;
-                TaskLogic.complete(data, p.optString("taskId"), optStringOrNull(p, "dueDate"), p.optString("at"));
+                applyPending(data, p);
             }
         }
         prefs.edit().putString(KEY_SNAPSHOT, data.toString()).apply();
+    }
+
+    /** A queued change: a tick ("complete", the default) or "Reschedule" ("today"). */
+    public static final String OP_TODAY = "today";
+
+    static boolean applyPending(JSONObject data, JSONObject p) {
+        if (OP_TODAY.equals(p.optString("op"))) return TaskLogic.moveToToday(data, p.optString("taskId"), p.optString("at"));
+        return TaskLogic.complete(data, p.optString("taskId"), optStringOrNull(p, "dueDate"), p.optString("at"));
     }
 
     // ---- completions waiting to reach Dropbox ----
@@ -83,10 +91,15 @@ public final class WidgetStore {
     }
 
     public synchronized void addPending(String taskId, String dueDate, String at) {
+        addPending(taskId, dueDate, at, null);
+    }
+
+    public synchronized void addPending(String taskId, String dueDate, String at, String op) {
         JSONArray pending = getPending();
         try {
             JSONObject entry = new JSONObject();
-            entry.put("id", taskId + "@" + at);
+            entry.put("id", taskId + "@" + at + (op != null ? "#" + op : ""));
+            if (op != null) entry.put("op", op);
             entry.put("taskId", taskId);
             if (dueDate != null) entry.put("dueDate", dueDate);
             entry.put("at", at);

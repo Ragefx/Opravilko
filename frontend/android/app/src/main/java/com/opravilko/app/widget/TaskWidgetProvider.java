@@ -15,8 +15,8 @@ import com.opravilko.app.R;
 import org.json.JSONObject;
 
 /**
- * The home-screen task list widget: a header (view name, task count, add
- * button) over a scrolling list of tasks. Rows come from TaskWidgetService;
+ * The home-screen task list widget: a header (what it shows, a switch for
+ * that, voice and add buttons) over a scrolling list of headings and tasks. Rows come from TaskWidgetService;
  * taps on rows go to WidgetActionActivity via one PendingIntent template.
  */
 public class TaskWidgetProvider extends AppWidgetProvider {
@@ -26,6 +26,7 @@ public class TaskWidgetProvider extends AppWidgetProvider {
     static final String EXTRA_DUE_DATE = "com.opravilko.app.widget.DUE_DATE";
     static final String ACTION_COMPLETE = "complete";
     static final String ACTION_OPEN = "open";
+    static final String ACTION_RESCHEDULE = "reschedule";
 
     /** Refresh from Dropbox on the periodic update if the copy is older than this. */
     private static final long REFRESH_AFTER_MS = 15 * 60 * 1000;
@@ -62,8 +63,6 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_task_list);
 
         views.setTextViewText(R.id.widget_title, TaskLogic.viewTitle(data, view));
-        int count = TaskLogic.rowsForView(data, view).size();
-        views.setTextViewText(R.id.widget_count, count > 0 ? String.valueOf(count) : "");
         views.setTextViewText(R.id.widget_empty, data == null
                 ? context.getString(R.string.widget_empty_signed_out)
                 : context.getString(R.string.widget_empty));
@@ -83,11 +82,20 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
         views.setPendingIntentTemplate(R.id.widget_list, templatePi);
 
-        views.setOnClickPendingIntent(R.id.widget_header,
-                openApp(context, appWidgetId * 4 + 1, "opravilko://open?view=" + Uri.encode(view)));
+        views.setOnClickPendingIntent(R.id.widget_logo,
+                openApp(context, appWidgetId * 8 + 1, "opravilko://open?view=" + Uri.encode(view)));
         String addUri = "opravilko://add?project=" + Uri.encode(TaskLogic.viewProjectId(view))
                 + (WidgetStore.VIEW_TODAY.equals(view) ? "&today=1" : "");
-        views.setOnClickPendingIntent(R.id.widget_add, openApp(context, appWidgetId * 4 + 2, addUri));
+        views.setOnClickPendingIntent(R.id.widget_add, openApp(context, appWidgetId * 8 + 2, addUri));
+        views.setOnClickPendingIntent(R.id.widget_voice, openApp(context, appWidgetId * 8 + 3, addUri + "&voice=1"));
+
+        // ▾ next to the title: choose what this widget shows.
+        Intent pick = new Intent(context, WidgetConfigActivity.class);
+        pick.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        pick.setData(Uri.parse("opravilko-widget://config/" + appWidgetId));
+        pick.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        views.setOnClickPendingIntent(R.id.widget_switch, PendingIntent.getActivity(context, appWidgetId * 8 + 4, pick,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
         return views;
     }
 

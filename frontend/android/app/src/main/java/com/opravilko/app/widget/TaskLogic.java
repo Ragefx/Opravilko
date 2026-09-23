@@ -25,6 +25,8 @@ import java.util.TimeZone;
  */
 public final class TaskLogic {
     private static final int COMPLETION_LOG_LIMIT = 5000;
+    /** Upcoming shows overdue tasks, then this many days starting today. */
+    public static final int UPCOMING_DAYS = 7;
 
     private TaskLogic() {}
 
@@ -254,6 +256,9 @@ public final class TaskLogic {
         public final String dueDatetime;
         public final boolean recurring;
         public final String projectName;
+        public final boolean projectIsInbox;
+        public final String sectionId;
+        public final boolean hasDescription;
         final double order;
 
         Row(JSONObject t, String projectName) {
@@ -267,6 +272,9 @@ public final class TaskLogic {
             recurring = due != null && due.optBoolean("isRecurring");
             order = t.optDouble("order", 0);
             this.projectName = projectName;
+            projectIsInbox = "inbox".equals(projectId) || projectId.startsWith("inbox_");
+            sectionId = t.isNull("sectionId") ? null : t.optString("sectionId", null);
+            hasDescription = !t.optString("description", "").trim().isEmpty();
         }
     }
 
@@ -303,7 +311,7 @@ public final class TaskLogic {
         JSONArray tasks = data.optJSONArray("tasks");
         if (tasks == null) return rows;
         String today = todayStr();
-        String weekAhead = addDaysStr(today, 7);
+        String weekAhead = addDaysStr(today, UPCOMING_DAYS - 1);
         boolean byDate = WidgetStore.VIEW_TODAY.equals(view) || WidgetStore.VIEW_UPCOMING.equals(view);
         String projectId = WidgetStore.VIEW_INBOX.equals(view) ? "inbox"
                 : view.startsWith(WidgetStore.PROJECT_PREFIX) ? view.substring(WidgetStore.PROJECT_PREFIX.length()) : null;
@@ -324,7 +332,9 @@ public final class TaskLogic {
             }
             if (!include) continue;
             JSONObject project = byDate ? findProject(data, t.optString("projectId")) : null;
-            rows.add(new Row(t, project != null ? project.optString("name") : null));
+            String name = project != null ? project.optString("name") : null;
+            if (byDate && name == null && t.optString("projectId").startsWith("inbox")) name = "Inbox";
+            rows.add(new Row(t, name));
         }
 
         if (byDate) {
@@ -357,20 +367,89 @@ public final class TaskLogic {
         return DueKind.LATER;
     }
 
+    /**
+     * The date as a row shows it: Today, Tomorrow, a weekday within the
+     * coming week, otherwise "31 Aug" (with the year if it's another year);
+     * plus the time if the task has one.
+     */
     public static String dueLabel(Row row) {
         if (row.dueDate == null) return null;
         String label;
         DueKind kind = dueKind(row.dueDate);
+        String today = todayStr();
+        Calendar c = calendarFor(row.dueDate);
         if (kind == DueKind.TODAY) label = "Today";
         else if (kind == DueKind.TOMORROW) label = "Tomorrow";
-        else {
-            Calendar c = calendarFor(row.dueDate);
-            label = c != null ? new SimpleDateFormat("MMM d", Locale.ENGLISH).format(c.getTime()) : row.dueDate;
+        else if (c == null) label = row.dueDate;
+        else if (kind == DueKind.LATER && row.dueDate.compareTo(addDaysStr(today, 6)) <= 0) {
+            label = new SimpleDateFormat("EEEE", Locale.ENGLISH).format(c.getTime());
+        } else {
+            boolean thisYear = row.dueDate.substring(0, 4).equals(today.substring(0, 4));
+            label = new SimpleDateFormat(thisYear ? "d MMM" : "d MMM yyyy", Locale.ENGLISH).format(c.getTime());
         }
-        if (row.dueDatetime != null) {
-            Date dt = parseIso(row.dueDatetime);
-            if (dt != null) label += " " + new SimpleDateFormat("HH:mm", Locale.US).format(dt);
+        String time = dueTime(row);
+        return time != null ? label + " " + time : label;
+    }
+
+    /** "09:00" if the task has a time, else null. */
+    public static String dueTime(Row row) {
+        if (row.dueDatetime == null) return null;
+        Date dt = parseIso(row.dueDatetime);
+        return dt != null ? new SimpleDateFormat("HH:mm", Locale.US).format(dt) : null;
+    }
+
+    /** "Wednesday, 23 Sep", with " · Today" / " · Tomorrow" when asked. */
+    public static String dayHeading(String day, boolean relative) {
+        Calendar c = calendarFor(day);
+        String label = c != null ? new SimpleDateFormat("EEEE, d MMM", Locale.ENGLISH).format(c.getTime()) : day;
+        if (!relative) return label;
+        DueKind kind = dueKind(day);
+        if (kind == DueKind.TODAY) return label + " \u00b7 Today";
+        if (kind == DueKind.TOMORROW) return label + " \u00b7 Tomorrow";
+        return label;
+    }
+
+    /**
+     * "Reschedule": an overdue task moves to today, keeping its time of day
+     * and its repeat. Returns true if it changed.
+     */
+    public static boolean moveToToday(JSONObject data, String taskId, String at) {
+        try {
+            JSONArray tasks = data.optJSONArray("tasks");
+            if (tasks == null || taskId == null) return false;
+            JSONObject task = findTask(tasks, taskId);
+            if (task == null || task.optBoolean("completed")) return false;
+            JSONObject due = task.optJSONObject("due");
+            if (!dueToToday(due)) return false;
+            task.put("updatedAt", at);
+            return true;
+        } catch (JSONException e) {
+            return false;
         }
-        return row.recurring ? label + " ↻" : label;
+    }
+
+    /** Moves an overdue `due` to today in place; false if it isn't overdue. */
+    static boolean dueToToday(JSONObject due) throws JSONException {
+        if (due == null) return false;
+        String date = due.optString("date", null);
+        String today = todayStr();
+        if (date == null || date.compareTo(today) >= 0) return false;
+        int shift = daysBetween(date, today);
+        due.put("date", today);
+        Calendar day = calendarFor(today);
+        String label = day != null ? new SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH).format(day.getTime()) : today;
+        if (due.has("datetime") && !due.isNull("datetime")) {
+            Date dt = parseIso(due.optString("datetime"));
+            if (dt != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(dt);
+                c.add(Calendar.DAY_OF_MONTH, shift);
+                due.put("datetime", isoFormat().format(c.getTime()));
+                label += " at " + new SimpleDateFormat("HH:mm", Locale.US).format(c.getTime());
+            }
+        }
+        // A repeating task keeps its own wording ("every monday"); others get the new date.
+        if (!due.optBoolean("isRecurring")) due.put("string", label);
+        return true;
     }
 }

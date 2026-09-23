@@ -29,6 +29,8 @@ export interface QuickAddRequest {
   today: boolean;
   /** Due on this "yyyy-MM-dd" day unless another date is typed (a calendar day). */
   date?: string;
+  /** The widget's mic: start listening straight away. */
+  voice?: boolean;
 }
 
 // Held until the app shell picks it up -- on a cold start it may not be mounted yet.
@@ -88,7 +90,7 @@ export function onWidgetDataChanged(onChange: () => void): () => void {
  * Turns a widget link into an in-app route, or a quick-add request:
  *   opravilko://open?task=<id>&project=<id>   -> that task, opened
  *   opravilko://open?view=today|upcoming|inbox|calendar|shopping|project:<id>
- *   opravilko://add?project=<id>[&today=1]
+ *   opravilko://add?project=<id>[&today=1][&voice=1]
  */
 export function parseWidgetLink(url: string): { route: string } | { quickAdd: QuickAddRequest } | null {
   let parsed: URL;
@@ -102,7 +104,9 @@ export function parseWidgetLink(url: string): { route: string } | { quickAdd: Qu
   const kind = parsed.host || parsed.pathname.replace(/^\/+/, "");
   const q = parsed.searchParams;
   if (kind === "add") {
-    return { quickAdd: { projectId: q.get("project") || "inbox", today: q.get("today") === "1" } };
+    return {
+      quickAdd: { projectId: q.get("project") || "inbox", today: q.get("today") === "1", voice: q.get("voice") === "1" },
+    };
   }
   if (kind !== "open") return null;
   const task = q.get("task");

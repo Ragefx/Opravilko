@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mirrors the web app's light theme (src/styles/global.css). -->
+<!-- The widget's colours: the app's Soča palette (src/styles/soca.css). -->
 <resources>
     <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_header_bg">#F6F4F1</color>
+    <color name="widget_divider">#ECEAE6</color>
     <color name="widget_text">#1C1F26</color>
     <color name="widget_text_secondary">#676E7A</color>
-    <color name="widget_accent">#3E63DD</color>
-    <color name="widget_due_overdue">#E0433A</color>
+    <color name="widget_text_muted">#A3A8B0</color>
+    <color name="widget_accent">#0E8C7F</color>
+    <color name="widget_on_accent">#FFFFFF</color>
+    <color name="widget_due_overdue">#D93A2E</color>
     <color name="widget_due_today">#1F9254</color>
-    <color name="widget_due_tomorrow">#B8860B</color>
-    <color name="widget_due_later">#8347D9</color>
+    <color name="widget_due_tomorrow">#C27C0E</color>
+    <color name="widget_due_later">#7A4FD1</color>
+    <color name="widget_due_far">#676E7A</color>
+    <color name="widget_check_none">#B3B8BF</color>
 </resources>

@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mirrors the web app's dark theme (src/styles/global.css). -->
+<!-- The widget's colours in dark mode: the app's Soča palette. -->
 <resources>
-    <color name="widget_bg">#1E2025</color>
+    <color name="widget_bg">#1B1D21</color>
+    <color name="widget_header_bg">#23262B</color>
+    <color name="widget_divider">#2D3036</color>
     <color name="widget_text">#ECEDEE</color>
     <color name="widget_text_secondary">#9A9FA8</color>
-    <color name="widget_accent">#6D8DFF</color>
+    <color name="widget_text_muted">#6C727B</color>
+    <color name="widget_accent">#5FD4C4</color>
+    <color name="widget_on_accent">#0F1A19</color>
     <color name="widget_due_overdue">#F0655C</color>
     <color name="widget_due_today">#3CB677</color>
-    <color name="widget_due_tomorrow">#E0B13C</color>
+    <color name="widget_due_tomorrow">#E0A53C</color>
     <color name="widget_due_later">#B18CF0</color>
+    <color name="widget_due_far">#9A9FA8</color>
+    <color name="widget_check_none">#6C727B</color>
 </resources>

@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Widget header: add a task (a filled accent circle with a plus). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
     <path
-        android:pathData="M12,5v14M5,12h14"
-        android:strokeColor="@color/widget_accent"
-        android:strokeWidth="2.4"
+        android:fillColor="@color/widget_accent"
+        android:pathData="M16,16m-16,0a16,16 0 1,1 32,0a16,16 0 1,1 -32,0" />
+    <path
+        android:pathData="M16,9v14M9,16h14"
+        android:strokeColor="@color/widget_on_accent"
+        android:strokeWidth="2.8"
         android:strokeLineCap="round" />
 </vector>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Completion circle, colored like the app's priority 4 (stored as 1). -->
+<!-- Completion circle for a task without priority (the app's plain grey ring). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <solid android:color="#1A4073FF" />
-    <stroke android:width="2dp" android:color="#4073FF" />
-    <size android:width="20dp" android:height="20dp" />
+    <solid android:color="#00000000" />
+    <stroke android:width="1.6dp" android:color="@color/widget_check_none" />
+    <size android:width="21dp" android:height="21dp" />
 </shape>

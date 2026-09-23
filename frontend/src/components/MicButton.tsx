@@ -1,12 +1,29 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { listen, voiceAvailable } from "../native/voice";
 import { useToast } from "./ToastProvider";
 import { MicIcon } from "./icons";
 
 /** A microphone button: listens in Slovenian and hands over what was said. */
-export default function MicButton({ onText, prompt }: { onText: (text: string) => void; prompt?: string }) {
+export default function MicButton({
+  onText,
+  prompt,
+  autoStart = false,
+}: {
+  onText: (text: string) => void;
+  prompt?: string;
+  /** Start listening as soon as it appears (the widget's mic button). */
+  autoStart?: boolean;
+}) {
   const [listening, setListening] = useState(false);
   const showToast = useToast();
+  const started = useRef(false);
+  useEffect(() => {
+    if (autoStart && !started.current && voiceAvailable()) {
+      started.current = true;
+      void start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
   if (!voiceAvailable()) return null;
 
   async function start() {

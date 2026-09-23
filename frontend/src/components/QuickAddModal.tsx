@@ -19,6 +19,7 @@ export default function QuickAddModal({
   defaultProjectId = "inbox",
   defaultToday = false,
   defaultDate,
+  listenOnOpen = false,
 }: {
   onClose: () => void;
   /** The project being viewed, so "add task" from there lands in it. */
@@ -27,6 +28,8 @@ export default function QuickAddModal({
   defaultToday?: boolean;
   /** Due on this "yyyy-MM-dd" day unless a date is typed (a day clicked in the calendar). */
   defaultDate?: string;
+  /** Start voice input straight away (the widget's mic button). */
+  listenOnOpen?: boolean;
 }) {
   const { data } = useBootstrap();
   const createTask = useCreateTask();
@@ -94,7 +97,7 @@ export default function QuickAddModal({
               if (e.key === "Escape") onClose();
             }}
           />
-          <MicButton onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)} />
+          <MicButton autoStart={listenOnOpen} onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)} />
         </div>
 
         {preview && (previewDue || preview.labels.length > 0 || preview.priority !== 1) && (

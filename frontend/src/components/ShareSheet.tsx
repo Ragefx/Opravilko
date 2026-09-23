@@ -56,6 +56,7 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
 
   function routeTo(id: string) {
     const p = projects.find((x) => x.id === id);
+    if (p?.viewStyle === "shopping") return "/app/shopping";
     return p?.isInboxProject ? "/app/inbox" : `/app/project/${encodeURIComponent(id)}`;
   }
 

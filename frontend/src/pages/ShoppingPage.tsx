@@ -1,0 +1,37 @@
+import { useEffect, useRef } from "react";
+import { useBootstrap, useCreateProject } from "../api/hooks";
+import ShoppingView from "../components/ShoppingView";
+import ProjectMenu from "../components/ProjectMenu";
+import { usingFirebase } from "../data/store";
+import { shoppingListOf } from "../utils/shopping";
+
+/**
+ * The shopping list, from its own "Shopping" entry: always shown as a list of
+ * things to buy (no other views). Made the first time it's opened.
+ */
+export default function ShoppingPage() {
+  const { data } = useBootstrap();
+  const createProject = useCreateProject();
+  const list = data ? shoppingListOf(data.projects) : undefined;
+  const creating = useRef(false);
+
+  useEffect(() => {
+    if (!data || list || creating.current) return;
+    creating.current = true;
+    createProject.mutate({ name: "Shopping list", color: "green", viewStyle: "shopping" });
+  }, [data, list, createProject]);
+
+  if (!list) return null;
+
+  const header = (
+    <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
+      <h1>Shopping</h1>
+      {usingFirebase() && (
+        <span className="project-header-menu">
+          <ProjectMenu project={list} shoppingList />
+        </span>
+      )}
+    </div>
+  );
+  return <ShoppingView key={list.id} projectId={list.id} header={header} />;
+}

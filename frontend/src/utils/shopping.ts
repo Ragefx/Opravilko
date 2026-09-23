@@ -1,3 +1,5 @@
+import type { Project } from "../api/types";
+
 /**
  * Shopping list items and meals.
  *
@@ -437,4 +439,17 @@ export function takeShoppingAdd(projectId: string): string | null {
   const { text } = queued;
   queued = null;
   return text;
+}
+
+// ---------- the shopping list ----------
+
+/**
+ * The shopping list: a project shown as a list of things to buy, reached from
+ * its own "Shopping" entry instead of the project list. One shared with
+ * someone wins, so both of you land on the same list.
+ */
+export function shoppingListOf(projects: Project[]): Project | undefined {
+  return projects
+    .filter((p) => p.viewStyle === "shopping" && !p.isInboxProject)
+    .sort((a, b) => Number((b.members?.length ?? 0) > 1) - Number((a.members?.length ?? 0) > 1) || a.order - b.order)[0];
 }

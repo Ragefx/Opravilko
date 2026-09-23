@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
+import { shoppingListOf } from "../utils/shopping";
 import { useBootstrap, useUpdateProject } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
 import BoardView from "../components/BoardView";
@@ -55,6 +56,7 @@ export default function ProjectView() {
 
   if (isLoading || !data) return null;
   if (!project) return <div className="empty-state">Project not found.</div>;
+  if (shoppingListOf(data.projects)?.id === project.id) return <Navigate to="/app/shopping" replace />;
 
   function handleDisplayChange(next: DisplayOptions) {
     setDisplay(next);

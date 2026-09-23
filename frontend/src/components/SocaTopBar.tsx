@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { shoppingListOf } from "../utils/shopping";
 import { openThisMonth } from "../utils/calendarTasks";
 import { NavLink } from "react-router-dom";
 import { useBootstrap } from "../api/hooks";
@@ -28,9 +29,10 @@ export default function SocaTopBar({
     const open = data.tasks.filter((t) => !t.completed);
     const count = (projectId: string) => open.filter((t) => t.projectId === projectId).length;
     const projectIds = new Set(data.projects.map((p) => p.id));
+    const shopping = shoppingListOf(data.projects);
     // Favorites first, then the other top-level projects in sidebar order.
     const projects = data.projects
-      .filter((p) => !p.isInboxProject && (!p.parentId || !projectIds.has(p.parentId) || p.isFavorite))
+      .filter((p) => !p.isInboxProject && p.id !== shopping?.id && (!p.parentId || !projectIds.has(p.parentId) || p.isFavorite))
       .sort((a, b) => Number(b.isFavorite) - Number(a.isFavorite) || a.order - b.order);
     return [
       {
@@ -40,6 +42,7 @@ export default function SocaTopBar({
       },
       { to: "/app/inbox", label: "Inbox", count: count("inbox") },
       { to: "/app/calendar", label: "Calendar", count: openThisMonth(data) },
+      { to: "/app/shopping", label: "Shopping", count: shopping ? open.filter((t) => t.projectId === shopping.id && !t.parentId).length : 0 },
       // Midva: only with Firebase, where tasks can be shared.
       ...(data.me
         ? [{ to: "/app/midva", label: "Midva", count: open.filter((t) => t.sharedWith?.length && !t.parentId).length, color: "var(--color-accent)" }]

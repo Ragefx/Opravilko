@@ -342,7 +342,7 @@ export function useRescheduleTasks() {
 // ---- projects ----
 export function useCreateProject() {
   return useLocalMutation<Partial<Project> & { name: string }, Project>((data, input) => {
-    const { name, color = "grey", parentId = null } = input;
+    const { name, color = "grey", parentId = null, viewStyle } = input;
     const project: Project = {
       id: nanoid(),
       name,
@@ -350,6 +350,7 @@ export function useCreateProject() {
       order: nextOrder(data.projects),
       isFavorite: false,
       parentId,
+      ...(viewStyle ? { viewStyle } : {}),
     };
     data.projects.push(project);
     return project;

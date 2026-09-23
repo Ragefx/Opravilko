@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { openThisMonth } from "../utils/calendarTasks";
+import { shoppingListOf } from "../utils/shopping";
 import { useNavigate } from "react-router-dom";
 import { useBootstrap, useCreateTask } from "../api/hooks";
 import { colorHex } from "../utils/colors";
@@ -12,6 +13,7 @@ import {
   FocusIcon,
   HashIcon,
   CalendarIcon,
+  CartIcon,
   InboxIcon,
   LabelIcon,
   PlusIcon,
@@ -69,6 +71,7 @@ export default function CommandPalette({
       { key: "v-upcoming", group: "Go to", label: "Upcoming", icon: <UpcomingIcon width={16} height={16} />, run: go("/app/upcoming") },
       { key: "v-inbox", group: "Go to", label: "Inbox", hint: String(countIn("inbox")), icon: <InboxIcon width={16} height={16} />, run: go("/app/inbox") },
       { key: "v-calendar", group: "Go to", label: "Calendar", hint: String(openThisMonth(data)), icon: <CalendarIcon width={16} height={16} />, run: go("/app/calendar") },
+      { key: "v-shopping", group: "Go to", label: "Shopping", icon: <CartIcon width={16} height={16} />, run: go("/app/shopping") },
       { key: "v-completed", group: "Go to", label: "Completed", icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
       { key: "v-stats", group: "Go to", label: "Productivity", icon: <ChartIcon width={16} height={16} />, run: go("/app/stats") },
       {
@@ -83,8 +86,9 @@ export default function CommandPalette({
       },
     ].filter((c) => matches(c.label));
 
+    const shoppingId = shoppingListOf(data.projects)?.id;
     const projects: Command[] = data.projects
-      .filter((p) => !p.isInboxProject && matches(p.name))
+      .filter((p) => !p.isInboxProject && p.id !== shoppingId && matches(p.name))
       .sort((a, b) => Number(b.isFavorite) - Number(a.isFavorite) || a.order - b.order)
       .map((p) => ({
         key: `p-${p.id}`,

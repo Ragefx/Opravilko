@@ -83,6 +83,14 @@ export const CalendarIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const CartIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 4h2.5l2.2 10.2a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.76L20 8H6.2" />
+    <circle cx="9.5" cy="19.5" r="1.3" />
+    <circle cx="17" cy="19.5" r="1.3" />
+  </svg>
+);
+
 export const FlagIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M4 22V4a1 1 0 0 1 1.45-.9l1.32.66a4 4 0 0 0 3.46 0l.34-.17a4 4 0 0 1 3.46 0l3.58 1.79A1 1 0 0 1 18 6.24v8.52a1 1 0 0 1-1.45.9l-.34-.17a4 4 0 0 0-3.46 0l-.34.17a4 4 0 0 1-3.46 0L8 15" />

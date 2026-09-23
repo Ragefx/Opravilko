@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { openThisMonth } from "../utils/calendarTasks";
 import { NavLink, useNavigate } from "react-router-dom";
+import { shoppingListOf } from "../utils/shopping";
 import {
   useBootstrap,
   useDeleteFilter,
@@ -23,6 +24,7 @@ import {
   FilterIcon,
   FocusIcon,
   CalendarIcon,
+  CartIcon,
   InboxIcon,
   LabelIcon,
   LogOutIcon,
@@ -133,18 +135,23 @@ export default function Sidebar({
   }
 
   const counts = useMemo(() => {
-    if (!data) return { today: 0, inbox: 0, midva: 0, calendar: 0 };
+    if (!data) return { today: 0, inbox: 0, midva: 0, calendar: 0, shopping: 0 };
     const active = data.tasks.filter((t) => !t.completed);
     return {
       today: active.filter((t) => isDueToday(t.due) || isOverdue(t.due)).length,
       inbox: active.filter((t) => t.projectId === "inbox").length,
       midva: active.filter((t) => t.sharedWith?.length && !t.parentId).length,
       calendar: openThisMonth(data),
+      shopping: (() => {
+        const list = shoppingListOf(data.projects);
+        return list ? active.filter((t) => t.projectId === list.id && !t.parentId).length : 0;
+      })(),
     };
   }, [data]);
 
+  const shoppingList = data ? shoppingListOf(data.projects) : undefined;
   const topProjects = (data?.projects || [])
-    .filter((p) => !p.isInboxProject)
+    .filter((p) => !p.isInboxProject && p.id !== shoppingList?.id)
     .sort((a, b) => a.order - b.order);
   const projectTaskCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -157,7 +164,7 @@ export default function Sidebar({
   const labels = (data?.labels || []).slice().sort((a, b) => a.order - b.order);
   const filters = (data?.filters || []).slice().sort((a, b) => a.order - b.order);
 
-  const favoriteProjects = (data?.projects || []).filter((p) => p.isFavorite);
+  const favoriteProjects = (data?.projects || []).filter((p) => p.isFavorite && p.id !== shoppingList?.id);
   const favoriteLabels = labels.filter((l) => l.isFavorite);
   const favoriteFilters = filters.filter((f) => f.isFavorite);
   const hasFavorites = favoriteProjects.length + favoriteLabels.length + favoriteFilters.length > 0;
@@ -327,6 +334,11 @@ export default function Sidebar({
           <CalendarIcon className="icon" />
           Calendar
           {counts.calendar > 0 && <span className="badge">{counts.calendar}</span>}
+        </NavLink>
+        <NavLink to="/app/shopping" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+          <CartIcon className="icon" />
+          Shopping
+          {counts.shopping > 0 && <span className="badge">{counts.shopping}</span>}
         </NavLink>
         {data?.me && (
           <NavLink to="/app/midva" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>

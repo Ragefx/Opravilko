@@ -83,8 +83,8 @@ Deployment is automatic: `.github/workflows/deploy.yml` builds and publishes
 ## Android app
 
 The same app, packaged for Android with [Capacitor](https://capacitorjs.com)
-(`frontend/android/`). `.github/workflows/android.yml` builds an APK on every push
-to `main` that touches `frontend/`, and publishes it as a GitHub release: open the
+(`frontend/android/`). `.github/workflows/android.yml` builds an APK when run by hand
+(**Actions → Android app → Run workflow**), and publishes it as a GitHub release: open the
 repo's **Releases** page on your phone, download `Opravilko.apk`, and open it to
 install (Android will ask you to allow installs from your browser once).
 

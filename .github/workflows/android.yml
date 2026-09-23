@@ -2,13 +2,9 @@ name: Android app
 
 # Builds the Android APK from the same web code as the website, and publishes
 # it as a GitHub release so it can be downloaded straight onto a phone.
+# Runs only when started by hand (Actions -> Android app -> Run workflow), so
+# website changes don't produce a new APK each time.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "frontend/**"
-      - ".github/workflows/android.yml"
   workflow_dispatch: {}
 
 permissions:

@@ -17,7 +17,7 @@ import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MAX_VISIBLE_PER_DAY = 4;
+const MAX_VISIBLE_PER_DAY = 3;
 const WEEK_OPTS = { weekStartsOn: 1 as const };
 
 export default function CalendarView({
@@ -32,6 +32,7 @@ export default function CalendarView({
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [addingFor, setAddingFor] = useState<string | null>(null);
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   const gridStart = startOfWeek(startOfMonth(month), WEEK_OPTS);
   const gridEnd = endOfWeek(endOfMonth(month), WEEK_OPTS);
@@ -91,30 +92,50 @@ export default function CalendarView({
                   +
                 </button>
               </div>
-              {dayEvents.map((e) => (
-                <div
-                  key={e.id}
-                  className="calendar-event-chip"
-                  style={{ borderLeftColor: e.color }}
-                  title={e.title}
-                >
-                  {e.title}
-                </div>
-              ))}
-              {dayTasks.slice(0, MAX_VISIBLE_PER_DAY).map((t) => (
-                <button
-                  key={t.id}
-                  className="calendar-task-chip"
-                  style={{ borderLeftColor: PRIORITY_META[t.priority].color }}
-                  onClick={() => setOpenTask(t)}
-                  title={t.content}
-                >
-                  {t.content}
-                </button>
-              ))}
-              {dayTasks.length > MAX_VISIBLE_PER_DAY && (
-                <div className="calendar-more">+{dayTasks.length - MAX_VISIBLE_PER_DAY} more</div>
-              )}
+              {(() => {
+                // Three full-size lines per day (events first, then tasks);
+                // the rest behind "+N more", which shows the whole day.
+                const expanded = expandedDay === key;
+                const limit = expanded ? Infinity : MAX_VISIBLE_PER_DAY;
+                const shownEvents = dayEvents.slice(0, limit);
+                const shownTasks = dayTasks.slice(0, Math.max(0, limit - shownEvents.length));
+                const hidden = dayEvents.length + dayTasks.length - shownEvents.length - shownTasks.length;
+                return (
+                  <>
+                    {shownEvents.map((e) => (
+                      <div
+                        key={e.id}
+                        className="calendar-event-chip"
+                        style={{ borderLeftColor: e.color }}
+                        title={e.title}
+                      >
+                        {e.title}
+                      </div>
+                    ))}
+                    {shownTasks.map((t) => (
+                      <button
+                        key={t.id}
+                        className="calendar-task-chip"
+                        style={{ borderLeftColor: PRIORITY_META[t.priority].color }}
+                        onClick={() => setOpenTask(t)}
+                        title={t.content}
+                      >
+                        {t.content}
+                      </button>
+                    ))}
+                    {hidden > 0 && (
+                      <button className="calendar-more" onClick={() => setExpandedDay(key)}>
+                        +{hidden} more
+                      </button>
+                    )}
+                    {expanded && dayEvents.length + dayTasks.length > MAX_VISIBLE_PER_DAY && (
+                      <button className="calendar-more" onClick={() => setExpandedDay(null)}>
+                        Show less
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
               {addingFor === key && (
                 <div onClick={(e) => e.stopPropagation()}>
                   <QuickAdd projectId={projectId} defaultDue={{ date: key, string: format(day, "MMM d") }} />

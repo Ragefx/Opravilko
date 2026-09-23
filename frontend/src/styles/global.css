@@ -1788,6 +1788,19 @@ kbd {
   font-size: 11px;
   color: var(--color-text-muted);
   padding: 0 4px;
+  border: none;
+  background: none;
+  text-align: left;
+  flex-shrink: 0;
+}
+.calendar-more:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+/* Lines keep their full height; a crowded day scrolls instead of squeezing them. */
+.calendar-task-chip,
+.calendar-event-chip {
+  flex-shrink: 0;
 }
 
 .calendar-event-chip {

@@ -8,7 +8,14 @@ import type { FirebaseOptions } from "firebase/app";
  * VITE_FIREBASE_CONFIG (a JSON string) overrides them, and
  * VITE_FIREBASE_EMULATOR=1 points the app at local emulators for testing.
  */
-const PROJECT_CONFIG: FirebaseOptions | null = null;
+const PROJECT_CONFIG: FirebaseOptions | null = {
+  apiKey: "AIzaSyAMdSx0gMbY6pwx0gRAxppGA204k0pN9jM",
+  authDomain: "opravilko-bdd45.firebaseapp.com",
+  projectId: "opravilko-bdd45",
+  storageBucket: "opravilko-bdd45.firebasestorage.app",
+  messagingSenderId: "180818847099",
+  appId: "1:180818847099:web:db90d32b729349daa809de",
+};
 
 function fromEnv(): FirebaseOptions | null {
   const raw = import.meta.env.VITE_FIREBASE_CONFIG;
@@ -23,10 +30,9 @@ function fromEnv(): FirebaseOptions | null {
 
 export const useEmulator = import.meta.env.VITE_FIREBASE_EMULATOR === "1";
 
-export const firebaseConfig: FirebaseOptions | null =
-  fromEnv() ??
-  PROJECT_CONFIG ??
-  (useEmulator ? { apiKey: "demo-key", authDomain: "localhost", projectId: "demo-opravilko", appId: "demo" } : null);
+export const firebaseConfig: FirebaseOptions | null = useEmulator
+  ? { apiKey: "demo-key", authDomain: "localhost", projectId: "demo-opravilko", appId: "demo" }
+  : (fromEnv() ?? PROJECT_CONFIG);
 
-/** False until a Firebase project is configured; the app then offers only Dropbox. */
+/** False only if no Firebase project is configured; the app then offers only Dropbox. */
 export const firebaseEnabled = firebaseConfig !== null;

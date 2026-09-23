@@ -164,10 +164,19 @@ export class FirestoreSync {
     const db = firestore();
     await this.ensureProfile();
 
-    const waitFor = (key: string) => this.initialWaiting.add(key);
+    // Until everything has loaded once, the app waits (one complete first
+    // picture instead of a flicker). Listeners added later -- a project
+    // shared with you, a new project -- just update the screen when ready.
+    let loaded = false;
+    const waitFor = (key: string) => {
+      if (!loaded) this.initialWaiting.add(key);
+    };
     const arrived = (key: string) => {
       if (!this.initialWaiting.delete(key)) return;
-      if (this.initialWaiting.size === 0) this.readyResolve(this.assemble());
+      if (this.initialWaiting.size === 0 && !loaded) {
+        loaded = true;
+        this.readyResolve(this.assemble());
+      }
     };
     const failed = (key: string) => (err: unknown) => {
       console.error(`Firestore listener ${key} failed`, err);
@@ -253,20 +262,32 @@ export class FirestoreSync {
 
   private watchProject(id: string, waitFor: (k: string) => void, arrived: (k: string) => void) {
     const db = firestore();
-    const tasks = new Map<string, DocumentData>();
-    const sections = new Map<string, DocumentData>();
+    // Kept across retries, so what's on screen doesn't flicker away.
+    const tasks = this.tasksByProject.get(id) ?? new Map<string, DocumentData>();
+    const sections = this.sectionsByProject.get(id) ?? new Map<string, DocumentData>();
     this.tasksByProject.set(id, tasks);
     this.sectionsByProject.set(id, sections);
     const onError = (key: string) => (err: unknown) => {
-      // Usually: removed from a shared project. Its data just goes away.
       console.warn(`Stopped watching ${key}`, err);
       arrived(key);
+      // A project just created here may not have reached the server yet, and
+      // the rules refuse listening to its tasks until it has: retry shortly.
+      // (If we were removed from a shared project, it's gone from
+      // this.projects by then and nothing happens.)
+      window.setTimeout(() => {
+        if (this.projects.has(id) && this.projectUnsubs.get(id) === unsubs) {
+          this.stopProjectListeners(id);
+          this.watchProject(id, waitFor, arrived);
+        }
+      }, 3000);
     };
     const tKey = `tasks:${id}`;
     const sKey = `sections:${id}`;
     waitFor(tKey);
     waitFor(sKey);
-    this.projectUnsubs.set(id, [
+    const unsubs: Unsubscribe[] = [];
+    this.projectUnsubs.set(id, unsubs);
+    unsubs.push(
       onSnapshot(
         query(collection(db, "tasks"), where("projectId", "==", id), where("archived", "==", false)),
         (snap) => {
@@ -291,8 +312,14 @@ export class FirestoreSync {
           arrived(sKey);
         },
         onError(sKey)
-      ),
-    ]);
+      )
+    );
+  }
+
+  /** Stops a project's listeners but keeps the tasks already loaded (for a retry). */
+  private stopProjectListeners(id: string) {
+    this.projectUnsubs.get(id)?.forEach((u) => u());
+    this.projectUnsubs.delete(id);
   }
 
   private stopProject(id: string) {
@@ -458,9 +485,14 @@ export class FirestoreSync {
 
   // ---------- AppData -> Firestore ----------
 
-  /** Writes whatever differs between the last known state and `next`. */
-  save(next: AppData) {
-    const prev = this.lastKnown;
+  /**
+   * Writes whatever differs between `base` -- the data the edit started from
+   * -- and `next`. Comparing against the edit's own starting point (not
+   * whatever arrived since) means only what the edit itself changed is
+   * written: a task that showed up meanwhile is never mistaken for deleted.
+   */
+  save(next: AppData, base?: AppData) {
+    const prev = base ?? this.lastKnown;
     this.lastKnown = next;
     if (!prev) return;
     if (!isEqual(prev.calendarEvents || [], next.calendarEvents || [])) {
@@ -743,6 +775,8 @@ export class FirestoreSync {
       }
     }
     this.lastKnown = next;
+    // Show it right away; the listeners take over once the server has it.
+    this.emit(next);
     this.commit(ops);
     await this.markSetupDone();
   }

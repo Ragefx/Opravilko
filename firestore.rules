@@ -51,10 +51,14 @@ service cloud.firestore {
     }
 
     match /projects/{pid} {
-      allow read: if signedIn() && me() in resource.data.members;
+      // Reading a project that doesn't exist (yet) is allowed, so the app can
+      // check whether your Inbox needs creating; it reveals nothing.
+      allow read: if signedIn() && (resource == null || me() in resource.data.members);
       allow create: if signedIn()
         && request.resource.data.ownerId == me()
-        && request.resource.data.members == [me()];
+        && request.resource.data.members == [me()]
+        // Only you can create "inbox_<your id>".
+        && (!pid.matches('inbox_.*') || pid == 'inbox_' + me());
       allow update: if signedIn() && me() in resource.data.members && (
         // The owner can change anything except who owns it.
         (me() == resource.data.ownerId && request.resource.data.ownerId == me() && me() in request.resource.data.members)

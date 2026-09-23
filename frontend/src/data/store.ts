@@ -55,8 +55,9 @@ export async function fetchAppData(): Promise<AppData> {
   return queryClient?.getQueryData<AppData>(BOOTSTRAP_KEY) ?? (await s.ready);
 }
 
-export function scheduleSave(data: AppData): void {
-  if (usingFirebase()) firebaseSession().save(data);
+/** `base` is the data the change was made from (Firebase writes only the difference). */
+export function scheduleSave(data: AppData, base?: AppData): void {
+  if (usingFirebase()) firebaseSession().save(data, base);
   else dropbox.scheduleSave(data);
 }
 

@@ -99,7 +99,7 @@ function useLocalMutation<TInput, TResult>(mutator: (data: AppData, input: TInpu
       const data: AppData = structuredClone(current);
       const result = mutator(data, input);
       qc.setQueryData(BOOTSTRAP_KEY, data);
-      scheduleSave(data);
+      scheduleSave(data, current);
       return result;
     },
   });
@@ -720,7 +720,7 @@ async function runFeedSync(qc: QueryClient, feedId: string): Promise<void> {
     data.calendarEvents = [...(data.calendarEvents || []).filter((e) => e.feedId !== feedId), ...events];
   }
   qc.setQueryData(BOOTSTRAP_KEY, data);
-  if (changed) scheduleSave(data);
+  if (changed) scheduleSave(data, latest);
   if (error) throw new Error(error);
 }
 

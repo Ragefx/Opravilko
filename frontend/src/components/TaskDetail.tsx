@@ -18,7 +18,9 @@ import {
   parseRecurrenceString,
   serializeRecurrence,
 } from "../utils/recurrence";
-import { BellIcon, CopyIcon, FlagIcon, CalendarIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
+import { BellIcon, CopyIcon, FlagIcon, CalendarIcon, MapPinIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
+import LocationPicker from "./LocationPicker";
+import { mapsUrl } from "../utils/places";
 import { useToast } from "./ToastProvider";
 import TaskCheckbox from "./TaskCheckbox";
 import RichTextEditor from "./RichTextEditor";
@@ -74,6 +76,7 @@ export default function TaskDetail({
   const showToast = useToast();
   const [content, setContent] = useState(task.content);
   const [description, setDescription] = useState(task.description);
+  const [pickingLocation, setPickingLocation] = useState(false);
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState("");
   const [commentText, setCommentText] = useState("");
@@ -495,6 +498,38 @@ export default function TaskDetail({
                       </select>
                     </label>
                   </div>
+                )}
+              </div>
+
+              <div className="detail-sidebar-field">
+                <div className="detail-sidebar-label">Location</div>
+                {task.location ? (
+                  <div className="detail-location">
+                    <a href={mapsUrl(task.location)} target="_blank" rel="noreferrer" title="Open in Google Maps">
+                      <MapPinIcon width={15} height={15} />
+                      <span>
+                        <b>{task.location.name}</b>
+                        {task.location.address && <span>{task.location.address}</span>}
+                      </span>
+                    </a>
+                    <button className="btn btn-text" onClick={() => setPickingLocation(true)}>
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <button className="field-pill" onClick={() => setPickingLocation(true)}>
+                    <MapPinIcon width={14} height={14} /> Add location
+                  </button>
+                )}
+                {pickingLocation && (
+                  <LocationPicker
+                    initial={task.location}
+                    onClose={() => setPickingLocation(false)}
+                    onSave={(loc) => {
+                      updateTask.mutate({ id: task.id, location: loc ?? undefined });
+                      setPickingLocation(false);
+                    }}
+                  />
                 )}
               </div>
 

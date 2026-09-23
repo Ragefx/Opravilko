@@ -96,6 +96,17 @@ export interface Task {
   sharedBy?: Partner;
   /** Firebase only: files attached to the task (the contents live in attachments/{id}). */
   attachments?: Attachment[];
+  /** Where it happens: a place picked from search or a pin on the map. */
+  location?: TaskLocation;
+}
+
+export interface TaskLocation {
+  /** Short name shown on the task, e.g. "Ljubljana Airport" or "Slovenska cesta 10". */
+  name: string;
+  /** The rest of the address, when known. */
+  address?: string;
+  lat: number;
+  lng: number;
 }
 
 export interface Attachment {

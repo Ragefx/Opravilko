@@ -3,7 +3,7 @@ import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
-import { CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, RepeatIcon } from "./icons";
+import { CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import TaskMenu from "./TaskMenu";
 import PriorityMark from "./PriorityMark";
@@ -168,7 +168,7 @@ export default function TaskRow({
               </span>
             )}
           </div>
-          {(task.due || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length) && (
+          {(task.due || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
             <div className="task-meta">
               {task.due && (
                 <span className={`due ${dueDateClass(task.due)}`}>
@@ -185,6 +185,11 @@ export default function TaskRow({
               ))}
               {projectLabel && <span className="chip">{projectLabel}</span>}
               {task.sharedWith?.length ? <MidvaBadge task={task} /> : null}
+              {task.location && (
+                <span className="chip task-location-chip" title={[task.location.name, task.location.address].filter(Boolean).join(", ")}>
+                  <MapPinIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {task.location.name}
+                </span>
+              )}
               {task.attachments?.length ? (
                 <span className="chip" title={`${task.attachments.length} attachment${task.attachments.length === 1 ? "" : "s"}`}>
                   <PaperclipIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {task.attachments.length}

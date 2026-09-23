@@ -2542,3 +2542,165 @@ kbd {
   padding-top: var(--inset-top);
   padding-bottom: var(--inset-bottom);
 }
+
+/* ---------- Task location ---------- */
+.location-backdrop {
+  z-index: 300;
+}
+.modal.location-modal {
+  width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.location-modal .settings-head {
+  margin-bottom: 0;
+}
+.location-search {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--color-text-muted);
+}
+.location-search:focus-within {
+  border-color: var(--color-accent);
+}
+.location-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--color-text);
+  font-size: 14px;
+}
+.location-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1000; /* above the map's own layers */
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+.location-results button {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  color: var(--color-text-muted);
+}
+.location-results button:hover {
+  background: var(--color-hover);
+}
+.location-results svg,
+.location-picked svg,
+.detail-location svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.location-results span,
+.location-picked span,
+.detail-location a > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.location-results b,
+.location-picked b,
+.detail-location b {
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 13px;
+}
+.location-results span span,
+.location-picked span span,
+.detail-location span span {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.location-map {
+  /* Keeps Leaflet's own z-indexes (up to 1000) inside the map, so the
+     search results above can open over it. */
+  isolation: isolate;
+  z-index: 0;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  cursor: crosshair;
+}
+.location-map .leaflet-container {
+  font: inherit;
+}
+.location-pin {
+  color: var(--color-accent);
+  background: none;
+  border: none;
+}
+.location-hint {
+  margin: -4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.location-error {
+  font-size: 12px;
+  color: var(--color-danger);
+}
+.location-picked {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 36px;
+  color: var(--color-accent);
+}
+.location-none {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.location-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.location-remove {
+  margin-right: auto;
+  color: var(--color-danger);
+}
+.detail-location {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.detail-location a {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.detail-location a:hover b {
+  text-decoration: underline;
+}
+.task-location-chip {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

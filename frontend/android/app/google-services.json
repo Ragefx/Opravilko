@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "180818847099",
+    "project_id": "opravilko-bdd45",
+    "storage_bucket": "opravilko-bdd45.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:180818847099:android:7722730405fd1f5ea809de",
+        "android_client_info": {
+          "package_name": "com.opravilko.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "180818847099-32a7940bhfjb6l41iedg6l0o5inam309.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQQHg-AepcpfCl0Ry9kq4Yq4Tj5urXGJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "180818847099-32a7940bhfjb6l41iedg6l0o5inam309.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

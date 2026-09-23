@@ -74,9 +74,23 @@ public final class WidgetStore {
 
     /** A queued change: a tick ("complete", the default) or "Reschedule" ("today"). */
     public static final String OP_TODAY = "today";
+    /** A task made in the widget's Add task box: {task}. */
+    public static final String OP_CREATE = "create";
+    /** A line added to a shopping list from the widget: {projectId, line, newId}. */
+    public static final String OP_SHOP = "shop";
 
     static boolean applyPending(JSONObject data, JSONObject p) {
-        if (OP_TODAY.equals(p.optString("op"))) return TaskLogic.moveToToday(data, p.optString("taskId"), p.optString("at"));
+        String op = p.optString("op");
+        if (OP_TODAY.equals(op)) return TaskLogic.moveToToday(data, p.optString("taskId"), p.optString("at"));
+        if (OP_CREATE.equals(op)) return addTaskIfMissing(data, p.optJSONObject("task"));
+        if (OP_SHOP.equals(op)) {
+            JSONArray tasks = data.optJSONArray("tasks");
+            if (tasks == null) return false;
+            // Already there (made by an earlier sync of this same line)? Then nothing to do.
+            if (TaskLogic.findTask(tasks, p.optString("newId")) != null) return false;
+            return ShoppingLogic.addLine(data.optJSONObject("shoppingGuide"), tasks, p.optString("projectId"),
+                    p.optString("line"), p.optString("newId"), p.optString("at")) != null;
+        }
         return TaskLogic.complete(data, p.optString("taskId"), optStringOrNull(p, "dueDate"), p.optString("at"));
     }
 
@@ -88,6 +102,29 @@ public final class WidgetStore {
         } catch (JSONException e) {
             return new JSONArray();
         }
+    }
+
+    private static boolean addTaskIfMissing(JSONObject data, JSONObject task) {
+        if (task == null) return false;
+        try {
+            JSONArray tasks = data.optJSONArray("tasks");
+            if (tasks == null) {
+                tasks = new JSONArray();
+                data.put("tasks", tasks);
+            }
+            if (TaskLogic.findTask(tasks, task.optString("id")) != null) return false;
+            tasks.put(new JSONObject(task.toString()));
+            return true;
+        } catch (JSONException e) {
+            return false;
+        }
+    }
+
+    /** Queues a change made in the widget (a new task, a shopping line) for the sync job. */
+    public synchronized void addPendingOp(JSONObject entry) {
+        JSONArray pending = getPending();
+        pending.put(entry);
+        prefs.edit().putString(KEY_PENDING, pending.toString()).apply();
     }
 
     public synchronized void addPending(String taskId, String dueDate, String at) {

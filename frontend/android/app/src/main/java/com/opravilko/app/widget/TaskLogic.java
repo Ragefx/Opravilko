@@ -454,4 +454,66 @@ public final class TaskLogic {
         if (!due.optBoolean("isRecurring")) due.put("string", label);
         return true;
     }
+
+    // ---- new tasks (src/api/hooks.ts: useCreateTask) ----
+
+    private static final String ID_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+    private static final java.security.SecureRandom RANDOM = new java.security.SecureRandom();
+
+    /** An id like the app's (nanoid: 21 URL-safe characters). */
+    public static String newId() {
+        StringBuilder b = new StringBuilder(21);
+        for (int i = 0; i < 21; i++) b.append(ID_CHARS.charAt(RANDOM.nextInt(ID_CHARS.length())));
+        return b.toString();
+    }
+
+    /** A task as the app makes one; `due` may be null. */
+    static JSONObject newTask(String id, String content, String projectId, int priority, JSONObject due, long order, String at)
+            throws JSONException {
+        return new JSONObject()
+                .put("id", id)
+                .put("content", content)
+                .put("description", "")
+                .put("projectId", projectId)
+                .put("sectionId", JSONObject.NULL)
+                .put("parentId", JSONObject.NULL)
+                .put("order", order)
+                .put("priority", priority)
+                .put("due", due != null ? due : JSONObject.NULL)
+                .put("labels", new JSONArray())
+                .put("completed", false)
+                .put("completedAt", JSONObject.NULL)
+                .put("createdAt", at)
+                .put("updatedAt", at);
+    }
+
+    /** The next order at the end of a project's loose tasks. */
+    static long nextOrder(JSONObject data, String projectId) {
+        double max = -1;
+        JSONArray tasks = data != null ? data.optJSONArray("tasks") : null;
+        if (tasks != null) {
+            for (int i = 0; i < tasks.length(); i++) {
+                JSONObject t = tasks.optJSONObject(i);
+                if (t != null && projectId.equals(t.optString("projectId")) && t.isNull("sectionId") && t.isNull("parentId")) {
+                    max = Math.max(max, t.optDouble("order", 0));
+                }
+            }
+        }
+        return (long) Math.floor(max) + 1;
+    }
+
+    /** A due date (and time, "HH:mm", or null) as the app stores it. */
+    static JSONObject makeDue(String day, String time) throws JSONException {
+        Calendar c = calendarFor(day);
+        String label = c != null ? new SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH).format(c.getTime()) : day;
+        JSONObject due = new JSONObject().put("date", day).put("isRecurring", false);
+        if (time != null && c != null) {
+            String[] hm = time.split(":");
+            c.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hm[0]));
+            c.set(Calendar.MINUTE, Integer.parseInt(hm[1]));
+            due.put("datetime", isoFormat().format(c.getTime()));
+            label += " at " + time;
+        }
+        return due.put("string", label);
+    }
 }

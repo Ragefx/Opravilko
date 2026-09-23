@@ -472,5 +472,7 @@ export function categoryGuide() {
     stems: STEMS,
     order: STEM_ORDER,
     learned: learned(),
+    // For adding items from the widget: "moke" -> "moka".
+    plain: PLAIN_NAME,
   };
 }

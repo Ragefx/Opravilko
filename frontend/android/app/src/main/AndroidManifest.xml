@@ -97,6 +97,16 @@
             android:taskAffinity=""
             android:exported="false" />
 
+        <!-- The widget's Add task sheet, over the home screen. -->
+        <activity
+            android:name=".widget.QuickAddActivity"
+            android:theme="@style/WidgetQuickAddTheme"
+            android:excludeFromRecents="true"
+            android:taskAffinity="com.opravilko.app.quickadd"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible"
+            android:exported="false" />
+
         <activity
             android:name=".widget.WidgetConfigActivity"
             android:theme="@style/WidgetConfigTheme"

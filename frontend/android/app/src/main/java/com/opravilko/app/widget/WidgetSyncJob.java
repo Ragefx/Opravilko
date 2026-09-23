@@ -132,6 +132,17 @@ public class WidgetSyncJob extends JobService {
                 if (p == null) continue;
                 String taskId = p.optString("taskId");
                 String at = p.optString("at");
+                if (WidgetStore.OP_CREATE.equals(p.optString("op"))) {
+                    JSONObject task = p.getJSONObject("task");
+                    firestore.createTask(task.getString("id"), storedTask(task, uid));
+                    processed.add(p.optString("id"));
+                    continue;
+                }
+                if (WidgetStore.OP_SHOP.equals(p.optString("op"))) {
+                    addShopLine(store, firestore, p, uid);
+                    processed.add(p.optString("id"));
+                    continue;
+                }
                 JSONObject task = firestore.getTask(taskId);
                 if (task == null) {
                     processed.add(p.optString("id")); // deleted meanwhile, or no longer shared
@@ -241,6 +252,39 @@ public class WidgetSyncJob extends JobService {
         t.remove("archived");
         t.put("projectId", appProjectId(t.optString("projectId"), myInbox));
         tasks.put(t);
+    }
+
+    /** A task as Firestore keeps it: the real Inbox id, not archived, who made it. */
+    private static JSONObject storedTask(JSONObject task, String uid) throws JSONException {
+        JSONObject doc = new JSONObject(task.toString());
+        if ("inbox".equals(doc.optString("projectId")) && uid != null) doc.put("projectId", "inbox_" + uid);
+        doc.put("archived", false);
+        if (uid != null) doc.put("createdBy", uid);
+        return doc;
+    }
+
+    /**
+     * A shopping line from the widget, against the list as it is now: onto the
+     * same item (the amount counts up) or as a new one.
+     */
+    private static void addShopLine(WidgetStore store, FirestoreClient firestore, JSONObject p, String uid)
+            throws IOException, JSONException {
+        String projectId = p.getString("projectId");
+        String stored = "inbox".equals(projectId) && uid != null ? "inbox_" + uid : projectId;
+        JSONArray open = firestore.whereEquals("tasks", "projectId", stored, true);
+        for (int i = 0; i < open.length(); i++) open.getJSONObject(i).put("projectId", projectId);
+        if (TaskLogic.findTask(open, p.optString("newId")) != null) return; // sent before
+        JSONObject snapshot = store.getSnapshot();
+        JSONObject guide = snapshot != null ? snapshot.optJSONObject("shoppingGuide") : null;
+        String at = p.optString("at");
+        JSONObject changed = ShoppingLogic.addLine(guide, open, projectId, p.optString("line"), p.optString("newId"), at);
+        if (changed == null) return;
+        if (changed.optString("id").equals(p.optString("newId"))) {
+            firestore.createTask(changed.getString("id"), storedTask(changed, uid));
+        } else {
+            firestore.updateTask(changed.getString("id"),
+                    new JSONObject().put("content", changed.getString("content")).put("updatedAt", at));
+        }
     }
 
     /** The app calls your own Inbox just "inbox". */

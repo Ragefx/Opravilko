@@ -86,18 +86,9 @@ public class TaskWidgetProvider extends AppWidgetProvider {
 
         views.setOnClickPendingIntent(R.id.widget_logo, openApp(context, appWidgetId * 8 + 1,
                 shopping ? "opravilko://open?view=shopping" : "opravilko://open?view=" + Uri.encode(view)));
-        if (shopping) {
-            // Items, not tasks: the list's own add box (amounts, icons, counting up), or voice.
-            views.setOnClickPendingIntent(R.id.widget_add,
-                    openApp(context, appWidgetId * 8 + 2, "opravilko://open?view=shopping&add=1"));
-            views.setOnClickPendingIntent(R.id.widget_voice,
-                    openApp(context, appWidgetId * 8 + 3, "opravilko://open?view=shopping&voice=1"));
-        } else {
-            String addUri = "opravilko://add?project=" + Uri.encode(TaskLogic.viewProjectId(view))
-                    + (WidgetStore.VIEW_TODAY.equals(view) ? "&today=1" : "");
-            views.setOnClickPendingIntent(R.id.widget_add, openApp(context, appWidgetId * 8 + 2, addUri));
-            views.setOnClickPendingIntent(R.id.widget_voice, openApp(context, appWidgetId * 8 + 3, addUri + "&voice=1"));
-        }
+        // + and the mic: the Add task sheet over the home screen (items on the shopping list).
+        views.setOnClickPendingIntent(R.id.widget_add, quickAdd(context, appWidgetId, view, false));
+        views.setOnClickPendingIntent(R.id.widget_voice, quickAdd(context, appWidgetId, view, true));
 
         // ▾ next to the title: choose what this widget shows.
         Intent pick = new Intent(context, WidgetConfigActivity.class);
@@ -107,6 +98,18 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_switch, PendingIntent.getActivity(context, appWidgetId * 8 + 4, pick,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
         return views;
+    }
+
+    private static PendingIntent quickAdd(Context context, int appWidgetId, String view, boolean voice) {
+        Intent intent = new Intent(context, QuickAddActivity.class);
+        intent.putExtra(QuickAddActivity.EXTRA_VIEW, view);
+        intent.putExtra(QuickAddActivity.EXTRA_VOICE, voice);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        // A distinct data URI per widget and button, so their extras don't get mixed up.
+        intent.setData(Uri.parse("opravilko-widget://add/" + appWidgetId + (voice ? "/voice" : "")));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return PendingIntent.getActivity(context, appWidgetId * 8 + (voice ? 3 : 2), intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     static PendingIntent openApp(Context context, int requestCode, String uri) {

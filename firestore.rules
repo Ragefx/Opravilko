@@ -7,6 +7,7 @@ rules_version = '2';
 // - A project is visible to the people in its `members` list; its sections
 //   and tasks follow the project.
 // - Only a project's owner changes who's in it; anyone else can only leave.
+// - A task can also be shared on its own with your partner (sharedWith).
 // - Labels, filters, calendars and completion history under users/{uid}
 //   are private to that person.
 // - userEmails/{email} lets someone who knows your exact email address find
@@ -77,10 +78,20 @@ service cloud.firestore {
       allow update: if isMember(resource.data.projectId) && isMemberAfter(request.resource.data.projectId);
     }
 
+    // A task shared on its own ("Midva"): the people in its sharedWith list
+    // can read, edit, complete and delete it, but not move it out of its
+    // creator's project or change who it's shared with.
+    function sharedWithMe(data) {
+      return signedIn() && me() in data.get('sharedWith', []);
+    }
+
     match /tasks/{tid} {
-      allow read, delete: if isMember(resource.data.projectId);
+      allow read, delete: if isMember(resource.data.projectId) || sharedWithMe(resource.data);
       allow create: if isMemberAfter(request.resource.data.projectId);
-      allow update: if isMember(resource.data.projectId) && isMemberAfter(request.resource.data.projectId);
+      allow update: if (isMember(resource.data.projectId) && isMemberAfter(request.resource.data.projectId))
+        || (sharedWithMe(resource.data)
+            && onlyChanges(['content', 'description', 'priority', 'due', 'labels', 'completed', 'completedAt',
+                            'completedBy', 'comments', 'reminderMinutes', 'updatedAt', 'order', 'archived']));
     }
   }
 }

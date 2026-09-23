@@ -23,6 +23,14 @@ export interface Project {
   memberProfiles?: Record<string, MemberProfile>;
 }
 
+/** The one person tasks are shared with by the "Shared" switch ("Midva"). */
+export interface Partner {
+  uid: string;
+  name: string;
+  email: string;
+  photo?: string | null;
+}
+
 export interface MemberProfile {
   name: string;
   email: string;
@@ -82,6 +90,10 @@ export interface Task {
   /** Firebase only: who added it, and who ticked it off (shared projects). */
   createdBy?: string;
   completedBy?: string;
+  /** Firebase only: shared on its own with these people (your partner), outside any shared project. */
+  sharedWith?: string[];
+  /** Who shared it -- set automatically, so the other person can see who it's from. */
+  sharedBy?: Partner;
 }
 
 export interface CompletionEntry {
@@ -134,4 +146,7 @@ export interface AppData {
    * (which never stays "completed" itself), for the Productivity stats.
    */
   completionLog?: CompletionEntry[];
+  /** Firebase only: your id, and your partner for shared tasks. */
+  me?: string;
+  partner?: Partner | null;
 }

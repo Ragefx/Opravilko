@@ -5,6 +5,7 @@ import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
 import { type RecurrenceFreq, applyRecurrence } from "../utils/recurrence";
 import { RepeatIcon } from "./icons";
+import SharedToggle from "./SharedToggle";
 import { useToast } from "./ToastProvider";
 
 /** App-wide "add task from anywhere" box, opened with `q`. */
@@ -25,6 +26,8 @@ export default function QuickAddModal({
   const [text, setText] = useState("");
   const [projectId, setProjectId] = useState(defaultProjectId);
   const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
+  const [shared, setShared] = useState(false);
+  const partner = data?.partner;
 
   const projects = data?.projects || [];
   const [defaultDue] = useState(() => (defaultToday ? { date: todayISO(), string: "today" } : null));
@@ -46,9 +49,13 @@ export default function QuickAddModal({
         priority: preview.priority,
         due: applyRecurrence(preview.due, recurrence),
         labels: preview.labels,
+        sharedWith: partner && (shared || preview.shared) ? [partner.uid] : undefined,
       },
       {
-        onSuccess: () => showToast({ message: `Added to ${targetProject?.name || "Inbox"}` }),
+        onSuccess: () =>
+          showToast({
+            message: `Added to ${targetProject?.name || "Inbox"}${partner && (shared || preview.shared) ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
+          }),
       }
     );
     onClose();
@@ -95,7 +102,7 @@ export default function QuickAddModal({
         <div className="modal-actions quick-add-modal-actions">
           <div className="quick-add-modal-options">
             <select
-              style={{ flex: "1 1 auto", minWidth: 0 }}
+              style={{ flex: "1 1 140px", minWidth: 120 }}
               value={typedProject?.id ?? projectId}
               disabled={Boolean(typedProject)}
               onChange={(e) => setProjectId(e.target.value)}
@@ -107,6 +114,7 @@ export default function QuickAddModal({
                 </option>
               ))}
             </select>
+            {partner && <SharedToggle partner={partner} on={shared || Boolean(preview?.shared)} onChange={setShared} />}
             <label className="field-pill" style={{ gap: 6, flexShrink: 0 }}>
               <RepeatIcon width={14} height={14} />
               <select

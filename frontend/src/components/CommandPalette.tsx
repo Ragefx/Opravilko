@@ -14,6 +14,7 @@ import {
   LabelIcon,
   PlusIcon,
   SettingsIcon,
+  ShareIcon,
   TodayIcon,
   UpcomingIcon,
 } from "./icons";
@@ -62,6 +63,7 @@ export default function CommandPalette({
     const views: Command[] = [
       { key: "v-home", group: "Go to", label: "Now · Next · Later", icon: <FocusIcon width={16} height={16} />, run: go("/app/home") },
       { key: "v-today", group: "Go to", label: "Today", icon: <TodayIcon width={16} height={16} />, run: go("/app/today") },
+      ...(data.me ? [{ key: "v-midva", group: "Go to", label: "Midva", icon: <ShareIcon width={16} height={16} />, run: go("/app/midva") }] : []),
       { key: "v-upcoming", group: "Go to", label: "Upcoming", icon: <UpcomingIcon width={16} height={16} />, run: go("/app/upcoming") },
       { key: "v-inbox", group: "Go to", label: "Inbox", hint: String(countIn("inbox")), icon: <InboxIcon width={16} height={16} />, run: go("/app/inbox") },
       { key: "v-completed", group: "Go to", label: "Completed", icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
@@ -135,7 +137,8 @@ export default function CommandPalette({
         const project = parsed.projectName
           ? data.projects.find((p) => p.name.toLowerCase() === parsed.projectName!.toLowerCase())
           : undefined;
-        const bits = [project?.name || "Inbox", parsed.due ? formatDueLabel(parsed.due) : null].filter(Boolean);
+        const share = parsed.shared && data.partner ? data.partner : null;
+        const bits = [project?.name || "Inbox", parsed.due ? formatDueLabel(parsed.due) : null, share ? "Midva" : null].filter(Boolean);
         add.push({
           key: "add",
           group: "New task",
@@ -150,6 +153,7 @@ export default function CommandPalette({
                 priority: parsed.priority,
                 due: parsed.due,
                 labels: parsed.labels,
+                sharedWith: share ? [share.uid] : undefined,
               },
               { onSuccess: () => showToast({ message: `Added to ${project?.name || "Inbox"}` }) }
             );

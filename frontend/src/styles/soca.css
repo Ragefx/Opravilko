@@ -1082,3 +1082,64 @@
   flex: 1;
   margin-bottom: 0;
 }
+
+/* ---------- Midva: tasks shared with your partner ---------- */
+.shared-toggle {
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.shared-toggle.is-on {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  font-weight: 600;
+}
+.midva-badge {
+  color: var(--color-accent) !important;
+}
+.detail-shared-from {
+  font-size: 13px;
+  color: var(--color-accent);
+  font-weight: 600;
+  padding: 6px 0;
+}
+.partner-connect {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 16px;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.partner-connect.compact {
+  padding: 0;
+  border: none;
+  margin: 0;
+}
+.partner-connect > span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.partner-connect .share-add {
+  width: 100%;
+}
+.partner-connect .share-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+}
+.share-partner {
+  width: 100%;
+  margin-bottom: 12px;
+}

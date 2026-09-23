@@ -12,6 +12,7 @@ const PRIORITY_FLAG_RE = /\bp([1-4])\b/i;
 // start, so an email address like "ana@example.com" isn't read as a label.
 const LABEL_RE = /(?<=^|\s)@([\p{L}\p{N}_-]+)/gu;
 const PROJECT_RE = /(?<=^|\s)#([\p{L}\p{N}_-]+)/gu;
+const SHARED_RE = /(?<=^|\s)\+(midva|shared)(?=\s|$)/giu;
 
 export interface ParsedQuickAdd {
   content: string;
@@ -20,6 +21,8 @@ export interface ParsedQuickAdd {
   due: Due | null;
   /** Project name typed as #Name, if any -- callers resolve it to an id. */
   projectName: string | null;
+  /** "+midva" or "+shared" typed: share it with your partner. */
+  shared: boolean;
 }
 
 /**
@@ -40,6 +43,9 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
 
   const labels = [...content.matchAll(LABEL_RE)].map((m) => m[1]);
   content = content.replace(LABEL_RE, "").trim();
+
+  const shared = content.search(SHARED_RE) !== -1;
+  content = content.replace(SHARED_RE, "").trim();
 
   const projectMatches = [...content.matchAll(PROJECT_RE)].map((m) => m[1]);
   const projectName = projectMatches[0] ?? null;
@@ -70,5 +76,6 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
     labels,
     due,
     projectName,
+    shared,
   };
 }

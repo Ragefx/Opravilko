@@ -40,6 +40,15 @@ in your own Dropbox account.
 - **Reminders** — opt-in browser notifications for tasks with a due *time*, while the
   app is open.
 
+### Sign-in, storage and sharing
+
+Sign in with **Google** (data in Firebase, see `firestore.rules`) or, as before, with **Dropbox** (one JSON file). On the first Google sign-in you can import the Dropbox file or a backup, or start fresh.
+
+With Google sign-in:
+- **Midva** is for the two of you. Connect your partner once (Settings → Partner, by their email). After that, any task can be shared with the **Share** switch in quick add or the task details, or by typing `+midva`. A shared task shows up for both of you in Midva and in the date views, and either of you can edit or complete it. It stays in its creator's project, which the other person doesn't see.
+- **Whole projects** can be shared too: project ⋯ → **Share…** (one click for your partner). Everything in them is visible to both.
+- The **⋯ menu → Download backup** saves everything as one JSON file.
+
 ### Looks
 
 **Settings** (the ⋯ menu next to the app name) has a **Look** switch, saved per device:

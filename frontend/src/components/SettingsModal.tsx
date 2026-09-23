@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { setLook, useLook, type Look } from "../utils/look";
 import { clearTheme, getStoredTheme, setTheme, type ThemeChoice } from "../utils/theme";
+import { useBootstrap } from "../api/hooks";
+import { activeSession } from "../data/store";
+import PartnerConnect from "./PartnerConnect";
 
 type ThemeSetting = ThemeChoice | "system";
 
@@ -20,6 +23,7 @@ const LOOKS: { id: Look; name: string; blurb: string }[] = [
 /** App settings that live on this device: the overall look and light/dark. */
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const look = useLook();
+  const { data } = useBootstrap();
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
 
   function pickTheme(next: ThemeSetting) {
@@ -65,7 +69,31 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        <p className="settings-note">These are saved on this device only, so your phone and computer can differ.</p>
+        <p className="settings-note">Look and theme are saved on this device only, so your phone and computer can differ.</p>
+
+        {data?.me && (
+          <>
+            <div className="settings-section-title" style={{ marginTop: 16 }}>
+              Partner (Midva)
+            </div>
+            {data.partner ? (
+              <div className="share-member">
+                <span className="share-avatar" aria-hidden="true">
+                  {data.partner.photo ? <img src={data.partner.photo} alt="" referrerPolicy="no-referrer" /> : data.partner.name[0].toUpperCase()}
+                </span>
+                <span className="share-member-text">
+                  <b>{data.partner.name}</b>
+                  <span>{data.partner.email} · tasks you switch to “Share” go to them</span>
+                </span>
+                <button className="btn btn-text" onClick={() => void activeSession()?.clearPartner()}>
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <PartnerConnect compact />
+            )}
+          </>
+        )}
 
         <div className="modal-actions">
           <button className="btn btn-primary" onClick={onClose}>

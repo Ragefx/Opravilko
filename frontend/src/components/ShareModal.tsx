@@ -3,6 +3,7 @@ import type { Project } from "../api/types";
 import { activeSession } from "../data/store";
 import { ShareError } from "../firebase/sync";
 import { useToast } from "./ToastProvider";
+import { useBootstrap } from "../api/hooks";
 
 /**
  * Who a project is shared with. The owner adds people by email (they need
@@ -10,6 +11,8 @@ import { useToast } from "./ToastProvider";
  */
 export default function ShareModal({ project, onClose }: { project: Project; onClose: () => void }) {
   const session = activeSession();
+  const { data } = useBootstrap();
+  const partner = data?.partner;
   const showToast = useToast();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -70,6 +73,27 @@ export default function ShareModal({ project, onClose }: { project: Project; onC
             </div>
           ))}
         </div>
+
+        {isOwner && partner && !project.members?.includes(partner.uid) && (
+          <button
+            className="btn btn-primary share-partner"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setError(null);
+              try {
+                await session.shareProject(project.id, partner.email);
+                showToast({ message: `Shared “${project.name}” with ${partner.name}` });
+              } catch (err) {
+                setError(err instanceof ShareError ? err.message : "Couldn't share. Check your connection and try again.");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Share with {partner.name.split(" ")[0]}
+          </button>
+        )}
 
         {isOwner ? (
           <form

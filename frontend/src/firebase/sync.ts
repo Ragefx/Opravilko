@@ -29,6 +29,7 @@ import type {
   FilterDef,
   Label,
   MemberProfile,
+  Partner,
   Project,
   Section,
   Task,
@@ -128,6 +129,8 @@ export class FirestoreSync {
   private sectionsByProject = new Map<string, Map<string, DocumentData>>();
   private tasksByProject = new Map<string, Map<string, DocumentData>>();
   private archivedExtra = new Map<string, DocumentData>();
+  /** Tasks someone shared with me on their own (not through a shared project). */
+  private sharedTasks = new Map<string, DocumentData>();
   private labels = new Map<string, DocumentData>();
   private filters = new Map<string, DocumentData>();
   private feeds = new Map<string, DocumentData>();
@@ -232,6 +235,22 @@ export class FirestoreSync {
           arrived("completionMonths");
         },
         failed("completionMonths")
+      )
+    );
+
+    waitFor("shared");
+    this.unsubs.push(
+      onSnapshot(
+        query(collection(db, "tasks"), where("sharedWith", "array-contains", this.uid)),
+        (snap) => {
+          for (const change of snap.docChanges()) {
+            if (change.type === "removed") this.sharedTasks.delete(change.doc.id);
+            else this.sharedTasks.set(change.doc.id, change.doc.data());
+          }
+          this.scheduleEmit();
+          arrived("shared");
+        },
+        failed("shared")
       )
     );
 
@@ -367,6 +386,33 @@ export class FirestoreSync {
 
   // ---------- sharing ----------
 
+  private myPartnerProfile(): Partner {
+    return { uid: this.uid, ...this.myProfile() };
+  }
+
+  /** Sets the person that the "Shared" switch on tasks shares with. */
+  async setPartner(email: string): Promise<Partner> {
+    const key = email.trim().toLowerCase();
+    const found = await getDoc(doc(firestore(), "userEmails", key));
+    if (!found.exists()) {
+      throw new ShareError(`No one has signed in to Opravilko as ${key} yet. Ask them to sign in once, then try again.`);
+    }
+    const { uid, name, photo } = found.data() as { uid: string; name: string; photo?: string | null };
+    if (uid === this.uid) throw new ShareError("That's you.");
+    const partner: Partner = { uid, name, email: key, photo: photo ?? null };
+    await setDoc(doc(firestore(), "users", this.uid), { partner }, { merge: true });
+    return partner;
+  }
+
+  /** Connects the person who shared something with you, in one click. */
+  async setPartnerProfile(partner: Partner): Promise<void> {
+    await setDoc(doc(firestore(), "users", this.uid), { partner }, { merge: true });
+  }
+
+  async clearPartner(): Promise<void> {
+    await setDoc(doc(firestore(), "users", this.uid), { partner: deleteField() }, { merge: true });
+  }
+
   private myProfile(): MemberProfile {
     const email = (this.user.email || "").toLowerCase();
     return { name: this.user.displayName || email.split("@")[0] || "Me", email, photo: this.user.photoURL || null };
@@ -455,6 +501,10 @@ export class FirestoreSync {
       tasks.push({ ...(rest as Task), id, projectId: this.toAppProjectId(t.projectId)! });
     };
     for (const map of this.tasksByProject.values()) for (const [id, t] of map) pushTask(id, t);
+    // Shared with me on their own: they keep their creator's project id, which
+    // isn't one of mine -- the app shows them in Midva and the date views.
+    // (No "archived" filter on that query, so old finished ones are skipped here.)
+    for (const [id, t] of this.sharedTasks) if (!t.archived) pushTask(id, t);
     for (const [id, t] of this.archivedExtra) if (this.tasksByProject.has(t.projectId)) pushTask(id, t);
 
     const byOrder = <T extends { order: number }>(a: T, b: T) => a.order - b.order;
@@ -473,6 +523,8 @@ export class FirestoreSync {
       calendarFeeds: [...this.feeds].map(([id, f]) => ({ ...(f as CalendarFeed), id })),
       calendarEvents: this.events,
       completionLog,
+      me: this.uid,
+      partner: (this.profile?.partner as Partner | undefined) ?? null,
     };
     this.lastKnown = data;
     return data;
@@ -521,8 +573,15 @@ export class FirestoreSync {
     this.diffList(prev.tasks, next.tasks, ops, {
       path: (id) => ["tasks", id],
       toDoc: (t) => ({ ...stripUndefined(t), projectId: this.toStoredProjectId(t.projectId) }),
-      onCreate: (d) => ({ ...d, archived: false, createdBy: d.createdBy ?? uid }),
+      onCreate: (d) => ({
+        ...d,
+        archived: false,
+        createdBy: d.createdBy ?? uid,
+        ...(d.sharedWith?.length ? { sharedBy: this.myPartnerProfile() } : {}),
+      }),
       onUpdate: (fields, t) => {
+        // Sharing it (or unsharing): record who it's from.
+        if ("sharedWith" in fields) fields.sharedBy = t.sharedWith?.length ? this.myPartnerProfile() : deleteField();
         if ("completed" in fields) {
           // Un-completing brings an archived task back into the live data.
           if (!t.completed) fields.archived = false;

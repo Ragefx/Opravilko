@@ -38,6 +38,10 @@ export default function SocaTopBar({
         count: open.filter((t) => isDueToday(t.due) || isOverdue(t.due)).length,
       },
       { to: "/app/inbox", label: "Inbox", count: count("inbox") },
+      // Midva: only with Firebase, where tasks can be shared.
+      ...(data.me
+        ? [{ to: "/app/midva", label: "Midva", count: open.filter((t) => t.sharedWith?.length && !t.parentId).length, color: "var(--color-accent)" }]
+        : []),
       ...projects.map((p) => ({ to: `/app/project/${p.id}`, label: p.name, count: count(p.id), color: colorHex(p.color) })),
       ...data.labels
         .filter((l) => l.isFavorite)

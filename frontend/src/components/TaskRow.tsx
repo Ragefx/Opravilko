@@ -7,6 +7,7 @@ import { CalendarIcon, CheckIcon, ChevronIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import TaskMenu from "./TaskMenu";
 import PriorityMark from "./PriorityMark";
+import MidvaBadge from "./MidvaBadge";
 import DatePickerPopup from "./DatePickerPopup";
 import { useToast } from "./ToastProvider";
 
@@ -167,7 +168,7 @@ export default function TaskRow({
               </span>
             )}
           </div>
-          {(task.due || task.labels.length > 0 || projectLabel) && (
+          {(task.due || task.labels.length > 0 || projectLabel || task.sharedWith?.length) && (
             <div className="task-meta">
               {task.due && (
                 <span className={`due ${dueDateClass(task.due)}`}>
@@ -183,6 +184,7 @@ export default function TaskRow({
                 </span>
               ))}
               {projectLabel && <span className="chip">{projectLabel}</span>}
+              {task.sharedWith?.length ? <MidvaBadge task={task} /> : null}
             </div>
           )}
         </div>

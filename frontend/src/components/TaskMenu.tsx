@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Project, Task } from "../api/types";
-import { useCreateTask, useDeleteTask, useRestoreTasks, useUpdateTask } from "../api/hooks";
+import { useBootstrap, useCreateTask, useDeleteTask, useRestoreTasks, useUpdateTask } from "../api/hooks";
 import { useToast } from "./ToastProvider";
 import { makeDue } from "../utils/date";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
@@ -36,6 +36,8 @@ export default function TaskMenu({
   const deleteTask = useDeleteTask();
   const restoreTasks = useRestoreTasks();
   const showToast = useToast();
+  const { data } = useBootstrap();
+  const foreign = Boolean(data && !data.projects.some((p) => p.id === task.projectId));
 
   function close() {
     setAnchor(null);
@@ -212,28 +214,33 @@ export default function TaskMenu({
 
                   <div className="row-menu-divider" />
 
-                  <button
-                    className="row-menu-item"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setShowMoveTo(true);
-                    }}
-                  >
-                    <MoveIcon width={14} height={14} />
-                    Move to…
-                  </button>
-                  <button
-                    className="row-menu-item"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      duplicate();
-                    }}
-                  >
-                    <CopyIcon width={14} height={14} />
-                    Duplicate
-                  </button>
+                  {/* A task shared with you stays in its creator's project: no moving or copying it there. */}
+                  {!foreign && (
+                    <>
+                      <button
+                        className="row-menu-item"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowMoveTo(true);
+                        }}
+                      >
+                        <MoveIcon width={14} height={14} />
+                        Move to…
+                      </button>
+                      <button
+                        className="row-menu-item"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          duplicate();
+                        }}
+                      >
+                        <CopyIcon width={14} height={14} />
+                        Duplicate
+                      </button>
+                    </>
+                  )}
                   <button
                     className="row-menu-item"
                     onClick={(e) => {

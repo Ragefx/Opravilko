@@ -118,6 +118,9 @@ export function useCreateTask() {
       due = null,
       labels = [],
     } = input;
+    // A sub-task of a shared task is shared too.
+    const parent = parentId ? data.tasks.find((t) => t.id === parentId) : undefined;
+    const sharedWith = input.sharedWith?.length ? input.sharedWith : parent?.sharedWith?.length ? parent.sharedWith : undefined;
     const now = new Date().toISOString();
     const siblings = data.tasks.filter(
       (t) => t.projectId === projectId && t.sectionId === sectionId && t.parentId === parentId
@@ -137,9 +140,26 @@ export function useCreateTask() {
       completedAt: null,
       createdAt: now,
       updatedAt: now,
+      ...(sharedWith ? { sharedWith } : {}),
     };
     data.tasks.push(task);
     return task;
+  });
+}
+
+/** Shares a task (and its sub-tasks) with your partner, or makes it private again. */
+export function useSetTaskShared() {
+  return useLocalMutation<{ id: string; shared: boolean }, void>((data, { id, shared }) => {
+    const partner = data.partner;
+    if (shared && !partner) return;
+    const ids = new Set([id, ...descendantIds(data.tasks, id)]);
+    const now = new Date().toISOString();
+    for (const t of data.tasks) {
+      if (!ids.has(t.id)) continue;
+      if (shared) t.sharedWith = [partner!.uid];
+      else delete t.sharedWith;
+      t.updatedAt = now;
+    }
   });
 }
 

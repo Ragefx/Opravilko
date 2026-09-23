@@ -10,6 +10,7 @@ import ProjectView from "./pages/ProjectView";
 import LabelView from "./pages/LabelView";
 import FilterView from "./pages/FilterView";
 import Setup from "./pages/Setup";
+import MidvaView from "./pages/MidvaView";
 import { isSignedIn } from "./data/store";
 import Home from "./pages/Home";
 import { useLook } from "./utils/look";
@@ -170,6 +171,7 @@ export default function App() {
       <Route path="/app" element={<Layout />}>
         <Route index element={<HomeRedirect />} />
         <Route path="home" element={<Home />} />
+        <Route path="midva" element={<MidvaView />} />
         <Route path="today" element={<Today />} />
         <Route path="upcoming" element={<Upcoming />} />
         <Route path="completed" element={<CompletedView />} />

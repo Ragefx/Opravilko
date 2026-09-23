@@ -156,11 +156,12 @@ export default function Sidebar({
   }
 
   const counts = useMemo(() => {
-    if (!data) return { today: 0, inbox: 0 };
+    if (!data) return { today: 0, inbox: 0, midva: 0 };
     const active = data.tasks.filter((t) => !t.completed);
     return {
       today: active.filter((t) => isDueToday(t.due) || isOverdue(t.due)).length,
       inbox: active.filter((t) => t.projectId === "inbox").length,
+      midva: active.filter((t) => t.sharedWith?.length && !t.parentId).length,
     };
   }, [data]);
 
@@ -427,6 +428,13 @@ export default function Sidebar({
           Inbox
           {counts.inbox > 0 && <span className="badge">{counts.inbox}</span>}
         </NavLink>
+        {data?.me && (
+          <NavLink to="/app/midva" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+            <ShareIcon className="icon" />
+            Midva
+            {counts.midva > 0 && <span className="badge">{counts.midva}</span>}
+          </NavLink>
+        )}
         <NavLink to="/app/home" className={({ isActive }) => `sidebar-link sidebar-soca-only ${isActive ? "active" : ""}`}>
           <FocusIcon className="icon" />
           Now · Next · Later

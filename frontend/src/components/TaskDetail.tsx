@@ -8,6 +8,7 @@ import {
   useDeleteComment,
   useDeleteTask,
   useRestoreTasks,
+  useSetTaskShared,
   useUpdateTask,
 } from "../api/hooks";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
@@ -23,6 +24,7 @@ import TaskCheckbox from "./TaskCheckbox";
 import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
 import DateQuickIcons from "./DateQuickIcons";
+import SharedToggle from "./SharedToggle";
 
 function timeFromDatetime(datetime?: string): string {
   if (!datetime) return "";
@@ -61,6 +63,7 @@ export default function TaskDetail({
   // waiting for the panel to be closed and reopened.
   const task = data?.tasks.find((t) => t.id === initialTask.id) ?? initialTask;
   const updateTask = useUpdateTask();
+  const setShared = useSetTaskShared();
   const deleteTask = useDeleteTask();
   const restoreTasks = useRestoreTasks();
   const createTask = useCreateTask();
@@ -372,18 +375,34 @@ export default function TaskDetail({
             <div className="detail-sidebar">
               <div className="detail-sidebar-field">
                 <div className="detail-sidebar-label">Project</div>
-                <select
-                  className="detail-sidebar-select"
-                  value={task.projectId}
-                  onChange={(e) => setProject(e.target.value)}
-                >
-                  {(data?.projects || []).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                {project ? (
+                  <select
+                    className="detail-sidebar-select"
+                    value={task.projectId}
+                    onChange={(e) => setProject(e.target.value)}
+                  >
+                    {(data?.projects || []).map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  // Shared with you from someone else's project, which you can't see or move it out of.
+                  <div className="detail-shared-from">Midva · from {task.sharedBy?.name.split(" ")[0] || "your partner"}</div>
+                )}
               </div>
+
+              {project && data?.partner && (
+                <div className="detail-sidebar-field">
+                  <div className="detail-sidebar-label">Sharing</div>
+                  <SharedToggle
+                    partner={data.partner}
+                    on={Boolean(task.sharedWith?.length)}
+                    onChange={(on) => setShared.mutate({ id: task.id, shared: on })}
+                  />
+                </div>
+              )}
 
               <div className="detail-sidebar-field">
                 <div className="detail-sidebar-label">Date</div>

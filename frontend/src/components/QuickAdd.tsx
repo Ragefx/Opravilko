@@ -5,21 +5,27 @@ import { formatDueLabel } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
 import { type RecurrenceFreq, applyRecurrence } from "../utils/recurrence";
 import { RepeatIcon } from "./icons";
+import SharedToggle from "./SharedToggle";
 
 export default function QuickAdd({
   projectId,
   sectionId = null,
   defaultDue = null,
+  defaultShared = false,
 }: {
   projectId: string;
   sectionId?: string | null;
   defaultDue?: { date: string; string: string } | null;
+  /** New tasks start shared with your partner (the Midva list). */
+  defaultShared?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
   const createTask = useCreateTask();
   const { data } = useBootstrap();
+  const [shared, setShared] = useState(defaultShared);
+  const partner = data?.partner;
 
   const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
   const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
@@ -40,8 +46,10 @@ export default function QuickAdd({
       priority: parsed.priority,
       due: applyRecurrence(parsed.due, recurrence),
       labels: parsed.labels,
+      sharedWith: partner && (shared || parsed.shared) ? [partner.uid] : undefined,
     });
     setText("");
+    setShared(defaultShared);
     setRecurrence("none");
     setOpen(false);
   }
@@ -106,6 +114,7 @@ export default function QuickAdd({
             <option value="monthly">Every month</option>
           </select>
         </label>
+        {partner && <SharedToggle partner={partner} on={shared || Boolean(preview?.shared)} onChange={setShared} />}
         <button className="btn btn-text" onClick={() => setOpen(false)}>
           Cancel
         </button>

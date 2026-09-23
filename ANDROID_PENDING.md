@@ -33,7 +33,8 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
   a task (photos attached) in the project you pick, or items on the
   shopping list.
 - Shopping list has its own "Shopping" entry (sidebar, Soča chips,
-  search) instead of being a project; only the shopping view.
+  search) instead of being a project; only the shopping view. Shared with
+  your partner by default; two lists merge into one.
 - Voice, shared meals, usual items and templates (live on the website).
 - Widget refreshes its own list from Firebase (about every 30 minutes and
   after a tick), so the partner's new tasks show up with the app closed.

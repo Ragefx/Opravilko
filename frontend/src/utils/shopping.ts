@@ -451,5 +451,11 @@ export function takeShoppingAdd(projectId: string): string | null {
 export function shoppingListOf(projects: Project[]): Project | undefined {
   return projects
     .filter((p) => p.viewStyle === "shopping" && !p.isInboxProject)
-    .sort((a, b) => Number((b.members?.length ?? 0) > 1) - Number((a.members?.length ?? 0) > 1) || a.order - b.order)[0];
+    .sort((a, b) => {
+      const shared = (p: Project) => (p.members?.length ?? 0) > 1;
+      if (shared(a) !== shared(b)) return shared(a) ? -1 : 1;
+      // Two shared lists (you both made one): both phones must pick the same.
+      if (shared(a)) return a.id < b.id ? -1 : 1;
+      return a.order - b.order;
+    })[0];
 }

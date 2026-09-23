@@ -17,6 +17,7 @@ import {
 import Sidebar from "./Sidebar";
 import SearchModal from "./SearchModal";
 import ShareSheet from "./ShareSheet";
+import { useSharedShoppingList } from "./useSharedShoppingList";
 import QuickAddModal from "./QuickAddModal";
 import ShortcutsModal from "./ShortcutsModal";
 import CommandPalette from "./CommandPalette";
@@ -41,6 +42,8 @@ function isTyping(target: EventTarget | null): boolean {
 }
 
 export default function Layout() {
+  // The shopping list is shared with your partner by default.
+  useSharedShoppingList();
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   // Set when the Android widget's + opened quick add (its project / due today).

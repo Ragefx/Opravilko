@@ -7,3 +7,4 @@ dist/
 
 # Firebase emulator logs
 *-debug.log
+previews/

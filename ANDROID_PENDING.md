@@ -13,11 +13,16 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
   column showing (Android app only; the website keeps its look).
 - Shopping list: an item added again without an amount counts up
   ("Mleko" + "mleko" = "Mleko 2×").
+- Add task: a Date button to pick the date.
+- Board: while dragging a task on the phone, a "Move to" strip of section
+  names to drop it on.
+- Widget: ticks save straight to Firebase (reach the other phone even with
+  the app closed). Needs this build to be tested on a phone.
+- Widget: knows the newer repeats (every 2 weeks, yearly, fixed / last day
+  of the month).
 
 ## Known gaps (not started)
 
-- Home-screen widget: ticking a task from the widget still goes through the
-  old Dropbox sync, so it doesn't reach Firebase. It shows tasks fine.
-- Widget's own repeat logic (TaskLogic.java) doesn't know the newer repeats
-  (every 2 weeks, yearly, fixed / last day of the month).
+- Widget's own list refreshes only when the app runs (new tasks from the
+  partner show up in the widget after the app has been opened).
 - "When I arrive" location reminders (needs background location).

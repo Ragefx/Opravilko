@@ -5,7 +5,9 @@ import {
   MouseSensor,
   TouchSensor,
   closestCorners,
+  pointerWithin,
   useDroppable,
+  type CollisionDetection,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -125,7 +127,7 @@ export default function BoardView({
     if (!over) return;
     const activeId = String(active.id);
     const overId = String(over.id);
-    if (activeId === overId) return;
+    if (activeId === overId || overId.startsWith(DROP_PREFIX)) return;
 
     const sourceCol = findColumnByTaskId(activeId);
     if (!sourceCol) return;
@@ -155,7 +157,15 @@ export default function BoardView({
     setColumns((prev) => {
       const next = prev.map((c) => ({ ...c, tasks: [...c.tasks] }));
       const col = next.find((c) => c.tasks.some((t) => t.id === activeId));
-      if (col && activeId !== overId) {
+      if (col && overId.startsWith(DROP_PREFIX)) {
+        // Dropped on a section's name in the strip: to the end of that section.
+        const dst = next.find((c) => c.key === overId.slice(DROP_PREFIX.length));
+        if (dst && dst.key !== col.key) {
+          const idx = col.tasks.findIndex((t) => t.id === activeId);
+          const [moved] = col.tasks.splice(idx, 1);
+          dst.tasks.push({ ...moved, sectionId: dst.sectionId });
+        }
+      } else if (col && activeId !== overId) {
         const oldIdx = col.tasks.findIndex((t) => t.id === activeId);
         const newIdx = col.tasks.findIndex((t) => t.id === overId);
         if (oldIdx >= 0 && newIdx >= 0) {
@@ -183,15 +193,25 @@ export default function BoardView({
   }
 
   return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={collisionDetection}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
     <div className="board-pager">
+      {/* Phones show one section per page: while dragging, drop on a
+          section's name here to move the task there. */}
+      {activeTask && columns.length > 1 && (
+        <div className="board-drop-strip">
+          <span>Move to</span>
+          {columns.map((c) => (
+            <DropChip key={c.key} id={DROP_PREFIX + c.key} label={c.name} />
+          ))}
+        </div>
+      )}
       <div ref={scrollRef} className={`board-scroll ${activeTask ? "is-dragging" : ""}`}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
           <div className="board">
             {columns.map((col) => (
               <BoardColumn key={col.key} column={col} onOpenTask={setOpenTask} projectId={projectId} reorderable={reorderable} />
@@ -226,11 +246,28 @@ export default function BoardView({
             </div>
           </div>
           <DragOverlay>{activeTask ? <BoardCardPreview task={activeTask} /> : null}</DragOverlay>
-        </DndContext>
       </div>
       <BoardPageDots scrollRef={scrollRef} count={columns.length + 1} withAdd />
       {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} onOpenTask={setOpenTask} />}
     </div>
+    </DndContext>
+  );
+}
+
+const DROP_PREFIX = "drop:";
+
+/** The strip's names win when the finger is on one; otherwise the usual nearest card/column. */
+const collisionDetection: CollisionDetection = (args) => {
+  const onChip = pointerWithin(args).filter((c) => String(c.id).startsWith(DROP_PREFIX));
+  return onChip.length ? onChip : closestCorners(args);
+};
+
+function DropChip({ id, label }: { id: string; label: string }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <span ref={setNodeRef} className={`board-drop-chip ${isOver ? "is-over" : ""}`}>
+      {label}
+    </span>
   );
 }
 

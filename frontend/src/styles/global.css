@@ -1847,6 +1847,7 @@ kbd {
 /* ---------- Board view ---------- */
 /* Board plus (on phones) its page dots. */
 .board-pager {
+  position: relative;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -3200,4 +3201,43 @@ kbd {
 .due-button.has-date {
   color: var(--color-accent);
   font-weight: 600;
+}
+
+/* While dragging a card on a phone: the sections' names to drop it on. */
+.board-drop-strip {
+  display: none;
+}
+@media (max-width: 700px) {
+  .board-drop-strip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    overflow-x: auto;
+    background: var(--color-bg);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+}
+.board-drop-chip {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 2px dashed var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.board-drop-chip.is-over {
+  border-style: solid;
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
 }

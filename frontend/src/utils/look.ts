@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 /**
  * The app's overall design: "classic" (sidebar + lists) or "soca" (the new
  * look -- no fixed sidebar, a Now / Next / Later home screen, its own palette
- * and type). Kept per device, like the light/dark choice.
+ * and type). Kept per device, like the light/dark choice; Soča by default.
  */
 export type Look = "classic" | "soca";
 
@@ -12,9 +12,10 @@ const listeners = new Set<() => void>();
 
 export function getLook(): Look {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "soca" ? "soca" : "classic";
+    // Soča unless this device chose Classic in Settings.
+    return localStorage.getItem(STORAGE_KEY) === "classic" ? "classic" : "soca";
   } catch {
-    return "classic";
+    return "soca";
   }
 }
 

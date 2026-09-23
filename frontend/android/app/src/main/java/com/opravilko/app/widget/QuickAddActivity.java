@@ -133,6 +133,10 @@ public class QuickAddActivity extends AppCompatActivity {
         chips.removeAllViews();
         JSONObject data = store.getSnapshot();
         if (shopping) {
+            // A meal: its ingredients, for so many servings, like the app's Meal button.
+            TextView mealChip = chip("\uD83C\uDF73 Meal", null, R.color.widget_accent);
+            mealChip.setOnClickListener(v -> pickMeal());
+            chips.addView(mealChip);
             for (String name : usualItems(data)) {
                 TextView chip = chip("+ " + name, null, R.color.widget_text);
                 chip.setOnClickListener(v -> {
@@ -287,6 +291,110 @@ public class QuickAddActivity extends AppCompatActivity {
         entries.sort((a, b) -> Integer.compare(b.optInt("n"), a.optInt("n")));
         for (int i = 0; i < entries.size() && out.size() < 10; i++) out.add(entries.get(i).optString("name"));
         return out;
+    }
+
+    // ---- meals ----
+
+    private void pickMeal() {
+        List<JSONObject> meals = ShoppingLogic.meals(store.getSnapshot(), projectId);
+        if (meals.isEmpty()) {
+            Toast.makeText(this, "Open the app once to load the meals.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String[] names = new String[meals.size()];
+        for (int i = 0; i < meals.size(); i++) {
+            JSONObject m = meals.get(i);
+            names[i] = m.optString("emoji", "\uD83C\uDF7D") + "  " + m.optString("name");
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Add a meal")
+                .setItems(names, (d, which) -> pickServings(meals.get(which)))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void pickServings(JSONObject meal) {
+        final int[] servings = { 2 };
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(24), dp(8), dp(24), 0);
+
+        LinearLayout stepper = new LinearLayout(this);
+        stepper.setGravity(Gravity.CENTER_VERTICAL);
+        TextView minus = chip("\u2212", null, R.color.widget_text);
+        TextView count = new TextView(this);
+        count.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        count.setTextColor(getColor(R.color.widget_text));
+        count.setPadding(dp(8), 0, dp(16), 0);
+        TextView plus = chip("+", null, R.color.widget_text);
+        stepper.addView(minus);
+        stepper.addView(count);
+        stepper.addView(plus);
+        body.addView(stepper);
+
+        TextView list = new TextView(this);
+        list.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        list.setTextColor(getColor(R.color.widget_text_secondary));
+        list.setPadding(0, dp(12), 0, 0);
+        list.setLineSpacing(dp(3), 1f);
+        body.addView(list);
+
+        Runnable refresh = () -> {
+            count.setText(servings[0] + (servings[0] == 1 ? " serving" : " servings"));
+            StringBuilder b = new StringBuilder();
+            for (ShoppingLogic.Item item : ingredients(meal, servings[0])) {
+                if (b.length() > 0) b.append("\n");
+                b.append("\u2022 ").append(ShoppingLogic.itemTitle(item));
+            }
+            list.setText(b);
+        };
+        minus.setOnClickListener(v -> {
+            if (servings[0] > 1) servings[0]--;
+            refresh.run();
+        });
+        plus.setOnClickListener(v -> {
+            if (servings[0] < 20) servings[0]++;
+            refresh.run();
+        });
+        refresh.run();
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(meal.optString("emoji", "") + "  " + meal.optString("name"))
+                .setView(body)
+                .setPositiveButton("Add to list", (d, w) -> addMeal(meal, servings[0]))
+                .setNegativeButton("Back", (d, w) -> pickMeal())
+                .show();
+    }
+
+    private static List<ShoppingLogic.Item> ingredients(JSONObject meal, int servings) {
+        List<ShoppingLogic.Item> out = new ArrayList<>();
+        JSONArray ings = meal.optJSONArray("ingredients");
+        if (ings != null) {
+            for (int i = 0; i < ings.length(); i++) {
+                JSONObject ing = ings.optJSONObject(i);
+                if (ing != null) out.add(ShoppingLogic.scaled(ing, servings));
+            }
+        }
+        return out;
+    }
+
+    private void addMeal(JSONObject meal, int servings) {
+        JSONObject data = store.getSnapshot();
+        if (data == null) return;
+        String name = meal.optString("name");
+        try {
+            String at = TaskLogic.nowIso();
+            List<ShoppingLogic.Item> items = ingredients(meal, servings);
+            for (ShoppingLogic.Item item : items) {
+                String id = TaskLogic.newId();
+                queue(data, new JSONObject().put("id", "shop@" + id).put("op", WidgetStore.OP_SHOP)
+                        .put("projectId", projectId).put("line", ShoppingLogic.itemTitle(item)).put("meal", name)
+                        .put("newId", id).put("at", at));
+            }
+            confirm("\u2713 " + name + " (" + servings + "): " + items.size() + " ingredients");
+        } catch (JSONException e) {
+            Toast.makeText(this, "Couldn't add that meal.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // ---- adding ----

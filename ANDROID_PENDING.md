@@ -21,7 +21,9 @@ opened, and the widget's shopping list (amounts, icons, add as items).
   "jutri", "v petek", "ob 9h", "p1" are understood. It stays open for the
   next task; tap outside or Back to close.
   On the shopping list: "Add: mleko 1 l, 2x jajca" adds items (amounts
-  count up onto what's there) and your usual items are chips to tap.
+  count up onto what's there) and your usual items are chips to tap. A
+  "🍳 Meal" chip opens the meals (yours and the built-in ones): pick one,
+  set the servings, and its ingredients go on the list, noted "za: <meal>".
   New tasks and items show in the widget at once and sync (Dropbox or
   Firebase) like ticks, app closed too.
 

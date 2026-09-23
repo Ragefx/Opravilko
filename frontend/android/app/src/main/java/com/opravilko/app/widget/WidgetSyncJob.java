@@ -277,13 +277,14 @@ public class WidgetSyncJob extends JobService {
         JSONObject snapshot = store.getSnapshot();
         JSONObject guide = snapshot != null ? snapshot.optJSONObject("shoppingGuide") : null;
         String at = p.optString("at");
-        JSONObject changed = ShoppingLogic.addLine(guide, open, projectId, p.optString("line"), p.optString("newId"), at);
+        JSONObject changed = ShoppingLogic.addLine(guide, open, projectId, p.optString("line"), p.optString("newId"), at,
+                WidgetStore.optStringOrNull(p, "meal"));
         if (changed == null) return;
         if (changed.optString("id").equals(p.optString("newId"))) {
             firestore.createTask(changed.getString("id"), storedTask(changed, uid));
         } else {
-            firestore.updateTask(changed.getString("id"),
-                    new JSONObject().put("content", changed.getString("content")).put("updatedAt", at));
+            firestore.updateTask(changed.getString("id"), new JSONObject().put("content", changed.getString("content"))
+                    .put("description", changed.optString("description", "")).put("updatedAt", at));
         }
     }
 

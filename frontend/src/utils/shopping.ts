@@ -474,5 +474,8 @@ export function categoryGuide() {
     learned: learned(),
     // For adding items from the widget: "moke" -> "moka".
     plain: PLAIN_NAME,
+    // For adding a meal from the widget (your own ones live on the list: project.meals).
+    meals: BUILTIN_MEALS,
+    localMeals: customMeals(),
   };
 }

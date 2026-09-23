@@ -89,7 +89,7 @@ public final class WidgetStore {
             // Already there (made by an earlier sync of this same line)? Then nothing to do.
             if (TaskLogic.findTask(tasks, p.optString("newId")) != null) return false;
             return ShoppingLogic.addLine(data.optJSONObject("shoppingGuide"), tasks, p.optString("projectId"),
-                    p.optString("line"), p.optString("newId"), p.optString("at")) != null;
+                    p.optString("line"), p.optString("newId"), p.optString("at"), optStringOrNull(p, "meal")) != null;
         }
         return TaskLogic.complete(data, p.optString("taskId"), optStringOrNull(p, "dueDate"), p.optString("at"));
     }

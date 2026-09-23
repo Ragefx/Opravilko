@@ -44,7 +44,7 @@ public class WidgetSyncJob extends JobService {
             boolean retry = false;
             try {
                 sync(context);
-            } catch (DropboxClient.AuthException e) {
+            } catch (DropboxClient.AuthException | FirestoreClient.AuthException e) {
                 // Signed out or revoked: nothing to retry until the app signs in again.
             } catch (IOException e) {
                 retry = true;
@@ -65,6 +65,10 @@ public class WidgetSyncJob extends JobService {
         synchronized (LOCK) {
             WidgetStore store = new WidgetStore(context);
             if (!store.hasAuth()) return;
+            if (store.isFirebase()) {
+                syncFirebase(context, store);
+                return;
+            }
             DropboxClient dropbox = new DropboxClient(store);
 
             for (int attempt = 0; attempt < 3; attempt++) {
@@ -106,6 +110,70 @@ public class WidgetSyncJob extends JobService {
                 return;
             }
             throw new IOException("Dropbox file kept changing");
+        }
+    }
+
+    /**
+     * With Google sign-in the tasks live in Firestore: each completion tapped
+     * in the widget is applied to the task as it is now (so a repeating task
+     * isn't advanced twice) and only the changed fields are written. The app,
+     * if it's open, sees the change live; the widget's list was already
+     * updated when it was tapped. (The widget's list itself refreshes when
+     * the app runs.)
+     */
+    private static void syncFirebase(Context context, WidgetStore store) throws IOException {
+        FirestoreClient firestore = new FirestoreClient(store);
+        String uid = store.getFirebaseUid();
+        JSONObject snapshot = store.getSnapshot();
+        JSONArray known = snapshot != null ? snapshot.optJSONArray("tasks") : null;
+        JSONArray pending = store.getPending();
+        Set<String> processed = new HashSet<>();
+        try {
+            for (int i = 0; i < pending.length(); i++) {
+                JSONObject p = pending.optJSONObject(i);
+                if (p == null) continue;
+                String taskId = p.optString("taskId");
+                String at = p.optString("at");
+                JSONObject task = firestore.getTask(taskId);
+                if (task == null) {
+                    processed.add(p.optString("id")); // deleted meanwhile, or no longer shared
+                    continue;
+                }
+                // The task as it is now, plus its sub-tasks as the widget knows them.
+                JSONArray tasks = new JSONArray().put(task);
+                if (known != null) {
+                    for (int k = 0; k < known.length(); k++) {
+                        JSONObject t = known.optJSONObject(k);
+                        if (t != null && !taskId.equals(t.optString("id"))) tasks.put(new JSONObject(t.toString()));
+                    }
+                }
+                JSONObject data = new JSONObject().put("tasks", tasks);
+                String before = tasks.toString();
+                if (TaskLogic.complete(data, taskId, WidgetStore.optStringOrNull(p, "dueDate"), at)
+                        && !before.equals(tasks.toString())) {
+                    JSONArray after = data.getJSONArray("tasks");
+                    JSONArray was = new JSONArray(before);
+                    for (int k = 0; k < after.length(); k++) {
+                        JSONObject now = after.getJSONObject(k);
+                        JSONObject prev = was.getJSONObject(k);
+                        if (now.toString().equals(prev.toString())) continue;
+                        JSONObject fields = new JSONObject().put("updatedAt", now.optString("updatedAt", at));
+                        if (now.optBoolean("completed") && !prev.optBoolean("completed")) {
+                            fields.put("completed", true).put("completedAt", now.optString("completedAt", at));
+                            if (uid != null) fields.put("completedBy", uid);
+                        } else if (now.has("due")) {
+                            fields.put("due", now.get("due")); // a repeating task moved to its next date
+                        }
+                        firestore.updateTask(now.optString("id"), fields);
+                    }
+                }
+                processed.add(p.optString("id"));
+            }
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        } finally {
+            store.removePending(processed);
+            TaskWidgetProvider.updateAll(context);
         }
     }
 

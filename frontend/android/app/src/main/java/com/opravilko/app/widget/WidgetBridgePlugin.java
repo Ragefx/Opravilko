@@ -11,7 +11,8 @@ import org.json.JSONObject;
 
 /**
  * The app's side of the widget: the web app hands over its task data and
- * Dropbox sign-in here, and hears back when the widget changed the file.
+ * sign-in (Dropbox, or Firebase with Google sign-in) here, and hears back
+ * when the widget changed the Dropbox file.
  */
 @CapacitorPlugin(name = "OpravilkoWidget")
 public class WidgetBridgePlugin extends Plugin {
@@ -41,8 +42,13 @@ public class WidgetBridgePlugin extends Plugin {
             call.reject("Invalid data", e);
             return;
         }
+        JSObject firebase = call.getObject("firebase");
         String refreshToken = call.getString("refreshToken");
-        if (refreshToken != null && !refreshToken.isEmpty()) {
+        if (firebase != null && firebase.getString("refreshToken") != null) {
+            // Google sign-in: the widget writes its ticks to Firestore directly.
+            store.setFirebaseAuth(firebase.getString("apiKey"), firebase.getString("projectId"),
+                    firebase.getString("refreshToken"), firebase.getString("uid"));
+        } else if (refreshToken != null && !refreshToken.isEmpty()) {
             store.setAuth(call.getString("appKey"), refreshToken, call.getString("dataPath"));
         }
         store.setLastRefresh(System.currentTimeMillis());

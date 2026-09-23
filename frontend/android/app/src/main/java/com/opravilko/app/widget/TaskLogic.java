@@ -93,16 +93,30 @@ public final class TaskLogic {
         Calendar c = calendarFor(day);
         if (c == null) return day;
         String freq = rule.optString("freq", "weekly");
+        int n = Math.max(1, rule.optInt("interval", 1));
         switch (freq) {
             case "daily":
                 c.add(Calendar.DAY_OF_MONTH, 1);
                 break;
             case "every_n_days":
-                c.add(Calendar.DAY_OF_MONTH, Math.max(1, rule.optInt("interval", 1)));
+                c.add(Calendar.DAY_OF_MONTH, n);
                 break;
             case "monthly":
-                // Like date-fns addMonths: clamps the 31st to the month's last day.
-                c.add(Calendar.MONTH, 1);
+                if (rule.has("byMonthDay")) {
+                    // Step from the 1st so "the 31st" doesn't drift after short
+                    // months; -1 is the month's last day.
+                    int byMonthDay = rule.optInt("byMonthDay", 0);
+                    c.set(Calendar.DAY_OF_MONTH, 1);
+                    c.add(Calendar.MONTH, n);
+                    int max = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+                    c.set(Calendar.DAY_OF_MONTH, byMonthDay == -1 ? max : Math.max(1, Math.min(byMonthDay, max)));
+                } else {
+                    // Like date-fns addMonths: clamps the 31st to the month's last day.
+                    c.add(Calendar.MONTH, n);
+                }
+                break;
+            case "yearly":
+                c.add(Calendar.YEAR, n);
                 break;
             case "weekdays":
                 c.add(Calendar.DAY_OF_MONTH, 1);
@@ -113,7 +127,7 @@ public final class TaskLogic {
                 break;
             case "weekly":
             default:
-                c.add(Calendar.DAY_OF_MONTH, 7);
+                c.add(Calendar.DAY_OF_MONTH, 7 * n);
                 break;
         }
         return dayFormat().format(c.getTime());

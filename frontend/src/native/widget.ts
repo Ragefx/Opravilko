@@ -2,10 +2,20 @@ import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import { getWidgetAuth, isNativeApp } from "../dropbox/auth";
 import { DATA_PATH } from "../dropbox/store";
 import type { AppData } from "../api/types";
+import { usingFirebase } from "../data/store";
+import { firebaseConfig } from "../firebase/config";
+import { currentUser } from "../firebase/auth";
 
 /** The native side lives in android/.../widget/WidgetBridgePlugin.java. */
 interface OpravilkoWidgetPlugin {
-  update(options: { data: string; appKey: string; refreshToken: string | null; dataPath: string }): Promise<void>;
+  update(options: {
+    data: string;
+    appKey: string;
+    refreshToken: string | null;
+    dataPath: string;
+    /** With Google sign-in: lets the widget save its ticks to Firestore itself. */
+    firebase?: { apiKey: string; projectId: string; refreshToken: string; uid: string } | null;
+  }): Promise<void>;
   clear(): Promise<void>;
   addListener(event: "dataChanged", listener: () => void): Promise<PluginListenerHandle>;
 }
@@ -35,16 +45,28 @@ export function takeQuickAddRequest(): QuickAddRequest | null {
   return request;
 }
 
-/** Hands the current tasks (and Dropbox sign-in) to the home-screen widget. */
+/** With Google sign-in, what the widget needs to save a tick itself (app closed too). */
+function firebaseWidgetAuth() {
+  const user = currentUser();
+  if (!usingFirebase() || !user || !firebaseConfig?.apiKey || !firebaseConfig.projectId) return null;
+  return { apiKey: firebaseConfig.apiKey, projectId: firebaseConfig.projectId, refreshToken: user.refreshToken, uid: user.uid };
+}
+
+/** Hands the current tasks (and sign-in) to the home-screen widget. */
 export function pushWidgetData(data: AppData): void {
   if (!isNativeApp) return;
   // The widget only lists tasks; calendar events and history are dead weight.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { calendarEvents: _e, calendarFeeds: _f, completionLog: _l, ...rest } = data;
   const { appKey, refreshToken } = getWidgetAuth();
-  void OpravilkoWidget.update({ data: JSON.stringify(rest), appKey, refreshToken, dataPath: DATA_PATH }).catch(
-    () => {}
-  );
+  const firebase = firebaseWidgetAuth();
+  void OpravilkoWidget.update({
+    data: JSON.stringify(rest),
+    appKey,
+    refreshToken: firebase ? null : refreshToken,
+    dataPath: DATA_PATH,
+    firebase,
+  }).catch(() => {});
 }
 
 /** Signed out: the widget forgets the data and credentials. */

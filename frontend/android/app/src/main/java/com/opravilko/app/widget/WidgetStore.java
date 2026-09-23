@@ -10,8 +10,9 @@ import org.json.JSONObject;
 /**
  * Everything the widget knows, kept in the app's private SharedPreferences:
  * the latest task data (pushed by the app, or downloaded by the sync job),
- * the Dropbox credentials the app shares with it, completions tapped in the
- * widget that haven't reached Dropbox yet, and which view each widget shows.
+ * the sign-in the app shares with it (Dropbox, or Firebase with Google
+ * sign-in), completions tapped in the widget that haven't been saved yet, and
+ * which view each widget shows.
  */
 public final class WidgetStore {
     private static final String PREFS = "opravilko_widget";
@@ -23,6 +24,13 @@ public final class WidgetStore {
     private static final String KEY_ACCESS_TOKEN = "accessToken";
     private static final String KEY_ACCESS_EXPIRES = "accessExpires";
     private static final String KEY_LAST_REFRESH = "lastRefresh";
+    private static final String KEY_BACKEND = "backend";
+    private static final String KEY_FB_API_KEY = "fbApiKey";
+    private static final String KEY_FB_PROJECT = "fbProjectId";
+    private static final String KEY_FB_REFRESH = "fbRefreshToken";
+    private static final String KEY_FB_UID = "fbUid";
+    private static final String KEY_FB_ID_TOKEN = "fbIdToken";
+    private static final String KEY_FB_ID_EXPIRES = "fbIdExpires";
 
     public static final String VIEW_TODAY = "today";
     public static final String VIEW_UPCOMING = "upcoming";
@@ -104,6 +112,7 @@ public final class WidgetStore {
 
     public void setAuth(String appKey, String refreshToken, String dataPath) {
         SharedPreferences.Editor e = prefs.edit()
+                .putString(KEY_BACKEND, "dropbox")
                 .putString(KEY_APP_KEY, appKey)
                 .putString(KEY_DATA_PATH, dataPath);
         // A different account/token invalidates the cached access token.
@@ -118,7 +127,45 @@ public final class WidgetStore {
     public String getDataPath() { return prefs.getString(KEY_DATA_PATH, "/opravilko-data.json"); }
 
     public boolean hasAuth() {
-        return getAppKey() != null && getRefreshToken() != null;
+        return isFirebase() || (getAppKey() != null && getRefreshToken() != null);
+    }
+
+    // ---- Firebase sign-in (shared by the app when it uses Google sign-in) ----
+
+    public void setFirebaseAuth(String apiKey, String projectId, String refreshToken, String uid) {
+        SharedPreferences.Editor e = prefs.edit()
+                .putString(KEY_BACKEND, "firebase")
+                .putString(KEY_FB_API_KEY, apiKey)
+                .putString(KEY_FB_PROJECT, projectId)
+                .putString(KEY_FB_UID, uid);
+        // A different account/token invalidates the cached ID token.
+        if (refreshToken == null || !refreshToken.equals(prefs.getString(KEY_FB_REFRESH, null))) {
+            e.remove(KEY_FB_ID_TOKEN).remove(KEY_FB_ID_EXPIRES);
+        }
+        e.putString(KEY_FB_REFRESH, refreshToken).apply();
+    }
+
+    public boolean isFirebase() {
+        return "firebase".equals(prefs.getString(KEY_BACKEND, null)) && getFirebaseRefreshToken() != null;
+    }
+
+    public String getFirebaseApiKey() { return prefs.getString(KEY_FB_API_KEY, null); }
+    public String getFirebaseProjectId() { return prefs.getString(KEY_FB_PROJECT, null); }
+    public String getFirebaseRefreshToken() { return prefs.getString(KEY_FB_REFRESH, null); }
+    public String getFirebaseUid() { return prefs.getString(KEY_FB_UID, null); }
+
+    public void setFirebaseRefreshToken(String token) {
+        prefs.edit().putString(KEY_FB_REFRESH, token).apply();
+    }
+
+    public String getCachedFirebaseIdToken() {
+        long expires = prefs.getLong(KEY_FB_ID_EXPIRES, 0);
+        if (System.currentTimeMillis() > expires - 60_000) return null;
+        return prefs.getString(KEY_FB_ID_TOKEN, null);
+    }
+
+    public void setFirebaseIdToken(String token, long expiresAt) {
+        prefs.edit().putString(KEY_FB_ID_TOKEN, token).putLong(KEY_FB_ID_EXPIRES, expiresAt).apply();
     }
 
     public String getCachedAccessToken() {

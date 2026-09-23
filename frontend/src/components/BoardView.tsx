@@ -14,7 +14,7 @@ import {
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useBootstrap, useCompleteTask, useCreateSection, useReorderTasks, useUpdateSection } from "../api/hooks";
+import { useBootstrap, useCompleteTask, useCreateSection, useReorderTasks, useUpdateSection, useUpdateTask } from "../api/hooks";
 import type { Task } from "../api/types";
 import TaskDetail from "./TaskDetail";
 import BoardPageDots from "./BoardPageDots";
@@ -49,6 +49,7 @@ export default function BoardView({
 }) {
   const { data } = useBootstrap();
   const reorderTasks = useReorderTasks();
+  const updateTask = useUpdateTask();
   const createSection = useCreateSection();
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [addingSection, setAddingSection] = useState(false);
@@ -100,6 +101,8 @@ export default function BoardView({
     if (scrollRef.current) scrollRef.current.scrollLeft = 0;
   }, [columns.length]);
 
+  // Moving a card to another section works with any sorting; putting cards in
+  // your own order within a section needs "Manual" (otherwise the sort decides).
   const reorderable = display.sorting === "manual";
 
   const sensors = useSensors(
@@ -116,13 +119,11 @@ export default function BoardView({
   }
 
   function handleDragStart(event: DragStartEvent) {
-    if (!reorderable) return;
     const task = columns.flatMap((c) => c.tasks).find((t) => t.id === event.active.id);
     setActiveTask(task || null);
   }
 
   function handleDragOver(event: DragOverEvent) {
-    if (!reorderable) return;
     const { active, over } = event;
     if (!over) return;
     const activeId = String(active.id);
@@ -149,10 +150,22 @@ export default function BoardView({
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    const dragged = activeTask;
     setActiveTask(null);
-    if (!reorderable || !over) return;
+    if (!over) return;
     const activeId = String(active.id);
     const overId = String(over.id);
+
+    if (!reorderable) {
+      // Sorted by date/priority/...: only the section changes, the sort keeps the order.
+      const target = overId.startsWith(DROP_PREFIX)
+        ? findColumnByKey(overId.slice(DROP_PREFIX.length))
+        : findColumnByTaskId(activeId);
+      if (dragged && target && target.sectionId !== dragged.sectionId) {
+        updateTask.mutate({ id: activeId, sectionId: target.sectionId });
+      }
+      return;
+    }
 
     setColumns((prev) => {
       const next = prev.map((c) => ({ ...c, tasks: [...c.tasks] }));
@@ -214,7 +227,7 @@ export default function BoardView({
       <div ref={scrollRef} className={`board-scroll ${activeTask ? "is-dragging" : ""}`}>
           <div className="board">
             {columns.map((col) => (
-              <BoardColumn key={col.key} column={col} onOpenTask={setOpenTask} projectId={projectId} reorderable={reorderable} />
+              <BoardColumn key={col.key} column={col} onOpenTask={setOpenTask} projectId={projectId} />
             ))}
             <div className="board-column board-add-section-col">
               {addingSection ? (
@@ -275,12 +288,10 @@ function BoardColumn({
   column,
   onOpenTask,
   projectId,
-  reorderable,
 }: {
   column: Column;
   onOpenTask: (task: Task) => void;
   projectId: string;
-  reorderable: boolean;
 }) {
   const { data } = useBootstrap();
   const { setNodeRef, isOver } = useDroppable({ id: column.key });
@@ -340,7 +351,7 @@ function BoardColumn({
       <div ref={setNodeRef} className="board-column-body">
         <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {column.tasks.map((t) => (
-            <BoardCard key={t.id} task={t} onOpen={onOpenTask} reorderable={reorderable} />
+            <BoardCard key={t.id} task={t} onOpen={onOpenTask} />
           ))}
         </SortableContext>
       </div>
@@ -352,15 +363,12 @@ function BoardColumn({
 function BoardCard({
   task,
   onOpen,
-  reorderable,
 }: {
   task: Task;
   onOpen: (task: Task) => void;
-  reorderable: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
-    disabled: !reorderable,
   });
   const completeTask = useCompleteTask();
   const { data } = useBootstrap();

@@ -15,7 +15,7 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
   ("Mleko" + "mleko" = "Mleko 2×").
 - Add task: a Date button to pick the date.
 - Board: while dragging a task on the phone, a "Move to" strip of section
-  names to drop it on.
+  names to drop it on; moving between sections works with any sorting.
 - Widget: ticks save straight to Firebase (reach the other phone even with
   the app closed). Needs this build to be tested on a phone.
 - Widget: knows the newer repeats (every 2 weeks, yearly, fixed / last day

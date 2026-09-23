@@ -2210,6 +2210,14 @@ kbd {
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
+  /* Android app only: one column per page, the full width. The gap is wider
+     than the page's side padding, so no edge of the neighbours shows. */
+  :root[data-native] .board {
+    gap: 40px;
+  }
+  :root[data-native] .board-column {
+    width: 100%;
+  }
   .board-page-dots {
     display: flex;
     justify-content: center;

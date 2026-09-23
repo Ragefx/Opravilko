@@ -26,6 +26,9 @@ installBackButton();
 // Lets the website open with no connection (production builds only, so the
 // dev server's hot reload isn't fighting a cache). The Android app ships its
 // files inside the app, so it doesn't need one.
+// Lets the stylesheet tell the Android app apart from the website.
+if (isNativeApp) document.documentElement.setAttribute("data-native", "");
+
 if ("serviceWorker" in navigator && import.meta.env.PROD && !isNativeApp) {
   window.addEventListener("load", () => {
     void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);

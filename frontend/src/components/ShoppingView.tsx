@@ -49,6 +49,32 @@ function categoryOf(t: Task, name: string): Category {
   return categoryById(lineOf(t.description, "kat") ?? guessCategory(name));
 }
 
+/** Same name, and one of them has no amount or counts pieces ("Mleko" and "2x mleko"). */
+function countsWith(have: Item, add: Item): boolean {
+  if (have.name.toLocaleLowerCase("sl") !== add.name.toLocaleLowerCase("sl")) return false;
+  const pieces = (i: Item) => i.amount === undefined || i.unit === "kos";
+  return pieces(have) && pieces(add);
+}
+
+/**
+ * What the list shows after adding `add` to what's already there. Typed by
+ * hand, a thing without an amount counts as one: "Mleko" + "mleko" is
+ * "Mleko 2×", "Jajca 2×" + "jajca" is "Jajca 3×". ("Mleko 1 l" + "mleko"
+ * gets its own line, which then counts up.) From a meal, salt-and-pepper
+ * things without amounts don't pile up.
+ */
+function combined(have: Item, add: Item, byHand: boolean): Item {
+  if (have.amount !== undefined && add.amount !== undefined && have.unit === add.unit) {
+    return { ...have, amount: have.amount + add.amount };
+  }
+  if (!byHand) return have;
+  const count = (i: Item) => (i.amount === undefined ? 1 : i.amount);
+  if ((have.amount === undefined || have.unit === "kos") && (add.amount === undefined || add.unit === "kos")) {
+    return { name: have.name, amount: count(have) + count(add), unit: "kos" };
+  }
+  return have;
+}
+
 /** Keeps the phone screen on while the list is open (in the shop). */
 function useWakeLock() {
   useEffect(() => {
@@ -107,13 +133,14 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
     for (const item of list) {
       // The latest list (earlier lines of this same add included).
       const latest = qc.getQueryData<AppData>(["bootstrap"])?.tasks ?? [];
-      const existing = latest
-        .filter((t) => t.projectId === projectId && !t.completed && !t.parentId)
-        .find((t) => sameItem(parseItem(t.content), item));
+      const onList = latest.filter((t) => t.projectId === projectId && !t.completed && !t.parentId);
+      const existing =
+        onList.find((t) => sameItem(parseItem(t.content), item)) ??
+        // Typed without an amount, or as pieces: it's one more of the same thing.
+        (!meal ? onList.find((t) => countsWith(parseItem(t.content), item)) : undefined);
       if (existing) {
         const have = parseItem(existing.content);
-        const next: Item =
-          have.amount !== undefined && item.amount !== undefined ? { ...have, amount: have.amount + item.amount } : have;
+        const next: Item = combined(have, item, !meal);
         changed.push({ id: existing.id, content: existing.content, description: existing.description });
         await updateTask.mutateAsync({
           id: existing.id,

@@ -6,6 +6,8 @@ import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
 import { type RepeatPreset, applyRecurrence } from "../utils/recurrence";
 import RepeatSelect from "./RepeatSelect";
+import DueButton from "./DueButton";
+import type { Due } from "../api/types";
 import { RepeatIcon } from "./icons";
 import SharedToggle from "./SharedToggle";
 import { useToast } from "./ToastProvider";
@@ -42,8 +44,12 @@ export default function QuickAddModal({
         ? { date: todayISO(), string: "today" }
         : null
   );
+  // A date picked with the Date button wins over one typed in the text.
+  const [picked, setPicked] = useState<Due | null | undefined>(undefined);
   const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
-  const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
+  const baseDue: Due | null =
+    picked !== undefined ? picked : preview ? preview.due : defaultDue ? { ...defaultDue, isRecurring: false } : null;
+  const previewDue = preview ? applyRecurrence(baseDue, recurrence) : null;
 
   // A typed "#ProjectName" wins over the dropdown, matching Todoist.
   const typedProject = preview?.projectName
@@ -58,7 +64,7 @@ export default function QuickAddModal({
         content: preview.content,
         projectId: targetProject?.id || "inbox",
         priority: preview.priority,
-        due: applyRecurrence(preview.due, recurrence),
+        due: applyRecurrence(baseDue, recurrence),
         labels: preview.labels,
         sharedWith: partner && (shared || preview.shared) ? [partner.uid] : undefined,
       },
@@ -125,6 +131,7 @@ export default function QuickAddModal({
                 </option>
               ))}
             </select>
+            <DueButton shown={baseDue} picked={picked} onPick={setPicked} />
             {partner && <SharedToggle partner={partner} on={shared || Boolean(preview?.shared)} onChange={setShared} />}
             <label className="field-pill" style={{ gap: 6, flexShrink: 0 }}>
               <RepeatIcon width={14} height={14} />

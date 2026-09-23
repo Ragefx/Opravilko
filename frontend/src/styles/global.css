@@ -3182,3 +3182,22 @@ kbd {
   border-color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
+
+/* The date picker opened from an Add task box sits above that box's window. */
+.dropdown-backdrop.over-modal {
+  z-index: 320;
+}
+.dropdown-panel.over-modal {
+  z-index: 321;
+}
+.due-button {
+  gap: 6px;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+.due-button.has-date {
+  color: var(--color-accent);
+  font-weight: 600;
+}

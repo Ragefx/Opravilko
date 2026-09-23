@@ -7,6 +7,8 @@ import { type RepeatPreset, applyRecurrence } from "../utils/recurrence";
 import RepeatSelect from "./RepeatSelect";
 import { RepeatIcon } from "./icons";
 import SharedToggle from "./SharedToggle";
+import DueButton from "./DueButton";
+import type { Due } from "../api/types";
 
 export default function QuickAdd({
   projectId,
@@ -37,14 +39,20 @@ export default function QuickAdd({
     if (!open) return;
     function onPointerDown(e: PointerEvent) {
       if (boxRef.current?.contains(e.target as Node)) return;
+      // The date picker opened from this box is outside it, but part of it.
+      if ((e.target as Element).closest?.(".date-picker-panel, .dropdown-backdrop.over-modal, .time-picker-panel")) return;
       if (!textRef.current.trim()) setOpen(false);
     }
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
+  // A date picked with the Date button wins over one typed in the text.
+  const [picked, setPicked] = useState<Due | null | undefined>(undefined);
   const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
-  const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
+  const baseDue: Due | null =
+    picked !== undefined ? picked : preview ? preview.due : defaultDue ? { ...defaultDue, isRecurring: false } : null;
+  const previewDue = preview ? applyRecurrence(baseDue, recurrence) : null;
 
   function submit() {
     if (!text.trim()) return;
@@ -60,13 +68,14 @@ export default function QuickAdd({
       projectId: typedProject?.id ?? projectId,
       sectionId: typedProject && typedProject.id !== projectId ? null : sectionId,
       priority: parsed.priority,
-      due: applyRecurrence(parsed.due, recurrence),
+      due: applyRecurrence(picked !== undefined ? picked : parsed.due, recurrence),
       labels: parsed.labels,
       sharedWith: partner && (shared || parsed.shared) ? [partner.uid] : undefined,
     });
     setText("");
     setShared(defaultShared);
     setRecurrence("none");
+    setPicked(undefined);
     setOpen(false);
   }
 
@@ -120,6 +129,7 @@ export default function QuickAdd({
           <RepeatIcon width={14} height={14} />
           <RepeatSelect value={recurrence} onChange={setRecurrence} />
         </label>
+        <DueButton shown={baseDue} picked={picked} onPick={setPicked} />
         {partner && <SharedToggle partner={partner} on={shared || Boolean(preview?.shared)} onChange={setShared} />}
         <button
           className="btn btn-text"

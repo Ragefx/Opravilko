@@ -16,6 +16,7 @@ import {
 } from "date-fns";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import { makeDue, makeDueFromDateString, parseNaturalDate } from "../utils/date";
+import type { Due } from "../api/types";
 import { weekendOffsetDays } from "../utils/quickDates";
 import { dueWithPreset, type RepeatPreset } from "../utils/recurrence";
 import { CalendarIcon, ChevronIcon, ClockIcon, CouchIcon, RepeatIcon, SkipForwardIcon, SunIcon, XIcon } from "./icons";
@@ -27,20 +28,33 @@ const WEEK_OPTS = { weekStartsOn: 1 as const };
  * The full date picker opened from a task's "⋯" menu (the "…" next to the
  * quick date icons), matching Todoist's: a typed-date field, the same four
  * quick picks as full rows, a month calendar, and Time/Repeat.
+ *
+ * With `onPick` instead of `taskId` it picks a date for a task that doesn't
+ * exist yet (the Add task box): the choice is handed back, not saved, and
+ * repeating is left to that box's own Repeat control.
  */
 export default function DatePickerPopup({
   taskId,
+  value,
+  onPick,
   anchor,
   onClose,
 }: {
-  taskId: string;
+  taskId?: string;
+  value?: Due | null;
+  onPick?: (due: Due | null) => void;
   anchor: { top: number; right: number };
   onClose: () => void;
 }) {
   const { data } = useBootstrap();
   const updateTask = useUpdateTask();
-  const task = data?.tasks.find((t) => t.id === taskId);
-  const due = task?.due ?? null;
+  const task = taskId ? data?.tasks.find((t) => t.id === taskId) : undefined;
+  const due = onPick ? value ?? null : task?.due ?? null;
+
+  function setDue(next: Due | null) {
+    if (onPick) onPick(next);
+    else if (taskId) updateTask.mutate({ id: taskId, due: next });
+  }
 
   const [text, setText] = useState("");
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(due ? parseISO(due.date) : new Date()));
@@ -48,7 +62,7 @@ export default function DatePickerPopup({
   const [showRepeat, setShowRepeat] = useState(false);
   const timeBtnRef = useRef<HTMLButtonElement>(null);
 
-  if (!task) return null;
+  if (!onPick && !task) return null;
 
   function currentTimeStr(): string | undefined {
     return due?.datetime ? format(parseISO(due.datetime), "HH:mm") : undefined;
@@ -59,15 +73,12 @@ export default function DatePickerPopup({
     const dateStr = format(date, "yyyy-MM-dd");
     const timeStr = currentTimeStr();
     const label = days === 0 ? "Today" : days === 1 ? "Tomorrow" : format(date, "EEE d MMM");
-    updateTask.mutate({
-      id: taskId,
-      due: timeStr ? makeDueFromDateString(dateStr, timeStr) : makeDue(date, label),
-    });
+    setDue(timeStr ? makeDueFromDateString(dateStr, timeStr) : makeDue(date, label));
     onClose();
   }
 
   function applyDay(d: Date) {
-    updateTask.mutate({ id: taskId, due: makeDueFromDateString(format(d, "yyyy-MM-dd"), currentTimeStr()) });
+    setDue(makeDueFromDateString(format(d, "yyyy-MM-dd"), currentTimeStr()));
     onClose();
   }
 
@@ -75,26 +86,26 @@ export default function DatePickerPopup({
     if (!text.trim()) return;
     const parsed = parseNaturalDate(text.trim());
     if (parsed.due) {
-      updateTask.mutate({ id: taskId, due: parsed.due });
+      setDue(parsed.due);
       onClose();
     }
   }
 
   function clearDate() {
-    updateTask.mutate({ id: taskId, due: null });
+    setDue(null);
     onClose();
   }
 
   function saveTime(time: string) {
     const dateStr = due?.date || format(new Date(), "yyyy-MM-dd");
-    updateTask.mutate({ id: taskId, due: makeDueFromDateString(dateStr, time) });
+    setDue(makeDueFromDateString(dateStr, time));
     setShowTime(false);
     onClose();
   }
 
   function setRepeat(preset: RepeatPreset) {
     const dateStr = due?.date || format(new Date(), "yyyy-MM-dd");
-    updateTask.mutate({ id: taskId, due: dueWithPreset(makeDueFromDateString(dateStr, currentTimeStr()), preset) });
+    setDue(dueWithPreset(makeDueFromDateString(dateStr, currentTimeStr()), preset));
     onClose();
   }
 
@@ -110,7 +121,7 @@ export default function DatePickerPopup({
   return createPortal(
     <>
       <div
-        className="dropdown-backdrop"
+        className={`dropdown-backdrop ${onPick ? "over-modal" : ""}`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -118,7 +129,7 @@ export default function DatePickerPopup({
         }}
       />
       <div
-        className="dropdown-panel date-picker-panel"
+        className={`dropdown-panel date-picker-panel ${onPick ? "over-modal" : ""}`}
         style={{ top: anchor.top, right: anchor.right }}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
@@ -210,26 +221,28 @@ export default function DatePickerPopup({
           <ClockIcon width={14} height={14} /> {currentTimeStr() || "Time"}
         </button>
 
-        <div
-          className="date-picker-repeat-wrap"
-          onMouseEnter={() => setShowRepeat(true)}
-          onMouseLeave={() => setShowRepeat(false)}
-        >
-          <button className="date-picker-action-btn">
-            <RepeatIcon width={14} height={14} /> Repeat
-          </button>
-          {showRepeat && (
-            <div className="date-picker-repeat-flyout">
-              <button onClick={() => setRepeat("daily")}>Every day</button>
-              <button onClick={() => setRepeat("weekdays")}>Every weekday (Mon - Fri)</button>
-              <button onClick={() => setRepeat("weekly")}>Every week on {format(selectedDate || today, "EEEE")}</button>
-              <button onClick={() => setRepeat("biweekly")}>Every 2 weeks on {format(selectedDate || today, "EEEE")}</button>
-              <button onClick={() => setRepeat("monthly")}>Every month on the {format(selectedDate || today, "do")}</button>
-              <button onClick={() => setRepeat("monthly_last")}>Every month on the last day</button>
-              <button onClick={() => setRepeat("yearly")}>Every year on {format(selectedDate || today, "MMM d")}</button>
-            </div>
-          )}
-        </div>
+        {!onPick && (
+          <div
+            className="date-picker-repeat-wrap"
+            onMouseEnter={() => setShowRepeat(true)}
+            onMouseLeave={() => setShowRepeat(false)}
+          >
+            <button className="date-picker-action-btn">
+              <RepeatIcon width={14} height={14} /> Repeat
+            </button>
+            {showRepeat && (
+              <div className="date-picker-repeat-flyout">
+                <button onClick={() => setRepeat("daily")}>Every day</button>
+                <button onClick={() => setRepeat("weekdays")}>Every weekday (Mon - Fri)</button>
+                <button onClick={() => setRepeat("weekly")}>Every week on {format(selectedDate || today, "EEEE")}</button>
+                <button onClick={() => setRepeat("biweekly")}>Every 2 weeks on {format(selectedDate || today, "EEEE")}</button>
+                <button onClick={() => setRepeat("monthly")}>Every month on the {format(selectedDate || today, "do")}</button>
+                <button onClick={() => setRepeat("monthly_last")}>Every month on the last day</button>
+                <button onClick={() => setRepeat("yearly")}>Every year on {format(selectedDate || today, "MMM d")}</button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {showTime && (

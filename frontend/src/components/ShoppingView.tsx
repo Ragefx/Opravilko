@@ -13,6 +13,7 @@ import {
   sameItem,
   scaled,
   splitItems,
+  splitSpokenItems,
   CATEGORIES,
   categoryById,
   guessCategory,
@@ -22,6 +23,7 @@ import {
   type Meal,
 } from "../utils/shopping";
 import { useToast } from "./ToastProvider";
+import MicButton from "./MicButton";
 import { CheckIcon, XIcon } from "./icons";
 
 /**
@@ -237,6 +239,7 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
             aria-label="Add items"
             enterKeyHint="done"
           />
+          <MicButton prompt="Kaj dodam na seznam?" onText={(said) => void addItems(splitSpokenItems(said).map(parseItem))} />
           <button className="btn btn-primary" onClick={() => void submit()} disabled={!text.trim()}>
             Add
           </button>

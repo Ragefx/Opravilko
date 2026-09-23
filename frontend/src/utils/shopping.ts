@@ -380,3 +380,42 @@ export function guessCategory(name: string): string {
   }
   return "other";
 }
+
+// ---------- spoken lists ----------
+
+const NUMBER_WORDS: Record<string, string> = {
+  en: "1", ena: "1", eno: "1", enega: "1", eden: "1", dva: "2", dve: "2", tri: "3", štiri: "4", stiri: "4",
+  pet: "5", šest: "6", sest: "6", sedem: "7", osem: "8", devet: "9", deset: "10", enajst: "11", dvanajst: "12",
+  trije: "3", štirje: "4", stirje: "4", pol: "0,5",
+  // Spoken units, as they're written.
+  kila: "kg", kile: "kg", kilo: "kg", kilogram: "kg", kilograma: "kg", kilogramov: "kg",
+  liter: "l", litra: "l", litre: "l", litrov: "l", deci: "dl", decilitra: "dl", deka: "dag", dekagramov: "dag",
+  gramov: "g", grama: "g", gram: "g",
+};
+
+/**
+ * What voice recognition hears ("mleko in kruh in dva jajca", "mleko kruh
+ * jajca") as separate list lines: "in" / "pa" / "ter" / commas split,
+ * number words become numbers, and a run of plain grocery words is split
+ * into one item each.
+ */
+export function splitSpokenItems(spoken: string): string[] {
+  const text = spoken
+    .toLocaleLowerCase("sl")
+    .replace(/[.!?]/g, " ")
+    .split(/\s+/)
+    .map((w) => NUMBER_WORDS[w] ?? w)
+    .join(" ");
+  // (A comma inside "0,5" isn't a separator.)
+  const parts = text.split(/,(?!\d)|\s(?:in|pa|ter|and)\s/).map((s) => s.trim()).filter(Boolean);
+  return parts.flatMap((part) => {
+    const words = part.split(" ");
+    // "mleko kruh jajca": every word a known grocery and no amounts -> one
+    // each ("toaletni papir" and other known pairs stay together).
+    const knownPair = PHRASES.some(([phrase]) => part.includes(phrase));
+    if (words.length > 1 && !knownPair && words.every((w) => !/\d/.test(w) && guessCategory(w) !== "other")) {
+      return words;
+    }
+    return [part];
+  });
+}

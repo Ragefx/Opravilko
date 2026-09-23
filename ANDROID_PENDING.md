@@ -24,6 +24,9 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
   Android's geofencing (150 m) notifies on arrival, app closed too; needs
   location "Allow all the time". Per person on shared tasks. Needs this
   build to be tested on a phone.
+- Voice adding (Slovenian): a microphone in Add task and on the shopping
+  list, using the phone's own voice input ("pol kile moke pa jajca" becomes
+  two items). Needs this build to be tested on a phone.
 
 ## Known gaps (not started)
 

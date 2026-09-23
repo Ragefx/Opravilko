@@ -7,6 +7,7 @@ import { PRIORITY_META } from "../utils/priority";
 import { type RepeatPreset, applyRecurrence } from "../utils/recurrence";
 import RepeatSelect from "./RepeatSelect";
 import DueButton from "./DueButton";
+import MicButton from "./MicButton";
 import type { Due } from "../api/types";
 import { RepeatIcon } from "./icons";
 import SharedToggle from "./SharedToggle";
@@ -81,17 +82,20 @@ export default function QuickAddModal({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal quick-add-modal" onClick={(e) => e.stopPropagation()}>
-        <input
-          autoFocus
-          type="text"
-          placeholder="Task name — try “report friday p1 @work #Marketing”"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
-            if (e.key === "Escape") onClose();
-          }}
-        />
+        <div className="quick-add-input-row">
+          <input
+            autoFocus
+            type="text"
+            placeholder="Task name — try “report friday p1 @work #Marketing”"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+              if (e.key === "Escape") onClose();
+            }}
+          />
+          <MicButton onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)} />
+        </div>
 
         {preview && (previewDue || preview.labels.length > 0 || preview.priority !== 1) && (
           <div className="quick-add-preview">

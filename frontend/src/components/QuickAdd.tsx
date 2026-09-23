@@ -8,6 +8,7 @@ import RepeatSelect from "./RepeatSelect";
 import { RepeatIcon } from "./icons";
 import SharedToggle from "./SharedToggle";
 import DueButton from "./DueButton";
+import MicButton from "./MicButton";
 import type { Due } from "../api/types";
 
 export default function QuickAdd({
@@ -89,19 +90,22 @@ export default function QuickAdd({
 
   return (
     <div className="quick-add" ref={boxRef}>
-      <input
-        autoFocus
-        placeholder="e.g. Draft proposal every monday p1 @work"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-          if (e.key === "Escape") {
-            setOpen(false);
-            setText("");
-          }
-        }}
-      />
+      <div className="quick-add-input-row">
+        <input
+          autoFocus
+          placeholder="e.g. Draft proposal every monday p1 @work"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+            if (e.key === "Escape") {
+              setOpen(false);
+              setText("");
+            }
+          }}
+        />
+        <MicButton onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)} />
+      </div>
       {preview && (previewDue || preview.labels.length > 0 || preview.priority !== 1) && (
         <div className="quick-add-preview">
           {previewDue && (

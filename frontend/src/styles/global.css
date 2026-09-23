@@ -3307,3 +3307,40 @@ kbd {
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* ---- Voice input ---- */
+.quick-add-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.quick-add-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+.mic-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.mic-button:hover {
+  background: var(--color-hover, rgba(0, 0, 0, 0.06));
+  color: var(--color-accent);
+}
+.mic-button.is-listening {
+  background: var(--color-accent);
+  color: #fff;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 76, 62, 0.45); }
+  50% { box-shadow: 0 0 0 8px rgba(220, 76, 62, 0); }
+}

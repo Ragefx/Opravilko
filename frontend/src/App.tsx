@@ -7,6 +7,7 @@ import Upcoming from "./pages/Upcoming";
 import CompletedView from "./pages/CompletedView";
 import StatsView from "./pages/StatsView";
 import ProjectView from "./pages/ProjectView";
+import InboxCalendar from "./pages/InboxCalendar";
 import LabelView from "./pages/LabelView";
 import FilterView from "./pages/FilterView";
 import Setup from "./pages/Setup";
@@ -177,6 +178,7 @@ export default function App() {
         <Route path="completed" element={<CompletedView />} />
         <Route path="stats" element={<StatsView />} />
         <Route path="inbox" element={<ProjectView />} />
+        <Route path="calendar" element={<InboxCalendar />} />
         <Route path="project/:id" element={<ProjectView />} />
         <Route path="label/:name" element={<LabelView />} />
         <Route path="filter/:id" element={<FilterView />} />

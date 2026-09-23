@@ -37,13 +37,16 @@ export default function ProjectView() {
   }, [searchParams]);
 
   const project = data?.projects.find((p) => p.id === projectId);
+  // The Inbox has its own Calendar page, so it only offers List and Board.
+  const isInbox = projectId === "inbox";
 
   // Seed grouping/sort/filters from this project's remembered choices, and
   // layout from its saved viewStyle, once per project -- without clobbering
   // in-session tweaks on re-renders.
   useEffect(() => {
     if (project && initializedFor !== project.id) {
-      setDisplay(withStoredDisplayOptions(project.id, project.viewStyle || "list"));
+      const layout = project.viewStyle || "list";
+      setDisplay(withStoredDisplayOptions(project.id, project.isInboxProject && layout === "calendar" ? "list" : layout));
       setInitializedFor(project.id);
     }
   }, [project, initializedFor]);
@@ -101,6 +104,7 @@ export default function ProjectView() {
               value={display}
               onChange={handleDisplayChange}
               labels={data.labels}
+              allowCalendar={!isInbox}
               onClose={() => setShowDisplayMenu(false)}
             />
           )}

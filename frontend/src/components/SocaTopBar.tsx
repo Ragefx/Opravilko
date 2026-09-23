@@ -38,6 +38,7 @@ export default function SocaTopBar({
         count: open.filter((t) => isDueToday(t.due) || isOverdue(t.due)).length,
       },
       { to: "/app/inbox", label: "Inbox", count: count("inbox") },
+      { to: "/app/calendar", label: "Calendar" },
       // Midva: only with Firebase, where tasks can be shared.
       ...(data.me
         ? [{ to: "/app/midva", label: "Midva", count: open.filter((t) => t.sharedWith?.length && !t.parentId).length, color: "var(--color-accent)" }]

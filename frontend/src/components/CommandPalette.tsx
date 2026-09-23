@@ -10,6 +10,7 @@ import {
   FilterIcon,
   FocusIcon,
   HashIcon,
+  CalendarIcon,
   InboxIcon,
   LabelIcon,
   PlusIcon,
@@ -66,6 +67,7 @@ export default function CommandPalette({
       ...(data.me ? [{ key: "v-midva", group: "Go to", label: "Midva", icon: <ShareIcon width={16} height={16} />, run: go("/app/midva") }] : []),
       { key: "v-upcoming", group: "Go to", label: "Upcoming", icon: <UpcomingIcon width={16} height={16} />, run: go("/app/upcoming") },
       { key: "v-inbox", group: "Go to", label: "Inbox", hint: String(countIn("inbox")), icon: <InboxIcon width={16} height={16} />, run: go("/app/inbox") },
+      { key: "v-calendar", group: "Go to", label: "Calendar", icon: <CalendarIcon width={16} height={16} />, run: go("/app/calendar") },
       { key: "v-completed", group: "Go to", label: "Completed", icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
       { key: "v-stats", group: "Go to", label: "Productivity", icon: <ChartIcon width={16} height={16} />, run: go("/app/stats") },
       {

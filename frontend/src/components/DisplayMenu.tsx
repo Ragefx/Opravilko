@@ -7,11 +7,13 @@ export default function DisplayMenu({
   value,
   onChange,
   labels,
+  allowCalendar = true,
   onClose,
 }: {
   value: DisplayOptions;
   onChange: (next: DisplayOptions) => void;
   labels: Label[];
+  allowCalendar?: boolean;
   onClose: () => void;
 }) {
   function set<K extends keyof DisplayOptions>(key: K, val: DisplayOptions[K]) {
@@ -45,13 +47,15 @@ export default function DisplayMenu({
             <BoardViewIcon width={18} height={18} />
             Board
           </button>
-          <button
-            className={value.layout === "calendar" ? "active" : ""}
-            onClick={() => set("layout", "calendar")}
-          >
-            <UpcomingIcon width={18} height={18} />
-            Calendar
-          </button>
+          {allowCalendar && (
+            <button
+              className={value.layout === "calendar" ? "active" : ""}
+              onClick={() => set("layout", "calendar")}
+            >
+              <UpcomingIcon width={18} height={18} />
+              Calendar
+            </button>
+          )}
         </div>
 
         {value.layout === "list" && (

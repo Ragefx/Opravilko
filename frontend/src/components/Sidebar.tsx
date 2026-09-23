@@ -23,6 +23,7 @@ import {
   EditIcon,
   FilterIcon,
   FocusIcon,
+  CalendarIcon,
   InboxIcon,
   LabelIcon,
   LogOutIcon,
@@ -380,6 +381,10 @@ export default function Sidebar({
           <InboxIcon className="icon" />
           Inbox
           {counts.inbox > 0 && <span className="badge">{counts.inbox}</span>}
+        </NavLink>
+        <NavLink to="/app/calendar" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+          <CalendarIcon className="icon" />
+          Calendar
         </NavLink>
         {data?.me && (
           <NavLink to="/app/midva" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>

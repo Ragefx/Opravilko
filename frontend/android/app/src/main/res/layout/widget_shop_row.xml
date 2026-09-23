@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A shopping item in the widget: the tick circle, the name, its amount and its category's icon. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/shop_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="52dp"
+    android:orientation="horizontal"
+    android:paddingEnd="14dp">
+
+    <ImageView
+        android:id="@+id/shop_check"
+        android:layout_width="52dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/widget_bought"
+        android:paddingStart="14dp"
+        android:paddingTop="13dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="13dp"
+        android:src="@drawable/widget_check_1" />
+
+    <TextView
+        android:id="@+id/shop_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/widget_text"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/shop_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/widget_amount_bg"
+        android:maxLines="1"
+        android:paddingStart="9dp"
+        android:paddingTop="2dp"
+        android:paddingEnd="9dp"
+        android:paddingBottom="2dp"
+        android:textColor="@color/widget_text"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/shop_icon"
+        android:layout_width="34dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:gravity="center"
+        android:textSize="20sp" />
+</LinearLayout>

@@ -62,10 +62,12 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         JSONObject data = store.getSnapshot();
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_task_list);
 
-        views.setTextViewText(R.id.widget_title, TaskLogic.viewTitle(data, view));
+        boolean shopping = ShoppingLogic.isShoppingView(data, view);
+        views.setTextViewText(R.id.widget_title, shopping ? "Shopping" : TaskLogic.viewTitle(data, view));
+        views.setImageViewResource(R.id.widget_logo, shopping ? R.drawable.ic_w_cart : R.drawable.ic_w_logo);
         views.setTextViewText(R.id.widget_empty, data == null
                 ? context.getString(R.string.widget_empty_signed_out)
-                : context.getString(R.string.widget_empty));
+                : context.getString(shopping ? R.string.widget_shopping_empty : R.string.widget_empty));
 
         // The list's rows are built by TaskWidgetService; a unique data URI
         // per widget keeps Android from sharing one adapter between widgets.
@@ -82,12 +84,20 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
         views.setPendingIntentTemplate(R.id.widget_list, templatePi);
 
-        views.setOnClickPendingIntent(R.id.widget_logo,
-                openApp(context, appWidgetId * 8 + 1, "opravilko://open?view=" + Uri.encode(view)));
-        String addUri = "opravilko://add?project=" + Uri.encode(TaskLogic.viewProjectId(view))
-                + (WidgetStore.VIEW_TODAY.equals(view) ? "&today=1" : "");
-        views.setOnClickPendingIntent(R.id.widget_add, openApp(context, appWidgetId * 8 + 2, addUri));
-        views.setOnClickPendingIntent(R.id.widget_voice, openApp(context, appWidgetId * 8 + 3, addUri + "&voice=1"));
+        views.setOnClickPendingIntent(R.id.widget_logo, openApp(context, appWidgetId * 8 + 1,
+                shopping ? "opravilko://open?view=shopping" : "opravilko://open?view=" + Uri.encode(view)));
+        if (shopping) {
+            // Items, not tasks: the list's own add box (amounts, icons, counting up), or voice.
+            views.setOnClickPendingIntent(R.id.widget_add,
+                    openApp(context, appWidgetId * 8 + 2, "opravilko://open?view=shopping&add=1"));
+            views.setOnClickPendingIntent(R.id.widget_voice,
+                    openApp(context, appWidgetId * 8 + 3, "opravilko://open?view=shopping&voice=1"));
+        } else {
+            String addUri = "opravilko://add?project=" + Uri.encode(TaskLogic.viewProjectId(view))
+                    + (WidgetStore.VIEW_TODAY.equals(view) ? "&today=1" : "");
+            views.setOnClickPendingIntent(R.id.widget_add, openApp(context, appWidgetId * 8 + 2, addUri));
+            views.setOnClickPendingIntent(R.id.widget_voice, openApp(context, appWidgetId * 8 + 3, addUri + "&voice=1"));
+        }
 
         // ▾ next to the title: choose what this widget shows.
         Intent pick = new Intent(context, WidgetConfigActivity.class);

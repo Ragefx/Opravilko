@@ -13,7 +13,13 @@ the top, Week view first in Calendar).
 
 ## In the code, not in the app yet
 
-- Nothing yet.
+- Fix: opening the app from the widget no longer keeps jumping back to
+  that page when you move elsewhere.
+- Shopping list in the widget: header "Shopping" with a cart; items with
+  their amount pill and category icon (as in the app); tapping an item
+  ticks it; + opens the list's own add box (items, amounts, counting up)
+  and the mic adds spoken items. "🛒 Shopping list" is at the top of the
+  widget's choices.
 
 ## Known gaps
 

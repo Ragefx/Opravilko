@@ -37,6 +37,8 @@ public class TaskWidgetService extends RemoteViewsService {
         final TaskLogic.Row row;
         /** Date views: the row's heading already says the day, so only a time is shown. */
         final boolean dateInHeading;
+        /** Shopping list: the item's name, amount and icon. */
+        String shopName, shopAmount, shopIcon;
 
         private Item(String heading, int count, boolean muted, boolean reschedule, TaskLogic.Row row, boolean dateInHeading) {
             this.heading = heading;
@@ -53,6 +55,15 @@ public class TaskWidgetService extends RemoteViewsService {
 
         static Item task(TaskLogic.Row row, boolean dateInHeading) {
             return new Item(null, 0, false, false, row, dateInHeading);
+        }
+
+        static Item shop(JSONObject data, TaskLogic.Row row) {
+            Item item = new Item(null, 0, false, false, row, false);
+            String[] parsed = ShoppingLogic.parse(row.content);
+            item.shopName = parsed[0];
+            item.shopAmount = parsed[1];
+            item.shopIcon = ShoppingLogic.emoji(data, row.description, parsed[0]);
+            return item;
         }
     }
 
@@ -80,6 +91,12 @@ public class TaskWidgetService extends RemoteViewsService {
                 items.add(Item.heading(TaskLogic.dayHeading(day, isUpcoming), 0, onDay.isEmpty(), false));
                 for (TaskLogic.Row r : onDay) items.add(Item.task(r, true));
             }
+            return items;
+        }
+
+        // The shopping list: its items, as the app lists them.
+        if (ShoppingLogic.isShoppingView(data, view)) {
+            for (TaskLogic.Row r : rows) items.add(Item.shop(data, r));
             return items;
         }
 
@@ -140,7 +157,25 @@ public class TaskWidgetService extends RemoteViewsService {
         public RemoteViews getViewAt(int position) {
             if (position < 0 || position >= items.size()) return null;
             Item item = items.get(position);
-            return item.row == null ? headingView(item) : taskView(item);
+            if (item.row == null) return headingView(item);
+            return item.shopName != null ? shopView(item) : taskView(item);
+        }
+
+        private RemoteViews shopView(Item item) {
+            TaskLogic.Row row = item.row;
+            RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_shop_row);
+            rv.setTextViewText(R.id.shop_name, item.shopName);
+            rv.setViewVisibility(R.id.shop_amount, item.shopAmount != null ? View.VISIBLE : View.GONE);
+            if (item.shopAmount != null) rv.setTextViewText(R.id.shop_amount, item.shopAmount);
+            rv.setTextViewText(R.id.shop_icon, item.shopIcon);
+
+            Intent bought = new Intent();
+            bought.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_COMPLETE);
+            bought.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
+            rv.setOnClickFillInIntent(R.id.shop_check, bought);
+            // Tapping the item itself ticks it too: in the shop, that's what you want.
+            rv.setOnClickFillInIntent(R.id.shop_root, bought);
+            return rv;
         }
 
         private RemoteViews headingView(Item item) {
@@ -210,7 +245,7 @@ public class TaskWidgetService extends RemoteViewsService {
         }
 
         @Override public RemoteViews getLoadingView() { return null; }
-        @Override public int getViewTypeCount() { return 2; }
+        @Override public int getViewTypeCount() { return 3; }
         @Override public long getItemId(int position) {
             if (position >= items.size()) return position;
             Item item = items.get(position);

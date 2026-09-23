@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AppData, Task } from "../api/types";
 import { useBootstrap, useCreateTask, useDeleteTask, useUpdateProject, useUpdateTask } from "../api/hooks";
@@ -102,7 +102,20 @@ function useWakeLock() {
  * added, tap to tick, ticked ones drop into "In the basket". Items are the
  * project's tasks, so a shared list updates live on both phones.
  */
-export default function ShoppingView({ projectId, header }: { projectId: string; header: ReactNode }) {
+export default function ShoppingView({
+  projectId,
+  header,
+  start,
+}: {
+  projectId: string;
+  header: ReactNode;
+  /** From the widget: focus the add box, or start voice input (a new `n` each time). */
+  start?: { n: number; mode: "add" | "voice" } | null;
+}) {
+  const addInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (start?.mode === "add") window.setTimeout(() => addInput.current?.focus(), 150);
+  }, [start]);
   const { data } = useBootstrap();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -250,6 +263,7 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
         {header}
         <div className="shopping-add">
           <input
+            ref={addInput}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && void submit()}
@@ -257,7 +271,12 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
             aria-label="Add items"
             enterKeyHint="done"
           />
-          <MicButton prompt="Kaj dodam na seznam?" onText={(said) => void addItems(splitSpokenItems(said).map(parseItem))} />
+          <MicButton
+            key={start?.mode === "voice" ? `voice-${start.n}` : "mic"}
+            autoStart={start?.mode === "voice"}
+            prompt="Kaj dodam na seznam?"
+            onText={(said) => void addItems(splitSpokenItems(said).map(parseItem))}
+          />
           <button className="btn btn-primary" onClick={() => void submit()} disabled={!text.trim()}>
             Add
           </button>

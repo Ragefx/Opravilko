@@ -5,6 +5,7 @@ import type { AppData } from "../api/types";
 import { usingFirebase } from "../data/store";
 import { firebaseConfig } from "../firebase/config";
 import { currentUser } from "../firebase/auth";
+import { categoryGuide } from "../utils/shopping";
 
 /** The native side lives in android/.../widget/WidgetBridgePlugin.java. */
 interface OpravilkoWidgetPlugin {
@@ -60,10 +61,11 @@ export function pushWidgetData(data: AppData): void {
   // The widget only lists tasks; calendar events and history are dead weight.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { calendarEvents: _e, calendarFeeds: _f, completionLog: _l, ...rest } = data;
+  const widgetData = { ...rest, shoppingGuide: categoryGuide() };
   const { appKey, refreshToken } = getWidgetAuth();
   const firebase = firebaseWidgetAuth();
   void OpravilkoWidget.update({
-    data: JSON.stringify(rest),
+    data: JSON.stringify(widgetData),
     appKey,
     refreshToken: firebase ? null : refreshToken,
     dataPath: DATA_PATH,
@@ -90,6 +92,7 @@ export function onWidgetDataChanged(onChange: () => void): () => void {
  * Turns a widget link into an in-app route, or a quick-add request:
  *   opravilko://open?task=<id>&project=<id>   -> that task, opened
  *   opravilko://open?view=today|upcoming|inbox|calendar|shopping|project:<id>
+ *   opravilko://open?view=shopping&add=1|voice=1   -> the list's add box, or listening
  *   opravilko://add?project=<id>[&today=1][&voice=1]
  */
 export function parseWidgetLink(url: string): { route: string } | { quickAdd: QuickAddRequest } | null {
@@ -116,6 +119,10 @@ export function parseWidgetLink(url: string): { route: string } | { quickAdd: Qu
     return { route: `${base}?open=${encodeURIComponent(task)}` };
   }
   const view = q.get("view") || "today";
+  // The widget's + and mic on the shopping list: its own add box, or listening.
+  if (view === "shopping" && (q.get("add") === "1" || q.get("voice") === "1")) {
+    return { route: `/app/shopping?${q.get("voice") === "1" ? "voice" : "add"}=1` };
+  }
   if (["today", "upcoming", "inbox", "calendar", "shopping"].includes(view)) return { route: `/app/${view}` };
   if (view.startsWith("project:")) {
     const id = view.slice("project:".length);

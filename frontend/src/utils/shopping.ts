@@ -459,3 +459,18 @@ export function shoppingListOf(projects: Project[]): Project | undefined {
       return a.order - b.order;
     })[0];
 }
+
+/**
+ * What the Android widget needs to show a shopping item's icon on its own
+ * (also for items added while the app was closed): the categories' emoji,
+ * the phrases and word beginnings, and what you picked by hand before.
+ */
+export function categoryGuide() {
+  return {
+    emoji: Object.fromEntries(CATEGORIES.map((c) => [c.id, c.emoji])),
+    phrases: PHRASES,
+    stems: STEMS,
+    order: STEM_ORDER,
+    learned: learned(),
+  };
+}

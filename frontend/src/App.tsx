@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import Connect from "./pages/Connect";
@@ -84,10 +84,21 @@ function useOAuthCallback() {
  * In the Android app, Dropbox sign-in finishes in the system browser, which
  * reopens the app via opravilko://oauth?code=...; complete the sign-in here.
  */
+/** The link the app was started with (a widget tap) is followed once, not on every page change. */
+let launchLinkHandled = false;
+
 function useNativeOAuthReturn(onError: (message: string) => void) {
   const navigate = useNavigate();
+  // Kept in refs: `navigate` changes with every page, and this listener must
+  // be set up only once (re-running it re-followed the widget link).
+  const navigateRef = useRef(navigate);
+  const onErrorRef = useRef(onError);
+  navigateRef.current = navigate;
+  onErrorRef.current = onError;
   useEffect(() => {
     if (!isNativeApp) return;
+    const navigate = (to: string, options?: { replace?: boolean }) => navigateRef.current(to, options);
+    const onError = (message: string) => onErrorRef.current(message);
     const listener = NativeApp.addListener("appUrlOpen", async ({ url }) => {
       if (!url.startsWith(NATIVE_OAUTH_CALLBACK)) {
         handleWidgetLink(url);
@@ -108,9 +119,12 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
       }
     });
     // Cold start from a widget tap: the link arrives as the launch URL instead.
-    void NativeApp.getLaunchUrl().then((launch) => {
-      if (launch?.url && !launch.url.startsWith(NATIVE_OAUTH_CALLBACK)) handleWidgetLink(launch.url);
-    });
+    if (!launchLinkHandled) {
+      launchLinkHandled = true;
+      void NativeApp.getLaunchUrl().then((launch) => {
+        if (launch?.url && !launch.url.startsWith(NATIVE_OAUTH_CALLBACK)) handleWidgetLink(launch.url);
+      });
+    }
 
     function handleWidgetLink(url: string) {
       const link = parseWidgetLink(url);
@@ -126,7 +140,7 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
     return () => {
       void listener.then((l) => l.remove());
     };
-  }, [navigate, onError]);
+  }, []);
 }
 
 /** Shown on the website while it hands a sign-in back to the Android app. */

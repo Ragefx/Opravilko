@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The amount pill on a shopping item ("1 l", "10×"). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/widget_header_bg" />
+    <corners android:radius="999dp" />
+</shape>

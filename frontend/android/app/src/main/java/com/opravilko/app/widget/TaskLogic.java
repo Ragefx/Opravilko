@@ -259,6 +259,7 @@ public final class TaskLogic {
         public final boolean projectIsInbox;
         public final String sectionId;
         public final boolean hasDescription;
+        public final String description;
         final double order;
 
         Row(JSONObject t, String projectName) {
@@ -274,7 +275,8 @@ public final class TaskLogic {
             this.projectName = projectName;
             projectIsInbox = "inbox".equals(projectId) || projectId.startsWith("inbox_");
             sectionId = t.isNull("sectionId") ? null : t.optString("sectionId", null);
-            hasDescription = !t.optString("description", "").trim().isEmpty();
+            description = t.optString("description", "");
+            hasDescription = !description.trim().isEmpty();
         }
     }
 

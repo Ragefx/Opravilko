@@ -59,6 +59,12 @@ public class WidgetConfigActivity extends Activity {
             }
             list.sort((a, b) -> Double.compare(a.optDouble("order", 0), b.optDouble("order", 0)));
             for (JSONObject p : list) {
+                if (!"shopping".equals(p.optString("viewStyle"))) continue;
+                labels.add("\uD83D\uDED2 Shopping list");
+                values.add(WidgetStore.PROJECT_PREFIX + p.optString("id"));
+            }
+            for (JSONObject p : list) {
+                if ("shopping".equals(p.optString("viewStyle"))) continue;
                 labels.add("# " + p.optString("name"));
                 values.add(WidgetStore.PROJECT_PREFIX + p.optString("id"));
             }

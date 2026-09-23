@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useBootstrap, useCreateProject } from "../api/hooks";
 import ShoppingView from "../components/ShoppingView";
 import ProjectMenu from "../components/ProjectMenu";
@@ -14,6 +15,15 @@ export default function ShoppingPage() {
   const createProject = useCreateProject();
   const list = data ? shoppingListOf(data.projects) : undefined;
   const creating = useRef(false);
+  // From the widget: ?add=1 focuses the add box, ?voice=1 starts listening.
+  const [params, setParams] = useSearchParams();
+  const [start, setStart] = useState<{ n: number; mode: "add" | "voice" } | null>(null);
+  useEffect(() => {
+    const mode = params.get("voice") === "1" ? "voice" : params.get("add") === "1" ? "add" : null;
+    if (!mode) return;
+    setStart((s) => ({ n: (s?.n ?? 0) + 1, mode }));
+    setParams({}, { replace: true });
+  }, [params, setParams]);
 
   useEffect(() => {
     if (!data || list || creating.current) return;
@@ -33,5 +43,5 @@ export default function ShoppingPage() {
       )}
     </div>
   );
-  return <ShoppingView key={list.id} projectId={list.id} header={header} />;
+  return <ShoppingView key={list.id} projectId={list.id} header={header} start={start} />;
 }

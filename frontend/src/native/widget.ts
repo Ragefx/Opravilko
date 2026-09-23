@@ -48,6 +48,28 @@ export function takeQuickAddRequest(): QuickAddRequest | null {
   return request;
 }
 
+/**
+ * A page a widget tap asks for (a task, a view). Held until the app shell is
+ * up: on a cold start the sign-in is still loading when the link arrives, and
+ * the start-up redirects would override an earlier jump.
+ */
+export const WIDGET_ROUTE = "opravilko:widget-route";
+let pendingRoute: string | null = null;
+
+export function requestRoute(route: string): void {
+  pendingRoute = route;
+  window.dispatchEvent(new Event(WIDGET_ROUTE));
+}
+
+// Development only: lets a test page act like a widget tap.
+if (import.meta.env.DEV) (window as unknown as { __opravilkoRequestRoute?: typeof requestRoute }).__opravilkoRequestRoute = requestRoute;
+
+export function takeRouteRequest(): string | null {
+  const route = pendingRoute;
+  pendingRoute = null;
+  return route;
+}
+
 /** With Google sign-in, what the widget needs to save a tick itself (app closed too). */
 function firebaseWidgetAuth() {
   const user = currentUser();

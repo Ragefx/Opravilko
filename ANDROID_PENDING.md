@@ -12,6 +12,9 @@ opened, and the widget's shopping list (amounts, icons, add as items).
 
 ## In the code, not in the app yet
 
+- Fix: tapping a task in the widget opens that task (it opened only the app
+  when the app wasn't already running: the link came before the sign-in).
+
 - Widget + and mic open an Add task sheet over the home screen (the app
   stays closed): a text field with the keyboard up, a project chip and a
   date chip, and a mic button that turns into send once you type. Typed

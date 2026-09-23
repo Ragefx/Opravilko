@@ -23,7 +23,7 @@ import {
   completeConnect,
   isNativeApp,
 } from "./dropbox/auth";
-import { parseWidgetLink, requestQuickAdd } from "./native/widget";
+import { parseWidgetLink, requestQuickAdd, requestRoute } from "./native/widget";
 
 /**
  * Dropbox redirects back to the site root with ?code=... (or ?error=...) in the
@@ -126,15 +126,13 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
       });
     }
 
+    // The app shell (Layout) follows these once it's up and you're signed in;
+    // on a cold start the sign-in is still loading at this point.
     function handleWidgetLink(url: string) {
       const link = parseWidgetLink(url);
-      if (!link || !isSignedIn()) return;
-      if ("route" in link) {
-        navigate(link.route);
-        return;
-      }
-      if (!window.location.hash.startsWith("#/app")) navigate("/app");
-      requestQuickAdd(link.quickAdd);
+      if (!link) return;
+      if ("route" in link) requestRoute(link.route);
+      else requestQuickAdd(link.quickAdd);
     }
 
     return () => {

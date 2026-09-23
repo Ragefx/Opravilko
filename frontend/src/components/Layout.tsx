@@ -12,6 +12,8 @@ import {
   onWidgetDataChanged,
   pushWidgetData,
   takeQuickAddRequest,
+  takeRouteRequest,
+  WIDGET_ROUTE,
   type QuickAddRequest,
 } from "../native/widget";
 import Sidebar from "./Sidebar";
@@ -124,6 +126,19 @@ export default function Layout() {
     open(); // asked for before this mounted (cold start)
     window.addEventListener(WIDGET_QUICK_ADD, open);
     return () => window.removeEventListener(WIDGET_QUICK_ADD, open);
+  }, []);
+  // A widget tap on a task or a view: go there (on a cold start, once signed in and up).
+  useEffect(() => {
+    const go = () => {
+      if (!isSignedIn()) return; // kept until this shell is back, signed in
+      const route = takeRouteRequest();
+      // After the start-up redirects (to Home) have run, or they'd undo the jump.
+      if (route) window.setTimeout(() => navigate(route), 0);
+    };
+    go();
+    window.addEventListener(WIDGET_ROUTE, go);
+    return () => window.removeEventListener(WIDGET_ROUTE, go);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Android app: arrival reminders follow the tasks (added, ticked off, moved).

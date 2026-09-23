@@ -14,7 +14,7 @@ import {
 import type { CalendarEvent, Task } from "../api/types";
 import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
-import QuickAdd from "./QuickAdd";
+import { requestQuickAdd } from "../native/widget";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 3;
@@ -31,7 +31,6 @@ export default function CalendarView({
 }) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [openTask, setOpenTask] = useState<Task | null>(null);
-  const [addingFor, setAddingFor] = useState<string | null>(null);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   const gridStart = startOfWeek(startOfMonth(month), WEEK_OPTS);
@@ -81,16 +80,15 @@ export default function CalendarView({
             <div
               key={key}
               className={`calendar-cell ${inMonth ? "" : "outside-month"} ${isToday(day) ? "is-today" : ""}`}
+              // Clicking the day's empty space adds a task on it; clicks on
+              // its tasks, events and "+N more" do their own thing.
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest(".calendar-task-chip, .calendar-event-chip, .calendar-more")) return;
+                requestQuickAdd({ projectId, today: false, date: key });
+              }}
             >
               <div className="calendar-cell-header">
                 <span>{format(day, "d")}</span>
-                <button
-                  className="calendar-add-btn"
-                  onClick={() => setAddingFor(addingFor === key ? null : key)}
-                  aria-label="Add task"
-                >
-                  +
-                </button>
               </div>
               {(() => {
                 // Three full-size lines per day (events first, then tasks);
@@ -136,11 +134,6 @@ export default function CalendarView({
                   </>
                 );
               })()}
-              {addingFor === key && (
-                <div onClick={(e) => e.stopPropagation()}>
-                  <QuickAdd projectId={projectId} defaultDue={{ date: key, string: format(day, "MMM d") }} />
-                </div>
-              )}
             </div>
           );
         })}

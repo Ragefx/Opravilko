@@ -248,6 +248,7 @@ export default function Layout() {
               quickAddPreset?.projectId ?? location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox"
             }
             defaultToday={quickAddPreset?.today}
+            defaultDate={quickAddPreset?.date}
           />
         )}
         {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}

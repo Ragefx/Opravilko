@@ -17,6 +17,8 @@ export const WIDGET_QUICK_ADD = "opravilko:widget-quick-add";
 export interface QuickAddRequest {
   projectId: string;
   today: boolean;
+  /** Due on this "yyyy-MM-dd" day unless another date is typed (a calendar day). */
+  date?: string;
 }
 
 // Held until the app shell picks it up -- on a cold start it may not be mounted yet.

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format, parseISO } from "date-fns";
 import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel, todayISO } from "../utils/date";
@@ -13,12 +14,15 @@ export default function QuickAddModal({
   onClose,
   defaultProjectId = "inbox",
   defaultToday = false,
+  defaultDate,
 }: {
   onClose: () => void;
   /** The project being viewed, so "add task" from there lands in it. */
   defaultProjectId?: string;
   /** Due today unless a date is typed (the Android widget's Today list). */
   defaultToday?: boolean;
+  /** Due on this "yyyy-MM-dd" day unless a date is typed (a day clicked in the calendar). */
+  defaultDate?: string;
 }) {
   const { data } = useBootstrap();
   const createTask = useCreateTask();
@@ -30,7 +34,13 @@ export default function QuickAddModal({
   const partner = data?.partner;
 
   const projects = data?.projects || [];
-  const [defaultDue] = useState(() => (defaultToday ? { date: todayISO(), string: "today" } : null));
+  const [defaultDue] = useState(() =>
+    defaultDate
+      ? { date: defaultDate, string: format(parseISO(defaultDate), "MMM d") }
+      : defaultToday
+        ? { date: todayISO(), string: "today" }
+        : null
+  );
   const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
   const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
 

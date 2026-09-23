@@ -1756,17 +1756,34 @@ kbd {
   font-size: 12px;
   margin-bottom: 2px;
 }
-.calendar-add-btn {
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 14px;
-  line-height: 1;
-  opacity: 0;
-  padding: 2px 4px;
+/* Hovering a day's empty space shows a faint plus over the whole day;
+   clicking there adds a task on that day. */
+.calendar-cell {
+  position: relative;
+  cursor: pointer;
 }
-.calendar-cell:hover .calendar-add-btn {
-  opacity: 1;
+.calendar-cell::after {
+  content: "+";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  font-weight: 200;
+  line-height: 1;
+  color: var(--color-text-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+@media (hover: hover) {
+  .calendar-cell:hover:not(:has(.calendar-task-chip:hover, .calendar-event-chip:hover, .calendar-more:hover))::after {
+    opacity: 0.35;
+  }
+}
+.calendar-event-chip {
+  cursor: default;
 }
 
 .calendar-task-chip {
@@ -2244,9 +2261,6 @@ kbd {
 /* ---------- Touch screens: no hover, so show hover-only controls ---------- */
 @media (hover: none) {
   .row-menu-trigger,
-  .calendar-add-btn {
-    opacity: 1;
-  }
   .sidebar-project-link .row-menu-trigger {
     display: flex;
   }

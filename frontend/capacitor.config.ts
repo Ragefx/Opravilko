@@ -12,6 +12,12 @@ const config: CapacitorConfig = {
       insetsHandling: "css",
       initialViewportFitValueHint: "cover",
     },
+    // Google sign-in through Android's own account picker; the web Firebase
+    // SDK then signs in with the returned token (see src/firebase/auth.ts).
+    FirebaseAuthentication: {
+      skipNativeAuth: true,
+      providers: ["google.com"],
+    },
     LocalNotifications: {
       smallIcon: "ic_stat_opravilko",
       iconColor: "#3e63dd",

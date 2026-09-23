@@ -37,9 +37,9 @@ export default function Connect({ initialError = null }: { initialError?: string
     }
   }
 
-  // Google sign-in inside the Android app needs a native plugin (not built yet),
-  // so the app keeps using Dropbox for now.
-  const offerGoogle = firebaseEnabled && !isNativeApp;
+  // Google sign-in works on the website and in the Android app (native
+  // account picker); Dropbox stays as the older alternative.
+  const offerGoogle = firebaseEnabled;
 
   return (
     <div className="login-page">

@@ -7,8 +7,10 @@ import {
   signOut as fbSignOut,
   type User,
 } from "firebase/auth";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { firebaseAuth } from "./app";
 import { firebaseEnabled, useEmulator } from "./config";
+import { isNativeApp } from "../dropbox/auth";
 
 let ready = false;
 
@@ -46,6 +48,16 @@ export function onUserChanged(listener: (user: User | null) => void): () => void
 
 export async function signInWithGoogle(): Promise<void> {
   const auth = firebaseAuth();
+  if (isNativeApp) {
+    // In the Android app Google's own account picker does the sign-in; the
+    // web SDK then signs in to Firebase with the token it hands back, so the
+    // rest of the app works exactly as on the website.
+    const result = await FirebaseAuthentication.signInWithGoogle({ skipNativeAuth: true });
+    const idToken = result.credential?.idToken;
+    if (!idToken) throw new Error("Google sign-in was cancelled.");
+    await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
+    return;
+  }
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
   try {
@@ -61,5 +73,7 @@ export async function signInWithGoogle(): Promise<void> {
 }
 
 export async function signOut(): Promise<void> {
+  // Also forget the account in Android's picker, so another one can be chosen.
+  if (isNativeApp) await FirebaseAuthentication.signOut().catch(() => {});
   await fbSignOut(firebaseAuth());
 }

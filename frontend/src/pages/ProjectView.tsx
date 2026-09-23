@@ -9,7 +9,7 @@ import ShoppingView from "../components/ShoppingView";
 import ProjectMenu from "../components/ProjectMenu";
 import DisplayMenu from "../components/DisplayMenu";
 import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
-import { ArchiveIcon } from "../components/icons";
+import { ArchiveIcon, DisplayIcon } from "../components/icons";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, groupKeyFor, sortTasks, type DisplayOptions } from "../utils/displayOptions";
 import { setStoredDisplayOptions, withStoredDisplayOptions } from "../utils/displayOptionsStorage";
 import { groupEventsByDate } from "../utils/calendarSync";
@@ -96,11 +96,12 @@ export default function ProjectView() {
         )}
         <div style={{ position: "relative" }}>
           <button
-            className="btn btn-secondary"
+            className="display-icon-btn"
             onClick={() => setShowDisplayMenu((v) => !v)}
-            title={filtersActive ? "Some tasks are hidden by a filter" : undefined}
+            aria-label="Display"
+            title={filtersActive ? "Display (some tasks are hidden by a filter)" : "Display"}
           >
-            Display
+            <DisplayIcon width={20} height={20} />
             {filtersActive && <span className="display-filter-dot" aria-label="filters active" />}
           </button>
           {showDisplayMenu && (

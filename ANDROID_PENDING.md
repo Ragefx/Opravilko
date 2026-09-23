@@ -12,6 +12,11 @@ opened, and the widget's shopping list (amounts, icons, add as items).
 
 ## In the code, not in the app yet
 
+- Calendar on the phone: a week of day numbers with a coloured dot per task
+  (swipe for the next week; open it to the whole month), and the picked
+  day's tasks as a normal list below (Overdue + Reschedule on today).
+- "Display" is an icon now (a page with lines), next to the ⋯ menu.
+
 - Fix: tapping a task in the widget opens that task (it opened only the app
   when the app wasn't already running: the link came before the sign-in).
 

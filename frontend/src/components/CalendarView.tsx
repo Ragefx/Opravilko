@@ -34,6 +34,7 @@ import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
 import { useToast } from "./ToastProvider";
 import { requestQuickAdd } from "../native/widget";
+import MobileCalendar, { useNarrowScreen } from "./MobileCalendar";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 3;
@@ -67,15 +68,18 @@ function timeOf(t: Task): string | null {
   return t.due?.datetime ? format(new Date(t.due.datetime), "HH:mm") : null;
 }
 
-export default function CalendarView({
-  tasks,
-  projectId,
-  eventsByDate,
-}: {
+type CalendarProps = {
   tasks: Task[];
   projectId: string;
   eventsByDate?: Map<string, CalendarEvent[]>;
-}) {
+};
+
+/** On a phone: a week/month of dots with the day's list below; otherwise the grid. */
+export default function CalendarView(props: CalendarProps) {
+  return useNarrowScreen() ? <MobileCalendar {...props} /> : <GridCalendar {...props} />;
+}
+
+function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   const [mode, setModeState] = useState<Mode>(storedMode);
   const [cursor, setCursor] = useState(() => new Date());
   const [openTask, setOpenTask] = useState<Task | null>(null);

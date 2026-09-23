@@ -83,6 +83,14 @@ export const CalendarIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** "Display" (layout, sorting, filters): a page with lines, as in Todoist. */
+export const DisplayIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="4" y="3" width="16" height="18" rx="2.5" />
+    <path d="M8 8h8M8 12h8M8 16h5" />
+  </svg>
+);
+
 export const CartIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M3 4h2.5l2.2 10.2a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.76L20 8H6.2" />

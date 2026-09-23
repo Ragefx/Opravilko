@@ -3130,6 +3130,8 @@ kbd {
   flex: 0 0 110px;
 }
 .item-editor-fields input {
+  width: 100%;
+  min-width: 0;
   font: inherit;
   font-size: 16px;
   font-weight: 400;
@@ -3383,4 +3385,101 @@ kbd {
   height: 72px;
   object-fit: cover;
   border-radius: 8px;
+}
+
+/* ---------- Android app: sized for fingers ----------
+   The app on a phone (data-native): tap targets of at least ~40px,
+   dialogs that stay above the keyboard. The website keeps its look. */
+@media (max-width: 720px) {
+  /* The round tick: the circle stays small, the tappable area doesn't. */
+  :root[data-native] .task-checkbox {
+    position: relative;
+  }
+  :root[data-native] .task-checkbox::after {
+    content: "";
+    position: absolute;
+    inset: -11px;
+    border-radius: 50%;
+  }
+  :root[data-native] .soca-chip {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+  :root[data-native] .view-toggle button {
+    min-height: 36px;
+    min-width: 36px;
+    justify-content: center;
+    font-size: 14px;
+  }
+  :root[data-native] .home-focus-actions .btn,
+  :root[data-native] .modal-actions .btn,
+  :root[data-native] .topbar .btn {
+    min-height: 40px;
+  }
+  :root[data-native] .sidebar-icon-btn,
+  :root[data-native] .settings-head button,
+  :root[data-native] .row-menu > button {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  /* Add task: at the top, so the keyboard doesn't cover it. */
+  :root[data-native] .modal-backdrop:has(.quick-add-modal) {
+    align-items: flex-start;
+    padding-top: calc(10px + var(--inset-top));
+  }
+  :root[data-native] .quick-add-modal {
+    width: calc(100vw - 20px);
+  }
+  :root[data-native] .quick-add-modal-options > select {
+    flex: 1 1 100% !important;
+    min-height: 40px;
+  }
+  :root[data-native] .quick-add-modal-options .field-pill,
+  :root[data-native] .quick-add-modal-options .due-button {
+    min-height: 40px;
+  }
+  :root[data-native] .quick-add-modal-actions > div:last-child {
+    margin-left: auto;
+  }
+  /* Settings sections wrap instead of running off the edge. */
+  :root[data-native] .settings-nav {
+    flex-wrap: wrap;
+  }
+  /* The board's "+ Add section" page is a full page too. */
+  :root[data-native] .board-add-section-col {
+    width: 100%;
+  }
+  :root[data-native] .board-page-dot {
+    width: 11px;
+    height: 11px;
+  }
+  :root[data-native] .sidebar-link {
+    min-height: 42px;
+  }
+  :root[data-native] .sidebar-section-title button {
+    min-width: 40px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  :root[data-native] .date-quick-btn {
+    width: 36px;
+    height: 36px;
+  }
+  :root[data-native] .rich-text-btn {
+    min-width: 34px;
+    min-height: 34px;
+  }
+  :root[data-native] .date-picker-cal-header button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  :root[data-native] .segmented button {
+    min-height: 38px;
+  }
+  :root[data-native] .date-picker-quick-row,
+  :root[data-native] .date-picker-action-btn {
+    min-height: 40px;
+  }
 }

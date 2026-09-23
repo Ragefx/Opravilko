@@ -39,6 +39,11 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
 - Widget refreshes its own list from Firebase (about every 30 minutes and
   after a tick), so the partner's new tasks show up with the app closed.
 
+- Phone UI pass: bigger tap targets (ticks, chips, buttons, menu rows,
+  date buttons), Add task pinned to the top so the keyboard doesn't cover
+  it, Calendar starts in Week view on the phone, Settings sections wrap,
+  the board's "Add section" page no longer peeks in.
+
 ## Known gaps
 
 - None right now. The native parts above (widget sync, arrival reminders,

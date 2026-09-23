@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { isNativeApp } from "../dropbox/auth";
 import {
   addDays,
   addMonths,
@@ -41,11 +42,17 @@ const MODE_KEY = "opravilko.calendarMode";
 
 type Mode = "month" | "week";
 
+/** Month cells are too narrow on a phone to read a task's name, so the app starts in Week there. */
+function defaultMode(): Mode {
+  return isNativeApp && window.innerWidth < 600 ? "week" : "month";
+}
+
 function storedMode(): Mode {
   try {
-    return localStorage.getItem(MODE_KEY) === "week" ? "week" : "month";
+    const saved = localStorage.getItem(MODE_KEY);
+    return saved === "week" || saved === "month" ? saved : defaultMode();
   } catch {
-    return "month";
+    return defaultMode();
   }
 }
 

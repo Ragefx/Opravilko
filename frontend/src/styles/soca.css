@@ -978,8 +978,9 @@
 .home .task-collapse-spacer {
   display: none;
 }
+/* A little room on the left, so the checkbox isn't clipped when it grows on hover. */
 .home .task-row {
-  padding-left: 0;
+  padding-left: 4px;
 }
 :root[data-look="soca"] .board-card-top .prio-mark {
   margin-left: auto;

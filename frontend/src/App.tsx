@@ -9,6 +9,8 @@ import StatsView from "./pages/StatsView";
 import ProjectView from "./pages/ProjectView";
 import LabelView from "./pages/LabelView";
 import FilterView from "./pages/FilterView";
+import Setup from "./pages/Setup";
+import { isSignedIn } from "./data/store";
 import Home from "./pages/Home";
 import { useLook } from "./utils/look";
 import { App as NativeApp } from "@capacitor/app";
@@ -17,7 +19,6 @@ import {
   NATIVE_OAUTH_CALLBACK,
   NATIVE_OAUTH_STATE,
   completeConnect,
-  isConnected,
   isNativeApp,
 } from "./dropbox/auth";
 import { parseWidgetLink, requestQuickAdd } from "./native/widget";
@@ -111,7 +112,7 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
 
     function handleWidgetLink(url: string) {
       const link = parseWidgetLink(url);
-      if (!link || !isConnected()) return;
+      if (!link || !isSignedIn()) return;
       if ("route" in link) {
         navigate(link.route);
         return;
@@ -165,6 +166,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/connect" element={<Connect key={nativeError ?? ""} initialError={nativeError ?? error} />} />
+      <Route path="/setup" element={<Setup />} />
       <Route path="/app" element={<Layout />}>
         <Route index element={<HomeRedirect />} />
         <Route path="home" element={<Home />} />
@@ -177,7 +179,7 @@ export default function App() {
         <Route path="label/:name" element={<LabelView />} />
         <Route path="filter/:id" element={<FilterView />} />
       </Route>
-      <Route path="*" element={<Navigate to={isConnected() ? "/app" : "/connect"} replace />} />
+      <Route path="*" element={<Navigate to={isSignedIn() ? "/app" : "/connect"} replace />} />
     </Routes>
   );
 }

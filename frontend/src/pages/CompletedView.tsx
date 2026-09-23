@@ -7,6 +7,7 @@ import TaskDetail from "../components/TaskDetail";
 import { PRIORITY_META } from "../utils/priority";
 import { useToast } from "../components/ToastProvider";
 import { CheckCircleIcon, SearchIcon } from "../components/icons";
+import { activeSession, usingFirebase } from "../data/store";
 
 function groupLabel(iso: string): string {
   const d = parseISO(iso);
@@ -22,6 +23,8 @@ export default function CompletedView() {
   const [query, setQuery] = useState("");
   const [projectId, setProjectId] = useState("all");
   const [openTask, setOpenTask] = useState<Task | null>(null);
+  // With Firebase, tasks finished more than a few days ago load on request.
+  const [olderState, setOlderState] = useState<"idle" | "loading" | "done">("idle");
 
   const completed = useMemo(() => {
     if (!data) return [];
@@ -87,6 +90,21 @@ export default function CompletedView() {
           ))}
         </select>
       </div>
+
+      {usingFirebase() && olderState !== "done" && (
+        <button
+          className="btn btn-text"
+          style={{ marginBottom: 12 }}
+          disabled={olderState === "loading"}
+          onClick={async () => {
+            setOlderState("loading");
+            await activeSession()?.loadArchived();
+            setOlderState("done");
+          }}
+        >
+          {olderState === "loading" ? "Loading…" : "Show older completed tasks"}
+        </button>
+      )}
 
       {completed.length === 0 && (
         <div className="empty-state">

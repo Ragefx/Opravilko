@@ -33,6 +33,7 @@ import {
   PlusIcon,
   SearchIcon,
   SettingsIcon,
+  ShareIcon,
   StarIcon,
   SunIcon,
   TodayIcon,
@@ -41,10 +42,28 @@ import {
 } from "./icons";
 import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
 import ImportModal from "./ImportModal";
+import ShareModal from "./ShareModal";
 import CalendarFeedsModal from "./CalendarFeedsModal";
 import RowMenu from "./RowMenu";
 import { useToast } from "./ToastProvider";
 import { clearWidget } from "../native/widget";
+import { activeSession, endSession, usingFirebase } from "../data/store";
+import { useQueryClient } from "@tanstack/react-query";
+import { signOut } from "../firebase/auth";
+import type { AppData } from "../api/types";
+
+/** Saves everything as one JSON file -- the same format the Dropbox storage used. */
+function downloadBackup(data: AppData) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { calendarEvents: _events, ...rest } = data;
+  const blob = new Blob([JSON.stringify(rest, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `opravilko-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
@@ -96,6 +115,7 @@ export default function Sidebar({
   const { data } = useBootstrap();
   const navigate = useNavigate();
   const showToast = useToast();
+  const queryClient = useQueryClient();
 
   const updateProject = useUpdateProject();
   const updateLabel = useUpdateLabel();
@@ -124,6 +144,7 @@ export default function Sidebar({
     });
   }
   const [importOpen, setImportOpen] = useState(false);
+  const [sharing, setSharing] = useState<string | null>(null);
   const [calendarsOpen, setCalendarsOpen] = useState(false);
   const [theme, setThemeState] = useState(currentEffectiveTheme);
   const [remindersOn, setRemindersOn] = useState(remindersEnabled);
@@ -242,6 +263,11 @@ export default function Sidebar({
             #
           </span>
           <span className="sidebar-link-label">{p.name}</span>
+          {(p.members?.length ?? 0) > 1 && (
+            <span className="sidebar-shared" title="Shared">
+              <ShareIcon width={13} height={13} />
+            </span>
+          )}
           {projectTaskCounts[p.id] > 0 && <span className="badge sidebar-project-count">{projectTaskCounts[p.id]}</span>}
           <StarToggle
             active={p.isFavorite}
@@ -264,12 +290,33 @@ export default function Sidebar({
                 icon: <PlusIcon width={14} height={14} />,
                 onClick: () => setModal({ kind: "project", defaultParentId: p.id }),
               },
-              {
-                label: "Delete project",
-                icon: <TrashIcon width={14} height={14} />,
-                danger: true,
-                onClick: () => handleDeleteProject(p.id, p.name),
-              },
+              ...(usingFirebase()
+                ? [
+                    {
+                      label: "Share…",
+                      icon: <ShareIcon width={14} height={14} />,
+                      onClick: () => setSharing(p.id),
+                    },
+                  ]
+                : []),
+              // Only the owner can delete a shared project; others can leave it.
+              p.ownerId && p.ownerId !== activeSession()?.userId
+                ? {
+                    label: "Leave project",
+                    icon: <TrashIcon width={14} height={14} />,
+                    danger: true,
+                    onClick: () => {
+                      void activeSession()?.leaveProject(p.id);
+                      navigate("/app");
+                      showToast({ message: `Left “${p.name}”` });
+                    },
+                  }
+                : {
+                    label: "Delete project",
+                    icon: <TrashIcon width={14} height={14} />,
+                    danger: true,
+                    onClick: () => handleDeleteProject(p.id, p.name),
+                  },
             ]}
           />
         </NavLink>
@@ -329,15 +376,36 @@ export default function Sidebar({
               },
             },
             {
-              label: "Disconnect Dropbox",
-              icon: <TrashIcon width={14} height={14} />,
-              danger: true,
-              onClick: () => {
-                disconnect();
-                clearWidget();
-                navigate("/connect", { replace: true });
+              label: "Download backup",
+              icon: <ImportIcon width={14} height={14} style={{ transform: "rotate(180deg)" }} />,
+              onClick: async () => {
+                // Older completed tasks aren't kept loaded with Firebase; fetch them first.
+                if (usingFirebase()) await activeSession()?.loadArchived();
+                const latest = queryClient.getQueryData<AppData>(["bootstrap"]);
+                if (latest) downloadBackup(latest);
               },
             },
+            usingFirebase()
+              ? {
+                  label: "Sign out",
+                  icon: <TrashIcon width={14} height={14} />,
+                  danger: true,
+                  onClick: async () => {
+                    endSession();
+                    await signOut();
+                    navigate("/connect", { replace: true });
+                  },
+                }
+              : {
+                  label: "Disconnect Dropbox",
+                  icon: <TrashIcon width={14} height={14} />,
+                  danger: true,
+                  onClick: () => {
+                    disconnect();
+                    clearWidget();
+                    navigate("/connect", { replace: true });
+                  },
+                },
           ]}
         />
       </div>
@@ -529,6 +597,9 @@ export default function Sidebar({
         />
       )}
       {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
+      {sharing && data?.projects.find((p) => p.id === sharing) && (
+        <ShareModal project={data.projects.find((p) => p.id === sharing)!} onClose={() => setSharing(null)} />
+      )}
       {calendarsOpen && <CalendarFeedsModal onClose={() => setCalendarsOpen(false)} />}
     </aside>
   );

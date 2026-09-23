@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } from "date-fns";
-import { fetchAppData, scheduleSave } from "../dropbox/store";
+import { fetchAppData, scheduleSave } from "../data/store";
 import { advanceDate, parseRecurrenceString } from "../utils/recurrence";
 import { todayISO } from "../utils/date";
 import { fetchIcsText } from "../utils/calendarSync";

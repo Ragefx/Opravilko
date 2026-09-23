@@ -1,0 +1,82 @@
+rules_version = '2';
+
+// Who can read and change what in Opravilko's Firestore database.
+// Paste this into Firebase console -> Firestore Database -> Rules (or deploy
+// with `firebase deploy --only firestore:rules`).
+//
+// - A project is visible to the people in its `members` list; its sections
+//   and tasks follow the project.
+// - Only a project's owner changes who's in it; anyone else can only leave.
+// - Labels, filters, calendars and completion history under users/{uid}
+//   are private to that person.
+// - userEmails/{email} lets someone who knows your exact email address find
+//   you to share a project with; nobody can list them.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function me() {
+      return request.auth.uid;
+    }
+    function projectPath(pid) {
+      return /databases/$(database)/documents/projects/$(pid);
+    }
+    function isMember(pid) {
+      return signedIn() && exists(projectPath(pid)) && me() in get(projectPath(pid)).data.members;
+    }
+    // For writes: membership as it will be once this write (or batch) is done,
+    // so a project and its tasks can be created together.
+    function isMemberAfter(pid) {
+      return signedIn() && existsAfter(projectPath(pid)) && me() in getAfter(projectPath(pid)).data.members;
+    }
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    match /users/{uid} {
+      allow read, write: if signedIn() && me() == uid;
+      match /{rest=**} {
+        allow read, write: if signedIn() && me() == uid;
+      }
+    }
+
+    match /userEmails/{email} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update: if signedIn()
+        && request.resource.data.uid == me()
+        && email == request.auth.token.email.lower();
+      allow delete: if signedIn() && resource.data.uid == me();
+    }
+
+    match /projects/{pid} {
+      allow read: if signedIn() && me() in resource.data.members;
+      allow create: if signedIn()
+        && request.resource.data.ownerId == me()
+        && request.resource.data.members == [me()];
+      allow update: if signedIn() && me() in resource.data.members && (
+        // The owner can change anything except who owns it.
+        (me() == resource.data.ownerId && request.resource.data.ownerId == me() && me() in request.resource.data.members)
+        // Other members edit the project but not its membership...
+        || (onlyChanges(['name', 'color', 'order', 'isFavorite', 'parentId', 'viewStyle']))
+        // ...except to leave it.
+        || (onlyChanges(['members', 'memberProfiles'])
+            && request.resource.data.members == resource.data.members.removeAll([me()]))
+      );
+      allow delete: if signedIn() && me() == resource.data.ownerId;
+    }
+
+    match /sections/{sid} {
+      allow read, delete: if isMember(resource.data.projectId);
+      allow create: if isMemberAfter(request.resource.data.projectId);
+      allow update: if isMember(resource.data.projectId) && isMemberAfter(request.resource.data.projectId);
+    }
+
+    match /tasks/{tid} {
+      allow read, delete: if isMember(resource.data.projectId);
+      allow create: if isMemberAfter(request.resource.data.projectId);
+      allow update: if isMember(resource.data.projectId) && isMemberAfter(request.resource.data.projectId);
+    }
+  }
+}

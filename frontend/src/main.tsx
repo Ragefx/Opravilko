@@ -13,7 +13,8 @@ import "./styles/soca.css";
 import App from "./App";
 import { initTheme } from "./utils/theme";
 import { initLook } from "./utils/look";
-import { installSyncGuards } from "./dropbox/store";
+import { bindQueryClient, installSyncGuards } from "./data/store";
+import { initFirebaseAuth } from "./firebase/auth";
 import { isNativeApp } from "./dropbox/auth";
 import { installBackButton } from "./native/android";
 
@@ -37,12 +38,18 @@ const queryClient = new QueryClient({
   },
 });
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <HashRouter>
-        <App />
-      </HashRouter>
-    </QueryClientProvider>
-  </StrictMode>
+bindQueryClient(queryClient);
+
+// A saved Google sign-in is restored before the first render, so the app
+// knows straight away which storage to use.
+void initFirebaseAuth().finally(() =>
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </QueryClientProvider>
+    </StrictMode>
+  )
 );

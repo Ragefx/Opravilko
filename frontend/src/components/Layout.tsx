@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { isConnected, isNativeApp } from "../dropbox/auth";
+import { isNativeApp } from "../dropbox/auth";
 import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
 import { REMINDERS_CHANGED, checkDueReminders, syncNativeReminders } from "../utils/notifications";
 import { useQueryClient } from "@tanstack/react-query";
-import { hasPendingWrite } from "../dropbox/store";
+import { hasPendingWrite, isSignedIn, needsSetup } from "../data/store";
 import { onAppResume } from "../native/android";
 import {
   WIDGET_QUICK_ADD,
@@ -172,7 +172,9 @@ export default function Layout() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [navigate]);
 
-  if (!isConnected()) return <Navigate to="/connect" replace />;
+  if (!isSignedIn()) return <Navigate to="/connect" replace />;
+  // First Google sign-in: import or start fresh before anything else.
+  if (appData && needsSetup()) return <Navigate to="/setup" replace />;
 
   return (
     <ToastProvider>

@@ -17,6 +17,16 @@ export interface Project {
   isInboxProject?: boolean;
   parentId: string | null;
   viewStyle?: "list" | "board" | "calendar";
+  /** Firebase only: who created it and who can see it (see firebase/sync.ts). */
+  ownerId?: string;
+  members?: string[];
+  memberProfiles?: Record<string, MemberProfile>;
+}
+
+export interface MemberProfile {
+  name: string;
+  email: string;
+  photo?: string | null;
 }
 
 export interface Section {
@@ -69,6 +79,9 @@ export interface Task {
   comments?: Comment[];
   /** How long before the due time to notify; absent means at the due time itself. */
   reminderMinutes?: number;
+  /** Firebase only: who added it, and who ticked it off (shared projects). */
+  createdBy?: string;
+  completedBy?: string;
 }
 
 export interface CompletionEntry {

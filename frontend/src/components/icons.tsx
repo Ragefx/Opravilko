@@ -267,3 +267,11 @@ export const FocusIcon = (p: SVGProps<SVGSVGElement>) => (
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
+
+export const ShareIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="9" cy="8" r="3.2" />
+    <path d="M3 19c0-3.2 2.7-5.5 6-5.5s6 2.3 6 5.5" />
+    <path d="M16 5.2a3 3 0 0 1 0 5.6M18.5 13.8c1.5.8 2.5 2.4 2.5 4.2" />
+  </svg>
+);

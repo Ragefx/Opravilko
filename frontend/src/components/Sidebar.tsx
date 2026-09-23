@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState, type ReactNode } from "react";
+import { openThisMonth } from "../utils/calendarTasks";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   useBootstrap,
@@ -139,12 +140,13 @@ export default function Sidebar({
   }
 
   const counts = useMemo(() => {
-    if (!data) return { today: 0, inbox: 0, midva: 0 };
+    if (!data) return { today: 0, inbox: 0, midva: 0, calendar: 0 };
     const active = data.tasks.filter((t) => !t.completed);
     return {
       today: active.filter((t) => isDueToday(t.due) || isOverdue(t.due)).length,
       inbox: active.filter((t) => t.projectId === "inbox").length,
       midva: active.filter((t) => t.sharedWith?.length && !t.parentId).length,
+      calendar: openThisMonth(data),
     };
   }, [data]);
 
@@ -385,6 +387,7 @@ export default function Sidebar({
         <NavLink to="/app/calendar" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <CalendarIcon className="icon" />
           Calendar
+          {counts.calendar > 0 && <span className="badge">{counts.calendar}</span>}
         </NavLink>
         {data?.me && (
           <NavLink to="/app/midva" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>

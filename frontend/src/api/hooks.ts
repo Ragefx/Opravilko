@@ -17,8 +17,7 @@ import type {
   Priority,
   Project,
   Section,
-  Task,
-} from "./types";
+  Task, TaskTemplate } from "./types";
 
 const BOOTSTRAP_KEY = ["bootstrap"];
 
@@ -354,6 +353,13 @@ export function useCreateProject() {
     };
     data.projects.push(project);
     return project;
+  });
+}
+
+/** Replaces your saved templates (reusable checklists). */
+export function useSaveTemplates() {
+  return useLocalMutation<TaskTemplate[], void>((data, templates) => {
+    data.templates = templates;
   });
 }
 

@@ -111,11 +111,10 @@ export default function ProjectView() {
             />
           )}
         </div>
-        {!project.isInboxProject && (
-          <span className="project-header-menu">
-            <ProjectMenu project={project} />
-          </span>
-        )}
+        <span className="project-header-menu">
+          {/* The Inbox can't be edited or shared, but can use templates. */}
+          <ProjectMenu project={project} templatesOnly={project.isInboxProject} />
+        </span>
       </div>
     </div>
   );

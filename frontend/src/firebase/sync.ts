@@ -33,8 +33,7 @@ import type {
   Partner,
   Project,
   Section,
-  Task,
-} from "../api/types";
+  Task, TaskTemplate } from "../api/types";
 import type { SyncState } from "../dropbox/store";
 
 /**
@@ -524,6 +523,7 @@ export class FirestoreSync {
       calendarFeeds: [...this.feeds].map(([id, f]) => ({ ...(f as CalendarFeed), id })),
       calendarEvents: this.events,
       completionLog,
+      templates: (this.profile?.templates as TaskTemplate[] | undefined) ?? [],
       me: this.uid,
       partner: (this.profile?.partner as Partner | undefined) ?? null,
     };
@@ -560,6 +560,11 @@ export class FirestoreSync {
     const ops: Op[] = [];
     const uid = this.uid;
     this.scheduleAttachmentCleanup(prev, next);
+
+    // Templates live on your profile document.
+    if (JSON.stringify(prev.templates ?? []) !== JSON.stringify(next.templates ?? [])) {
+      ops.push({ kind: "set", path: ["users", uid], data: { templates: (next.templates ?? []).map(stripUndefined) } });
+    }
 
     // Projects: ownership and members are set here only when creating.
     this.diffList(prev.projects, next.projects, ops, {

@@ -166,6 +166,17 @@ export interface CalendarEvent {
   allDay: boolean;
 }
 
+/**
+ * A reusable checklist: one task per line, written like quick add ("jutri",
+ * "p1", "@label" work, and apply when it's used); a line starting with "-"
+ * is a sub-task of the line above.
+ */
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  text: string;
+}
+
 export interface AppData {
   version: number;
   projects: Project[];
@@ -180,6 +191,8 @@ export interface AppData {
    * (which never stays "completed" itself), for the Productivity stats.
    */
   completionLog?: CompletionEntry[];
+  /** Your reusable checklists (kept with your profile). */
+  templates?: TaskTemplate[];
   /** Firebase only: your id, and your partner for shared tasks. */
   me?: string;
   partner?: Partner | null;

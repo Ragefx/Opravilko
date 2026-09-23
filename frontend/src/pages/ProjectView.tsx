@@ -5,6 +5,7 @@ import TaskListView from "../components/TaskListView";
 import BoardView from "../components/BoardView";
 import CalendarView from "../components/CalendarView";
 import ShoppingView from "../components/ShoppingView";
+import ProjectMenu from "../components/ProjectMenu";
 import DisplayMenu from "../components/DisplayMenu";
 import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
 import { ArchiveIcon } from "../components/icons";
@@ -110,6 +111,11 @@ export default function ProjectView() {
             />
           )}
         </div>
+        {!project.isInboxProject && (
+          <span className="project-header-menu">
+            <ProjectMenu project={project} />
+          </span>
+        )}
       </div>
     </div>
   );

@@ -3057,3 +3057,21 @@ kbd {
     flex: 1;
   }
 }
+
+/* The project's own ⋯ menu, next to Display: always visible, button-sized. */
+.project-header-menu {
+  display: flex;
+  align-items: center;
+}
+.project-header-menu .row-menu-trigger {
+  opacity: 1;
+  padding: 6px;
+  border-radius: 6px;
+  background: var(--color-hover);
+}
+.meal-danger {
+  color: var(--color-danger);
+}
+.meal-modal .modal-actions {
+  flex-wrap: wrap;
+}

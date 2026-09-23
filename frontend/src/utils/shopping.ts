@@ -257,7 +257,12 @@ export function saveCustomMeals(meals: Meal[]): void {
 }
 
 /** A meal from a pasted recipe ("250 g moke", "3 jajca", "sol") for `servings` people. */
-export function mealFromText(name: string, text: string, servings: number): Meal {
+export function mealFromText(
+  name: string,
+  text: string,
+  servings: number,
+  keep?: { id: string; emoji: string }
+): Meal {
   const ingredients = text
     .split("\n")
     .map((l) => l.replace(/^[-•*]\s*/, "").trim())
@@ -266,5 +271,18 @@ export function mealFromText(name: string, text: string, servings: number): Meal
       const it = parseItem(line);
       return it.amount !== undefined ? { ...it, amount: it.amount / Math.max(1, servings) } : { name: it.name };
     });
-  return { id: `custom-${Date.now().toString(36)}`, name: name.trim() || "Moj obrok", emoji: "🍽️", ingredients, custom: true };
+  return {
+    id: keep?.id ?? `custom-${Date.now().toString(36)}`,
+    name: name.trim() || "Moj obrok",
+    emoji: keep?.emoji ?? "🍽️",
+    ingredients,
+    custom: true,
+  };
+}
+
+/** A meal's ingredients for `servings` people, one per line, as the edit box shows them. */
+export function mealToText(meal: Meal, servings: number): string {
+  return meal.ingredients
+    .map((ing) => itemTitle({ name: ing.name, amount: ing.amount !== undefined ? ing.amount * servings : undefined, unit: ing.unit }))
+    .join("\n");
 }

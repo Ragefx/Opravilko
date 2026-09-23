@@ -5,10 +5,8 @@ import {
   useBootstrap,
   useDeleteFilter,
   useDeleteLabel,
-  useDeleteProject,
   useRestoreFilter,
   useRestoreLabel,
-  useRestoreProject,
   useUpdateFilter,
   useUpdateLabel,
   useUpdateProject,
@@ -39,11 +37,11 @@ import {
   TrashIcon,
 } from "./icons";
 import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
-import ShareModal from "./ShareModal";
 import RowMenu from "./RowMenu";
+import ProjectMenu from "./ProjectMenu";
 import { useToast } from "./ToastProvider";
 import { clearWidget } from "../native/widget";
-import { activeSession, endSession, usingFirebase } from "../data/store";
+import { endSession, usingFirebase } from "../data/store";
 import { signOut } from "../firebase/auth";
 
 function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
@@ -105,10 +103,8 @@ export default function Sidebar({
   const updateProject = useUpdateProject();
   const updateLabel = useUpdateLabel();
   const updateFilter = useUpdateFilter();
-  const deleteProject = useDeleteProject();
   const deleteLabel = useDeleteLabel();
   const deleteFilter = useDeleteFilter();
-  const restoreProject = useRestoreProject();
   const restoreLabel = useRestoreLabel();
   const restoreFilter = useRestoreFilter();
 
@@ -128,7 +124,6 @@ export default function Sidebar({
       return next;
     });
   }
-  const [sharing, setSharing] = useState<string | null>(null);
   const [theme, setThemeState] = useState(currentEffectiveTheme);
 
   function toggleTheme() {
@@ -166,20 +161,6 @@ export default function Sidebar({
   const favoriteLabels = labels.filter((l) => l.isFavorite);
   const favoriteFilters = filters.filter((f) => f.isFavorite);
   const hasFavorites = favoriteProjects.length + favoriteLabels.length + favoriteFilters.length > 0;
-
-  function handleDeleteProject(id: string, name: string) {
-    deleteProject.mutate(id, {
-      onSuccess: (removed) => {
-        if (!removed) return;
-        navigate("/app");
-        showToast({
-          message: `Project “${name}” deleted`,
-          actionLabel: "Undo",
-          onAction: () => restoreProject.mutate(removed),
-        });
-      },
-    });
-  }
 
   function handleDeleteLabel(id: string, name: string) {
     deleteLabel.mutate(id, {
@@ -257,52 +238,7 @@ export default function Sidebar({
             active={p.isFavorite}
             onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}
           />
-          <RowMenu
-            label={p.name}
-            items={[
-              {
-                label: "Edit project",
-                icon: <EditIcon width={14} height={14} />,
-                onClick: () =>
-                  setModal({
-                    kind: "project",
-                    existing: { id: p.id, name: p.name, color: p.color, parentId: p.parentId },
-                  }),
-              },
-              {
-                label: "Add sub-project",
-                icon: <PlusIcon width={14} height={14} />,
-                onClick: () => setModal({ kind: "project", defaultParentId: p.id }),
-              },
-              ...(usingFirebase()
-                ? [
-                    {
-                      label: "Share…",
-                      icon: <ShareIcon width={14} height={14} />,
-                      onClick: () => setSharing(p.id),
-                    },
-                  ]
-                : []),
-              // Only the owner can delete a shared project; others can leave it.
-              p.ownerId && p.ownerId !== activeSession()?.userId
-                ? {
-                    label: "Leave project",
-                    icon: <TrashIcon width={14} height={14} />,
-                    danger: true,
-                    onClick: () => {
-                      void activeSession()?.leaveProject(p.id);
-                      navigate("/app");
-                      showToast({ message: `Left “${p.name}”` });
-                    },
-                  }
-                : {
-                    label: "Delete project",
-                    icon: <TrashIcon width={14} height={14} />,
-                    danger: true,
-                    onClick: () => handleDeleteProject(p.id, p.name),
-                  },
-            ]}
-          />
+          <ProjectMenu project={p} />
         </NavLink>
         {!collapsed && children.map((c) => renderProject(c, depth + 1))}
       </Fragment>
@@ -554,9 +490,6 @@ export default function Sidebar({
           defaultParentId={modal.defaultParentId}
           onClose={() => setModal(null)}
         />
-      )}
-      {sharing && data?.projects.find((p) => p.id === sharing) && (
-        <ShareModal project={data.projects.find((p) => p.id === sharing)!} onClose={() => setSharing(null)} />
       )}
     </aside>
   );

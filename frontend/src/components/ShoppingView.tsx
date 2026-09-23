@@ -8,6 +8,7 @@ import {
   formatAmount,
   itemTitle,
   mealFromText,
+  mealToText,
   parseItem,
   sameItem,
   saveCustomMeals,
@@ -17,7 +18,7 @@ import {
   type Meal,
 } from "../utils/shopping";
 import { useToast } from "./ToastProvider";
-import { CheckIcon, TrashIcon, XIcon } from "./icons";
+import { CheckIcon, XIcon } from "./icons";
 
 /** "za: Palačinke, Omleta" in the description says which meals an item is for. */
 function mealsOf(t: Task): string[] {
@@ -243,69 +244,85 @@ function MealPicker({
   onClose: () => void;
   onAdd: (meal: Meal, servings: number) => void;
 }) {
+  // Your own meals, and built-in ones you've edited (same id as the original).
   const [mine, setMine] = useState<Meal[]>(customMeals);
   const [picked, setPicked] = useState<Meal | null>(null);
   const [servings, setServings] = useState(2);
-  const [creating, setCreating] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newServings, setNewServings] = useState(2);
-  const [newText, setNewText] = useState("");
-  const meals = [...mine, ...BUILTIN_MEALS];
+  const [form, setForm] = useState<{ id?: string; emoji?: string; name: string; servings: number; text: string } | null>(null);
+  const builtinIds = new Set(BUILTIN_MEALS.map((m) => m.id));
+  const mineIds = new Set(mine.map((m) => m.id));
+  const meals = [...mine.filter((m) => !builtinIds.has(m.id)), ...BUILTIN_MEALS.map((b) => mine.find((m) => m.id === b.id) ?? b)];
 
-  function saveNew() {
-    const meal = mealFromText(newName, newText, newServings);
+  function store(next: Meal[]) {
+    setMine(next);
+    saveCustomMeals(next);
+  }
+
+  function saveForm() {
+    if (!form || !form.text.trim()) return;
+    const keep = form.id ? { id: form.id, emoji: form.emoji ?? "🍽️" } : undefined;
+    const meal = mealFromText(form.name, form.text, form.servings, keep);
     if (!meal.ingredients.length) return;
-    const next = [meal, ...mine];
-    setMine(next);
-    saveCustomMeals(next);
-    setCreating(false);
-    setNewName("");
-    setNewText("");
+    store(mineIds.has(meal.id) ? mine.map((m) => (m.id === meal.id ? meal : m)) : [meal, ...mine]);
+    setForm(null);
     setPicked(meal);
-    setServings(newServings);
+    setServings(form.servings);
   }
 
+  /** Deletes your own meal, or puts an edited built-in one back as it was. */
   function removeMine(id: string) {
-    const next = mine.filter((m) => m.id !== id);
-    setMine(next);
-    saveCustomMeals(next);
-    if (picked?.id === id) setPicked(null);
+    store(mine.filter((m) => m.id !== id));
+    const original = BUILTIN_MEALS.find((m) => m.id === id);
+    setPicked(original ?? null);
   }
+
+  const title = form
+    ? form.id
+      ? "Edit meal"
+      : "New meal"
+    : picked
+      ? `${picked.emoji} ${picked.name}`
+      : "Add a meal";
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal meal-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add a meal">
         <div className="settings-head">
-          <h3>{creating ? "New meal" : picked ? `${picked.emoji} ${picked.name}` : "Add a meal"}</h3>
+          <h3>{title}</h3>
           <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
             <XIcon width={18} height={18} />
           </button>
         </div>
 
-        {creating ? (
+        {form ? (
           <div className="meal-new">
-            <input placeholder="Name, e.g. Mamina juha" value={newName} onChange={(e) => setNewName(e.target.value)} autoFocus />
+            <input
+              placeholder="Name, e.g. Mamina juha"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              autoFocus
+            />
             <label className="meal-servings-label">
               The recipe is for
               <input
                 type="number"
                 min={1}
-                value={newServings}
-                onChange={(e) => setNewServings(Math.max(1, +e.target.value || 1))}
+                value={form.servings}
+                onChange={(e) => setForm({ ...form, servings: Math.max(1, +e.target.value || 1) })}
               />
               people
             </label>
             <textarea
-              rows={7}
+              rows={8}
               placeholder={"One ingredient per line:\n250 g moke\n0,5 l mleka\n3 jajca\nsol"}
-              value={newText}
-              onChange={(e) => setNewText(e.target.value)}
+              value={form.text}
+              onChange={(e) => setForm({ ...form, text: e.target.value })}
             />
             <div className="modal-actions">
-              <button className="btn btn-text" onClick={() => setCreating(false)}>
+              <button className="btn btn-text" onClick={() => setForm(null)}>
                 Back
               </button>
-              <button className="btn btn-primary" onClick={saveNew} disabled={!newText.trim()}>
+              <button className="btn btn-primary" onClick={saveForm} disabled={!form.text.trim()}>
                 Save meal
               </button>
             </div>
@@ -337,6 +354,25 @@ function MealPicker({
               <button className="btn btn-text" onClick={() => setPicked(null)}>
                 Back
               </button>
+              <button
+                className="btn btn-text"
+                onClick={() =>
+                  setForm({
+                    id: picked.id,
+                    emoji: picked.emoji,
+                    name: picked.name,
+                    servings,
+                    text: mealToText(picked, servings),
+                  })
+                }
+              >
+                Edit
+              </button>
+              {mineIds.has(picked.id) && (
+                <button className="btn btn-text meal-danger" onClick={() => removeMine(picked.id)}>
+                  {builtinIds.has(picked.id) ? "Reset" : "Delete"}
+                </button>
+              )}
               <button className="btn btn-primary" onClick={() => onAdd(picked, servings)}>
                 Add to list
               </button>
@@ -346,20 +382,16 @@ function MealPicker({
           <>
             <div className="meal-grid">
               {meals.map((m) => (
-                <div key={m.id} className="meal-card-wrap">
-                  <button className="meal-card" onClick={() => setPicked(m)}>
-                    <span className="meal-emoji">{m.emoji}</span>
-                    <span>{m.name}</span>
-                  </button>
-                  {m.custom && (
-                    <button className="meal-remove" onClick={() => removeMine(m.id)} aria-label={`Delete ${m.name}`}>
-                      <TrashIcon width={13} height={13} />
-                    </button>
-                  )}
-                </div>
+                <button key={m.id} className="meal-card" onClick={() => setPicked(m)}>
+                  <span className="meal-emoji">{m.emoji}</span>
+                  <span>{m.name}</span>
+                </button>
               ))}
             </div>
-            <button className="btn btn-secondary meal-new-btn" onClick={() => setCreating(true)}>
+            <button
+              className="btn btn-secondary meal-new-btn"
+              onClick={() => setForm({ name: "", servings: 2, text: "" })}
+            >
               + My own meal
             </button>
           </>

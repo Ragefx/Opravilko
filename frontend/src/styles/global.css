@@ -3241,3 +3241,6 @@ kbd {
   border-color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
 }
+.arrival-switch {
+  margin-top: 8px;
+}

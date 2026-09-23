@@ -20,9 +20,12 @@ release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-8
   the app closed). Needs this build to be tested on a phone.
 - Widget: knows the newer repeats (every 2 weeks, yearly, fixed / last day
   of the month).
+- Arrival reminders: "Remind me when I arrive" under a task's location.
+  Android's geofencing (150 m) notifies on arrival, app closed too; needs
+  location "Allow all the time". Per person on shared tasks. Needs this
+  build to be tested on a phone.
 
 ## Known gaps (not started)
 
 - Widget's own list refreshes only when the app runs (new tasks from the
   partner show up in the widget after the app has been opened).
-- "When I arrive" location reminders (needs background location).

@@ -107,6 +107,8 @@ export interface TaskLocation {
   address?: string;
   lat: number;
   lng: number;
+  /** Android app: who gets a notification on arriving here (user ids; "me" with Dropbox). */
+  arrivalFor?: string[];
 }
 
 export interface Attachment {

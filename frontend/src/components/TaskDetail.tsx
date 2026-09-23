@@ -23,6 +23,14 @@ import {
 import RepeatSelect from "./RepeatSelect";
 import { BellIcon, CopyIcon, FlagIcon, CalendarIcon, MapPinIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
 import LocationPicker from "./LocationPicker";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import {
+  arrivalRemindersAvailable,
+  myArrivalId,
+  openLocationSettings,
+  remindsMe,
+  requestArrivalAccess,
+} from "../native/places";
 import { mapsUrl } from "../utils/places";
 import { useToast } from "./ToastProvider";
 import TaskCheckbox from "./TaskCheckbox";
@@ -80,6 +88,30 @@ export default function TaskDetail({
   const [content, setContent] = useState(task.content);
   const [description, setDescription] = useState(task.description);
   const [pickingLocation, setPickingLocation] = useState(false);
+
+  /** Android app: arrival reminder on/off for me; asks for location access when turning it on. */
+  async function toggleArrival(on: boolean) {
+    if (!task.location) return;
+    const me = myArrivalId();
+    const others = (task.location.arrivalFor ?? []).filter((id) => id !== me);
+    // Built without the key when nobody's left (the database refuses empty values).
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { arrivalFor: _old, ...place } = task.location;
+    const next = on ? [...others, me] : others;
+    updateTask.mutate({ id: task.id, location: next.length ? { ...place, arrivalFor: next } : place });
+    if (!on) return;
+    await LocalNotifications.requestPermissions().catch(() => {});
+    const access = await requestArrivalAccess();
+    if (!access.location) {
+      showToast({ message: "Arrival reminders need location access for Opravilko." });
+    } else if (!access.background) {
+      showToast({
+        message: "To remind you with the app closed, set Opravilko's location to “Allow all the time”.",
+        actionLabel: "Settings",
+        onAction: openLocationSettings,
+      });
+    }
+  }
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState("");
   const [commentText, setCommentText] = useState("");
@@ -507,7 +539,16 @@ export default function TaskDetail({
                       Change
                     </button>
                   </div>
-                ) : (
+                ) : null}
+                {task.location && arrivalRemindersAvailable ? (
+                  <label className="settings-switch arrival-switch">
+                    <input type="checkbox" checked={remindsMe(task)} onChange={(e) => void toggleArrival(e.target.checked)} />
+                    <span>
+                      <b>Remind me when I arrive</b>
+                    </span>
+                  </label>
+                ) : null}
+                {task.location ? null : (
                   <button className="field-pill" onClick={() => setPickingLocation(true)}>
                     <MapPinIcon width={14} height={14} /> Add location
                   </button>

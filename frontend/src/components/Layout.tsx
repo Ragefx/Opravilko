@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { syncArrivalPlaces } from "../native/places";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { isNativeApp } from "../dropbox/auth";
 import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
@@ -120,6 +121,11 @@ export default function Layout() {
     window.addEventListener(WIDGET_QUICK_ADD, open);
     return () => window.removeEventListener(WIDGET_QUICK_ADD, open);
   }, []);
+
+  // Android app: arrival reminders follow the tasks (added, ticked off, moved).
+  useEffect(() => {
+    if (tasks) syncArrivalPlaces(tasks);
+  }, [tasks]);
 
   // Subscribed calendar feeds have no push either -- refresh once on load, then
   // hourly for as long as the tab stays open. With no connection (offline, or

@@ -726,9 +726,19 @@ kbd {
 }
 .quick-add-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+}
+/* In narrow places (a board column) the controls wrap instead of spilling
+   out of the box. */
+.quick-add {
+  min-width: 0;
+  max-width: 100%;
+}
+.quick-add-actions .field-pill {
+  min-width: 0;
 }
 
 .btn {

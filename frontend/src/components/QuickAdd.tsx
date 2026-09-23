@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel } from "../utils/date";
@@ -26,6 +26,21 @@ export default function QuickAdd({
   const { data } = useBootstrap();
   const [shared, setShared] = useState(defaultShared);
   const partner = data?.partner;
+  const boxRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef(text);
+  textRef.current = text;
+
+  // Clicking anywhere else closes the box -- unless something's been typed,
+  // so a stray click doesn't throw it away (Cancel or Esc still do).
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (boxRef.current?.contains(e.target as Node)) return;
+      if (!textRef.current.trim()) setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
 
   const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
   const previewDue = preview ? applyRecurrence(preview.due, recurrence) : null;
@@ -63,7 +78,7 @@ export default function QuickAdd({
   }
 
   return (
-    <div className="quick-add">
+    <div className="quick-add" ref={boxRef}>
       <input
         autoFocus
         placeholder="e.g. Draft proposal every monday p1 @work"
@@ -115,7 +130,13 @@ export default function QuickAdd({
           </select>
         </label>
         {partner && <SharedToggle partner={partner} on={shared || Boolean(preview?.shared)} onChange={setShared} />}
-        <button className="btn btn-text" onClick={() => setOpen(false)}>
+        <button
+          className="btn btn-text"
+          onClick={() => {
+            setOpen(false);
+            setText("");
+          }}
+        >
           Cancel
         </button>
         <button className="btn btn-primary" onClick={submit} disabled={!preview?.content}>

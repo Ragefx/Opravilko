@@ -18,7 +18,7 @@ import { useToast } from "./ToastProvider";
  * ...): read-only .ics feeds shown alongside tasks in Today/Upcoming/Calendar,
  * never turned into tasks themselves. Manage add/remove/refresh here.
  */
-export default function CalendarFeedsModal({ onClose }: { onClose: () => void }) {
+export default function CalendarFeedsModal({ onClose, embedded = false }: { onClose: () => void; embedded?: boolean }) {
   const { data } = useBootstrap();
   const createFeed = useCreateCalendarFeed();
   const updateFeed = useUpdateCalendarFeed();
@@ -60,9 +60,9 @@ export default function CalendarFeedsModal({ onClose }: { onClose: () => void })
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal import-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Calendars</h3>
+    // Embedded: shown inside Settings, without its own dialog frame, title or close button.
+    <Frame embedded={embedded} onClose={onClose}>
+        {!embedded && <h3>Calendars</h3>}
         <p className="import-help">
           Subscribe to a read-only .ics feed (a TV listing calendar, a Gmail holiday or birthday
           calendar's "Secret address in iCal format", ...). These show up as events alongside your
@@ -123,15 +123,16 @@ export default function CalendarFeedsModal({ onClose }: { onClose: () => void })
         </div>
 
         <div className="modal-actions">
-          <button className="btn btn-text" onClick={onClose}>
-            Close
-          </button>
+          {!embedded && (
+            <button className="btn btn-text" onClick={onClose}>
+              Close
+            </button>
+          )}
           <button className="btn btn-primary" onClick={addFeed} disabled={!name.trim() || !url.trim()}>
             Add calendar
           </button>
         </div>
-      </div>
-    </div>
+    </Frame>
   );
 }
 
@@ -223,6 +224,17 @@ function CalendarFeedRow({
       >
         <TrashIcon width={14} height={14} />
       </button>
+    </div>
+  );
+}
+
+function Frame({ embedded, onClose, children }: { embedded: boolean; onClose: () => void; children: React.ReactNode }) {
+  if (embedded) return <div className="settings-embedded">{children}</div>;
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal import-modal" onClick={(e) => e.stopPropagation()}>
+        {children}
+      </div>
     </div>
   );
 }

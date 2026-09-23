@@ -16,20 +16,18 @@ import { colorHex } from "../utils/colors";
 import { isDueToday, isOverdue } from "../utils/date";
 import { disconnect } from "../dropbox/auth";
 import { currentEffectiveTheme, setTheme } from "../utils/theme";
-import { disableReminders, enableReminders, remindersEnabled } from "../utils/notifications";
 import {
-  BellIcon,
-  CalendarIcon,
   ChartIcon,
   CheckCircleIcon,
   ChevronIcon,
   EditIcon,
   FilterIcon,
   FocusIcon,
-  ImportIcon,
   InboxIcon,
   LabelIcon,
+  LogOutIcon,
   MoonIcon,
+  PinIcon,
   PlusIcon,
   SearchIcon,
   SettingsIcon,
@@ -41,29 +39,12 @@ import {
   UpcomingIcon,
 } from "./icons";
 import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
-import ImportModal from "./ImportModal";
 import ShareModal from "./ShareModal";
-import CalendarFeedsModal from "./CalendarFeedsModal";
 import RowMenu from "./RowMenu";
 import { useToast } from "./ToastProvider";
 import { clearWidget } from "../native/widget";
 import { activeSession, endSession, usingFirebase } from "../data/store";
-import { useQueryClient } from "@tanstack/react-query";
 import { signOut } from "../firebase/auth";
-import type { AppData } from "../api/types";
-
-/** Saves everything as one JSON file -- the same format the Dropbox storage used. */
-function downloadBackup(data: AppData) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { calendarEvents: _events, ...rest } = data;
-  const blob = new Blob([JSON.stringify(rest, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `opravilko-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
@@ -104,18 +85,22 @@ export default function Sidebar({
   onSearch,
   onQuickAdd,
   onOpenSettings,
+  pinned,
+  onTogglePin,
   mobileOpen = false,
 }: {
   onSearch: () => void;
   onQuickAdd: () => void;
   onOpenSettings: () => void;
+  /** Sidebar stays open beside the page (wider screens), instead of sliding in. */
+  pinned: boolean;
+  onTogglePin: () => void;
   /** On narrow screens the sidebar is an off-canvas drawer; this slides it in. */
   mobileOpen?: boolean;
 }) {
   const { data } = useBootstrap();
   const navigate = useNavigate();
   const showToast = useToast();
-  const queryClient = useQueryClient();
 
   const updateProject = useUpdateProject();
   const updateLabel = useUpdateLabel();
@@ -143,11 +128,8 @@ export default function Sidebar({
       return next;
     });
   }
-  const [importOpen, setImportOpen] = useState(false);
   const [sharing, setSharing] = useState<string | null>(null);
-  const [calendarsOpen, setCalendarsOpen] = useState(false);
   const [theme, setThemeState] = useState(currentEffectiveTheme);
-  const [remindersOn, setRemindersOn] = useState(remindersEnabled);
 
   function toggleTheme() {
     const next = theme === "dark" ? "light" : "dark";
@@ -339,6 +321,16 @@ export default function Sidebar({
         >
           {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
         </button>
+        {/* Keep the sidebar open, or let it slide away (wider screens only). */}
+        <button
+          className={`sidebar-icon-btn sidebar-pin ${pinned ? "is-pinned" : ""}`}
+          onClick={onTogglePin}
+          aria-pressed={pinned}
+          aria-label={pinned ? "Let the sidebar hide" : "Keep the sidebar open"}
+          title={pinned ? "Let the sidebar hide" : "Keep the sidebar open"}
+        >
+          <PinIcon width={16} height={16} />
+        </button>
         <RowMenu
           label="Account"
           items={[
@@ -347,49 +339,10 @@ export default function Sidebar({
               icon: <SettingsIcon width={14} height={14} />,
               onClick: onOpenSettings,
             },
-            {
-              label: "Import from Todoist",
-              icon: <ImportIcon width={14} height={14} />,
-              onClick: () => setImportOpen(true),
-            },
-            {
-              label: "Calendars",
-              icon: <CalendarIcon width={14} height={14} />,
-              onClick: () => setCalendarsOpen(true),
-            },
-            {
-              label: remindersOn ? "Turn off reminders" : "Turn on reminders",
-              icon: <BellIcon width={14} height={14} />,
-              onClick: async () => {
-                if (remindersOn) {
-                  disableReminders();
-                  setRemindersOn(false);
-                  showToast({ message: "Reminders off" });
-                } else {
-                  const ok = await enableReminders();
-                  setRemindersOn(ok);
-                  showToast({
-                    message: ok
-                      ? "Reminders on — you'll be notified for tasks with a time, while the app is open"
-                      : "Your browser blocked notifications",
-                  });
-                }
-              },
-            },
-            {
-              label: "Download backup",
-              icon: <ImportIcon width={14} height={14} style={{ transform: "rotate(180deg)" }} />,
-              onClick: async () => {
-                // Older completed tasks aren't kept loaded with Firebase; fetch them first.
-                if (usingFirebase()) await activeSession()?.loadArchived();
-                const latest = queryClient.getQueryData<AppData>(["bootstrap"]);
-                if (latest) downloadBackup(latest);
-              },
-            },
             usingFirebase()
               ? {
                   label: "Sign out",
-                  icon: <TrashIcon width={14} height={14} />,
+                  icon: <LogOutIcon width={14} height={14} />,
                   danger: true,
                   onClick: async () => {
                     endSession();
@@ -399,7 +352,7 @@ export default function Sidebar({
                 }
               : {
                   label: "Disconnect Dropbox",
-                  icon: <TrashIcon width={14} height={14} />,
+                  icon: <LogOutIcon width={14} height={14} />,
                   danger: true,
                   onClick: () => {
                     disconnect();
@@ -604,11 +557,9 @@ export default function Sidebar({
           onClose={() => setModal(null)}
         />
       )}
-      {importOpen && <ImportModal onClose={() => setImportOpen(false)} />}
       {sharing && data?.projects.find((p) => p.id === sharing) && (
         <ShareModal project={data.projects.find((p) => p.id === sharing)!} onClose={() => setSharing(null)} />
       )}
-      {calendarsOpen && <CalendarFeedsModal onClose={() => setCalendarsOpen(false)} />}
     </aside>
   );
 }

@@ -275,3 +275,17 @@ export const ShareIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M16 5.2a3 3 0 0 1 0 5.6M18.5 13.8c1.5.8 2.5 2.4 2.5 4.2" />
   </svg>
 );
+
+export const PinIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M9 4h6l-1 6 3 3v2H7v-2l3-3-1-6z" />
+    <path d="M12 15v6" />
+  </svg>
+);
+
+export const LogOutIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <path d="M16 17l5-5-5-5M21 12H9" />
+  </svg>
+);

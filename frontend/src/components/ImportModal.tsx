@@ -6,7 +6,7 @@ import { COLOR_NAMES, colorHex } from "../utils/colors";
 import { useToast } from "./ToastProvider";
 
 /** Imports a Todoist project CSV export as a new project. */
-export default function ImportModal({ onClose }: { onClose: () => void }) {
+export default function ImportModal({ onClose, embedded = false }: { onClose: () => void; embedded?: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const importProject = useImportProject();
   const navigate = useNavigate();
@@ -58,9 +58,9 @@ export default function ImportModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal import-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Import from Todoist</h3>
+    // Embedded: shown inside Settings, without its own dialog frame, title or close button.
+    <Frame embedded={embedded} onClose={onClose}>
+        {!embedded && <h3>Import from Todoist</h3>}
 
         {!preview && (
           <>
@@ -141,15 +141,27 @@ export default function ImportModal({ onClose }: { onClose: () => void }) {
         )}
 
         <div className="modal-actions">
-          <button className="btn btn-text" onClick={onClose}>
-            Cancel
-          </button>
+          {!embedded && (
+            <button className="btn btn-text" onClick={onClose}>
+              Cancel
+            </button>
+          )}
           {preview && (
             <button className="btn btn-primary" onClick={runImport} disabled={!projectName.trim()}>
               Import
             </button>
           )}
         </div>
+    </Frame>
+  );
+}
+
+function Frame({ embedded, onClose, children }: { embedded: boolean; onClose: () => void; children: React.ReactNode }) {
+  if (embedded) return <div className="settings-embedded">{children}</div>;
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal import-modal" onClick={(e) => e.stopPropagation()}>
+        {children}
       </div>
     </div>
   );

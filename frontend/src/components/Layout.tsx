@@ -21,6 +21,7 @@ import CommandPalette from "./CommandPalette";
 import SettingsModal from "./SettingsModal";
 import SocaTopBar from "./SocaTopBar";
 import { useLook } from "../utils/look";
+import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import SyncIndicator from "./SyncIndicator";
 import { ToastProvider } from "./ToastProvider";
 import { MenuIcon, PlusIcon, SearchIcon } from "./icons";
@@ -45,6 +46,7 @@ export default function Layout() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const look = useLook();
+  const pinned = useSidebarPinned(look);
   const openSettings = useCallback(() => setSettingsOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
   const [navOpen, setNavOpen] = useState(false);
@@ -178,12 +180,17 @@ export default function Layout() {
 
   return (
     <ToastProvider>
-      <div className={`app-shell ${look === "soca" ? "soca-shell" : ""}`}>
+      <div className={`app-shell ${look === "soca" ? "soca-shell" : ""} ${pinned ? "sidebar-pinned" : "sidebar-unpinned"}`}>
         {/* In the Soča look the sidebar is a drawer at every width, opened from the top bar. */}
         <Sidebar
           onSearch={() => setSearchOpen(true)}
           onQuickAdd={() => setQuickAddOpen(true)}
           onOpenSettings={openSettings}
+          pinned={pinned}
+          onTogglePin={() => {
+            setSidebarPinned(look, !pinned);
+            setNavOpen(false);
+          }}
           mobileOpen={navOpen}
         />
         {navOpen && <div className="sidebar-scrim" onClick={() => setNavOpen(false)} />}

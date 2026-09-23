@@ -72,9 +72,9 @@ export default function CalendarFeedsModal({ onClose, embedded = false }: { onCl
             <>The app fetches feeds directly from their source.</>
           ) : (
             <>
-              Fetching a feed routes it through a public relay (<strong>{CORS_PROXY_NAME}</strong>, with a
-              fallback if that one's unreachable) since browsers can't fetch most feeds directly; for a
-              private link that's worth knowing before you add it. The Android app fetches directly.
+              Browsers can't fetch most feeds directly, so the website fetches them through{" "}
+              <strong>{CORS_PROXY_NAME}</strong>, with free public relays only as a backup if it's ever
+              unreachable. The Android app fetches directly.
             </>
           )}
         </p>

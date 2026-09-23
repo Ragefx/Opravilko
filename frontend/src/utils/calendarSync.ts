@@ -1,21 +1,23 @@
 /**
  * Browsers block cross-origin fetches unless the server opts in (CORS), and
- * most .ics feeds (Google Calendar's private export links, TV listing
- * sites, ...) don't. With no backend of our own to fetch through instead,
- * the only way to load them client-side is via a public CORS relay -- the
- * feed URL (which for a private Google Calendar link includes a secret
- * token) passes through that third party's server on every sync. The user
- * has explicitly accepted that trade-off; this is named plainly so it's
- * never a surprise later, and surfaced in the "Add calendar" UI.
+ * most .ics feeds (Google Calendar, TV listing sites, ...) don't. So the
+ * website fetches them through our own relay -- a small Cloudflare Worker
+ * (cloudflare/calendar-relay.js) that only answers this site and only passes
+ * on real calendars. The free public relays stay as a fallback in case ours
+ * is ever unreachable; they're shared by everyone, so they're often busy.
  */
 import { CapacitorHttp } from "@capacitor/core";
 import type { CalendarEvent, CalendarFeed } from "../api/types";
 import { isNativeApp } from "../dropbox/auth";
 
-export const CORS_PROXY_NAME = "codetabs.com";
+/** Our own relay (see cloudflare/calendar-relay.js). */
+const OWN_RELAY = "https://opravilko-calendar.cloudsan-29b.workers.dev/";
+
+export const CORS_PROXY_NAME = "Opravilko's own relay on Cloudflare";
 
 /**
  * Relays tried in order, each named so a failure says which one refused.
+ * Ours first; then the public ones.
  * corsproxy.io rejects anonymous requests outright (HTTP 401, it now wants
  * a registered origin/API key), and allorigins.win has started failing the
  * same way for some targets (Google's servers in particular). codetabs is
@@ -23,6 +25,7 @@ export const CORS_PROXY_NAME = "codetabs.com";
  * case it's ever down instead.
  */
 const PROXIES: { name: string; url: (feedUrl: string) => string }[] = [
+  { name: "own relay", url: (feedUrl) => `${OWN_RELAY}?url=${encodeURIComponent(feedUrl)}` },
   { name: "codetabs.com", url: (feedUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(feedUrl)}` },
   { name: "allorigins.win", url: (feedUrl) => `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}` },
   { name: "corsproxy.io", url: (feedUrl) => `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}` },

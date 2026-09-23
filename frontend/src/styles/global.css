@@ -2704,3 +2704,75 @@ kbd {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------- Calendar: month/week toggle, week layout, dragging ---------- */
+.calendar-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.calendar-chip-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  margin-right: 5px;
+  opacity: 0.75;
+}
+.calendar-task-chip {
+  touch-action: manipulation;
+}
+.calendar-task-chip.is-dragging {
+  opacity: 0.35;
+}
+.calendar-chip-dragging {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  cursor: grabbing;
+  max-width: 220px;
+}
+.calendar-cell.is-drop-target {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  outline: 2px dashed var(--color-accent);
+  outline-offset: -3px;
+}
+.calendar-cell.is-drop-target::after {
+  opacity: 0 !important;
+}
+
+/* Week: seven tall columns with every task and event of the day. */
+.calendar-week .calendar-days-grid {
+  border-top: 1px solid var(--color-border);
+  grid-template-rows: minmax(0, 1fr);
+}
+.calendar-week .calendar-cell {
+  min-height: 0;
+  padding: 6px 6px 40px;
+}
+.calendar-week .calendar-cell-header {
+  justify-content: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.calendar-cell-weekday {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.calendar-week .calendar-task-chip,
+.calendar-week .calendar-event-chip {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* Phones: the week is a list of days, one under the other. */
+@media (max-width: 700px) {
+  .calendar-week .calendar-days-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+  .calendar-week .calendar-cell {
+    min-height: 64px;
+    padding-bottom: 12px;
+  }
+  .calendar-week .calendar-cell-header {
+    font-size: 14px;
+  }
+}

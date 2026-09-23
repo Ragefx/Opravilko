@@ -14,10 +14,13 @@ import {
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { makeDue, makeDueFromDateString } from "../utils/date";
 import {
-  type RecurrenceFreq,
+  type RepeatPreset,
+  describeRecurrence,
+  dueWithPreset,
   parseRecurrenceString,
-  serializeRecurrence,
+  presetForRule,
 } from "../utils/recurrence";
+import RepeatSelect from "./RepeatSelect";
 import { BellIcon, CopyIcon, FlagIcon, CalendarIcon, MapPinIcon, RepeatIcon, TrashIcon, XIcon } from "./icons";
 import LocationPicker from "./LocationPicker";
 import { mapsUrl } from "../utils/places";
@@ -133,16 +136,13 @@ export default function TaskDetail({
     updateTask.mutate({ id: task.id, due: makeDueFromDateString(dateStr, timeStr || undefined) });
   }
 
-  function setRecurrence(freq: RecurrenceFreq | "none") {
+  function setRecurrence(preset: RepeatPreset | "none") {
     if (!task.due) return;
-    if (freq === "none") {
+    if (preset === "none") {
       updateTask.mutate({ id: task.id, due: { ...task.due, isRecurring: false, rrule: undefined } });
       return;
     }
-    updateTask.mutate({
-      id: task.id,
-      due: { ...task.due, isRecurring: true, rrule: serializeRecurrence({ freq }) },
-    });
+    updateTask.mutate({ id: task.id, due: dueWithPreset({ ...task.due, isRecurring: false }, preset) });
   }
 
   function addLabel() {
@@ -159,7 +159,8 @@ export default function TaskDetail({
     updateTask.mutate({ id: task.id, labels: task.labels.filter((l) => l !== name) });
   }
 
-  const currentFreq = parseRecurrenceString(task.due?.rrule)?.freq;
+  const currentRule = task.due?.isRecurring ? parseRecurrenceString(task.due.rrule) : null;
+  const currentRepeat = currentRule ? presetForRule(currentRule) ?? "custom" : "none";
   const [timeHour, timeMinute] = timeFromDatetime(task.due?.datetime).split(":");
   const parentTask = task.parentId ? data?.tasks.find((t) => t.id === task.parentId) : undefined;
   const subtasks = (data?.tasks || [])
@@ -467,17 +468,7 @@ export default function TaskDetail({
                   <div className="detail-field-row">
                     <label className="field-pill" style={{ gap: 6 }}>
                       <RepeatIcon width={14} height={14} />
-                      <select
-                        className="detail-date-input"
-                        value={currentFreq || "none"}
-                        onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq | "none")}
-                      >
-                        <option value="none">Doesn't repeat</option>
-                        <option value="daily">Every day</option>
-                        <option value="weekdays">Every weekday</option>
-                        <option value="weekly">Every week</option>
-                        <option value="monthly">Every month</option>
-                      </select>
+                      <RepeatSelect value={currentRepeat} onChange={setRecurrence} customLabel={describeRecurrence(currentRule)} />
                     </label>
                   </div>
                 )}

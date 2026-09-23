@@ -1,24 +1,64 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   addDays,
   addMonths,
+  addWeeks,
+  differenceInCalendarDays,
   endOfMonth,
   endOfWeek,
   format,
   isSameMonth,
   isToday,
+  parseISO,
   startOfMonth,
   startOfWeek,
   subMonths,
+  subWeeks,
 } from "date-fns";
-import type { CalendarEvent, Task } from "../api/types";
+import {
+  DndContext,
+  DragOverlay,
+  MouseSensor,
+  TouchSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import type { CalendarEvent, Due, Task } from "../api/types";
+import { useUpdateTask } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
+import { useToast } from "./ToastProvider";
 import { requestQuickAdd } from "../native/widget";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 3;
 const WEEK_OPTS = { weekStartsOn: 1 as const };
+const MODE_KEY = "opravilko.calendarMode";
+
+type Mode = "month" | "week";
+
+function storedMode(): Mode {
+  try {
+    return localStorage.getItem(MODE_KEY) === "week" ? "week" : "month";
+  } catch {
+    return "month";
+  }
+}
+
+/** The same due, moved to another day; a set time and any repeat stay as they were. */
+function moveDue(due: Due, toDate: string): Due {
+  if (!due.datetime) return { ...due, date: toDate };
+  const shift = differenceInCalendarDays(parseISO(toDate), parseISO(due.date));
+  return { ...due, date: toDate, datetime: addDays(new Date(due.datetime), shift).toISOString() };
+}
+
+function timeOf(t: Task): string | null {
+  return t.due?.datetime ? format(new Date(t.due.datetime), "HH:mm") : null;
+}
 
 export default function CalendarView({
   tasks,
@@ -29,14 +69,39 @@ export default function CalendarView({
   projectId: string;
   eventsByDate?: Map<string, CalendarEvent[]>;
 }) {
-  const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  const [mode, setModeState] = useState<Mode>(storedMode);
+  const [cursor, setCursor] = useState(() => new Date());
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [dragging, setDragging] = useState<Task | null>(null);
+  const updateTask = useUpdateTask();
+  const showToast = useToast();
 
-  const gridStart = startOfWeek(startOfMonth(month), WEEK_OPTS);
-  const gridEnd = endOfWeek(endOfMonth(month), WEEK_OPTS);
+  // A short press still opens the task; dragging starts after a small move
+  // (mouse) or a long press (touch), like the board.
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } })
+  );
+
+  function setMode(next: Mode) {
+    setModeState(next);
+    try {
+      localStorage.setItem(MODE_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  }
+
   const days: Date[] = [];
-  for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) days.push(d);
+  if (mode === "month") {
+    const gridStart = startOfWeek(startOfMonth(cursor), WEEK_OPTS);
+    const gridEnd = endOfWeek(endOfMonth(cursor), WEEK_OPTS);
+    for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) days.push(d);
+  } else {
+    const weekStart = startOfWeek(cursor, WEEK_OPTS);
+    for (let i = 0; i < 7; i++) days.push(addDays(weekStart, i));
+  }
   const weekCount = days.length / 7;
 
   const tasksByDate = new Map<string, Task[]>();
@@ -46,100 +111,198 @@ export default function CalendarView({
     if (!tasksByDate.has(key)) tasksByDate.set(key, []);
     tasksByDate.get(key)!.push(t);
   }
+  // Timed tasks first, in time order; then the rest by priority.
+  const sortDay = (list: Task[]) =>
+    [...list].sort((a, b) => {
+      const ta = timeOf(a);
+      const tb = timeOf(b);
+      if (ta && tb) return ta.localeCompare(tb);
+      if (ta) return -1;
+      if (tb) return 1;
+      return b.priority - a.priority;
+    });
+
+  function handleDragEnd(e: DragEndEvent) {
+    setDragging(null);
+    const task = tasks.find((t) => t.id === e.active.id);
+    const toDate = e.over?.id as string | undefined;
+    if (!task?.due || !toDate || toDate === task.due.date) return;
+    const before = task.due;
+    updateTask.mutate({ id: task.id, due: moveDue(before, toDate) });
+    showToast({
+      message: `Moved to ${format(parseISO(toDate), "EEE, MMM d")}`,
+      actionLabel: "Undo",
+      onAction: () => updateTask.mutate({ id: task.id, due: before }),
+    });
+  }
+
+  const title =
+    mode === "month"
+      ? format(cursor, "MMMM yyyy")
+      : (() => {
+          const a = days[0];
+          const b = days[6];
+          return isSameMonth(a, b)
+            ? `${format(a, "MMM d")} – ${format(b, "d, yyyy")}`
+            : `${format(a, "MMM d")} – ${format(b, "MMM d, yyyy")}`;
+        })();
 
   return (
-    <div className="calendar-view">
+    <div className={`calendar-view calendar-${mode}`}>
       <div className="topbar" style={{ padding: "0 0 16px", border: "none", flexShrink: 0 }}>
-        <h1>{format(month, "MMMM yyyy")}</h1>
-        <div className="view-toggle">
-          <button onClick={() => setMonth((m) => subMonths(m, 1))} aria-label="Previous month">
-            ‹
-          </button>
-          <button onClick={() => setMonth(startOfMonth(new Date()))}>Today</button>
-          <button onClick={() => setMonth((m) => addMonths(m, 1))} aria-label="Next month">
-            ›
-          </button>
+        <h1>{title}</h1>
+        <div className="calendar-controls">
+          <div className="view-toggle" role="radiogroup" aria-label="Calendar layout">
+            {(["month", "week"] as const).map((m) => (
+              <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? "active" : ""} onClick={() => setMode(m)}>
+                {m === "month" ? "Month" : "Week"}
+              </button>
+            ))}
+          </div>
+          <div className="view-toggle">
+            <button
+              onClick={() => setCursor((c) => (mode === "month" ? subMonths(c, 1) : subWeeks(c, 1)))}
+              aria-label={mode === "month" ? "Previous month" : "Previous week"}
+            >
+              ‹
+            </button>
+            <button onClick={() => setCursor(new Date())}>Today</button>
+            <button
+              onClick={() => setCursor((c) => (mode === "month" ? addMonths(c, 1) : addWeeks(c, 1)))}
+              aria-label={mode === "month" ? "Next month" : "Next week"}
+            >
+              ›
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="calendar-weekdays-row">
-        {WEEKDAY_LABELS.map((w) => (
-          <div key={w} className="calendar-weekday">
-            {w}
-          </div>
-        ))}
-      </div>
-
-      <div className="calendar-days-grid" style={{ gridTemplateRows: `repeat(${weekCount}, 1fr)` }}>
-        {days.map((day) => {
-          const key = format(day, "yyyy-MM-dd");
-          const dayTasks = (tasksByDate.get(key) || []).sort((a, b) => a.priority - b.priority);
-          const dayEvents = eventsByDate?.get(key) || [];
-          const inMonth = isSameMonth(day, month);
-          return (
-            <div
-              key={key}
-              className={`calendar-cell ${inMonth ? "" : "outside-month"} ${isToday(day) ? "is-today" : ""}`}
-              // Clicking the day's empty space adds a task on it; clicks on
-              // its tasks, events and "+N more" do their own thing.
-              onClick={(e) => {
-                if ((e.target as HTMLElement).closest(".calendar-task-chip, .calendar-event-chip, .calendar-more")) return;
-                requestQuickAdd({ projectId, today: false, date: key });
-              }}
-            >
-              <div className="calendar-cell-header">
-                <span>{format(day, "d")}</span>
-              </div>
-              {(() => {
-                // Three full-size lines per day (events first, then tasks);
-                // the rest behind "+N more", which shows the whole day.
-                const expanded = expandedDay === key;
-                const limit = expanded ? Infinity : MAX_VISIBLE_PER_DAY;
-                const shownEvents = dayEvents.slice(0, limit);
-                const shownTasks = dayTasks.slice(0, Math.max(0, limit - shownEvents.length));
-                const hidden = dayEvents.length + dayTasks.length - shownEvents.length - shownTasks.length;
-                return (
-                  <>
-                    {shownEvents.map((e) => (
-                      <div
-                        key={e.id}
-                        className="calendar-event-chip"
-                        style={{ borderLeftColor: e.color }}
-                        title={e.title}
-                      >
-                        {e.title}
-                      </div>
-                    ))}
-                    {shownTasks.map((t) => (
-                      <button
-                        key={t.id}
-                        className="calendar-task-chip"
-                        style={{ borderLeftColor: PRIORITY_META[t.priority].color }}
-                        onClick={() => setOpenTask(t)}
-                        title={t.content}
-                      >
-                        {t.content}
-                      </button>
-                    ))}
-                    {hidden > 0 && (
-                      <button className="calendar-more" onClick={() => setExpandedDay(key)}>
-                        +{hidden} more
-                      </button>
-                    )}
-                    {expanded && dayEvents.length + dayTasks.length > MAX_VISIBLE_PER_DAY && (
-                      <button className="calendar-more" onClick={() => setExpandedDay(null)}>
-                        Show less
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
+      {mode === "month" && (
+        <div className="calendar-weekdays-row">
+          {WEEKDAY_LABELS.map((w) => (
+            <div key={w} className="calendar-weekday">
+              {w}
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
+
+      <DndContext
+        sensors={sensors}
+        onDragStart={(e: DragStartEvent) => setDragging(tasks.find((t) => t.id === e.active.id) ?? null)}
+        onDragCancel={() => setDragging(null)}
+        onDragEnd={handleDragEnd}
+      >
+        <div
+          className="calendar-days-grid"
+          style={mode === "month" ? { gridTemplateRows: `repeat(${weekCount}, 1fr)` } : undefined}
+        >
+          {days.map((day) => {
+            const key = format(day, "yyyy-MM-dd");
+            const dayTasks = sortDay(tasksByDate.get(key) || []);
+            const dayEvents = eventsByDate?.get(key) || [];
+            // The week view has room for everything; the month shows three lines a day.
+            const expanded = mode === "week" || expandedDay === key;
+            const limit = expanded ? Infinity : MAX_VISIBLE_PER_DAY;
+            const shownEvents = dayEvents.slice(0, limit);
+            const shownTasks = dayTasks.slice(0, Math.max(0, limit - shownEvents.length));
+            const hidden = dayEvents.length + dayTasks.length - shownEvents.length - shownTasks.length;
+            return (
+              <DayCell
+                key={key}
+                dateKey={key}
+                className={`calendar-cell ${mode === "month" && !isSameMonth(day, cursor) ? "outside-month" : ""} ${
+                  isToday(day) ? "is-today" : ""
+                }`}
+                onAdd={() => requestQuickAdd({ projectId, today: false, date: key })}
+              >
+                <div className="calendar-cell-header">
+                  <span>{format(day, "d")}</span>
+                  {mode === "week" && <b className="calendar-cell-weekday">{format(day, "EEE")}</b>}
+                </div>
+                {shownEvents.map((e) => (
+                  <div key={e.id} className="calendar-event-chip" style={{ borderLeftColor: e.color }} title={e.title}>
+                    {e.start && !e.allDay && <span className="calendar-chip-time">{format(new Date(e.start), "HH:mm")}</span>}
+                    {e.title}
+                  </div>
+                ))}
+                {shownTasks.map((t) => (
+                  <TaskChip key={t.id} task={t} onOpen={() => setOpenTask(t)} />
+                ))}
+                {hidden > 0 && (
+                  <button className="calendar-more" onClick={() => setExpandedDay(key)}>
+                    +{hidden} more
+                  </button>
+                )}
+                {mode === "month" && expandedDay === key && dayEvents.length + dayTasks.length > MAX_VISIBLE_PER_DAY && (
+                  <button className="calendar-more" onClick={() => setExpandedDay(null)}>
+                    Show less
+                  </button>
+                )}
+              </DayCell>
+            );
+          })}
+        </div>
+        <DragOverlay dropAnimation={null}>
+          {dragging ? (
+            <div
+              className="calendar-task-chip calendar-chip-dragging"
+              style={{ borderLeftColor: PRIORITY_META[dragging.priority].color }}
+            >
+              {timeOf(dragging) && <span className="calendar-chip-time">{timeOf(dragging)}</span>}
+              {dragging.content}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} onOpenTask={setOpenTask} />}
     </div>
+  );
+}
+
+/** A day: a drop target for dragged tasks, and clicking its empty space adds a task on it. */
+function DayCell({
+  dateKey,
+  className,
+  onAdd,
+  children,
+}: {
+  dateKey: string;
+  className: string;
+  onAdd: () => void;
+  children: ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: dateKey });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`${className} ${isOver ? "is-drop-target" : ""}`}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest(".calendar-task-chip, .calendar-event-chip, .calendar-more")) return;
+        onAdd();
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function TaskChip({ task, onOpen }: { task: Task; onOpen: () => void }) {
+  const { setNodeRef, listeners, attributes, isDragging } = useDraggable({ id: task.id });
+  const time = timeOf(task);
+  return (
+    <button
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`calendar-task-chip ${isDragging ? "is-dragging" : ""}`}
+      style={{ borderLeftColor: PRIORITY_META[task.priority].color }}
+      onClick={onOpen}
+      title={task.content}
+    >
+      {time && <span className="calendar-chip-time">{time}</span>}
+      {task.content}
+    </button>
   );
 }

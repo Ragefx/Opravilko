@@ -4,7 +4,8 @@ import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
-import { type RecurrenceFreq, applyRecurrence } from "../utils/recurrence";
+import { type RepeatPreset, applyRecurrence } from "../utils/recurrence";
+import RepeatSelect from "./RepeatSelect";
 import { RepeatIcon } from "./icons";
 import SharedToggle from "./SharedToggle";
 import { useToast } from "./ToastProvider";
@@ -29,7 +30,7 @@ export default function QuickAddModal({
   const showToast = useToast();
   const [text, setText] = useState("");
   const [projectId, setProjectId] = useState(defaultProjectId);
-  const [recurrence, setRecurrence] = useState<RecurrenceFreq | "none">("none");
+  const [recurrence, setRecurrence] = useState<RepeatPreset | "none">("none");
   const [shared, setShared] = useState(false);
   const partner = data?.partner;
 
@@ -127,17 +128,7 @@ export default function QuickAddModal({
             {partner && <SharedToggle partner={partner} on={shared || Boolean(preview?.shared)} onChange={setShared} />}
             <label className="field-pill" style={{ gap: 6, flexShrink: 0 }}>
               <RepeatIcon width={14} height={14} />
-              <select
-                className="detail-date-input"
-                value={recurrence}
-                onChange={(e) => setRecurrence(e.target.value as RecurrenceFreq | "none")}
-              >
-                <option value="none">Doesn't repeat</option>
-                <option value="daily">Every day</option>
-                <option value="weekdays">Every weekday</option>
-                <option value="weekly">Every week</option>
-                <option value="monthly">Every month</option>
-              </select>
+              <RepeatSelect value={recurrence} onChange={setRecurrence} />
             </label>
           </div>
           <div style={{ display: "flex", gap: 8 }}>

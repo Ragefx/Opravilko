@@ -17,7 +17,7 @@ import {
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import { makeDue, makeDueFromDateString, parseNaturalDate } from "../utils/date";
 import { weekendOffsetDays } from "../utils/quickDates";
-import { serializeRecurrence, type RecurrenceFreq } from "../utils/recurrence";
+import { dueWithPreset, type RepeatPreset } from "../utils/recurrence";
 import { CalendarIcon, ChevronIcon, ClockIcon, CouchIcon, RepeatIcon, SkipForwardIcon, SunIcon, XIcon } from "./icons";
 import TimePickerPopup from "./TimePickerPopup";
 
@@ -92,13 +92,9 @@ export default function DatePickerPopup({
     onClose();
   }
 
-  function setRepeat(freq: RecurrenceFreq, byDay?: number[]) {
+  function setRepeat(preset: RepeatPreset) {
     const dateStr = due?.date || format(new Date(), "yyyy-MM-dd");
-    const newDue = makeDueFromDateString(dateStr, currentTimeStr());
-    updateTask.mutate({
-      id: taskId,
-      due: { ...newDue, isRecurring: true, rrule: serializeRecurrence({ freq, byDay }) },
-    });
+    updateTask.mutate({ id: taskId, due: dueWithPreset(makeDueFromDateString(dateStr, currentTimeStr()), preset) });
     onClose();
   }
 
@@ -225,13 +221,12 @@ export default function DatePickerPopup({
           {showRepeat && (
             <div className="date-picker-repeat-flyout">
               <button onClick={() => setRepeat("daily")}>Every day</button>
-              <button onClick={() => setRepeat("weekly", [today.getDay()])}>
-                Every week on {format(today, "EEEE")}
-              </button>
               <button onClick={() => setRepeat("weekdays")}>Every weekday (Mon - Fri)</button>
-              <button onClick={() => setRepeat("monthly")}>
-                Every month on the {format(selectedDate || today, "d")}
-              </button>
+              <button onClick={() => setRepeat("weekly")}>Every week on {format(selectedDate || today, "EEEE")}</button>
+              <button onClick={() => setRepeat("biweekly")}>Every 2 weeks on {format(selectedDate || today, "EEEE")}</button>
+              <button onClick={() => setRepeat("monthly")}>Every month on the {format(selectedDate || today, "do")}</button>
+              <button onClick={() => setRepeat("monthly_last")}>Every month on the last day</button>
+              <button onClick={() => setRepeat("yearly")}>Every year on {format(selectedDate || today, "MMM d")}</button>
             </div>
           )}
         </div>

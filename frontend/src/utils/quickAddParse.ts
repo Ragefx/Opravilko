@@ -1,5 +1,6 @@
 import type { Due, Priority } from "../api/types";
-import { parseNaturalDate } from "./date";
+import { format } from "date-fns";
+import { parseDateToken, parseNaturalDate, parseTimeToken } from "./date";
 import {
   describeRecurrence,
   initialDueForRecurrence,
@@ -57,8 +58,22 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
   const recurrence = parseNaturalRecurrence(content);
   if (recurrence) {
     content = content.replace(recurrence.matchedText, "").trim();
+    // A date or time typed alongside sets where it starts:
+    // "E-vinjeta 30.11. vsako leto", "Trening every friday ob 18".
+    const time = parseTimeToken(content);
+    if (time) content = content.replace(time.matched, "").trim();
+    const start = parseDateToken(content);
+    if (start) content = content.replace(start.matched, "").trim();
+    const date = start ? format(start.date, "yyyy-MM-dd") : initialDueForRecurrence(recurrence.rule);
+    let datetime: string | undefined;
+    if (time) {
+      const d = new Date(`${date}T00:00:00`);
+      d.setHours(time.hours, time.minutes, 0, 0);
+      datetime = d.toISOString();
+    }
     due = {
-      date: initialDueForRecurrence(recurrence.rule),
+      date,
+      ...(datetime ? { datetime } : {}),
       string: describeRecurrence(recurrence.rule),
       isRecurring: true,
       rrule: serializeRecurrence(recurrence.rule),

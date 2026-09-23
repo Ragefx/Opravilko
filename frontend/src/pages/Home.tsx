@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from "date-fns";
 import { useBootstrap, useCompleteTask, useRevertRecurringCompletion, useUpdateTask } from "../api/hooks";
 import type { CalendarEvent, Due, Task } from "../api/types";
 import TaskRow from "../components/TaskRow";
 import TaskDetail from "../components/TaskDetail";
 import FocusMode from "../components/FocusMode";
 import PriorityMark from "../components/PriorityMark";
+import DayRail from "../components/DayRail";
+import { ChevronIcon } from "../components/icons";
 import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
 import { isDueToday, isOverdue, todayISO } from "../utils/date";
 
 type Pane = "now" | "next" | "later";
+
+const iso = (d: Date) => format(d, "yyyy-MM-dd");
 
 /** Stored priority 4 = p1 (most urgent). */
 function focusRank(a: Task, b: Task): number {
@@ -23,35 +27,47 @@ function focusRank(a: Task, b: Task): number {
   );
 }
 
-function timeOf(iso: string): string {
-  return format(parseISO(iso), "HH:mm");
+function timeOf(value: string): string {
+  return format(parseISO(value), "HH:mm");
 }
 
-/** Moves a due date to tomorrow, keeping its time and repeat rule. */
-function dueTomorrow(due: Due | null): Due {
-  const tomorrow = addDays(new Date(), 1);
-  const date = format(tomorrow, "yyyy-MM-dd");
-  if (!due) return { date, string: "tomorrow", isRecurring: false };
+/** "Tue" within the last week, otherwise "Sep 12" -- when a late task was due. */
+function carriedLabel(date: string): string {
+  const d = parseISO(date);
+  return differenceInCalendarDays(new Date(), d) < 7 ? format(d, "EEE") : format(d, "MMM d");
+}
+
+/** Moves a due date to another day, keeping its time and repeat rule. */
+function dueOn(due: Due | null, day: Date, label: string): Due {
+  const date = iso(day);
+  if (!due) return { date, string: label, isRecurring: false };
   let datetime = due.datetime;
   if (datetime) {
     const d = new Date(datetime);
-    const t = new Date(tomorrow);
+    const t = new Date(day);
     t.setHours(d.getHours(), d.getMinutes(), 0, 0);
     datetime = t.toISOString();
   }
-  return { ...due, date, datetime, string: due.isRecurring ? due.string : "tomorrow" };
+  return { ...due, date, datetime, string: due.isRecurring ? due.string : label };
 }
 
-type ClockEntry =
-  | { kind: "task"; at: string; task: Task }
-  | { kind: "event"; at: string; event: CalendarEvent }
-  | { kind: "now"; at: string };
+/** Gives a task a time on its day (tapping an hour on the rail). */
+function dueAt(due: Due, hour: number): Due {
+  const t = parseISO(due.date);
+  t.setHours(hour, 0, 0, 0);
+  return {
+    ...due,
+    datetime: t.toISOString(),
+    string: due.isRecurring ? due.string : format(t, "MMM d, yyyy 'at' HH:mm"),
+  };
+}
 
 /**
- * The Soča home: Now (today and anything late), Next (the rest of this week)
- * and Later (everything further out). Now leads with one focus task, then
- * splits into what's on the clock -- timed tasks and calendar events, with a
- * "now" marker -- and what can happen any time today.
+ * The Soča home: Now (a day, today unless another is picked in the week
+ * strip), Next (the rest of this week) and Later (everything further out).
+ * The day is laid out like a planner page -- an hour rail with timed tasks,
+ * calendar events and the current time, next to everything else due that day
+ * -- with today's most urgent task lifted into a focus card.
  */
 export default function Home() {
   const { data, isLoading } = useBootstrap();
@@ -63,60 +79,58 @@ export default function Home() {
   const [focusTask, setFocusTask] = useState<Task | null>(null);
   const [pane, setPane] = useState<Pane>("now");
   const [laterOpen, setLaterOpen] = useState(false);
-  // Re-render each minute so the "now" marker and late labels stay current.
+  const [selected, setSelected] = useState(todayISO);
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  // Re-render each minute so "today" and late labels stay current past midnight.
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setTick((t) => t + 1), 60_000);
     return () => window.clearInterval(id);
   }, []);
 
+  const today = todayISO();
+  const isToday = selected === today;
+
   const view = useMemo(() => {
     if (!data) return null;
-    const today = todayISO();
-    const weekEnd = format(addDays(new Date(), 7), "yyyy-MM-dd");
+    const weekEnd = iso(addDays(new Date(), 7));
     const open = data.tasks.filter((t) => !t.completed && t.due);
     const nowTasks = open.filter((t) => isDueToday(t.due) || isOverdue(t.due)).sort(focusRank);
-    const focus = nowTasks[0] || null;
-    const rest = nowTasks.filter((t) => t !== focus);
-
     const eventsByDate = groupEventsByDate(data.calendarEvents, data.calendarFeeds);
-    const todaysEvents = eventsByDate.get(today) || [];
-    const allDay = todaysEvents.filter((e) => e.allDay || !e.start);
-
-    const clock: ClockEntry[] = [
-      ...rest.filter((t) => isDueToday(t.due) && t.due?.datetime).map((t) => ({ kind: "task" as const, at: t.due!.datetime!, task: t })),
-      ...todaysEvents.filter((e) => !e.allDay && e.start).map((e) => ({ kind: "event" as const, at: e.start!, event: e })),
-    ];
-    if (clock.length) clock.push({ kind: "now", at: new Date().toISOString() });
-    clock.sort((a, b) => a.at.localeCompare(b.at));
-    // A marker with nothing after it (or before it) says nothing.
-    const nowIdx = clock.findIndex((c) => c.kind === "now");
-    if (nowIdx === clock.length - 1 || nowIdx === 0) clock.splice(nowIdx, 1);
-
-    const anytime = rest.filter((t) => !(isDueToday(t.due) && t.due?.datetime));
 
     const nextDays: { date: string; tasks: Task[]; events: CalendarEvent[] }[] = [];
     for (let i = 1; i <= 7; i++) {
-      const date = format(addDays(new Date(), i), "yyyy-MM-dd");
-      nextDays.push({
-        date,
-        tasks: open.filter((t) => t.due!.date === date).sort(focusRank),
-        events: eventsByDate.get(date) || [],
-      });
+      const date = iso(addDays(new Date(), i));
+      nextDays.push({ date, tasks: open.filter((t) => t.due!.date === date).sort(focusRank), events: eventsByDate.get(date) || [] });
     }
     const later = open
       .filter((t) => t.due!.date > weekEnd)
       .sort((a, b) => a.due!.date.localeCompare(b.due!.date) || focusRank(a, b));
 
-    const lateCount = nowTasks.filter((t) => isOverdue(t.due)).length;
+    const busyDays = new Set<string>([...open.map((t) => t.due!.date), ...[...eventsByDate.keys()]]);
     const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));
-    return { nowTasks, focus, clock, allDay, anytime, nextDays, later, lateCount, projectNameById };
-  }, [data]);
+    return { open, nowTasks, eventsByDate, nextDays, later, busyDays, projectNameById };
+    // `today` keeps the buckets right when the date rolls over.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, today]);
 
   if (isLoading || !data || !view) return null;
 
+  // ---- the day shown in Now ----
+  const dayTasks = isToday ? view.nowTasks : view.open.filter((t) => t.due!.date === selected).sort(focusRank);
+  const focus = isToday ? dayTasks[0] || null : null;
+  const rest = dayTasks.filter((t) => t !== focus);
+  const onRail = rest.filter((t) => t.due!.date === selected && t.due!.datetime);
+  const anytime = rest.filter((t) => !onRail.includes(t));
+  const dayEvents = view.eventsByDate.get(selected) || [];
+  const allDay = dayEvents.filter((e) => e.allDay || !e.start);
+  const timedEvents = dayEvents.filter((e) => !e.allDay && e.start);
+  const lateCount = isToday ? dayTasks.filter((t) => isOverdue(t.due)).length : 0;
+  const selectedDate = parseISO(selected);
+
   const nextCount = view.nextDays.reduce((n, d) => n + d.tasks.length, 0);
   const projectLabel = (t: Task) => (t.projectId === "inbox" ? undefined : view.projectNameById[t.projectId]);
+  const carried = (t: Task) => (isToday && isOverdue(t.due) ? carriedLabel(t.due!.date) : undefined);
 
   function complete(task: Task) {
     const previousDue = task.due;
@@ -133,107 +147,150 @@ export default function Home() {
 
   function moveToTomorrow(task: Task) {
     const previousDue = task.due;
-    updateTask.mutate({ id: task.id, due: dueTomorrow(task.due) });
+    updateTask.mutate({ id: task.id, due: dueOn(task.due, addDays(new Date(), 1), "tomorrow") });
+    showToast({ message: "Moved to tomorrow", actionLabel: "Undo", onAction: () => updateTask.mutate({ id: task.id, due: previousDue }) });
+  }
+
+  function schedule(task: Task, hour: number) {
+    const previousDue = task.due;
+    // A late task scheduled from today's rail moves to today as well.
+    const base = task.due!.date === selected ? task.due! : dueOn(task.due, selectedDate, format(selectedDate, "MMM d"));
+    updateTask.mutate({ id: task.id, due: dueAt(base, hour) });
     showToast({
-      message: "Moved to tomorrow",
+      message: `“${task.content}” at ${String(hour).padStart(2, "0")}:00`,
       actionLabel: "Undo",
       onAction: () => updateTask.mutate({ id: task.id, due: previousDue }),
     });
   }
 
-  const focus = view.focus;
-  const lateDays = focus && isOverdue(focus.due) ? Math.round((parseISO(todayISO()).getTime() - parseISO(focus.due!.date).getTime()) / 86_400_000) : 0;
+  function pickDay(date: string) {
+    setSelected(date);
+    setPane("now");
+  }
+
+  const weekDays = Array.from({ length: 7 }, (_, i) => iso(addDays(weekStart, i)));
+  const focusCarried = focus && isOverdue(focus.due) ? carriedLabel(focus.due!.date) : null;
 
   const nowPane = (
     <section className="home-now">
-      <div className="home-date">
-        <span className="home-day">{format(new Date(), "d")}</span>
-        <span className="home-date-text">
-          <b>{format(new Date(), "EEEE")}</b>
-          <span>
-            {format(new Date(), "MMMM")} · {view.nowTasks.length} for today
-            {view.lateCount > 0 && `, ${view.lateCount} late`}
+      <div className="home-head">
+        <div className="home-date">
+          <span className="home-day">{format(selectedDate, "d")}</span>
+          <span className="home-date-text">
+            <b>{format(selectedDate, "EEEE")}</b>
+            <span>
+              {format(selectedDate, "MMMM")} · {dayTasks.length} {isToday ? "for today" : dayTasks.length === 1 ? "task" : "tasks"}
+              {lateCount > 0 && `, ${lateCount} carried over`}
+            </span>
           </span>
-        </span>
+        </div>
+        <div className="home-week" aria-label="Week">
+          <button className="home-week-arrow" onClick={() => setWeekStart((w) => addDays(w, -7))} aria-label="Previous week">
+            <ChevronIcon width={14} height={14} style={{ transform: "rotate(90deg)" }} />
+          </button>
+          {weekDays.map((d) => {
+            const date = parseISO(d);
+            return (
+              <button
+                key={d}
+                className={`home-week-day ${d === selected ? "is-selected" : ""} ${d === today ? "is-today" : ""}`}
+                onClick={() => pickDay(d)}
+                aria-pressed={d === selected}
+                aria-label={format(date, "EEEE d MMMM")}
+              >
+                <span>{format(date, "EEEEE")}</span>
+                <b>{format(date, "d")}</b>
+                <i className={view.busyDays.has(d) ? "has-items" : ""} />
+              </button>
+            );
+          })}
+          <button className="home-week-arrow" onClick={() => setWeekStart((w) => addDays(w, 7))} aria-label="Next week">
+            <ChevronIcon width={14} height={14} style={{ transform: "rotate(-90deg)" }} />
+          </button>
+        </div>
       </div>
 
-      {view.allDay.map((e) => (
+      {!isToday && (
+        <button
+          className="home-back-today"
+          onClick={() => {
+            setSelected(today);
+            setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+          }}
+        >
+          ← Back to today
+        </button>
+      )}
+
+      {allDay.map((e) => (
         <div key={e.id} className="home-allday">
           <span className="home-mono">ALL DAY</span> {e.title}
         </div>
       ))}
 
-      {focus ? (
-        <div className="home-focus">
-          <div className="home-focus-row">
-            <button className="home-focus-title" onClick={() => setOpenTask(focus)}>
-              {focus.content}
-            </button>
-            <PriorityMark priority={focus.priority} />
+      {isToday &&
+        (focus ? (
+          <div className={`home-focus ${focusCarried ? "is-carried" : ""}`}>
+            <div className="home-focus-row">
+              <button className="home-focus-title" onClick={() => setOpenTask(focus)}>
+                <span>{focus.content}</span>
+              </button>
+              <PriorityMark priority={focus.priority} />
+            </div>
+            <div className="home-focus-row">
+              <span className="home-focus-meta">
+                {view.projectNameById[focus.projectId]}
+                {focus.due?.datetime && ` · ${timeOf(focus.due.datetime)}`}
+                {focusCarried && <span className="home-carried-note"> · ↪ carried over from {focusCarried}</span>}
+              </span>
+              <span className="home-focus-actions">
+                <button className="btn btn-text" onClick={() => moveToTomorrow(focus)}>
+                  Tomorrow
+                </button>
+                <button className="btn btn-text" onClick={() => complete(focus)}>
+                  Done
+                </button>
+                <button className="btn btn-primary" onClick={() => setFocusTask(focus)}>
+                  Start focus
+                </button>
+              </span>
+            </div>
           </div>
-          <div className="home-focus-row">
-            <span className="home-focus-meta">
-              {view.projectNameById[focus.projectId]}
-              {focus.due?.datetime && ` · ${timeOf(focus.due.datetime)}`}
-              {lateDays > 0 && <span className="home-late"> · {lateDays === 1 ? "1 day late" : `${lateDays} days late`}</span>}
-            </span>
-            <span className="home-focus-actions">
-              <button className="btn btn-text" onClick={() => moveToTomorrow(focus)}>
-                Tomorrow
-              </button>
-              <button className="btn btn-text" onClick={() => complete(focus)}>
-                Done
-              </button>
-              <button className="btn btn-primary" onClick={() => setFocusTask(focus)}>
-                Start focus
-              </button>
-            </span>
+        ) : (
+          <div className="home-clear">
+            <b>Nothing due today.</b>
+            <span>Pick something from Next, or enjoy the free day.</span>
           </div>
-        </div>
-      ) : (
-        <div className="home-clear">
-          <b>Nothing due today.</b>
-          <span>Pick something from Next, or enjoy the free day.</span>
-        </div>
-      )}
+        ))}
 
-      {view.clock.length > 0 && (
-        <div className="home-group">
+      <div className="home-spread">
+        <div className="home-group home-rail-group">
           <div className="home-label">
-            <span>On the clock</span>
+            <span>The day</span>
+            <span>{anytime.length > 0 ? "tap an hour to schedule" : ""}</span>
           </div>
-          {view.clock.map((c) =>
-            c.kind === "now" ? (
-              <div key="now" className="home-now-line">
-                <span>{timeOf(c.at)}</span>
-              </div>
-            ) : c.kind === "event" ? (
-              <div key={c.event.id} className="home-event" style={{ ["--event-color" as string]: c.event.color }}>
-                <span className="home-mono">{timeOf(c.at)}</span>
-                <span className="home-event-title">{c.event.title}</span>
-                {c.event.end && <span className="home-mono home-event-end">–{timeOf(c.event.end)}</span>}
-              </div>
-            ) : (
-              <div key={c.task.id} className="home-timed">
-                <span className="home-mono home-time">{timeOf(c.at)}</span>
-                <TaskRow task={c.task} onOpen={setOpenTask} projectLabel={projectLabel(c.task)} />
-              </div>
-            )
-          )}
+          <DayRail
+            date={selected}
+            tasks={onRail}
+            events={timedEvents}
+            isToday={isToday}
+            schedulable={anytime}
+            onOpenTask={setOpenTask}
+            onComplete={complete}
+            onSchedule={schedule}
+          />
         </div>
-      )}
-
-      {view.anytime.length > 0 && (
-        <div className="home-group">
+        <div className="home-group home-anytime">
           <div className="home-label">
-            <span>{view.clock.length > 0 ? "Any time today" : "Also today"}</span>
-            <span>{view.anytime.length}</span>
+            <span>{isToday ? "Any time today" : "Any time"}</span>
+            <span>{anytime.length}</span>
           </div>
-          {view.anytime.map((t) => (
-            <TaskRow key={t.id} task={t} onOpen={setOpenTask} projectLabel={projectLabel(t)} />
+          {anytime.map((t) => (
+            <TaskRow key={t.id} task={t} onOpen={setOpenTask} projectLabel={projectLabel(t)} carriedFrom={carried(t)} />
           ))}
+          {anytime.length === 0 && <div className="home-day-empty">Nothing without a time.</div>}
         </div>
-      )}
+      </div>
     </section>
   );
 
@@ -264,7 +321,9 @@ export default function Home() {
           </div>
         ) : (
           <div key={b.day.date} className="home-day-block">
-            <div className="home-day-label home-mono">{format(parseISO(b.day.date), "EEE d").toUpperCase()}</div>
+            <button className="home-day-label home-mono" onClick={() => pickDay(b.day.date)} title="Show this day">
+              {dayName(b.day.date)}
+            </button>
             {b.day.events.map((e) => (
               <div key={e.id} className="home-event compact" style={{ ["--event-color" as string]: e.color }}>
                 <span className="home-mono">{e.allDay || !e.start ? "all day" : timeOf(e.start)}</span>
@@ -292,18 +351,16 @@ export default function Home() {
           <span>Nothing scheduled beyond this week.</span>
         </div>
       ) : laterOpen || pane === "later" ? (
-        <>
-          {view.later.map((t, i) => {
-            const month = format(parseISO(t.due!.date), "MMMM yyyy");
-            const showMonth = i === 0 || format(parseISO(view.later[i - 1].due!.date), "MMMM yyyy") !== month;
-            return (
-              <div key={t.id}>
-                {showMonth && <div className="home-day-label home-mono">{month.toUpperCase()}</div>}
-                <TaskRow task={t} onOpen={setOpenTask} projectLabel={projectLabel(t)} />
-              </div>
-            );
-          })}
-        </>
+        view.later.map((t, i) => {
+          const month = format(parseISO(t.due!.date), "MMMM yyyy");
+          const showMonth = i === 0 || format(parseISO(view.later[i - 1].due!.date), "MMMM yyyy") !== month;
+          return (
+            <div key={t.id}>
+              {showMonth && <div className="home-day-label home-mono">{month.toUpperCase()}</div>}
+              <TaskRow task={t} onOpen={setOpenTask} projectLabel={projectLabel(t)} />
+            </div>
+          );
+        })
       ) : (
         <button className="home-later-toggle" onClick={() => setLaterOpen(true)}>
           <span>
@@ -329,7 +386,7 @@ export default function Home() {
       <nav className="home-segments" aria-label="Horizon">
         {(
           [
-            ["now", "Now", view.nowTasks.length],
+            ["now", isToday ? "Now" : format(selectedDate, "EEE d"), dayTasks.length],
             ["next", "Next", nextCount],
             ["later", "Later", view.later.length],
           ] as const

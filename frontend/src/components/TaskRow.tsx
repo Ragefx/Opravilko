@@ -22,6 +22,7 @@ export default function TaskRow({
   subtaskCount,
   collapsed,
   onToggleCollapse,
+  carriedFrom,
 }: {
   task: Task;
   onOpen: (task: Task) => void;
@@ -30,6 +31,8 @@ export default function TaskRow({
   subtaskCount?: { done: number; total: number };
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  /** For a late task shown under today: the day it was due ("Tue"), marked as carried over. */
+  carriedFrom?: string;
 }) {
   const completeTask = useCompleteTask();
   const revertRecurring = useRevertRecurringCompletion();
@@ -122,7 +125,7 @@ export default function TaskRow({
       )}
       <div
         ref={rowRef}
-        className="task-row"
+        className={`task-row ${carriedFrom ? "is-carried" : ""}`}
         style={{
           ...(depth > 0 ? { paddingLeft: depth * 28 } : {}),
           ...(dx ? { transform: `translateX(${dx}px)`, background: "var(--color-surface)" } : {}),
@@ -169,7 +172,14 @@ export default function TaskRow({
           </div>
           {(task.due || task.labels.length > 0 || projectLabel) && (
             <div className="task-meta">
-              {task.due && (
+              {task.due && carriedFrom ? (
+                <span className="due carried">
+                  ↪ carried over from {carriedFrom}
+                  {task.due.isRecurring && (
+                    <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 4 }} />
+                  )}
+                </span>
+              ) : task.due && (
                 <span className={`due ${dueDateClass(task.due)}`}>
                   <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}
                   {task.due.isRecurring && (

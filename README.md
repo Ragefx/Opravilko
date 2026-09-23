@@ -46,7 +46,10 @@ in your own Dropbox account.
 
 - **Classic**: the original sidebar-and-lists layout.
 - **Soča**: no fixed sidebar. The home screen is **Now / Next / Later**:
-  - **Now** leads with a focus task (with a focus timer), then "on the clock" (timed tasks and calendar events, with a line marking the current time), then everything else due today.
+  - **Now** is a planner page for a day (today unless you pick another in the week strip):
+    - a focus card with a timer for today's most urgent task;
+    - an hour rail with timed tasks, calendar events and a line at the current time (tap an hour to give an untimed task that time);
+    - the day's untimed tasks, where late ones are marked "carried over" with a highlighter.
   - **Next** is the rest of the week, day by day.
   - **Later** is everything further out.
 

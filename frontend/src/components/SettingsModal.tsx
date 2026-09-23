@@ -16,10 +16,11 @@ import PartnerConnect from "./PartnerConnect";
 import CalendarFeedsModal from "./CalendarFeedsModal";
 import ImportModal from "./ImportModal";
 import { useToast } from "./ToastProvider";
-import { BellIcon, CalendarIcon, ImportIcon, LogOutIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
+import { BellIcon, CalendarIcon, ImportIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
+import StorageSettings from "./StorageSettings";
 
 type ThemeSetting = ThemeChoice | "system";
-type Section = "appearance" | "sharing" | "calendars" | "reminders" | "data" | "account";
+type Section = "appearance" | "sharing" | "calendars" | "reminders" | "storage" | "data" | "account";
 
 const LOOKS: { id: Look; name: string; blurb: string }[] = [
   {
@@ -60,6 +61,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     ...(firebase ? [{ id: "sharing" as const, label: "Sharing", icon: <ShareIcon width={16} height={16} /> }] : []),
     { id: "calendars", label: "Calendars", icon: <CalendarIcon width={16} height={16} /> },
     { id: "reminders", label: "Reminders", icon: <BellIcon width={16} height={16} /> },
+    ...(firebase ? [{ id: "storage" as const, label: "Storage", icon: <PaperclipIcon width={16} height={16} /> }] : []),
     { id: "data", label: "Import & backup", icon: <ImportIcon width={16} height={16} /> },
     { id: "account", label: "Account", icon: <LogOutIcon width={16} height={16} /> },
   ];
@@ -97,6 +99,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
               </>
             )}
             {section === "reminders" && <Reminders />}
+            {section === "storage" && <StorageSettings />}
             {section === "data" && <DataSection onClose={onClose} />}
             {section === "account" && <Account onClose={onClose} />}
           </div>

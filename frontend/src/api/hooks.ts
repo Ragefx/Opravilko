@@ -8,6 +8,7 @@ import { fetchIcsText } from "../utils/calendarSync";
 import { parseIcs } from "../utils/ics";
 import type {
   AppData,
+  Attachment,
   CalendarEvent,
   CalendarFeed,
   Due,
@@ -144,6 +145,27 @@ export function useCreateTask() {
     };
     data.tasks.push(task);
     return task;
+  });
+}
+
+/** Adds uploaded files to a task (see firebase/attachments.ts for the upload). */
+export function useAddAttachments() {
+  return useLocalMutation<{ id: string; attachments: Attachment[] }, void>((data, { id, attachments }) => {
+    const task = data.tasks.find((t) => t.id === id);
+    if (!task) return;
+    task.attachments = [...(task.attachments || []), ...attachments];
+    task.updatedAt = new Date().toISOString();
+  });
+}
+
+/** Takes a file off its task; the stored file is deleted shortly after. */
+export function useRemoveAttachment() {
+  return useLocalMutation<{ taskId: string; attachmentId: string }, void>((data, { taskId, attachmentId }) => {
+    const task = data.tasks.find((t) => t.id === taskId);
+    if (!task?.attachments) return;
+    task.attachments = task.attachments.filter((a) => a.id !== attachmentId);
+    if (task.attachments.length === 0) delete task.attachments;
+    task.updatedAt = new Date().toISOString();
   });
 }
 

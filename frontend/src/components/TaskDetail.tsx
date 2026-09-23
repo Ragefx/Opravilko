@@ -25,6 +25,7 @@ import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
 import DateQuickIcons from "./DateQuickIcons";
 import SharedToggle from "./SharedToggle";
+import TaskAttachments from "./TaskAttachments";
 
 function timeFromDatetime(datetime?: string): string {
   if (!datetime) return "";
@@ -336,6 +337,8 @@ export default function TaskDetail({
                   </button>
                 )}
               </div>
+
+              <TaskAttachments task={task} />
 
               <div style={{ marginTop: 20 }}>
                 <div className="task-section-title" style={{ margin: "0 0 8px" }}>

@@ -19,6 +19,7 @@ import {
 import type { User } from "firebase/auth";
 import { nanoid } from "nanoid";
 import { firestore } from "./app";
+import { deleteAttachmentBlobs } from "./attachments";
 
 const newId = () => nanoid();
 import type {
@@ -558,6 +559,7 @@ export class FirestoreSync {
   private diff(prev: AppData, next: AppData): Op[] {
     const ops: Op[] = [];
     const uid = this.uid;
+    this.scheduleAttachmentCleanup(prev, next);
 
     // Projects: ownership and members are set here only when creating.
     this.diffList(prev.projects, next.projects, ops, {
@@ -686,6 +688,24 @@ export class FirestoreSync {
     }
   }
 
+  // ---------- attachments removed by an edit ----------
+
+  /**
+   * Files that this edit took off a task (or whose task it deleted) are
+   * deleted from storage a little later -- unless they're back by then
+   * (Undo), or still attached elsewhere.
+   */
+  private scheduleAttachmentCleanup(prev: AppData, next: AppData) {
+    const kept = new Set(next.tasks.flatMap((t) => (t.attachments || []).map((a) => a.id)));
+    const removed = prev.tasks.flatMap((t) => t.attachments || []).filter((a) => !kept.has(a.id));
+    if (!removed.length) return;
+    window.setTimeout(() => {
+      const now = new Set((this.lastKnown?.tasks || []).flatMap((t) => (t.attachments || []).map((a) => a.id)));
+      const gone = removed.filter((a) => !now.has(a.id));
+      if (gone.length) void deleteAttachmentBlobs(gone).catch((err) => console.warn("Couldn't delete attachments", err));
+    }, 15_000);
+  }
+
   // ---------- completed-task archive ----------
 
   /** Archives tasks completed more than a few days ago, so they stop costing reads. */
@@ -810,7 +830,8 @@ export class FirestoreSync {
       sections: data.sections.map((s) => ({ ...s, id: fresh(s.id)!, projectId: fresh(s.projectId)! })),
       labels: data.labels,
       filters: data.filters,
-      tasks: data.tasks.map((t) => ({
+      // Attachment contents aren't in a backup file, so their links are dropped.
+      tasks: data.tasks.map(({ attachments: _attachments, ...t }) => ({
         ...t,
         id: fresh(t.id)!,
         projectId: fresh(t.projectId)!,

@@ -94,6 +94,21 @@ export interface Task {
   sharedWith?: string[];
   /** Who shared it -- set automatically, so the other person can see who it's from. */
   sharedBy?: Partner;
+  /** Firebase only: files attached to the task (the contents live in attachments/{id}). */
+  attachments?: Attachment[];
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  /** MIME type, e.g. "image/jpeg", "application/pdf". */
+  type: string;
+  /** Bytes as stored (photos are shrunk before upload). */
+  size: number;
+  addedBy: string;
+  addedAt: string;
+  /** Small preview for images, as a data: URL. */
+  thumb?: string;
 }
 
 export interface CompletionEntry {

@@ -91,7 +91,51 @@ service cloud.firestore {
       allow update: if (isMember(resource.data.projectId) && isMemberAfter(request.resource.data.projectId))
         || (sharedWithMe(resource.data)
             && onlyChanges(['content', 'description', 'priority', 'due', 'labels', 'completed', 'completedAt',
-                            'completedBy', 'comments', 'reminderMinutes', 'updatedAt', 'order', 'archived']));
+                            'completedBy', 'comments', 'reminderMinutes', 'updatedAt', 'order', 'archived',
+                            'attachments']));
+    }
+
+    // ---- attachments: file contents stored in chunks under attachments/{id} ----
+    // You can read and add files on any task you can see; the space they use
+    // is counted in meta/storage, which can't go over the attachments budget
+    // (700 MB), so the free 1 GB database never fills up.
+    function canAccessTask(tid) {
+      return exists(/databases/$(database)/documents/tasks/$(tid))
+        && (isMember(get(/databases/$(database)/documents/tasks/$(tid)).data.projectId)
+            || sharedWithMe(get(/databases/$(database)/documents/tasks/$(tid)).data));
+    }
+    function taskGone(tid) {
+      return !exists(/databases/$(database)/documents/tasks/$(tid));
+    }
+
+    match /attachments/{aid} {
+      allow read: if signedIn() && canAccessTask(resource.data.taskId);
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == me()
+        && request.resource.data.size <= 10485760
+        && canAccessTask(request.resource.data.taskId);
+      allow update: if signedIn() && resource.data.ownerUid == me() && onlyChanges(['status']);
+      allow delete: if signedIn()
+        && (resource.data.ownerUid == me() || canAccessTask(resource.data.taskId) || taskGone(resource.data.taskId));
+
+      match /chunks/{cid} {
+        function att() {
+          return get(/databases/$(database)/documents/attachments/$(aid)).data;
+        }
+        allow read: if signedIn() && canAccessTask(att().taskId);
+        allow create: if signedIn() && att().ownerUid == me() && request.resource.data.data.size() <= 950000;
+        allow delete: if signedIn()
+          && (att().ownerUid == me() || canAccessTask(att().taskId) || taskGone(att().taskId));
+      }
+    }
+
+    match /meta/storage {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['bytes'])
+        && request.resource.data.bytes is int
+        && (request.resource.data.bytes <= 734003200
+            || (resource != null && request.resource.data.bytes < resource.data.bytes));
     }
   }
 }

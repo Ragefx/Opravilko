@@ -35,6 +35,13 @@ export function proxiedUrl(feedUrl: string): string {
   return PROXIES[0].url(feedUrl);
 }
 
+/**
+ * Thrown when no relay could be reached at all (no answer, not even an
+ * error) -- the device is offline or just waking from sleep, so the feed
+ * itself isn't at fault.
+ */
+export class NoConnectionError extends Error {}
+
 export async function fetchIcsText(feedUrl: string): Promise<string> {
   // The Android app isn't bound by browser CORS rules, so it fetches feeds
   // directly -- no third-party relay sees the URL.
@@ -45,17 +52,30 @@ export async function fetchIcsText(feedUrl: string): Promise<string> {
     if (!text.includes("BEGIN:VCALENDAR")) throw new Error("That URL doesn't look like an iCal (.ics) feed");
     return text;
   }
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new NoConnectionError("You're offline -- the calendar will refresh once you're back online.");
+  }
   const failures: string[] = [];
+  let answered = false;
   for (const proxy of PROXIES) {
     try {
       const res = await fetch(proxy.url(feedUrl));
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      answered = true;
+      if (!res.ok) {
+        const reason = (await res.text().catch(() => "")).slice(0, 120);
+        throw new Error(`HTTP ${res.status}${reason && proxy === PROXIES[0] ? ` (${reason})` : ""}`);
+      }
       const text = await res.text();
       if (!text.includes("BEGIN:VCALENDAR")) throw new Error("not an iCal feed");
       return text;
     } catch (e) {
       failures.push(`${proxy.name}: ${e instanceof Error ? e.message : "failed"}`);
     }
+  }
+  if (!answered) {
+    throw new NoConnectionError(
+      "Couldn't connect to any relay -- check the internet connection (or an ad blocker blocking workers.dev)."
+    );
   }
   throw new Error(`All relays failed -- ${failures.join("; ")}`);
 }

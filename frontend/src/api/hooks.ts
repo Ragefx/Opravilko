@@ -4,7 +4,7 @@ import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } fro
 import { fetchAppData, scheduleSave } from "../data/store";
 import { advanceDate, parseRecurrenceString } from "../utils/recurrence";
 import { todayISO } from "../utils/date";
-import { fetchIcsText } from "../utils/calendarSync";
+import { fetchIcsText, NoConnectionError } from "../utils/calendarSync";
 import { parseIcs } from "../utils/ics";
 import type {
   AppData,
@@ -728,7 +728,7 @@ export function useDeleteCalendarFeed() {
  * refresh mutation and the bulk auto-sync run on load, so both apply the
  * exact same window and merge logic.
  */
-async function runFeedSync(qc: QueryClient, feedId: string): Promise<void> {
+async function runFeedSync(qc: QueryClient, feedId: string, manual = true): Promise<void> {
   const current = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? (await fetchAppData());
   const feed = current.calendarFeeds?.find((f) => f.id === feedId);
   if (!feed) throw new Error("Calendar not found");
@@ -742,6 +742,10 @@ async function runFeedSync(qc: QueryClient, feedId: string): Promise<void> {
     const text = await fetchIcsText(feed.url);
     events = parseIcs(text, feedId, feed.color, windowStart, windowEnd);
   } catch (e) {
+    // No connection at all (e.g. a laptop waking from sleep): the feed is
+    // fine, so an automatic sync keeps its events and error as they were and
+    // tries again later instead of saving a scary error.
+    if (e instanceof NoConnectionError && !manual) throw e;
     error = e instanceof Error ? e.message : "Sync failed";
   }
 
@@ -774,16 +778,24 @@ export function useSyncCalendarFeed() {
   });
 }
 
-/** Syncs every enabled feed in turn -- called once on load and periodically while open. */
+/**
+ * Syncs every enabled feed in turn -- called once on load and periodically
+ * while open. Resolves to false if there was no connection, so the caller
+ * can try again soon.
+ */
 export function useSyncAllCalendarFeeds() {
   const qc = useQueryClient();
-  return async () => {
+  return async (): Promise<boolean> => {
     const current = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? (await fetchAppData());
     const feeds = (current.calendarFeeds || []).filter((f) => f.enabled);
     for (const feed of feeds) {
-      await runFeedSync(qc, feed.id).catch(() => {
-        /* per-feed error is already stored on the feed itself (lastError) */
-      });
+      try {
+        await runFeedSync(qc, feed.id, false);
+      } catch (e) {
+        if (e instanceof NoConnectionError) return false;
+        /* other errors are stored on the feed itself (lastError) */
+      }
     }
+    return true;
   };
 }

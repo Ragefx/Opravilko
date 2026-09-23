@@ -122,11 +122,25 @@ export default function Layout() {
   }, []);
 
   // Subscribed calendar feeds have no push either -- refresh once on load, then
-  // hourly for as long as the tab stays open.
+  // hourly for as long as the tab stays open. With no connection (offline, or
+  // the hourly timer firing as a laptop wakes before its Wi-Fi is back), try
+  // again in a minute and as soon as the browser is back online.
   useEffect(() => {
-    void syncAllCalendarFeeds();
-    const id = window.setInterval(() => void syncAllCalendarFeeds(), 60 * 60_000);
-    return () => window.clearInterval(id);
+    let retry: number | undefined;
+    const run = async () => {
+      window.clearTimeout(retry);
+      const ok = await syncAllCalendarFeeds();
+      if (!ok) retry = window.setTimeout(() => void run(), 60_000);
+    };
+    void run();
+    const id = window.setInterval(() => void run(), 60 * 60_000);
+    const onOnline = () => void run();
+    window.addEventListener("online", onOnline);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(retry);
+      window.removeEventListener("online", onOnline);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -3244,3 +3244,28 @@ kbd {
 .arrival-switch {
   margin-top: 8px;
 }
+/* Shopping list: things you usually buy, one tap to add. */
+.shopping-usual {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 0 12px;
+  scrollbar-width: none;
+}
+.shopping-usual::-webkit-scrollbar {
+  display: none;
+}
+.shopping-usual-chip {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  white-space: nowrap;
+}
+.shopping-usual-chip:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}

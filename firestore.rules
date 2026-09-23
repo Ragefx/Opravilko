@@ -64,7 +64,7 @@ service cloud.firestore {
         // The owner can change anything except who owns it.
         (me() == resource.data.ownerId && request.resource.data.ownerId == me() && me() in request.resource.data.members)
         // Other members edit the project but not its membership...
-        || (onlyChanges(['name', 'color', 'order', 'isFavorite', 'parentId', 'viewStyle']))
+        || (onlyChanges(['name', 'color', 'order', 'isFavorite', 'parentId', 'viewStyle', 'meals', 'bought']))
         // ...except to leave it.
         || (onlyChanges(['members', 'memberProfiles'])
             && request.resource.data.members == resource.data.members.removeAll([me()]))

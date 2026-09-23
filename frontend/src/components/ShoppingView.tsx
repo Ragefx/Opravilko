@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AppData, Task } from "../api/types";
-import { useBootstrap, useCreateTask, useDeleteTask, useUpdateTask } from "../api/hooks";
+import { useBootstrap, useCreateTask, useDeleteTask, useUpdateProject, useUpdateTask } from "../api/hooks";
 import {
   BUILTIN_MEALS,
   customMeals,
@@ -11,7 +11,6 @@ import {
   mealToText,
   parseItem,
   sameItem,
-  saveCustomMeals,
   scaled,
   splitItems,
   CATEGORIES,
@@ -104,8 +103,25 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const updateProject = useUpdateProject();
   const showToast = useToast();
   const qc = useQueryClient();
+  const project = data?.projects.find((p) => p.id === projectId);
+
+  // Meals live on the list (shared with everyone on it). Meals saved on this
+  // device before that move over once.
+  const listMeals = project?.meals;
+  useEffect(() => {
+    if (!project || project.meals !== undefined) return;
+    const local = customMeals();
+    if (local.length) saveMeals(local);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project?.id, project?.meals === undefined]);
+
+  function saveMeals(meals: Meal[]) {
+    // The database refuses empty (undefined) values, e.g. salt's missing amount.
+    updateProject.mutate({ id: projectId, meals: JSON.parse(JSON.stringify(meals)) });
+  }
   const [text, setText] = useState("");
   const [mealsOpen, setMealsOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
@@ -119,6 +135,13 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
     (t) => t.projectId === projectId && !t.parentId && !(t.sectionId && archivedSections.has(t.sectionId))
   );
   const open = items.filter((t) => !t.completed).sort((a, b) => a.order - b.order);
+  // What you usually buy that isn't on the list yet: one tap puts it back.
+  const onList = new Set(open.map((t) => parseItem(t.content).name.toLocaleLowerCase("sl")));
+  const usual = Object.entries(project?.bought ?? {})
+    .filter(([key]) => !onList.has(key))
+    .sort((a, b) => b[1].n - a[1].n)
+    .slice(0, 10)
+    .map(([, v]) => v.name);
   const ticked = items
     .filter((t) => t.completed)
     .sort((a, b) => (b.completedAt || "").localeCompare(a.completedAt || ""));
@@ -175,6 +198,15 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
       completed: !t.completed,
       completedAt: t.completed ? null : new Date().toISOString(),
     });
+    if (!t.completed) countBought(parseItem(t.content).name);
+  }
+
+  /** Remembers what gets bought, for the "usual items" row. */
+  function countBought(name: string) {
+    const key = name.toLocaleLowerCase("sl");
+    const bought = { ...(project?.bought ?? {}) };
+    bought[key] = { name, n: (bought[key]?.n ?? 0) + 1 };
+    updateProject.mutate({ id: projectId, bought });
   }
 
   function clearTicked() {
@@ -212,6 +244,16 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
             🍳 Meal
           </button>
         </div>
+
+        {usual.length > 0 && (
+          <div className="shopping-usual" aria-label="Usual items">
+            {usual.map((name) => (
+              <button key={name} className="shopping-usual-chip" onClick={() => void addItems([{ name }])}>
+                + {name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {open.length === 0 && ticked.length === 0 && (
           <p className="shopping-empty">The list is empty. Add things above, or a whole meal with 🍳.</p>
@@ -276,6 +318,8 @@ export default function ShoppingView({ projectId, header }: { projectId: string;
 
       {mealsOpen && (
         <MealPicker
+          saved={listMeals ?? customMeals()}
+          onSave={saveMeals}
           onClose={() => setMealsOpen(false)}
           onAdd={async (meal, servings) => {
             setMealsOpen(false);
@@ -409,14 +453,18 @@ function ItemEditor({
 }
 
 function MealPicker({
+  saved,
+  onSave,
   onClose,
   onAdd,
 }: {
+  /** Your own meals, and built-in ones you've edited (same id as the original). */
+  saved: Meal[];
+  onSave: (meals: Meal[]) => void;
   onClose: () => void;
   onAdd: (meal: Meal, servings: number) => void;
 }) {
-  // Your own meals, and built-in ones you've edited (same id as the original).
-  const [mine, setMine] = useState<Meal[]>(customMeals);
+  const [mine, setMine] = useState<Meal[]>(saved);
   const [picked, setPicked] = useState<Meal | null>(null);
   const [servings, setServings] = useState(2);
   const [form, setForm] = useState<{ id?: string; emoji?: string; name: string; servings: number; text: string } | null>(null);
@@ -426,7 +474,7 @@ function MealPicker({
 
   function store(next: Meal[]) {
     setMine(next);
-    saveCustomMeals(next);
+    onSave(next);
   }
 
   function saveForm() {

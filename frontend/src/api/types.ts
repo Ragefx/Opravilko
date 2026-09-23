@@ -1,3 +1,5 @@
+import type { Meal } from "../utils/shopping";
+
 export type Priority = 1 | 2 | 3 | 4;
 
 export interface Due {
@@ -17,6 +19,10 @@ export interface Project {
   isInboxProject?: boolean;
   parentId: string | null;
   viewStyle?: "list" | "board" | "calendar" | "shopping";
+  /** Shopping lists: your own and edited meals, shared by everyone on the list. */
+  meals?: Meal[];
+  /** Shopping lists: how often each thing was ticked off ("usual items"), by lower-case name. */
+  bought?: Record<string, { name: string; n: number }>;
   /** Firebase only: who created it and who can see it (see firebase/sync.ts). */
   ownerId?: string;
   members?: string[];

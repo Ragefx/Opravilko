@@ -25,6 +25,9 @@ dots with the day's list) and the Display icon.
   date, Attachment (Google sign-in; the file is uploaded by the widget,
   photos shrunk like the app does), Priority. Location: current location
   (GPS, named by street) or a place used on another task.
+  On the shopping list the same card has 🍳 Meal and your usual items as
+  chips, and a live preview of what the typed text will add ("🥛 Mleko 2×
+  (onto Mleko)").
 - Widget rows always show the date next to the calendar icon: Today,
   Yesterday, Tomorrow or "27 Sep" (and the time).
 

@@ -64,6 +64,7 @@ public class QuickAddActivity extends AppCompatActivity {
     private java.io.File attachment;
     private String attachmentName, attachmentType, attachmentId;
     private EditText description;
+    private TextView preview;
     private static final int REQUEST_FILE = 8;
     private static final int REQUEST_LOCATION = 9;
 
@@ -78,12 +79,16 @@ public class QuickAddActivity extends AppCompatActivity {
         chips = findViewById(R.id.qa_chips);
         added = findViewById(R.id.qa_added);
         description = findViewById(R.id.qa_description);
+        preview = findViewById(R.id.qa_preview);
 
         findViewById(R.id.qa_scrim).setOnClickListener(v -> finish());
         text.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
             @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
-            @Override public void afterTextChanged(Editable s) { updateSendButton(); }
+            @Override public void afterTextChanged(Editable s) {
+                updateSendButton();
+                updatePreview();
+            }
         });
         text.setOnEditorActionListener((v, actionId, event) -> {
             boolean enter = event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN;
@@ -158,6 +163,59 @@ public class QuickAddActivity extends AppCompatActivity {
             intent.removeExtra(EXTRA_VOICE);
             listen();
         }
+    }
+
+    /**
+     * Shopping list: what the typed text will do, line by line -- the icon, the
+     * name and amount as it'll read, and "(onto …)" when it adds to an item
+     * already on the list.
+     */
+    private void updatePreview() {
+        if (!shopping) {
+            preview.setVisibility(View.GONE);
+            return;
+        }
+        String typed = text.getText().toString().trim();
+        JSONObject data = store.getSnapshot();
+        if (typed.isEmpty() || data == null) {
+            preview.setVisibility(View.GONE);
+            return;
+        }
+        JSONObject guide = data.optJSONObject("shoppingGuide");
+        JSONArray copy;
+        try {
+            JSONArray tasks = data.optJSONArray("tasks");
+            copy = new JSONArray(tasks != null ? tasks.toString() : "[]");
+        } catch (JSONException e) {
+            return;
+        }
+        StringBuilder b = new StringBuilder();
+        for (String line : ShoppingLogic.splitItems(typed)) {
+            String before = null;
+            String id = "preview-" + b.length();
+            ShoppingLogic.Item item = ShoppingLogic.parseItem(guide, line);
+            // Which item it lands on, and how that reads afterwards.
+            for (int i = 0; i < copy.length(); i++) {
+                JSONObject t = copy.optJSONObject(i);
+                if (t != null && projectId.equals(t.optString("projectId")) && !t.optBoolean("completed")
+                        && t.isNull("parentId")) {
+                    ShoppingLogic.Item have = ShoppingLogic.parseItem(guide, t.optString("content"));
+                    if (ShoppingLogic.sameItem(have, item) || ShoppingLogic.countsWith(have, item)) {
+                        before = t.optString("content");
+                        break;
+                    }
+                }
+            }
+            JSONObject result = ShoppingLogic.addLine(guide, copy, projectId, line, id, TaskLogic.nowIso());
+            if (result == null) continue;
+            if (b.length() > 0) b.append("\n");
+            String name = ShoppingLogic.parse(result.optString("content"))[0];
+            b.append(ShoppingLogic.emoji(data, result.optString("description", ""), name)).append("  ")
+                    .append(result.optString("content"));
+            if (before != null && !id.equals(result.optString("id"))) b.append("   (onto ").append(before).append(")");
+        }
+        preview.setText(b);
+        preview.setVisibility(b.length() > 0 ? View.VISIBLE : View.GONE);
     }
 
     private void updateSendButton() {

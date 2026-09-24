@@ -249,7 +249,7 @@ export default function TaskDetail({
           : ""}
       </div>
       {subtasks.map((s) => (
-        <div key={s.id} className="task-row" style={{ padding: "4px 0" }}>
+        <div key={s.id} className="task-row td-subtask">
           <TaskCheckbox
             completed={s.completed}
             priorityColor={PRIORITY_META[s.priority].color}

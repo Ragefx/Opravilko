@@ -5394,3 +5394,20 @@ kbd {
   white-space: nowrap;
   font-weight: 600;
 }
+/* Sub-tasks in the task view: compact on the website, roomier in the app. */
+.detail-panel .task-row.td-subtask {
+  padding: 4px 0;
+}
+.td-app .task-row.td-subtask {
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 10px 0;
+}
+.td-app .task-row.td-subtask .task-content {
+  line-height: 1.35;
+}
+.td-app .td-subtask + .add-task-trigger,
+.td-app .td-subtask ~ .add-task-trigger {
+  margin-top: 8px;
+}

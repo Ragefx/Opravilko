@@ -4,17 +4,17 @@ The Android app carries its own copy of the web code, so website changes reach
 it only when a new APK is built (Actions -> "Android app" -> Run workflow, on
 the work branch). Changes are collected here and built together when asked.
 
-Last build: **build 12** (commit `0c17034`, Sep 23 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-12
+Last build: **build 13** (commit `dda84f9`, Sep 24 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-13
 
-Build 12 adds the widget's Add sheet (tasks, shopping items, meals), the
+Build 13 fixes the widget's Add sheet hiding behind the keyboard.
+Build 12 added the widget's Add sheet (tasks, shopping items, meals), the
 fix for tapping a task in the widget, the phone calendar (week/month of
 dots with the day's list) and the Display icon.
 
 ## In the code, not in the app yet
 
-- Fix: the widget's Add sheet sits on top of the keyboard (it was hidden
-  behind it), and above the navigation bar when the keyboard is closed.
+- Nothing yet.
 
 ## Known gaps
 

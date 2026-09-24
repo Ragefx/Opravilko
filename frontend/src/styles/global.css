@@ -4606,3 +4606,152 @@ kbd {
 .overlay.td-web-overlay {
   padding: calc(24px + var(--inset-top)) 24px calc(24px + var(--inset-bottom));
 }
+
+/* ---------- Shop picker: a sheet from the bottom (phone) or a small window ---------- */
+.modal-backdrop.shop-picker-backdrop {
+  align-items: center;
+}
+.shop-picker {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-radius: 20px;
+  padding: 8px 12px 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  animation: popIn 0.14s ease;
+}
+.shop-picker-handle {
+  display: none;
+}
+.shop-picker h3 {
+  margin: 10px 8px 2px;
+  font-size: 17px;
+}
+.shop-picker p {
+  margin: 0 8px 10px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.shop-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.shop-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.shop-picker-row:hover,
+.shop-picker-row:active {
+  background: var(--color-hover);
+}
+.shop-picker-row.is-current {
+  background: var(--color-selected);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.shop-picker-icon {
+  width: 24px;
+  text-align: center;
+  font-size: 18px;
+}
+.shop-picker-row.is-add {
+  color: var(--color-text-secondary);
+}
+.shop-picker-row.is-add .shop-picker-icon {
+  font-size: 22px;
+  font-weight: 300;
+}
+.shop-picker-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shop-picker-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-hover);
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+.shop-picker-row.is-current .shop-picker-count {
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+.shop-picker-check {
+  width: 18px;
+  display: flex;
+}
+.shop-picker-new {
+  display: flex;
+  gap: 8px;
+  padding: 6px 4px 0;
+}
+.shop-picker-new input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-accent);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+.shop-picker-new .btn {
+  height: 44px;
+  border-radius: 12px;
+}
+/* On a phone: a sheet along the bottom. */
+@media (max-width: 600px) {
+  .modal-backdrop.shop-picker-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .shop-picker {
+    width: 100%;
+    max-width: none;
+    border-radius: 22px 22px 0 0;
+    padding-bottom: calc(16px + var(--inset-bottom));
+    animation: sheetUp 0.18s ease;
+  }
+  .shop-picker-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-border);
+    margin: 4px auto 0;
+  }
+}
+@keyframes sheetUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+/* A new shop typed right among the shop chips. */
+.store-chip.store-chip-input {
+  width: 140px;
+  border-style: solid;
+  border-color: var(--color-accent);
+  outline: none;
+}

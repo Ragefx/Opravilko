@@ -180,8 +180,10 @@ export default function ShoppingView({
   const [mealsOpen, setMealsOpen] = useState(false);
   // The shop what you add now is for ("" for any).
   const [addStore, setAddStore] = useState("");
-  function addStoreName(): string | undefined {
-    const name = window.prompt("New shop")?.trim();
+  const [pickingShop, setPickingShop] = useState(false);
+  /** Adds a shop to the list's shops (unless it's there already); returns its name as listed. */
+  function addStoreName(typed: string): string | undefined {
+    const name = typed.trim();
     if (!name) return undefined;
     if (!stores.some((s) => s.toLocaleLowerCase("sl") === name.toLocaleLowerCase("sl"))) {
       updateProject.mutate({ id: projectId, stores: [...stores, name] });
@@ -381,22 +383,13 @@ export default function ShoppingView({
           <button className="btn btn-secondary shopping-meal-btn" onClick={() => setMealsOpen(true)}>
             🍳 Meal
           </button>
-          <label className={`btn btn-secondary shopping-store-btn ${addStore ? "is-on" : ""}`}>
+          <button
+            className={`btn btn-secondary shopping-store-btn ${addStore ? "is-on" : ""}`}
+            onClick={() => setPickingShop(true)}
+            aria-label={`Shop for what you add: ${addStore || "any shop"}`}
+          >
             🏪 {addStore || "Shop"}
-            <select
-              value={addStore}
-              aria-label="Shop for what you add"
-              onChange={(e) => setAddStore(e.target.value === "+" ? addStoreName() ?? addStore : e.target.value)}
-            >
-              <option value="">Any shop</option>
-              {stores.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-              <option value="+">+ New shop…</option>
-            </select>
-          </label>
+          </button>
         </div>
 
         {usual.length > 0 && (
@@ -522,6 +515,24 @@ export default function ShoppingView({
         />
       )}
 
+      {pickingShop && (
+        <ShopPicker
+          stores={stores}
+          current={addStore}
+          countOf={(shop) => open.filter((t) => (storeOf(t) ?? "") === shop).length}
+          onPick={(shop) => {
+            setAddStore(shop);
+            setPickingShop(false);
+          }}
+          onNew={(name) => {
+            const added = addStoreName(name);
+            if (added) setAddStore(added);
+            setPickingShop(false);
+          }}
+          onClose={() => setPickingShop(false)}
+        />
+      )}
+
       {mealsOpen && (
         <MealPicker
           saved={listMeals ?? customMeals()}
@@ -620,6 +631,93 @@ function ShoppingRow({
   );
 }
 
+/**
+ * Which shop what you add is for, in the app's own look: a sheet from the
+ * bottom on a phone, a small window on a wide screen. Each shop with how many
+ * things are on the list for it; a new shop is typed in right here.
+ */
+function ShopPicker({
+  stores,
+  current,
+  countOf,
+  onPick,
+  onNew,
+  onClose,
+}: {
+  stores: string[];
+  current: string;
+  countOf: (shop: string) => number;
+  onPick: (shop: string) => void;
+  onNew: (name: string) => void;
+  onClose: () => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+  const rows: { value: string; label: string }[] = [
+    { value: "", label: "Any shop" },
+    ...stores.map((s) => ({ value: s, label: s })),
+  ];
+  return (
+    <div className="modal-backdrop shop-picker-backdrop" onClick={onClose}>
+      <div className="shop-picker" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Buy at">
+        <div className="shop-picker-handle" aria-hidden="true" />
+        <h3>Buy at</h3>
+        <p>What you add now goes on the list for this shop.</p>
+        <div className="shop-picker-list" role="listbox">
+          {rows.map((r) => {
+            const n = countOf(r.value);
+            return (
+              <button
+                key={r.value || "any"}
+                role="option"
+                aria-selected={current === r.value}
+                className={`shop-picker-row ${current === r.value ? "is-current" : ""}`}
+                onClick={() => onPick(r.value)}
+              >
+                <span className="shop-picker-icon" aria-hidden="true">
+                  {r.value ? "🏪" : "🛒"}
+                </span>
+                <span className="shop-picker-name">{r.label}</span>
+                {n > 0 && <span className="shop-picker-count">{n}</span>}
+                <span className="shop-picker-check" aria-hidden="true">
+                  {current === r.value && <CheckIcon width={18} height={18} />}
+                </span>
+              </button>
+            );
+          })}
+          {adding ? (
+            <form
+              className="shop-picker-new"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (name.trim()) onNew(name);
+              }}
+            >
+              <input
+                autoFocus
+                placeholder="Shop name, e.g. Mercator"
+                value={name}
+                enterKeyHint="done"
+                onChange={(e) => setName(e.target.value)}
+              />
+              <button type="submit" className="btn btn-primary" disabled={!name.trim()}>
+                Add
+              </button>
+            </form>
+          ) : (
+            <button className="shop-picker-row is-add" onClick={() => setAdding(true)}>
+              <span className="shop-picker-icon" aria-hidden="true">
+                +
+              </span>
+              <span className="shop-picker-name">New shop</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ItemEditor({
   task,
   stores,
@@ -630,7 +728,7 @@ function ItemEditor({
 }: {
   task: Task;
   stores: string[];
-  onNewStore: () => string | undefined;
+  onNewStore: (name: string) => string | undefined;
   onClose: () => void;
   onSave: (content: string, categoryId: string, note: string, store: string | undefined) => void;
   onDelete: () => void;
@@ -641,6 +739,8 @@ function ItemEditor({
   const [categoryId, setCategoryId] = useState(categoryOf(task, item.name).id);
   const [note, setNote] = useState(noteOf(task.description));
   const [store, setStore] = useState(storeOf(task));
+  // Typing a new shop's name (null when not).
+  const [newShop, setNewShop] = useState<string | null>(null);
   const shops = store && !stores.includes(store) ? [...stores, store] : stores;
 
   function save() {
@@ -692,15 +792,32 @@ function ItemEditor({
               {s}
             </button>
           ))}
-          <button
-            className="store-chip is-add"
-            onClick={() => {
-              const added = onNewStore();
-              if (added) setStore(added);
-            }}
-          >
-            + Shop
-          </button>
+          {newShop === null ? (
+            <button className="store-chip is-add" onClick={() => setNewShop("")}>
+              + Shop
+            </button>
+          ) : (
+            <input
+              className="store-chip store-chip-input"
+              autoFocus
+              placeholder="Shop name"
+              value={newShop}
+              enterKeyHint="done"
+              onChange={(e) => setNewShop(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setNewShop(null);
+                if (e.key !== "Enter") return;
+                const added = onNewStore(newShop);
+                if (added) setStore(added);
+                setNewShop(null);
+              }}
+              onBlur={() => {
+                const added = newShop.trim() ? onNewStore(newShop) : undefined;
+                if (added) setStore(added);
+                setNewShop(null);
+              }}
+            />
+          )}
         </div>
         <div className="category-grid">
           {CATEGORIES.map((c) => (

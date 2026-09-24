@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useBootstrap, useCreateProject } from "../api/hooks";
 import ShoppingView from "../components/ShoppingView";
-import ProjectMenu from "../components/ProjectMenu";
-import { usingFirebase } from "../data/store";
 import { shoppingListOf } from "../utils/shopping";
 
 /**
  * The shopping list, from its own "Shopping" entry: always shown as a list of
- * things to buy (no other views). Made the first time it's opened.
+ * things to buy (no other views). Made the first time it's opened, and
+ * shared with your partner by itself (see useSharedShoppingList).
  */
 export default function ShoppingPage() {
   const { data } = useBootstrap();
@@ -36,11 +35,6 @@ export default function ShoppingPage() {
   const header = (
     <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
       <h1>Shopping</h1>
-      {usingFirebase() && (
-        <span className="project-header-menu">
-          <ProjectMenu project={list} shoppingList />
-        </span>
-      )}
     </div>
   );
   return <ShoppingView key={list.id} projectId={list.id} header={header} start={start} />;

@@ -19,12 +19,10 @@ import { CopyIcon, EditIcon, ListViewIcon, PlusIcon, ShareIcon, TrashIcon } from
 export default function ProjectMenu({
   project: p,
   templatesOnly = false,
-  shoppingList = false,
 }: {
   project: Project;
   templatesOnly?: boolean;
   /** The shopping list: only sharing (or leaving someone else's). */
-  shoppingList?: boolean;
 }) {
   const navigate = useNavigate();
   const showToast = useToast();
@@ -62,33 +60,11 @@ export default function ProjectMenu({
     });
   }
 
-  const notMine = Boolean(p.ownerId && p.ownerId !== activeSession()?.userId);
-  const shareItem = usingFirebase()
-    ? [{ label: "Share…", icon: <ShareIcon width={14} height={14} />, onClick: () => setSharing(true) }]
-    : [];
-  const shoppingItems = [
-    ...shareItem,
-    ...(notMine
-      ? [
-          {
-            label: "Leave this list",
-            icon: <TrashIcon width={14} height={14} />,
-            danger: true,
-            onClick: () => {
-              void activeSession()?.leaveProject(p.id);
-              navigate("/app");
-              showToast({ message: `Left “${p.name}”` });
-            },
-          },
-        ]
-      : []),
-  ];
-
   return (
     <>
       <RowMenu
         label={p.name}
-        items={shoppingList ? shoppingItems : templatesOnly ? templateItems : [
+        items={templatesOnly ? templateItems : [
           { label: "Edit project", icon: <EditIcon width={14} height={14} />, onClick: () => setModal("edit") },
           { label: "Add sub-project", icon: <PlusIcon width={14} height={14} />, onClick: () => setModal("sub") },
           ...(usingFirebase()

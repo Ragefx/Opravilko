@@ -23,6 +23,8 @@ export interface Project {
   meals?: Meal[];
   /** Shopping lists: how often each thing was ticked off ("usual items"), by lower-case name. */
   bought?: Record<string, { name: string; n: number }>;
+  /** Shopping lists: the shops items can be marked for (SPAR, Hofer, Lidl unless changed). */
+  stores?: string[];
   /** Firebase only: who created it and who can see it (see firebase/sync.ts). */
   ownerId?: string;
   members?: string[];

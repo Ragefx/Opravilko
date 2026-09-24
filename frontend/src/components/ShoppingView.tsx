@@ -18,6 +18,7 @@ import {
   takeShoppingAdd,
   CATEGORIES,
   categoryById,
+  storesOf,
   guessCategory,
   rememberCategory,
   type Category,
@@ -30,8 +31,28 @@ import { CheckIcon, XIcon } from "./icons";
 
 /**
  * An item's extras live in its description, one per line: "za: Palačinke,
- * Omleta" (the meals it's for) and "kat: dairy" (a category picked by hand).
+ * Omleta" (the meals it's for), "kat: dairy" (a category picked by hand) and
+ * "trg: SPAR" (the shop to buy it in). Any other lines are your own note.
  */
+const EXTRA_LINE = /^(za|kat|trg): /;
+function noteOf(description: string): string {
+  return description
+    .split("\n")
+    .filter((l) => !EXTRA_LINE.test(l))
+    .join("\n")
+    .trim();
+}
+function withNote(description: string, note: string): string {
+  const extras = description.split("\n").filter((l) => EXTRA_LINE.test(l));
+  return [note.trim(), ...extras].filter(Boolean).join("\n");
+}
+function storeOf(t: Task): string | undefined {
+  return lineOf(t.description, "trg");
+}
+function withStore(description: string, store: string | undefined): string {
+  if (!store) return description.split("\n").filter((l) => !l.startsWith("trg: ")).join("\n");
+  return withLine(description, "trg", store);
+}
 function lineOf(description: string, key: string): string | undefined {
   return description.match(new RegExp(`^${key}: (.+)$`, "m"))?.[1];
 }
@@ -110,7 +131,7 @@ export default function ShoppingView({
   projectId: string;
   header: ReactNode;
   /** From the widget: focus the add box, or start voice input (a new `n` each time). */
-  start?: { n: number; mode: "add" | "voice" } | null;
+  start?: { n: number; mode: "add" | "voice" | "open"; id?: string } | null;
 }) {
   const addInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -141,7 +162,25 @@ export default function ShoppingView({
   }
   const [text, setText] = useState("");
   const [mealsOpen, setMealsOpen] = useState(false);
+  // The shop what you add now is for ("" for any).
+  const [addStore, setAddStore] = useState("");
+  const stores = storesOf(project);
+  function addStoreName(): string | undefined {
+    const name = window.prompt("New shop")?.trim();
+    if (!name) return undefined;
+    if (!stores.some((s) => s.toLocaleLowerCase("sl") === name.toLocaleLowerCase("sl"))) {
+      updateProject.mutate({ id: projectId, stores: [...stores, name] });
+    }
+    return stores.find((s) => s.toLocaleLowerCase("sl") === name.toLocaleLowerCase("sl")) ?? name;
+  }
   const [editing, setEditing] = useState<Task | null>(null);
+  // From the widget: open the item that was tapped.
+  useEffect(() => {
+    if (start?.mode !== "open") return;
+    const t = data?.tasks.find((x) => x.id === start.id);
+    if (t) setEditing(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start]);
   useWakeLock();
 
   const archivedSections = useMemo(
@@ -172,7 +211,7 @@ export default function ShoppingView({
    * Adds items, adding amounts onto the same thing already on the list
    * ("Jajca 2×" + "Jajca 3×" = "Jajca 5×"). Returns how to undo it.
    */
-  async function addItems(list: Item[], meal?: string): Promise<() => void> {
+  async function addItems(list: Item[], meal?: string, store = addStore): Promise<() => void> {
     const created: string[] = [];
     const changed: { id: string; content: string; description: string }[] = [];
     for (const item of list) {
@@ -190,13 +229,14 @@ export default function ShoppingView({
         await updateTask.mutateAsync({
           id: existing.id,
           content: itemTitle(next),
-          description: withMeal(existing.description, meal),
+          // Marked for a shop now, unless it already was.
+          description: withMeal(storeOf(existing) ? existing.description : withStore(existing.description, store), meal),
         });
       } else {
         const t = await createTask.mutateAsync({
           content: itemTitle(item),
           projectId,
-          description: meal ? `za: ${meal}` : "",
+          description: withStore(meal ? `za: ${meal}` : "", store),
         });
         created.push(t.id);
       }
@@ -288,6 +328,22 @@ export default function ShoppingView({
           <button className="btn btn-secondary shopping-meal-btn" onClick={() => setMealsOpen(true)}>
             🍳 Meal
           </button>
+          <label className={`btn btn-secondary shopping-store-btn ${addStore ? "is-on" : ""}`}>
+            🏪 {addStore || "Shop"}
+            <select
+              value={addStore}
+              aria-label="Shop for what you add"
+              onChange={(e) => setAddStore(e.target.value === "+" ? addStoreName() ?? addStore : e.target.value)}
+            >
+              <option value="">Any shop</option>
+              {stores.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+              <option value="+">+ New shop…</option>
+            </select>
+          </label>
         </div>
 
         {usual.length > 0 && (
@@ -342,8 +398,10 @@ export default function ShoppingView({
       {editing && (
         <ItemEditor
           task={editing}
+          stores={stores}
+          onNewStore={addStoreName}
           onClose={() => setEditing(null)}
-          onSave={(content, categoryId) => {
+          onSave={(content, categoryId, note, store) => {
             const name = parseItem(content).name;
             const guessed = guessCategory(name);
             let description = editing.description;
@@ -351,6 +409,7 @@ export default function ShoppingView({
               description = withLine(description, "kat", categoryId);
               rememberCategory(name, categoryId);
             }
+            description = withStore(withNote(description, note), store);
             updateTask.mutate({ id: editing.id, content, description });
             setEditing(null);
           }}
@@ -397,6 +456,8 @@ function ShoppingRow({
   const amount = formatAmount(item.amount, item.unit);
   const meals = mealsOf(task);
   const category = categoryOf(task, item.name);
+  const store = storeOf(task);
+  const note = noteOf(task.description);
   return (
     <li className={`shopping-row ${task.completed ? "is-done" : ""}`}>
       {/* The circle side ticks it off; the rest of the row opens it for editing. */}
@@ -414,7 +475,9 @@ function ShoppingRow({
         <span className="shopping-name">
           {item.name}
           {meals.length > 0 && <small>{meals.join(" · ")}</small>}
+          {note && <small className="shopping-note">{note}</small>}
         </span>
+        {store && <span className="shopping-store">{store}</span>}
         {amount && <span className="shopping-amount">{amount}</span>}
         <span className="shopping-category" title={category.name}>
           {category.emoji}
@@ -429,26 +492,38 @@ function ShoppingRow({
 
 function ItemEditor({
   task,
+  stores,
+  onNewStore,
   onClose,
   onSave,
   onDelete,
 }: {
   task: Task;
+  stores: string[];
+  onNewStore: () => string | undefined;
   onClose: () => void;
-  onSave: (content: string, categoryId: string) => void;
+  onSave: (content: string, categoryId: string, note: string, store: string | undefined) => void;
   onDelete: () => void;
 }) {
   const item = parseItem(task.content);
   const [name, setName] = useState(item.name);
   const [amount, setAmount] = useState(formatAmount(item.amount, item.unit));
   const [categoryId, setCategoryId] = useState(categoryOf(task, item.name).id);
+  const [note, setNote] = useState(noteOf(task.description));
+  const [store, setStore] = useState(storeOf(task));
+  const shops = store && !stores.includes(store) ? [...stores, store] : stores;
 
   function save() {
     if (!name.trim()) return;
     // Read back the same way as typing it into the list ("1,5 l", "4", "500 g").
     const parsed = parseItem(`${name.trim()} ${amount.trim()}`.trim());
     const next = amount.trim() && parsed.amount !== undefined ? parsed : { name: name.trim() };
-    onSave(itemTitle({ ...next, name: name.trim().replace(/^./, (c) => c.toLocaleUpperCase("sl")) }), categoryId);
+    onSave(
+      itemTitle({ ...next, name: name.trim().replace(/^./, (c) => c.toLocaleUpperCase("sl")) }),
+      categoryId,
+      note,
+      store
+    );
   }
 
   return (
@@ -468,6 +543,34 @@ function ItemEditor({
               onKeyDown={(e) => e.key === "Enter" && save()}
             />
           </label>
+        </div>
+        <label className="item-editor-note">
+          Note
+          <textarea
+            rows={2}
+            value={note}
+            placeholder="e.g. the Alpsko yoghurt, or cheese if there's none"
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </label>
+        <div className="item-editor-stores" role="group" aria-label="Shop">
+          <button className={`store-chip ${!store ? "is-current" : ""}`} onClick={() => setStore(undefined)}>
+            Any shop
+          </button>
+          {shops.map((s) => (
+            <button key={s} className={`store-chip ${store === s ? "is-current" : ""}`} onClick={() => setStore(s)}>
+              {s}
+            </button>
+          ))}
+          <button
+            className="store-chip is-add"
+            onClick={() => {
+              const added = onNewStore();
+              if (added) setStore(added);
+            }}
+          >
+            + Shop
+          </button>
         </div>
         <div className="category-grid">
           {CATEGORIES.map((c) => (

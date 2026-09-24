@@ -240,12 +240,15 @@ final class ShoppingLogic {
      * Returns the task that was changed or made, or null.
      */
     static JSONObject addLine(JSONObject guide, JSONArray tasks, String projectId, String line, String newId, String at) {
-        return addLine(guide, tasks, projectId, line, newId, at, null);
+        return addLine(guide, tasks, projectId, line, newId, at, null, null);
     }
 
-    /** As above; `meal` (or null) is the meal it's for, noted on the item ("za: Palačinke"). */
+    /**
+     * As above; `meal` (or null) is the meal it's for, noted on the item ("za: Palačinke"),
+     * and `store` (or null) the shop to buy it in ("trg: SPAR").
+     */
     static JSONObject addLine(JSONObject guide, JSONArray tasks, String projectId, String line, String newId, String at,
-            String meal) {
+            String meal, String store) {
         try {
             Item item = parseItem(guide, line);
             JSONObject match = null;
@@ -264,17 +267,51 @@ final class ShoppingLogic {
             if (existing != null) {
                 Item next = combined(parseItem(guide, existing.optString("content")), item, meal == null);
                 existing.put("content", itemTitle(next));
-                existing.put("description", withMeal(existing.optString("description", ""), meal));
+                String description = existing.optString("description", "");
+                // Marked for a shop now, unless it already was.
+                if (store != null && storeOf(description) == null) description = withLine(description, "trg: ", store);
+                existing.put("description", withMeal(description, meal));
                 existing.put("updatedAt", at);
                 return existing;
             }
             JSONObject task = TaskLogic.newTask(newId, itemTitle(item), projectId, 1, null, (long) maxOrder + 1, at);
-            if (meal != null) task.put("description", "za: " + meal);
+            String description = meal != null ? "za: " + meal : "";
+            if (store != null) description = withLine(description, "trg: ", store);
+            if (!description.isEmpty()) task.put("description", description);
             tasks.put(task);
             return task;
         } catch (JSONException e) {
             return null;
         }
+    }
+
+    // ---- shops (ShoppingView: storeOf / withStore; shopping.ts: storesOf) ----
+
+    static final String[] DEFAULT_STORES = {"SPAR", "Hofer", "Lidl"};
+
+    /** The shops items can be marked for: the list's own, or SPAR, Hofer and Lidl. */
+    static List<String> stores(JSONObject data, String projectId) {
+        List<String> out = new ArrayList<>();
+        JSONObject project = TaskLogic.findProject(data, projectId);
+        JSONArray own = project != null ? project.optJSONArray("stores") : null;
+        if (own != null) for (int i = 0; i < own.length(); i++) if (!own.optString(i).isEmpty()) out.add(own.optString(i));
+        if (out.isEmpty()) java.util.Collections.addAll(out, DEFAULT_STORES);
+        return out;
+    }
+
+    /** The shop an item is for ("trg: SPAR" in its notes), or null. */
+    static String storeOf(String description) {
+        if (description == null) return null;
+        for (String line : description.split("\n")) if (line.startsWith("trg: ")) return line.substring(5).trim();
+        return null;
+    }
+
+    /** `description` with its "<key>value" line replaced (or added last). */
+    static String withLine(String description, String key, String value) {
+        List<String> lines = new ArrayList<>();
+        for (String line : description.split("\n")) if (!line.trim().isEmpty() && !line.startsWith(key)) lines.add(line);
+        lines.add(key + value);
+        return join("\n", lines);
     }
 
     // ---- meals (src/utils/shopping.ts: BUILTIN_MEALS, scaled; ShoppingView's MealPicker) ----

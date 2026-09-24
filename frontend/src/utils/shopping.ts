@@ -448,6 +448,12 @@ export function takeShoppingAdd(projectId: string): string | null {
  * its own "Shopping" entry instead of the project list. One shared with
  * someone wins, so both of you land on the same list.
  */
+/** The shops an item can be marked for; the list's own when you've added some. */
+export const DEFAULT_STORES = ["SPAR", "Hofer", "Lidl"];
+export function storesOf(project: Project | undefined): string[] {
+  return project?.stores?.length ? project.stores : DEFAULT_STORES;
+}
+
 export function shoppingListOf(projects: Project[]): Project | undefined {
   return projects
     .filter((p) => p.viewStyle === "shopping" && !p.isInboxProject)

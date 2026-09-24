@@ -54,6 +54,8 @@ public class QuickAddActivity extends AppCompatActivity {
     private TextView added;
 
     private boolean shopping;
+    /** On the shopping list: the shop what's added now is for (null for any). */
+    private String shopStore;
     private String projectId = "inbox";
     /** The section within the project ("Inbox / To-do"), or null for the project itself. */
     private String sectionId;
@@ -246,6 +248,11 @@ public class QuickAddActivity extends AppCompatActivity {
             TextView mealChip = chip("\uD83C\uDF73 Meal", null, R.color.widget_accent);
             mealChip.setOnClickListener(v -> pickMeal());
             chips.addView(mealChip);
+            // The shop: marked on everything added while it's picked.
+            TextView storeChip = chip("\uD83C\uDFEA " + (shopStore != null ? shopStore : "Shop"), null,
+                    shopStore != null ? R.color.widget_accent : R.color.widget_text);
+            storeChip.setOnClickListener(v -> pickStore());
+            chips.addView(storeChip);
             for (String name : usualItems(data)) {
                 TextView chip = chip("+ " + name, null, R.color.widget_text);
                 chip.setOnClickListener(v -> {
@@ -747,6 +754,27 @@ public class QuickAddActivity extends AppCompatActivity {
         return out;
     }
 
+    // ---- shops ----
+
+    private void pickStore() {
+        List<String> stores = ShoppingLogic.stores(store.getSnapshot(), projectId);
+        String[] names = new String[stores.size() + 1];
+        names[0] = "Any shop";
+        int checked = 0;
+        for (int i = 0; i < stores.size(); i++) {
+            names[i + 1] = stores.get(i);
+            if (stores.get(i).equals(shopStore)) checked = i + 1;
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Buy in")
+                .setSingleChoiceItems(names, checked, (d, which) -> {
+                    shopStore = which == 0 ? null : stores.get(which - 1);
+                    d.dismiss();
+                    buildChips();
+                })
+                .show();
+    }
+
     // ---- meals ----
 
     private void pickMeal() {
@@ -843,7 +871,7 @@ public class QuickAddActivity extends AppCompatActivity {
                 String id = TaskLogic.newId();
                 queue(data, new JSONObject().put("id", "shop@" + id).put("op", WidgetStore.OP_SHOP)
                         .put("projectId", projectId).put("line", ShoppingLogic.itemTitle(item)).put("meal", name)
-                        .put("newId", id).put("at", at));
+                        .put("newId", id).put("at", at).putOpt("store", shopStore));
             }
             confirm("\u2713 " + name + " (" + servings + "): " + items.size() + " ingredients");
         } catch (JSONException e) {
@@ -910,7 +938,8 @@ public class QuickAddActivity extends AppCompatActivity {
             for (String line : lines) {
                 String id = TaskLogic.newId();
                 queue(data, new JSONObject().put("id", "shop@" + id).put("op", WidgetStore.OP_SHOP)
-                        .put("projectId", projectId).put("line", line).put("newId", id).put("at", at));
+                        .put("projectId", projectId).put("line", line).put("newId", id).put("at", at)
+                        .putOpt("store", shopStore));
                 names.add(ShoppingLogic.parseItem(data.optJSONObject("shoppingGuide"), line).name);
             }
             confirm("✓ " + android.text.TextUtils.join(", ", names));

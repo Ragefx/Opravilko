@@ -38,7 +38,7 @@ public class TaskWidgetService extends RemoteViewsService {
         /** Date views: the row sits under its day's heading. */
         final boolean dateInHeading;
         /** Shopping list: the item's name, amount and icon. */
-        String shopName, shopAmount, shopIcon;
+        String shopName, shopAmount, shopIcon, shopStore;
 
         private Item(String heading, int count, boolean muted, boolean reschedule, TaskLogic.Row row, boolean dateInHeading) {
             this.heading = heading;
@@ -63,6 +63,7 @@ public class TaskWidgetService extends RemoteViewsService {
             item.shopName = parsed[0];
             item.shopAmount = parsed[1];
             item.shopIcon = ShoppingLogic.emoji(data, row.description, parsed[0]);
+            item.shopStore = ShoppingLogic.storeOf(row.description);
             return item;
         }
     }
@@ -176,13 +177,19 @@ public class TaskWidgetService extends RemoteViewsService {
             rv.setViewVisibility(R.id.shop_amount, item.shopAmount != null ? View.VISIBLE : View.GONE);
             if (item.shopAmount != null) rv.setTextViewText(R.id.shop_amount, item.shopAmount);
             rv.setTextViewText(R.id.shop_icon, item.shopIcon);
+            rv.setViewVisibility(R.id.shop_store, item.shopStore != null ? View.VISIBLE : View.GONE);
+            if (item.shopStore != null) rv.setTextViewText(R.id.shop_store, item.shopStore);
 
             Intent bought = new Intent();
             bought.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_COMPLETE);
             bought.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
             rv.setOnClickFillInIntent(R.id.shop_check, bought);
-            // Tapping the item itself ticks it too: in the shop, that's what you want.
-            rv.setOnClickFillInIntent(R.id.shop_root, bought);
+            // Tapping the item itself opens it in the app (its note, shop, amount).
+            Intent open = new Intent();
+            open.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_OPEN);
+            open.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
+            open.putExtra(TaskWidgetProvider.EXTRA_PROJECT_ID, row.projectId);
+            rv.setOnClickFillInIntent(R.id.shop_root, open);
             return rv;
         }
 

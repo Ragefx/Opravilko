@@ -76,7 +76,7 @@ public final class WidgetStore {
     public static final String OP_TODAY = "today";
     /** A task made in the widget's Add task box: {task}. */
     public static final String OP_CREATE = "create";
-    /** A line added to a shopping list from the widget: {projectId, line, newId}. */
+    /** A line added to a shopping list from the widget: {projectId, line, newId, meal?, store?}. */
     public static final String OP_SHOP = "shop";
     /** A file attached in the widget's Add task card (Google sign-in only): {taskId, attId, path, name, type}. */
     public static final String OP_ATTACH = "attach";
@@ -91,7 +91,8 @@ public final class WidgetStore {
             // Already there (made by an earlier sync of this same line)? Then nothing to do.
             if (TaskLogic.findTask(tasks, p.optString("newId")) != null) return false;
             return ShoppingLogic.addLine(data.optJSONObject("shoppingGuide"), tasks, p.optString("projectId"),
-                    p.optString("line"), p.optString("newId"), p.optString("at"), optStringOrNull(p, "meal")) != null;
+                    p.optString("line"), p.optString("newId"), p.optString("at"), optStringOrNull(p, "meal"),
+                    optStringOrNull(p, "store")) != null;
         }
         return TaskLogic.complete(data, p.optString("taskId"), optStringOrNull(p, "dueDate"), p.optString("at"));
     }

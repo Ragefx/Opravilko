@@ -56,7 +56,11 @@ export default function ProjectView() {
 
   if (isLoading || !data) return null;
   if (!project) return <div className="empty-state">Project not found.</div>;
-  if (shoppingListOf(data.projects)?.id === project.id) return <Navigate to="/app/shopping" replace />;
+  if (shoppingListOf(data.projects)?.id === project.id) {
+    // An item opened from elsewhere (the widget) opens on the list's own page.
+    const open = searchParams.get("open");
+    return <Navigate to={`/app/shopping${open ? `?open=${encodeURIComponent(open)}` : ""}`} replace />;
+  }
 
   function handleDisplayChange(next: DisplayOptions) {
     setDisplay(next);

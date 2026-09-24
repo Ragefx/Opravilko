@@ -2272,7 +2272,8 @@ kbd {
     left: 8px !important;
     right: 8px !important;
     width: auto !important;
-    max-height: calc(100dvh - 16px);
+    /* Never under the status bar, even with the keyboard up. */
+    max-height: min(85dvh, calc(100dvh - 24px - var(--inset-top) - var(--inset-bottom)));
     overflow-y: auto;
   }
 }

@@ -23,6 +23,7 @@ import { CalendarIcon, ChevronIcon, ClockIcon, CouchIcon, RepeatIcon, SkipForwar
 import TimePickerPopup from "./TimePickerPopup";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
+const touchScreen = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
 
 /**
  * The full date picker opened from a task's "⋯" menu (the "…" next to the
@@ -136,7 +137,9 @@ export default function DatePickerPopup({
       >
         <input
           className="date-picker-input"
-          autoFocus
+          // Straight into typing with a mouse; on a phone that would pop the
+          // keyboard up over the picker, so there you tap the field to type.
+          autoFocus={!touchScreen}
           placeholder="Type a date"
           value={text}
           onChange={(e) => setText(e.target.value)}

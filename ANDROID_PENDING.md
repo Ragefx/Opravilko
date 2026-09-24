@@ -17,6 +17,9 @@ dots with the day's list) and the Display icon.
 - Ticking a task off: the circle fills and pops, a line strikes through
   the name, then the row folds away (repeating tasks stay, with their next
   date). Lists and board cards.
+- Shopping list sorted by category (fruit and veg, bread, dairy, meat,
+  pantry, spices, frozen, sweets, drinks, household, toiletries, pets,
+  other), in the app and the widget.
 
 ## Known gaps
 

@@ -41,15 +41,29 @@ final class ShoppingLogic {
         return new String[] { t, null };
     }
 
-    /** The category's emoji: picked by hand ("kat: dairy" in the notes), else guessed from the name. */
-    static String emoji(JSONObject data, String description, String name) {
+    /** The item's category: picked by hand ("kat: dairy" in the notes), else guessed from the name. */
+    static String categoryId(JSONObject data, String description, String name) {
         JSONObject guide = data != null ? data.optJSONObject("shoppingGuide") : null;
         String id = null;
         for (String line : description.split("\n")) {
             String l = line.trim();
             if (l.startsWith("kat:")) id = l.substring(4).trim();
         }
-        if (id == null) id = guess(guide, name);
+        return id != null ? id : guess(guide, name);
+    }
+
+    /** Where a category comes on the list (the shop-walk order); unknown ones last. */
+    static int categoryRank(JSONObject data, String id) {
+        JSONObject guide = data != null ? data.optJSONObject("shoppingGuide") : null;
+        JSONArray order = guide != null ? guide.optJSONArray("categoryOrder") : null;
+        if (order != null) for (int i = 0; i < order.length(); i++) if (id.equals(order.optString(i))) return i;
+        return 999;
+    }
+
+    /** The category's emoji. */
+    static String emoji(JSONObject data, String description, String name) {
+        JSONObject guide = data != null ? data.optJSONObject("shoppingGuide") : null;
+        String id = categoryId(data, description, name);
         JSONObject emoji = guide != null ? guide.optJSONObject("emoji") : null;
         String e = emoji != null ? emoji.optString(id, null) : null;
         return e != null ? e : "🛒"; // 🛒

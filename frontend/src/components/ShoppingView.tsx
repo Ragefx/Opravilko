@@ -151,7 +151,12 @@ export default function ShoppingView({
   const items = (data?.tasks || []).filter(
     (t) => t.projectId === projectId && !t.parentId && !(t.sectionId && archivedSections.has(t.sectionId))
   );
-  const open = items.filter((t) => !t.completed).sort((a, b) => a.order - b.order);
+  // By category, in the order you'd walk a shop (fruit and veg first); within
+  // one, in the order they were added.
+  const categoryRank = (t: Task) => CATEGORIES.findIndex((c) => c.id === categoryOf(t, parseItem(t.content).name).id);
+  const open = items
+    .filter((t) => !t.completed)
+    .sort((a, b) => categoryRank(a) - categoryRank(b) || a.order - b.order);
   // What you usually buy that isn't on the list yet: one tap puts it back.
   const onList = new Set(open.map((t) => parseItem(t.content).name.toLocaleLowerCase("sl")));
   const usual = Object.entries(project?.bought ?? {})

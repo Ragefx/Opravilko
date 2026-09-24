@@ -468,6 +468,8 @@ export function shoppingListOf(projects: Project[]): Project | undefined {
 export function categoryGuide() {
   return {
     emoji: Object.fromEntries(CATEGORIES.map((c) => [c.id, c.emoji])),
+    // The shop-walk order the list is sorted in.
+    categoryOrder: CATEGORIES.map((c) => c.id),
     phrases: PHRASES,
     stems: STEMS,
     order: STEM_ORDER,

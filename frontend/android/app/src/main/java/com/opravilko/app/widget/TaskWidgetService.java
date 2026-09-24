@@ -96,7 +96,15 @@ public class TaskWidgetService extends RemoteViewsService {
 
         // The shopping list: its items, as the app lists them.
         if (ShoppingLogic.isShoppingView(data, view)) {
-            for (TaskLogic.Row r : rows) items.add(Item.shop(data, r));
+            // By category, in the shop-walk order the app uses; within one, as added.
+            List<TaskLogic.Row> sorted = new ArrayList<>(rows);
+            java.util.Map<String, Integer> rank = new java.util.HashMap<>();
+            for (TaskLogic.Row r : sorted) {
+                String name = ShoppingLogic.parse(r.content)[0];
+                rank.put(r.id, ShoppingLogic.categoryRank(data, ShoppingLogic.categoryId(data, r.description, name)));
+            }
+            java.util.Collections.sort(sorted, (a, b) -> Integer.compare(rank.get(a.id), rank.get(b.id)));
+            for (TaskLogic.Row r : sorted) items.add(Item.shop(data, r));
             return items;
         }
 

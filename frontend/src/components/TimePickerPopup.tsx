@@ -31,7 +31,8 @@ export default function TimePickerPopup({
     <>
       <div
         className="dropdown-backdrop"
-        style={{ zIndex: 97 }}
+        // Above the date picker, which itself sits over the Add task window.
+        style={{ zIndex: 340 }}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -40,7 +41,11 @@ export default function TimePickerPopup({
       />
       <div
         className="dropdown-panel time-picker-panel"
-        style={{ top: anchor.top, left: anchor.left, zIndex: 98 }}
+        style={{
+          top: Math.max(8, Math.min(anchor.top, window.innerHeight - 140)),
+          left: Math.max(8, Math.min(anchor.left, window.innerWidth - 260)),
+          zIndex: 341,
+        }}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >

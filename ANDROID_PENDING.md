@@ -17,6 +17,7 @@ Build 22 adds task reminders: several per task, rung by the phone itself
   indexes in firestore.indexes.json (without them it reads everything, as before)
 - Sub-tasks in the task view get more room (taller rows, more spacing)
 - Task view: "Add a label" no longer sits lower than the other rows
+- Add task: the time picker opens in front of the date picker (was hidden behind it)
 
 ## Known gaps
 

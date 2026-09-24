@@ -5411,3 +5411,11 @@ kbd {
 .td-app .td-subtask ~ .add-task-trigger {
   margin-top: 8px;
 }
+/* App: "Add a label" sits right under its caption, like the other rows' values. */
+.td-app .td-label-chips {
+  margin-top: 0;
+}
+.td-app .td-label-input {
+  height: 22px;
+  line-height: 22px;
+}

@@ -7,6 +7,7 @@ import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
 import { useSwipeActions } from "./useSwipeActions";
 import TaskMenu from "./TaskMenu";
+import { appUi } from "../utils/appUi";
 import PriorityMark from "./PriorityMark";
 import MidvaBadge from "./MidvaBadge";
 import { useToast } from "./ToastProvider";
@@ -162,7 +163,8 @@ export default function TaskRow({
           )}
         </div>
         {!task.completed && <PriorityMark priority={task.priority} />}
-        <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
+        {/* The app opens the full task on a tap, so no ⋯ menu there. */}
+        {!appUi && <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />}
       </div>
     </div>
   );

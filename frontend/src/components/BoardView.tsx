@@ -23,6 +23,7 @@ import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
 import SectionMenu from "./SectionMenu";
 import TaskMenu from "./TaskMenu";
+import { appUi } from "../utils/appUi";
 import PriorityMark from "./PriorityMark";
 import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
@@ -433,7 +434,8 @@ function BoardCard({
             )}
           </div>
           <PriorityMark priority={task.priority} />
-          <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
+          {/* The app opens the full task on a tap, so no ⋯ menu there. */}
+          {!appUi && <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />}
         </div>
       </div>
     </div>

@@ -13,7 +13,8 @@ shortcut, and fixes for widget ticks (usual items) and partner Inbox tasks.
 
 ## In the code, not in the app yet
 
-- (nothing)
+- No ⋯ menu on task rows and Board cards in the app (tap opens the task).
+
 
 ## Known gaps
 

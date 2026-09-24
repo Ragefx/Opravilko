@@ -6,11 +6,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:minHeight="54dp"
+    android:minHeight="48dp"
     android:orientation="horizontal"
-    android:paddingTop="8dp"
+    android:paddingTop="6dp"
     android:paddingEnd="16dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="6dp">
 
     <!-- Generous padding: the circle is small but the tap target isn't. -->
     <ImageView
@@ -18,10 +18,10 @@
         android:layout_width="52dp"
         android:layout_height="44dp"
         android:contentDescription="@string/widget_complete_task"
-        android:paddingStart="14dp"
-        android:paddingTop="11dp"
-        android:paddingEnd="15dp"
-        android:paddingBottom="11dp"
+        android:paddingStart="16dp"
+        android:paddingTop="13dp"
+        android:paddingEnd="17dp"
+        android:paddingBottom="13dp"
         android:src="@drawable/widget_check_1" />
 
     <LinearLayout
@@ -37,7 +37,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textColor="@color/widget_text"
-            android:textSize="15.5sp" />
+            android:textSize="14sp" />
 
         <LinearLayout
             android:id="@+id/row_meta"
@@ -49,8 +49,8 @@
 
             <ImageView
                 android:id="@+id/row_due_icon"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
                 android:layout_marginEnd="4dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_w_calendar" />
@@ -61,20 +61,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
                 android:maxLines="1"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <ImageView
                 android:id="@+id/row_repeat"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
                 android:layout_marginEnd="6dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_w_repeat" />
 
             <ImageView
                 android:id="@+id/row_notes"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
                 android:layout_marginEnd="6dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_w_notes" />
@@ -93,12 +93,12 @@
                 android:maxLines="1"
                 android:maxWidth="130dp"
                 android:textColor="@color/widget_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <ImageView
                 android:id="@+id/row_project_icon"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
                 android:layout_marginStart="4dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_w_inbox" />

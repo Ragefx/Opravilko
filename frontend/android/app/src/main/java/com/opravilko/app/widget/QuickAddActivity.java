@@ -343,17 +343,17 @@ public class QuickAddActivity extends AppCompatActivity {
         for (Object[] r : rows) {
             TextView row = new TextView(this);
             row.setText((String) r[0]);
-            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
             row.setTextColor(getColor(R.color.widget_text));
             row.setGravity(Gravity.CENTER_VERTICAL);
-            row.setMinHeight(dp(56));
-            row.setMinWidth(dp(220));
+            row.setMinHeight(dp(48));
+            row.setMinWidth(dp(200));
             row.setPadding(dp(20), 0, dp(28), 0);
             Drawable d = getDrawable((Integer) r[1]);
             if (d != null) {
-                d.setBounds(0, 0, dp(24), dp(24));
+                d.setBounds(0, 0, dp(20), dp(20));
                 row.setCompoundDrawables(d, null, null, null);
-                row.setCompoundDrawablePadding(dp(18));
+                row.setCompoundDrawablePadding(dp(16));
                 row.setCompoundDrawableTintList(ColorStateList.valueOf(getColor(R.color.widget_text_secondary)));
             }
             row.setOnClickListener(v -> {
@@ -581,18 +581,18 @@ public class QuickAddActivity extends AppCompatActivity {
     private TextView chip(String label, Integer icon, int colorRes) {
         TextView chip = new TextView(this);
         chip.setText(label);
-        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         int color = getColor(colorRes);
         chip.setTextColor(color);
         chip.setGravity(Gravity.CENTER_VERTICAL);
         chip.setBackgroundResource(R.drawable.qa_chip_bg);
-        chip.setMinHeight(dp(50));
-        chip.setPadding(dp(14), 0, label.isEmpty() ? dp(6) : dp(16), 0);
+        chip.setMinHeight(dp(36));
+        chip.setPadding(dp(11), 0, label.isEmpty() ? dp(3) : dp(13), 0);
         chip.setSingleLine(true);
         if (icon != null) {
             Drawable d = getDrawable(icon);
             if (d != null) {
-                d.setBounds(0, 0, dp(22), dp(22));
+                d.setBounds(0, 0, dp(19), dp(19));
                 chip.setCompoundDrawables(d, null, null, null);
                 chip.setCompoundDrawablePadding(label.isEmpty() ? 0 : dp(8));
                 chip.setCompoundDrawableTintList(ColorStateList.valueOf(color));
@@ -777,7 +777,7 @@ public class QuickAddActivity extends AppCompatActivity {
         stepper.setGravity(Gravity.CENTER_VERTICAL);
         TextView minus = chip("\u2212", null, R.color.widget_text);
         TextView count = new TextView(this);
-        count.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        count.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         count.setTextColor(getColor(R.color.widget_text));
         count.setPadding(dp(8), 0, dp(16), 0);
         TextView plus = chip("+", null, R.color.widget_text);
@@ -787,7 +787,7 @@ public class QuickAddActivity extends AppCompatActivity {
         body.addView(stepper);
 
         TextView list = new TextView(this);
-        list.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        list.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         list.setTextColor(getColor(R.color.widget_text_secondary));
         list.setPadding(0, dp(12), 0, 0);
         list.setLineSpacing(dp(3), 1f);

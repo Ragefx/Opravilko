@@ -13,7 +13,9 @@ widget's grouped view picker.
 
 ## In the code, not in the app yet
 
-- (nothing)
+- Widget sized like Todoist's: smaller text in the list (task names 14sp,
+  dates 12sp, header 16sp), shorter rows and smaller circles; the Add card's
+  name 20sp, chips 36dp tall with 15sp text, send button 46dp.
 
 ## Known gaps
 

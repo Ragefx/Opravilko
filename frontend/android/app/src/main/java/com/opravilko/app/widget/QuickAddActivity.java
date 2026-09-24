@@ -155,16 +155,8 @@ public class QuickAddActivity extends AppCompatActivity {
         shopping = ShoppingLogic.isShoppingView(data, view);
         projectId = TaskLogic.viewProjectId(view);
         if (!shopping && TaskLogic.findProject(data, projectId) == null) projectId = "inbox";
+        // Start in the view's project itself; a section is picked from its chip.
         sectionId = null;
-        if (!shopping) {
-            // Start in the view's project: its first section if it has any.
-            for (String[] t : targets(data)) {
-                if (t[0].equals(projectId)) {
-                    sectionId = t[1];
-                    break;
-                }
-            }
-        }
         day = WidgetStore.VIEW_TODAY.equals(view) ? TaskLogic.todayStr() : null;
         resetExtras();
         text.setText("");
@@ -270,7 +262,7 @@ public class QuickAddActivity extends AppCompatActivity {
 
         JSONObject project = TaskLogic.findProject(data, projectId);
         boolean inbox = "inbox".equals(projectId) || project == null || project.optBoolean("isInboxProject");
-        TextView projectChip = chip(targetLabel(data), inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text);
+        TextView projectChip = chip(projectName(data), inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text);
         projectChip.setOnClickListener(this::pickProject);
         chips.addView(projectChip);
 
@@ -593,13 +585,13 @@ public class QuickAddActivity extends AppCompatActivity {
         chip.setTextColor(color);
         chip.setGravity(Gravity.CENTER_VERTICAL);
         chip.setBackgroundResource(R.drawable.qa_chip_bg);
-        chip.setMinHeight(dp(36));
-        chip.setPadding(dp(11), 0, label.isEmpty() ? dp(3) : dp(13), 0);
+        chip.setMinHeight(dp(44));
+        chip.setPadding(dp(12), 0, label.isEmpty() ? dp(4) : dp(14), 0);
         chip.setSingleLine(true);
         if (icon != null) {
             Drawable d = getDrawable(icon);
             if (d != null) {
-                d.setBounds(0, 0, dp(19), dp(19));
+                d.setBounds(0, 0, dp(20), dp(20));
                 chip.setCompoundDrawables(d, null, null, null);
                 chip.setCompoundDrawablePadding(label.isEmpty() ? 0 : dp(8));
                 chip.setCompoundDrawableTintList(ColorStateList.valueOf(color));
@@ -613,9 +605,9 @@ public class QuickAddActivity extends AppCompatActivity {
     }
 
     /**
-     * Every place a task can go: each project's sections ("Inbox / To-do"), or
-     * the project itself when it has none; the Inbox first, the shopping list
-     * left out. Each entry is {projectId, sectionId or null, label}.
+     * Every place a task can go: each project, then its sections; the Inbox
+     * first, the shopping list left out. Each entry is {projectId, sectionId or
+     * null, full label ("Inbox / To-do"), the name shown in the list}.
      */
     private static List<String[]> targets(JSONObject data) {
         List<String[]> out = new ArrayList<>();
@@ -646,10 +638,12 @@ public class QuickAddActivity extends AppCompatActivity {
                 }
             }
             secs.sort((a, b) -> Double.compare(a.optDouble("order", 0), b.optDouble("order", 0)));
-            if (secs.isEmpty()) out.add(new String[] { pid, null, name });
-            for (JSONObject s : secs) out.add(new String[] { pid, s.optString("id"), name + " / " + s.optString("name") });
+            out.add(new String[] { pid, null, name, name });
+            for (JSONObject s : secs) {
+                out.add(new String[] { pid, s.optString("id"), name + " / " + s.optString("name"), s.optString("name") });
+            }
         }
-        if (out.isEmpty()) out.add(new String[] { "inbox", null, "Inbox" });
+        if (out.isEmpty()) out.add(new String[] { "inbox", null, "Inbox", "Inbox" });
         return out;
     }
 
@@ -661,18 +655,77 @@ public class QuickAddActivity extends AppCompatActivity {
         return project == null || project.optBoolean("isInboxProject") ? "Inbox" : project.optString("name");
     }
 
+    /** The chip shows just the project; its section is in the list it opens. */
+    private String projectName(JSONObject data) {
+        JSONObject project = TaskLogic.findProject(data, projectId);
+        return project == null || project.optBoolean("isInboxProject") ? "Inbox" : project.optString("name");
+    }
+
+    /** Where it goes: each project with its sections under it, over the card like the + menu. */
     private void pickProject(View anchor) {
-        List<String[]> targets = targets(store.getSnapshot());
-        PopupMenu menu = new PopupMenu(this, anchor);
-        for (int i = 0; i < targets.size(); i++) menu.getMenu().add(0, i, i, targets.get(i)[2]);
-        menu.setOnMenuItemClickListener(item -> {
-            String[] t = targets.get(item.getItemId());
-            projectId = t[0];
-            sectionId = t[1];
-            buildChips();
-            return true;
-        });
-        menu.show();
+        JSONObject data = store.getSnapshot();
+        List<String[]> targets = targets(data);
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(0, dp(8), 0, dp(8));
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.setBackgroundResource(R.drawable.qa_menu_bg);
+        scroll.setElevation(dp(10));
+        scroll.setClipToOutline(true);
+        scroll.addView(box);
+        int width = Math.round(getResources().getDisplayMetrics().widthPixels - dp(40));
+        android.widget.PopupWindow popup = new android.widget.PopupWindow(scroll, width,
+                LinearLayout.LayoutParams.WRAP_CONTENT, true);
+        popup.setElevation(dp(10));
+        popup.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        for (String[] t : targets) {
+            boolean section = t[1] != null;
+            boolean current = t[0].equals(projectId) && (section ? t[1].equals(sectionId) : sectionId == null);
+            JSONObject project = TaskLogic.findProject(data, t[0]);
+            boolean inbox = "inbox".equals(t[0]) || (project != null && project.optBoolean("isInboxProject"));
+            int icon = section ? R.drawable.ic_qa_section : inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash;
+            int color = getColor(current ? R.color.widget_accent : R.color.widget_text);
+            TextView row = new TextView(this);
+            row.setText(t[3]);
+            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            row.setTextColor(color);
+            if (current) row.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setSingleLine(true);
+            row.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            row.setMinHeight(dp(50));
+            row.setPadding(section ? dp(44) : dp(20), 0, dp(20), 0);
+            row.setBackgroundResource(selectableBackground());
+            Drawable d = getDrawable(icon);
+            if (d != null) {
+                d.setBounds(0, 0, dp(22), dp(22));
+                row.setCompoundDrawables(d, null, null, null);
+                row.setCompoundDrawablePadding(dp(18));
+                row.setCompoundDrawableTintList(ColorStateList.valueOf(
+                        current ? color : getColor(R.color.widget_text_secondary)));
+            }
+            row.setOnClickListener(v -> {
+                popup.dismiss();
+                projectId = t[0];
+                sectionId = t[1];
+                buildChips();
+            });
+            box.addView(row);
+        }
+        // Above the card, at most about half the screen tall (it scrolls past that).
+        int[] at = new int[2];
+        anchor.getLocationOnScreen(at);
+        int room = Math.max(dp(160), Math.min(at[1] - dp(40), getResources().getDisplayMetrics().heightPixels / 2));
+        box.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED);
+        int height = Math.min(box.getMeasuredHeight(), room);
+        popup.setHeight(height);
+        popup.showAtLocation(anchor, Gravity.TOP | Gravity.START, dp(20), Math.max(dp(8), at[1] - height - dp(24)));
+    }
+
+    private int selectableBackground() {
+        TypedValue out = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, out, true);
+        return out.resourceId;
     }
 
 

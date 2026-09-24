@@ -3810,7 +3810,7 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 50px;
+  height: 48px;
   padding: 0 14px;
   border: 1px solid var(--color-border);
   border-radius: 14px;
@@ -3826,7 +3826,7 @@ kbd {
   text-overflow: ellipsis;
 }
 .qas-chip.is-icon {
-  width: 50px;
+  width: 48px;
   padding: 0;
   justify-content: center;
 }
@@ -3849,10 +3849,10 @@ kbd {
 }
 .qas-send {
   flex-shrink: 0;
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   border: none;
-  border-radius: 18px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4406,4 +4406,35 @@ kbd {
   min-height: 32px;
   padding: 0 12px;
   font-size: 13px;
+}
+
+/* Where it goes: each project, its sections indented under it. */
+.qas-menu.qas-where {
+  right: 12px;
+  max-height: min(50vh, 420px);
+  overflow-y: auto;
+}
+.qas-where button {
+  flex-shrink: 0;
+}
+.qas-where button > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qas-where button.is-section {
+  padding-left: 42px;
+}
+.qas-where button.is-current {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.qas-where button.is-current svg,
+.qas-where button.is-current .qas-hash {
+  color: var(--color-accent);
+}
+.qas-where .qas-hash {
+  width: 20px;
+  text-align: center;
+  color: var(--color-text-secondary);
 }

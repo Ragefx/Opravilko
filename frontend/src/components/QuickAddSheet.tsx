@@ -7,7 +7,7 @@ import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { type RepeatPreset, REPEAT_PRESETS, applyRecurrence } from "../utils/recurrence";
-import { addTargets, firstTargetIn } from "../utils/addTargets";
+import { addPlaces } from "../utils/addTargets";
 import { hasPendingWrite, usingFirebase } from "../data/store";
 import { uploadAttachment } from "../firebase/attachments";
 import { useKeyboardInset } from "../native/keyboard";
@@ -26,6 +26,12 @@ const AttachIcon = () => (
 const NotesIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <path d="M4 7h16M4 12h16M4 17h10" />
+  </svg>
+);
+/** A project's section, as in the widget's list. */
+const SectionIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 4h12M6 20h12M6 8h12a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
   </svg>
 );
 const SendIcon = () => (
@@ -68,8 +74,10 @@ export default function QuickAddSheet({
   const partner = data?.partner;
   const projects = data?.projects ?? [];
 
-  const targets = addTargets(data);
-  const [targetKey, setTargetKey] = useState(() => firstTargetIn(targets, defaultProjectId).key);
+  const places = addPlaces(data);
+  const [targetKey, setTargetKey] = useState(
+    () => (places.find((t) => t.projectId === defaultProjectId && !t.sectionId) ?? places[0]).key
+  );
   const [text, setText] = useState("");
   const [description, setDescription] = useState<string | null>(null);
   const [picked, setPicked] = useState<Due | null | undefined>(undefined);
@@ -81,6 +89,7 @@ export default function QuickAddSheet({
   const [file, setFile] = useState<File | null>(null);
   const [added, setAdded] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
+  const [where, setWhere] = useState(false);
   const [picking, setPicking] = useState<null | "date" | "labels" | "location">(null);
   const dateChip = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -101,11 +110,10 @@ export default function QuickAddSheet({
   const typedProject = preview?.projectName
     ? projects.find((p) => p.name.toLowerCase() === preview.projectName!.toLowerCase())
     : undefined;
-  const chosen = targets.find((t) => t.key === targetKey) ?? targets[0];
-  const choices = typedProject ? targets.filter((t) => t.projectId === typedProject.id) : targets;
+  const chosen = places.find((t) => t.key === targetKey) ?? places[0];
   const target =
     typedProject && chosen.projectId !== typedProject.id
-      ? choices[0] ?? { key: `${typedProject.id}:`, projectId: typedProject.id, sectionId: null, label: typedProject.name }
+      ? places.find((t) => t.projectId === typedProject.id && !t.sectionId) ?? chosen
       : chosen;
   const effectivePriority = (preview && preview.priority !== 1 ? preview.priority : priority ?? 1) as Task["priority"];
   const allLabels = [...new Set([...(preview?.labels ?? []), ...labels])];
@@ -193,21 +201,32 @@ export default function QuickAddSheet({
 
         <div className="qas-bar">
           <div className="qas-chips">
-            <button type="button" className="qas-chip is-icon" onClick={() => setMenu((m) => !m)} aria-label="More">
+            <button
+              type="button"
+              className="qas-chip is-icon"
+              onClick={() => {
+                setWhere(false);
+                setMenu((m) => !m);
+              }}
+              aria-label="More"
+            >
               <PlusIcon width={20} height={20} />
             </button>
 
-            <label className="qas-chip">
+            {/* Just the project here; its sections are in the list this opens. */}
+            <button
+              type="button"
+              className="qas-chip"
+              onClick={() => {
+                setMenu(false);
+                setWhere((w) => !w);
+              }}
+              aria-label={`Where it goes: ${target.label}`}
+              aria-expanded={where}
+            >
               {isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
-              <span>{target.label}</span>
-              <select value={target.key} onChange={(e) => setTargetKey(e.target.value)} aria-label="Where it goes">
-                {(choices.length ? choices : [target]).map((t) => (
-                  <option key={t.key} value={t.key}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <span>{target.label.split(" / ")[0]}</span>
+            </button>
 
             <button ref={dateChip} type="button" className="qas-chip" style={{ color: dueColor }} onClick={() => setPicking("date")}>
               <CalendarIcon width={20} height={20} />
@@ -293,6 +312,28 @@ export default function QuickAddSheet({
             />
           )}
         </div>
+
+        {where && (
+          <div className="qas-menu qas-where" role="listbox" aria-label="Where it goes">
+            {places.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                role="option"
+                aria-selected={t.key === target.key}
+                className={`${t.sectionId ? "is-section" : ""} ${t.key === target.key ? "is-current" : ""}`}
+                onClick={() => {
+                  setTargetKey(t.key);
+                  setWhere(false);
+                  title.current?.focus();
+                }}
+              >
+                {t.sectionId ? <SectionIcon /> : t.isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
+                <span>{t.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {menu && (
           <div className="qas-menu" onClick={() => setMenu(false)}>

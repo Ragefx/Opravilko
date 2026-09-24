@@ -14,6 +14,10 @@ open the item, the widget sized like Todoist's, and no ⋯ menu on Shopping.
 ## In the code, not in the app yet
 
 - Shopping list at the same text size as the other lists (app only).
+- Add task (app card and widget card): the place chip shows just the project
+  ("Inbox"); tapping it opens a list of projects with their sections indented
+  under them, like Todoist's. Chips taller (widget 44dp, app 48px), nearer the
+  send button (48dp / 52px).
 
 ## Known gaps
 

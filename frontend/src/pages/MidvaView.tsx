@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useBootstrap } from "../api/hooks";
 import type { Partner, Task } from "../api/types";
 import TaskRow from "../components/TaskRow";
@@ -25,6 +26,15 @@ const ORDER = ["Overdue", "Today", "Tomorrow", "Later", "No date"];
 export default function MidvaView() {
   const { data, isLoading } = useBootstrap();
   const [openTask, setOpenTask] = useState<Task | null>(null);
+  // ?open=<task id>: a shared task opened from elsewhere (the Android widget).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openId = searchParams.get("open");
+  useEffect(() => {
+    if (!openId || !data) return;
+    const t = data.tasks.find((x) => x.id === openId);
+    if (t) setOpenTask(t);
+    setSearchParams({}, { replace: true });
+  }, [openId, data, setSearchParams]);
 
   const tasks = useMemo(
     () =>

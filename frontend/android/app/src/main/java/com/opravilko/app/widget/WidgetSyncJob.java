@@ -180,13 +180,19 @@ public class WidgetSyncJob extends JobService {
                         JSONObject prev = was.getJSONObject(k);
                         if (now.toString().equals(prev.toString())) continue;
                         JSONObject fields = new JSONObject().put("updatedAt", now.optString("updatedAt", at));
-                        if (now.optBoolean("completed") && !prev.optBoolean("completed")) {
+                        boolean ticked = now.optBoolean("completed") && !prev.optBoolean("completed");
+                        if (ticked) {
                             fields.put("completed", true).put("completedAt", now.optString("completedAt", at));
                             if (uid != null) fields.put("completedBy", uid);
                         } else if (now.has("due")) {
                             fields.put("due", now.get("due")); // a repeating task moved to its next date
                         }
                         firestore.updateTask(now.optString("id"), fields);
+                        // A shopping item: counts towards the list's usual items, as in the app.
+                        if (ticked && isShoppingList(store.getSnapshot(), now.optString("projectId"))) {
+                            String name = ShoppingLogic.parse(now.optString("content"))[0];
+                            firestore.countBought(now.optString("projectId"), ShoppingLogic.boughtKey(name), name);
+                        }
                     }
                 }
                 processed.add(p.optString("id"));
@@ -290,6 +296,11 @@ public class WidgetSyncJob extends JobService {
             firestore.updateTask(changed.getString("id"), new JSONObject().put("content", changed.getString("content"))
                     .put("description", changed.optString("description", "")).put("updatedAt", at));
         }
+    }
+
+    private static boolean isShoppingList(JSONObject snapshot, String projectId) {
+        JSONObject project = TaskLogic.findProject(snapshot, projectId);
+        return project != null && "shopping".equals(project.optString("viewStyle"));
     }
 
     /** The app calls your own Inbox just "inbox". */

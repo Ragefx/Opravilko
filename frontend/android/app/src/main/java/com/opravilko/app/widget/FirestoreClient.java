@@ -193,6 +193,35 @@ final class FirestoreClient {
         throw new IOException("Saving failed (HTTP " + status + ")");
     }
 
+    /**
+     * One more of `name` in a shopping list's "bought" (the app's usual items):
+     * bought.<key>.name set, bought.<key>.n counted up, in one atomic write.
+     */
+    void countBought(String projectId, String key, String name) throws IOException {
+        try {
+            String base = "bought." + fieldSegment(key);
+            JSONObject entry = new JSONObject().put("mapValue", new JSONObject().put("fields",
+                    new JSONObject().put("name", new JSONObject().put("stringValue", name))));
+            JSONObject write = new JSONObject()
+                    .put("update", new JSONObject().put("name", docName("projects/" + projectId))
+                            .put("fields", new JSONObject().put("bought", new JSONObject().put("mapValue",
+                                    new JSONObject().put("fields", new JSONObject().put(key, entry))))))
+                    .put("updateMask", new JSONObject().put("fieldPaths", new JSONArray().put(base + ".name")))
+                    .put("updateTransforms", new JSONArray().put(new JSONObject().put("fieldPath", base + ".n")
+                            .put("increment", new JSONObject().put("integerValue", "1"))))
+                    .put("currentDocument", new JSONObject().put("exists", true));
+            commit(new JSONArray().put(write));
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+    /** A map key as a field-path segment: plain when it's a simple name, else `quoted`. */
+    static String fieldSegment(String key) {
+        if (key.matches("[A-Za-z_][A-Za-z_0-9]*")) return key;
+        return "`" + key.replace("\\", "\\\\").replace("`", "\\`") + "`";
+    }
+
     // ---- queries (the widget's own refresh) ----
 
     /** Documents where `field` == `value` (and, if given, `archived` == false), each with its "id". */

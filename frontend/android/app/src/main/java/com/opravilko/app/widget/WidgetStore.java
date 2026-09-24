@@ -94,7 +94,13 @@ public final class WidgetStore {
                     p.optString("line"), p.optString("newId"), p.optString("at"), optStringOrNull(p, "meal"),
                     optStringOrNull(p, "store")) != null;
         }
-        return TaskLogic.complete(data, p.optString("taskId"), optStringOrNull(p, "dueDate"), p.optString("at"));
+        String taskId = p.optString("taskId");
+        JSONObject before = TaskLogic.findTask(data.optJSONArray("tasks"), taskId);
+        boolean wasOpen = before != null && !before.optBoolean("completed");
+        boolean changed = TaskLogic.complete(data, taskId, optStringOrNull(p, "dueDate"), p.optString("at"));
+        // A shopping item ticked off counts towards the list's "usual items", as in the app.
+        if (changed && wasOpen) ShoppingLogic.countBought(data, taskId);
+        return changed;
     }
 
     // ---- completions waiting to reach Dropbox ----

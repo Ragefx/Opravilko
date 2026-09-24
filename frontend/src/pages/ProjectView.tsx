@@ -55,7 +55,15 @@ export default function ProjectView() {
   }, [project, initializedFor]);
 
   if (isLoading || !data) return null;
-  if (!project) return <div className="empty-state">Project not found.</div>;
+  if (!project) {
+    // A task shared with you from a project you're not on (your partner's
+    // Inbox): open it where shared tasks live.
+    const wanted = autoOpenId ?? searchParams.get("open");
+    if (wanted && data.tasks.some((t) => t.id === wanted)) {
+      return <Navigate to={`/app/midva?open=${encodeURIComponent(wanted)}`} replace />;
+    }
+    return <div className="empty-state">Project not found.</div>;
+  }
   if (shoppingListOf(data.projects)?.id === project.id) {
     // An item opened from elsewhere (the widget) opens on the list's own page.
     const open = searchParams.get("open");

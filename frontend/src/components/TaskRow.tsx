@@ -1,15 +1,14 @@
 import { useRef, useState } from "react";
 import type { Task } from "../api/types";
-import { useBootstrap, useCompleteTask, useRevertRecurringCompletion } from "../api/hooks";
+import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
-import { CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon } from "./icons";
+import { CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
 import TaskMenu from "./TaskMenu";
 import PriorityMark from "./PriorityMark";
 import MidvaBadge from "./MidvaBadge";
-import DatePickerPopup from "./DatePickerPopup";
 import { useToast } from "./ToastProvider";
 
 /** How far a finger has to drag a row before letting go triggers the action. */
@@ -42,12 +41,24 @@ export default function TaskRow({
   const priorityColor = PRIORITY_META[task.priority].color;
   const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
 
-  // Touch swipe: right completes, left opens the date picker, like Todoist.
+  // Touch swipe: right completes (green), left deletes (red); both can be undone.
   const rowRef = useRef<HTMLDivElement>(null);
   const swipe = useRef<{ x: number; y: number; id: number; active: boolean } | null>(null);
   const suppressClick = useRef(false);
   const [dx, setDx] = useState(0);
-  const [dateAnchor, setDateAnchor] = useState<{ top: number; right: number } | null>(null);
+  const deleteTask = useDeleteTask();
+  const restoreTasks = useRestoreTasks();
+
+  function deleteWithUndo() {
+    deleteTask.mutate(task.id, {
+      onSuccess: (removed) =>
+        showToast({
+          message: `"${task.content}" deleted`,
+          actionLabel: "Undo",
+          onAction: () => restoreTasks.mutate(removed),
+        }),
+    });
+  }
 
   function completeWithUndo() {
     const previousDue = task.due;
@@ -98,12 +109,8 @@ export default function TaskRow({
     setDx(0);
     if (final >= SWIPE_TRIGGER) {
       completeWithUndo();
-    } else if (final <= -SWIPE_TRIGGER && rowRef.current) {
-      const rect = rowRef.current.getBoundingClientRect();
-      setDateAnchor({
-        top: Math.min(rect.bottom + 4, window.innerHeight - 440),
-        right: Math.max(8, window.innerWidth - rect.right),
-      });
+    } else if (final <= -SWIPE_TRIGGER) {
+      deleteWithUndo();
     }
   }
 
@@ -123,7 +130,7 @@ export default function TaskRow({
             </>
           ) : (
             <>
-              Schedule <CalendarIcon width={18} height={18} />
+              Delete <TrashIcon width={18} height={18} />
             </>
           )}
         </div>
@@ -215,7 +222,6 @@ export default function TaskRow({
         {!task.completed && <PriorityMark priority={task.priority} />}
         <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
       </div>
-      {dateAnchor && <DatePickerPopup taskId={task.id} anchor={dateAnchor} onClose={() => setDateAnchor(null)} />}
     </div>
   );
 }

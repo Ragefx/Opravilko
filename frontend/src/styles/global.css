@@ -2353,7 +2353,7 @@ kbd {
 }
 .task-swipe-wrap[data-swipe="left"] .task-swipe-bg {
   justify-content: flex-end;
-  background: var(--color-due-later);
+  background: var(--color-danger);
 }
 
 /* ---------- Productivity stats ---------- */

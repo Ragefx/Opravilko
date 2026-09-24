@@ -285,6 +285,38 @@ final class ShoppingLogic {
         }
     }
 
+    // ---- usual items (ShoppingView: countBought) ----
+
+    /** The key an item is counted under in a list's "bought" (its name, lower-case). */
+    static String boughtKey(String name) {
+        return name.toLowerCase(new java.util.Locale("sl"));
+    }
+
+    /**
+     * A ticked-off item counts once more in its shopping list's "bought", which
+     * the app's "usual items" row is made from. False if it isn't on a shopping list.
+     */
+    static boolean countBought(JSONObject data, String taskId) {
+        try {
+            JSONObject task = TaskLogic.findTask(data.optJSONArray("tasks"), taskId);
+            if (task == null || !task.optBoolean("completed")) return false;
+            JSONObject project = TaskLogic.findProject(data, task.optString("projectId"));
+            if (project == null || !"shopping".equals(project.optString("viewStyle"))) return false;
+            String name = parse(task.optString("content"))[0];
+            JSONObject bought = project.optJSONObject("bought");
+            if (bought == null) {
+                bought = new JSONObject();
+                project.put("bought", bought);
+            }
+            JSONObject entry = bought.optJSONObject(boughtKey(name));
+            int n = entry != null ? entry.optInt("n", 0) : 0;
+            bought.put(boughtKey(name), new JSONObject().put("name", name).put("n", n + 1));
+            return true;
+        } catch (JSONException e) {
+            return false;
+        }
+    }
+
     // ---- shops (ShoppingView: storeOf / withStore; shopping.ts: storesOf) ----
 
     static final String[] DEFAULT_STORES = {"SPAR", "Hofer", "Lidl"};

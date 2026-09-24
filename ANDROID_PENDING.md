@@ -13,11 +13,11 @@ same text size as the other lists.
 
 ## In the code, not in the app yet
 
-- (nothing)
+- Swipe a task left to delete it (red, with Undo); right still completes.
+- Widget: ticking a shopping item counts towards the "usual items" chips.
+- A task your partner shared from their own Inbox, tapped in the widget (or
+  any link), opens in Midva instead of "Project not found".
 
 ## Known gaps
 
-- A tick on a shopping item in the widget doesn't count towards the
-  "usual items" chips (only ticks in the app do).
-- A partner's task shared from their own Inbox, tapped in the widget's
-  Today/Upcoming, opens "Project not found".
+- (none known)

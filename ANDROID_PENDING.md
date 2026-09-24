@@ -17,6 +17,15 @@ on every widget row.
 - Add task (widget card and the app): choose the project's section too,
   "Inbox / To-do", "Inbox / Dogodki"; a project without sections is just
   its name.
+- Add task in the app is the widget's card, sitting on the keyboard: big
+  task name, sideways chips (+ for description / labels / location, where
+  it goes, date, attachment, priority, repeat, share) and a send / mic
+  button. It stays open for the next task.
+- Task view in the app: full screen, clear of the status bar (it slid under
+  it before); name and notes on top, then one row per property (project /
+  section, date, repeat, reminder, priority, labels, location, arrival
+  reminder, Midva), then sub-tasks, attachments and comments.
+- New plugin @capacitor/keyboard (for the card's place above the keyboard).
 
 ## Known gaps
 

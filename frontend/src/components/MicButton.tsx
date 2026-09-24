@@ -8,11 +8,14 @@ export default function MicButton({
   onText,
   prompt,
   autoStart = false,
+  className = "mic-button",
 }: {
   onText: (text: string) => void;
   prompt?: string;
   /** Start listening as soon as it appears (the widget's mic button). */
   autoStart?: boolean;
+  /** Its look (the Add task card uses its own round button). */
+  className?: string;
 }) {
   const [listening, setListening] = useState(false);
   const showToast = useToast();
@@ -43,7 +46,7 @@ export default function MicButton({
   return (
     <button
       type="button"
-      className={`mic-button ${listening ? "is-listening" : ""}`}
+      className={`${className} ${listening ? "is-listening" : ""}`}
       onClick={() => void start()}
       aria-label={listening ? "Listening…" : "Say it"}
       title={listening ? "Listening…" : "Say it (Slovenian)"}

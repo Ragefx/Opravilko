@@ -16,6 +16,7 @@ import { initLook } from "./utils/look";
 import { bindQueryClient, installSyncGuards } from "./data/store";
 import { initFirebaseAuth } from "./firebase/auth";
 import { isNativeApp } from "./dropbox/auth";
+import { appUi } from "./utils/appUi";
 import { installBackButton } from "./native/android";
 
 initTheme();
@@ -23,11 +24,12 @@ initLook();
 installSyncGuards();
 installBackButton();
 
+// Lets the stylesheet tell the Android app apart from the website.
+if (appUi) document.documentElement.setAttribute("data-native", "");
+
 // Lets the website open with no connection (production builds only, so the
 // dev server's hot reload isn't fighting a cache). The Android app ships its
 // files inside the app, so it doesn't need one.
-// Lets the stylesheet tell the Android app apart from the website.
-if (isNativeApp) document.documentElement.setAttribute("data-native", "");
 
 if ("serviceWorker" in navigator && import.meta.env.PROD && !isNativeApp) {
   window.addEventListener("load", () => {

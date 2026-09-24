@@ -21,6 +21,8 @@ import SearchModal from "./SearchModal";
 import ShareSheet from "./ShareSheet";
 import { useSharedShoppingList } from "./useSharedShoppingList";
 import QuickAddModal from "./QuickAddModal";
+import QuickAddSheet from "./QuickAddSheet";
+import { appUi } from "../utils/appUi";
 import ShortcutsModal from "./ShortcutsModal";
 import CommandPalette from "./CommandPalette";
 import SettingsModal from "./SettingsModal";
@@ -263,20 +265,25 @@ export default function Layout() {
             <SearchModal onClose={closeSearch} />
           ))}
         {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
-        {quickAddOpen && (
-          <QuickAddModal
-            onClose={() => {
-              setQuickAddOpen(false);
-              setQuickAddPreset(null);
-            }}
-            defaultProjectId={
-              quickAddPreset?.projectId ?? location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox"
-            }
-            defaultToday={quickAddPreset?.today}
-            defaultDate={quickAddPreset?.date}
-            listenOnOpen={quickAddPreset?.voice}
-          />
-        )}
+        {quickAddOpen &&
+          (() => {
+            // The app has the widget's card on top of the keyboard; the website its dialog.
+            const Add = appUi ? QuickAddSheet : QuickAddModal;
+            return (
+              <Add
+                onClose={() => {
+                  setQuickAddOpen(false);
+                  setQuickAddPreset(null);
+                }}
+                defaultProjectId={
+                  quickAddPreset?.projectId ?? location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox"
+                }
+                defaultToday={quickAddPreset?.today}
+                defaultDate={quickAddPreset?.date}
+                listenOnOpen={quickAddPreset?.voice}
+              />
+            );
+          })()}
         <ShareSheet />
         {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
       </div>

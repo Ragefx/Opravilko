@@ -91,6 +91,13 @@ export const DisplayIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const TagIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" />
+    <circle cx="8" cy="8" r="1.3" />
+  </svg>
+);
+
 export const CartIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M3 4h2.5l2.2 10.2a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.76L20 8H6.2" />

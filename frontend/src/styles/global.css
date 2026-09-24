@@ -3717,3 +3717,526 @@ kbd {
     animation: none;
   }
 }
+
+/* ---------- Add task card (Android app; same as the widget's) ---------- */
+.qas-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(0, 0, 0, 0.32);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--inset-top) 10px calc(10px + var(--inset-bottom));
+  animation: fadeIn 0.12s ease;
+}
+.qas-card {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: 32px;
+  padding: 18px 12px 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  transition: margin-bottom 0.12s ease;
+  animation: qasUp 0.16s ease;
+}
+@keyframes qasUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+.qas-added {
+  margin: 0 8px 6px;
+  font-size: 13px;
+  color: var(--color-success);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qas-title,
+.qas-desc {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--color-text);
+  font-family: inherit;
+  padding: 2px 8px;
+}
+.qas-title {
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.qas-title:focus-visible,
+.qas-desc:focus-visible,
+.td-label-input:focus-visible {
+  outline: none;
+}
+.qas-title::placeholder,
+.qas-desc::placeholder {
+  color: var(--color-text-muted);
+}
+.qas-desc {
+  resize: none;
+  font-size: 16px;
+  line-height: 1.4;
+  margin-top: 6px;
+  max-height: 30vh;
+}
+.qas-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.qas-chips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+.qas-chips::-webkit-scrollbar {
+  display: none;
+}
+.qas-chip {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 50px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 15px;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.qas-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qas-chip.is-icon {
+  width: 50px;
+  padding: 0;
+  justify-content: center;
+}
+.qas-chip.is-on {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+/* The chip is the look; an invisible native picker on top of it takes the tap. */
+.qas-chip > select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px;
+}
+.qas-hash {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+}
+.qas-send {
+  flex-shrink: 0;
+  width: 58px;
+  height: 58px;
+  border: none;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  padding: 0;
+}
+.qas-send svg {
+  width: 26px;
+  height: 26px;
+}
+.qas-send.is-listening {
+  background: var(--color-danger);
+}
+.qas-menu {
+  position: absolute;
+  left: 12px;
+  bottom: calc(100% + 8px);
+  min-width: 220px;
+  background: var(--color-surface);
+  border-radius: 18px;
+  padding: 6px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+.qas-menu button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 50px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+}
+.qas-menu button:active {
+  background: var(--color-hover);
+}
+.qas-menu svg {
+  color: var(--color-text-secondary);
+}
+.modal.qas-labels {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+}
+.qas-label-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 45vh;
+  overflow-y: auto;
+  margin: 8px 0;
+}
+.qas-label-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 16px;
+}
+.qas-label-row input {
+  width: 20px;
+  height: 20px;
+}
+.qas-label-new {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+}
+
+/* ---------- Task view (Android app) ---------- */
+.overlay.td-overlay {
+  padding: 0;
+  align-items: stretch;
+  background: var(--color-surface);
+  animation: none;
+}
+.detail-panel.td-app {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--inset-top) 0 var(--inset-bottom);
+  box-sizing: border-box;
+  animation: tdIn 0.16s ease;
+}
+@keyframes tdIn {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+.td-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+.td-head-btn,
+.td-head .row-menu-trigger {
+  opacity: 1;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+.td-head-where {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.td-head-where button {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.td-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 0 32px;
+}
+.td-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 20px;
+}
+.td-title-row .task-checkbox {
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.detail-panel textarea.td-title {
+  flex: 1;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.35;
+  padding: 0;
+  overflow: hidden;
+}
+/* The description lines up with the title's text, past the checkbox. */
+.td-desc {
+  padding: 6px 20px 0 58px;
+}
+.td-desc .rich-text-toolbar {
+  gap: 6px;
+}
+.td-props {
+  margin: 20px 16px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.td-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 0 14px 0 16px;
+  box-sizing: border-box;
+}
+.td-row + .td-row {
+  border-top: 1px solid var(--color-border);
+}
+.td-row-tap {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 -14px 0 -16px;
+  padding: 0 14px 0 16px;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.td-row-icon {
+  width: 24px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+.td-hash {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+}
+.td-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 9px 0;
+}
+.td-row-caption {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.td-row-value {
+  font-size: 16px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.td-row-value.is-muted {
+  color: var(--color-text-secondary);
+}
+.td-row-sub {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.td-row-chevron {
+  color: var(--color-text-muted);
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+/* An invisible native picker over the whole row takes the tap. */
+.td-cover,
+.td-cover select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 16px;
+}
+.td-clear {
+  flex-shrink: 0;
+  height: 36px;
+  min-width: 36px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 18px;
+  background: var(--color-hover);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  position: relative;
+  z-index: 1;
+}
+.td-label-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.td-label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 30px;
+  padding: 0 4px 0 10px;
+  border-radius: 15px;
+  background: var(--color-selected);
+  color: var(--color-accent);
+  font-size: 14px;
+}
+.td-label-chip button {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: inherit;
+}
+.td-label-input {
+  flex: 1;
+  min-width: 90px;
+  height: 30px;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+  padding: 0;
+}
+.td-label-input::placeholder {
+  color: var(--color-text-secondary);
+}
+.td-switch {
+  appearance: none;
+  flex-shrink: 0;
+  width: 46px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--color-border);
+  position: relative;
+  margin: 0;
+  transition: background 0.15s ease;
+}
+.td-switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+.td-switch:checked {
+  background: var(--color-accent);
+}
+.td-switch:checked::after {
+  transform: translateX(18px);
+}
+.td-section {
+  margin: 24px 20px 0;
+}
+.td-section .task-section-title,
+.td-section .attachments-title {
+  font-size: 13px !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+.td-section > div,
+.td-section .attachments {
+  margin-top: 0 !important;
+}
+.td-section .task-row .task-content {
+  font-size: 16px !important;
+}
+.td-section .add-task-trigger {
+  min-height: 44px;
+  font-size: 16px;
+}
+.td-section .quick-add input {
+  font-size: 16px;
+}
+/* The formatting buttons only while writing the description. */
+.td-desc .rich-text-editor:not(:focus-within) .rich-text-toolbar {
+  display: none;
+}

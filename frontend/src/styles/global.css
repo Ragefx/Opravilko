@@ -4245,6 +4245,10 @@ kbd {
 .shopping-store-btn {
   position: relative;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 .shopping-store-btn.is-on {
   color: var(--color-accent);
@@ -4257,14 +4261,15 @@ kbd {
   font-size: 16px;
 }
 .shopping-store {
-  flex-shrink: 0;
+  flex: 0 0 52px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  padding: 2px 7px;
-  border-radius: 6px;
+  letter-spacing: 0.02em;
   color: var(--color-accent);
-  background: var(--color-selected);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .shopping-row.is-done .shopping-store {
   opacity: 0.5;

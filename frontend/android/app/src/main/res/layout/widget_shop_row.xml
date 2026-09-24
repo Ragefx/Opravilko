@@ -31,17 +31,6 @@
         android:textSize="14sp" />
 
     <TextView
-        android:id="@+id/shop_store"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:maxLines="1"
-        android:textColor="@color/widget_accent"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
-    <TextView
         android:id="@+id/shop_amount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -55,6 +44,19 @@
         android:textColor="@color/widget_text"
         android:textSize="12sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/shop_store"
+        android:layout_width="46dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/widget_accent"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/shop_icon"

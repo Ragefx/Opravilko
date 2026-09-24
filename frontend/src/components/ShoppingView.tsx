@@ -164,7 +164,6 @@ export default function ShoppingView({
   const [mealsOpen, setMealsOpen] = useState(false);
   // The shop what you add now is for ("" for any).
   const [addStore, setAddStore] = useState("");
-  const stores = storesOf(project);
   function addStoreName(): string | undefined {
     const name = window.prompt("New shop")?.trim();
     if (!name) return undefined;
@@ -190,12 +189,22 @@ export default function ShoppingView({
   const items = (data?.tasks || []).filter(
     (t) => t.projectId === projectId && !t.parentId && !(t.sectionId && archivedSections.has(t.sectionId))
   );
-  // By category, in the order you'd walk a shop (fruit and veg first); within
-  // one, in the order they were added.
+  // By shop (in the list's order of shops, then any other, then none); within
+  // one, by category in the order you'd walk a shop (fruit and veg first);
+  // within that, in the order they were added.
+  const stores = storesOf(project);
+  const storeRank = (t: Task) => {
+    const store = storeOf(t);
+    if (!store) return stores.length + 1;
+    const i = stores.indexOf(store);
+    return i < 0 ? stores.length : i;
+  };
   const categoryRank = (t: Task) => CATEGORIES.findIndex((c) => c.id === categoryOf(t, parseItem(t.content).name).id);
   const open = items
     .filter((t) => !t.completed)
-    .sort((a, b) => categoryRank(a) - categoryRank(b) || a.order - b.order);
+    .sort((a, b) => storeRank(a) - storeRank(b) || categoryRank(a) - categoryRank(b) || a.order - b.order);
+  // A column for the shop, once anything on the list has one.
+  const storeColumn = items.some((t) => storeOf(t));
   // What you usually buy that isn't on the list yet: one tap puts it back.
   const onList = new Set(open.map((t) => parseItem(t.content).name.toLocaleLowerCase("sl")));
   const usual = Object.entries(project?.bought ?? {})
@@ -368,6 +377,7 @@ export default function ShoppingView({
                 onToggle={() => toggle(t)}
                 onDelete={() => deleteTask.mutate(t.id)}
                 onEdit={() => setEditing(t)}
+                storeColumn={storeColumn}
               />
           ))}
         </ul>
@@ -388,6 +398,7 @@ export default function ShoppingView({
                 onToggle={() => toggle(t)}
                 onDelete={() => deleteTask.mutate(t.id)}
                 onEdit={() => setEditing(t)}
+                storeColumn={storeColumn}
               />
               ))}
             </ul>
@@ -446,11 +457,13 @@ function ShoppingRow({
   onToggle,
   onDelete,
   onEdit,
+  storeColumn,
 }: {
   task: Task;
   onToggle: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  storeColumn: boolean;
 }) {
   const item = parseItem(task.content);
   const amount = formatAmount(item.amount, item.unit);
@@ -477,8 +490,12 @@ function ShoppingRow({
           {meals.length > 0 && <small>{meals.join(" · ")}</small>}
           {note && <small className="shopping-note">{note}</small>}
         </span>
-        {store && <span className="shopping-store">{store}</span>}
         {amount && <span className="shopping-amount">{amount}</span>}
+        {storeColumn && (
+          <span className="shopping-store" title={store}>
+            {store}
+          </span>
+        )}
         <span className="shopping-category" title={category.name}>
           {category.emoji}
         </span>

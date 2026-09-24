@@ -39,6 +39,8 @@ public class TaskWidgetService extends RemoteViewsService {
         final boolean dateInHeading;
         /** Shopping list: the item's name, amount and icon. */
         String shopName, shopAmount, shopIcon, shopStore;
+        /** Shopping rows: keep a column for the shop (some item on the list has one). */
+        boolean storeColumn;
 
         private Item(String heading, int count, boolean muted, boolean reschedule, TaskLogic.Row row, boolean dateInHeading) {
             this.heading = heading;
@@ -97,15 +99,31 @@ public class TaskWidgetService extends RemoteViewsService {
 
         // The shopping list: its items, as the app lists them.
         if (ShoppingLogic.isShoppingView(data, view)) {
-            // By category, in the shop-walk order the app uses; within one, as added.
+            // By shop (the list's shops in order, then any other, then none), then
+            // by category in the shop-walk order the app uses; within one, as added.
             List<TaskLogic.Row> sorted = new ArrayList<>(rows);
+            String listId = view.substring(WidgetStore.PROJECT_PREFIX.length());
+            List<String> stores = ShoppingLogic.stores(data, listId);
+            java.util.Map<String, Integer> byStore = new java.util.HashMap<>();
             java.util.Map<String, Integer> rank = new java.util.HashMap<>();
+            boolean anyStore = false;
             for (TaskLogic.Row r : sorted) {
                 String name = ShoppingLogic.parse(r.content)[0];
                 rank.put(r.id, ShoppingLogic.categoryRank(data, ShoppingLogic.categoryId(data, r.description, name)));
+                String store = ShoppingLogic.storeOf(r.description);
+                anyStore |= store != null;
+                int i = store == null ? -1 : stores.indexOf(store);
+                byStore.put(r.id, store == null ? stores.size() + 1 : i < 0 ? stores.size() : i);
             }
-            java.util.Collections.sort(sorted, (a, b) -> Integer.compare(rank.get(a.id), rank.get(b.id)));
-            for (TaskLogic.Row r : sorted) items.add(Item.shop(data, r));
+            java.util.Collections.sort(sorted, (a, b) -> {
+                int c = Integer.compare(byStore.get(a.id), byStore.get(b.id));
+                return c != 0 ? c : Integer.compare(rank.get(a.id), rank.get(b.id));
+            });
+            for (TaskLogic.Row r : sorted) {
+                Item item = Item.shop(data, r);
+                item.storeColumn = anyStore;
+                items.add(item);
+            }
             return items;
         }
 
@@ -177,8 +195,8 @@ public class TaskWidgetService extends RemoteViewsService {
             rv.setViewVisibility(R.id.shop_amount, item.shopAmount != null ? View.VISIBLE : View.GONE);
             if (item.shopAmount != null) rv.setTextViewText(R.id.shop_amount, item.shopAmount);
             rv.setTextViewText(R.id.shop_icon, item.shopIcon);
-            rv.setViewVisibility(R.id.shop_store, item.shopStore != null ? View.VISIBLE : View.GONE);
-            if (item.shopStore != null) rv.setTextViewText(R.id.shop_store, item.shopStore);
+            rv.setViewVisibility(R.id.shop_store, item.storeColumn ? View.VISIBLE : View.GONE);
+            rv.setTextViewText(R.id.shop_store, item.shopStore != null ? item.shopStore : "");
 
             Intent bought = new Intent();
             bought.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_COMPLETE);

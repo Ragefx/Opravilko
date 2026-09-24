@@ -4365,44 +4365,44 @@ kbd {
   opacity: 0.8;
 }
 
-/* The app: the shopping list at the same size as the other lists. */
-:root[data-native] .shopping-row-main {
+/* The shopping list at the same size as the other lists (app and website). */
+.shopping-row-main {
   font-size: 14px;
   gap: 10px;
   padding-top: 10px;
   padding-bottom: 10px;
 }
-:root[data-native] .shopping-tick {
+.shopping-tick {
   width: 44px;
 }
-:root[data-native] .shopping-check {
-  width: 20px;
-  height: 20px;
+.shopping-check {
+  width: 18px;
+  height: 18px;
   border-width: 1.5px;
 }
-:root[data-native] .shopping-check svg {
-  width: 12px;
-  height: 12px;
+.shopping-check svg {
+  width: 11px;
+  height: 11px;
 }
-:root[data-native] .shopping-name small {
+.shopping-name small {
   font-size: 11px;
 }
-:root[data-native] .shopping-amount {
+.shopping-amount {
   font-size: 12px;
   padding: 2px 8px;
 }
-:root[data-native] .shopping-store {
+.shopping-store {
   flex-basis: 44px;
   font-size: 10px;
 }
-:root[data-native] .shopping-category {
+.shopping-category {
   width: 24px;
   font-size: 17px;
 }
-:root[data-native] .shopping-delete {
+.shopping-delete {
   width: 34px;
 }
-:root[data-native] .shopping-shop-chip {
+.shopping-shop-chip {
   min-height: 32px;
   padding: 0 12px;
   font-size: 13px;

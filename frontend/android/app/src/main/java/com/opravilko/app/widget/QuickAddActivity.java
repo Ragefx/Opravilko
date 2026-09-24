@@ -57,6 +57,15 @@ public class QuickAddActivity extends AppCompatActivity {
     private String projectId = "inbox";
     /** The date chip: a day, or null for none. Typed dates win over it. */
     private String day;
+    /** From the chips and the + menu, for the next task. */
+    private int priority;
+    private final List<String> labels = new ArrayList<>();
+    private JSONObject location;
+    private java.io.File attachment;
+    private String attachmentName, attachmentType, attachmentId;
+    private EditText description;
+    private static final int REQUEST_FILE = 8;
+    private static final int REQUEST_LOCATION = 9;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +77,7 @@ public class QuickAddActivity extends AppCompatActivity {
         send = findViewById(R.id.qa_send);
         chips = findViewById(R.id.qa_chips);
         added = findViewById(R.id.qa_added);
+        description = findViewById(R.id.qa_description);
 
         findViewById(R.id.qa_scrim).setOnClickListener(v -> finish());
         text.addTextChangedListener(new TextWatcher() {
@@ -111,6 +121,13 @@ public class QuickAddActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        // A file picked but never added goes; one handed to the sync job stays until it's stored.
+        if (attachment != null) attachment.delete();
+        super.onDestroy();
+    }
+
+    @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
@@ -130,6 +147,7 @@ public class QuickAddActivity extends AppCompatActivity {
         projectId = TaskLogic.viewProjectId(view);
         if (!shopping && TaskLogic.findProject(data, projectId) == null) projectId = "inbox";
         day = WidgetStore.VIEW_TODAY.equals(view) ? TaskLogic.todayStr() : null;
+        resetExtras();
         text.setText("");
         text.setHint(shopping ? R.string.qa_shop_hint : R.string.qa_task_hint);
         added.setVisibility(View.GONE);
@@ -168,6 +186,11 @@ public class QuickAddActivity extends AppCompatActivity {
             }
             return;
         }
+        TextView more = chip("", R.drawable.ic_qa_plus, R.color.widget_text);
+        more.setContentDescription("More");
+        more.setOnClickListener(this::showMore);
+        chips.addView(more);
+
         JSONObject project = TaskLogic.findProject(data, projectId);
         boolean inbox = "inbox".equals(projectId) || project == null || project.optBoolean("isInboxProject");
         TextView projectChip = chip(inbox ? "Inbox" : project.optString("name"),
@@ -178,25 +201,331 @@ public class QuickAddActivity extends AppCompatActivity {
         TextView dateChip = chip(dayLabel(day), R.drawable.ic_w_calendar, dayColor(day));
         dateChip.setOnClickListener(this::pickDay);
         chips.addView(dateChip);
+
+        // Attachments live in Firebase, so only with Google sign-in (as in the app).
+        if (store.isFirebase()) {
+            TextView attach = chip(attachment != null ? attachmentName : "Attachment", R.drawable.ic_qa_attach,
+                    attachment != null ? R.color.widget_accent : R.color.widget_text);
+            attach.setOnClickListener(v -> {
+                if (attachment != null) {
+                    attachment.delete();
+                    attachment = null;
+                    buildChips();
+                } else {
+                    pickFile();
+                }
+            });
+            chips.addView(attach);
+        }
+
+        TextView prio = chip(priority > 0 ? "P" + (5 - priority) : "Priority", R.drawable.ic_qa_flag,
+                priority > 0 ? priorityColor(priority) : R.color.widget_text);
+        prio.setOnClickListener(this::pickPriority);
+        chips.addView(prio);
+
+        if (!labels.isEmpty()) {
+            TextView l = chip("@" + android.text.TextUtils.join(" @", labels), R.drawable.ic_qa_label, R.color.widget_accent);
+            l.setOnClickListener(v -> pickLabels());
+            chips.addView(l);
+        }
+        if (location != null) {
+            TextView loc = chip(location.optString("name"), R.drawable.ic_qa_pin, R.color.widget_accent);
+            loc.setOnClickListener(v -> pickLocation());
+            chips.addView(loc);
+        }
+    }
+
+    private void resetExtras() {
+        priority = 0;
+        labels.clear();
+        location = null;
+        if (attachment != null) attachment.delete();
+        attachment = null;
+        description.setText("");
+        description.setVisibility(View.GONE);
+    }
+
+    private static int priorityColor(int stored) {
+        switch (stored) {
+            case 4: return R.color.widget_due_overdue;
+            case 3: return R.color.widget_due_tomorrow;
+            case 2: return R.color.widget_accent;
+            default: return R.color.widget_text;
+        }
+    }
+
+    // ---- the + menu: description, labels, location ----
+
+    private void showMore(View anchor) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setBackgroundResource(R.drawable.qa_menu_bg);
+        box.setElevation(dp(10));
+        box.setPadding(0, dp(8), 0, dp(8));
+        android.widget.PopupWindow popup = new android.widget.PopupWindow(box,
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true);
+        popup.setElevation(dp(10));
+        popup.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        Object[][] rows = {
+                { "Description", R.drawable.ic_qa_notes, (Runnable) this::showDescription },
+                { "Labels", R.drawable.ic_qa_label, (Runnable) this::pickLabels },
+                { "Location", R.drawable.ic_qa_pin, (Runnable) this::pickLocation },
+        };
+        for (Object[] r : rows) {
+            TextView row = new TextView(this);
+            row.setText((String) r[0]);
+            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+            row.setTextColor(getColor(R.color.widget_text));
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setMinHeight(dp(56));
+            row.setMinWidth(dp(220));
+            row.setPadding(dp(20), 0, dp(28), 0);
+            Drawable d = getDrawable((Integer) r[1]);
+            if (d != null) {
+                d.setBounds(0, 0, dp(24), dp(24));
+                row.setCompoundDrawables(d, null, null, null);
+                row.setCompoundDrawablePadding(dp(18));
+                row.setCompoundDrawableTintList(ColorStateList.valueOf(getColor(R.color.widget_text_secondary)));
+            }
+            row.setOnClickListener(v -> {
+                popup.dismiss();
+                ((Runnable) r[2]).run();
+            });
+            box.addView(row);
+        }
+        box.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.showAsDropDown(anchor, 0, -anchor.getHeight() - box.getMeasuredHeight() - dp(8));
+    }
+
+    private void showDescription() {
+        description.setVisibility(View.VISIBLE);
+        description.requestFocus();
+    }
+
+    private void pickLabels() {
+        JSONObject data = store.getSnapshot();
+        JSONArray all = data != null ? data.optJSONArray("labels") : null;
+        List<JSONObject> list = new ArrayList<>();
+        if (all != null) for (int i = 0; i < all.length(); i++) if (all.optJSONObject(i) != null) list.add(all.optJSONObject(i));
+        if (list.isEmpty()) {
+            Toast.makeText(this, "No labels yet: make them in the app.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        list.sort((a, b) -> Double.compare(a.optDouble("order", 0), b.optDouble("order", 0)));
+        String[] names = new String[list.size()];
+        boolean[] checked = new boolean[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            names[i] = list.get(i).optString("name");
+            checked[i] = labels.contains(names[i]);
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Labels")
+                .setMultiChoiceItems(names, checked, (d, which, on) -> checked[which] = on)
+                .setPositiveButton("Done", (d, w) -> {
+                    labels.clear();
+                    for (int i = 0; i < names.length; i++) if (checked[i]) labels.add(names[i]);
+                    buildChips();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /** Current location, or a place used on another task. */
+    private void pickLocation() {
+        List<JSONObject> places = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        JSONObject data = store.getSnapshot();
+        JSONArray tasks = data != null ? data.optJSONArray("tasks") : null;
+        if (tasks != null) {
+            for (int i = tasks.length() - 1; i >= 0 && places.size() < 8; i--) {
+                JSONObject t = tasks.optJSONObject(i);
+                JSONObject loc = t != null ? t.optJSONObject("location") : null;
+                if (loc != null && loc.has("lat") && seen.add(loc.optString("name"))) places.add(loc);
+            }
+        }
+        List<String> labelsList = new ArrayList<>();
+        labelsList.add("\uD83D\uDCCD Current location");
+        for (JSONObject p : places) labelsList.add(p.optString("name"));
+        if (location != null) labelsList.add("No location");
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Location")
+                .setItems(labelsList.toArray(new String[0]), (d, which) -> {
+                    if (which == 0) {
+                        currentLocation();
+                    } else if (which <= places.size()) {
+                        try {
+                            JSONObject p = places.get(which - 1);
+                            location = new JSONObject().put("name", p.optString("name")).put("lat", p.optDouble("lat"))
+                                    .put("lng", p.optDouble("lng"));
+                            if (p.has("address")) location.put("address", p.optString("address"));
+                        } catch (JSONException ignored) {
+                            location = null;
+                        }
+                        buildChips();
+                    } else {
+                        location = null;
+                        buildChips();
+                    }
+                })
+                .show();
+    }
+
+    private void currentLocation() {
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                && checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION }, REQUEST_LOCATION);
+            return;
+        }
+        Toast.makeText(this, "Finding where you are\u2026", Toast.LENGTH_SHORT).show();
+        try {
+            com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(this)
+                    .getCurrentLocation(com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
+                    .addOnSuccessListener(loc -> {
+                        if (loc == null) {
+                            Toast.makeText(this, "Couldn't find your location.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        nameLocation(loc.getLatitude(), loc.getLongitude());
+                    });
+        } catch (SecurityException e) {
+            Toast.makeText(this, "Location access is off.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** "Slovenska cesta 10" (or the town) for a spot, looked up in the background. */
+    private void nameLocation(double lat, double lng) {
+        new Thread(() -> {
+            String name = String.format(java.util.Locale.US, "%.5f, %.5f", lat, lng);
+            String address = null;
+            try {
+                List<android.location.Address> found = new android.location.Geocoder(this).getFromLocation(lat, lng, 1);
+                if (found != null && !found.isEmpty()) {
+                    android.location.Address a = found.get(0);
+                    String street = a.getThoroughfare();
+                    if (street != null) name = a.getSubThoroughfare() != null ? street + " " + a.getSubThoroughfare() : street;
+                    else if (a.getLocality() != null) name = a.getLocality();
+                    address = a.getAddressLine(0);
+                }
+            } catch (java.io.IOException | IllegalArgumentException ignored) {
+                // Keep the coordinates as the name.
+            }
+            final String n = name, addr = address;
+            runOnUiThread(() -> {
+                try {
+                    location = new JSONObject().put("name", n).put("lat", lat).put("lng", lng);
+                    if (addr != null && !addr.equals(n)) location.put("address", addr);
+                } catch (JSONException ignored) {
+                    location = null;
+                }
+                buildChips();
+            });
+        }).start();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode != REQUEST_LOCATION) return;
+        for (int r : results) {
+            if (r == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                currentLocation();
+                return;
+            }
+        }
+        Toast.makeText(this, "Location access is needed for that.", Toast.LENGTH_SHORT).show();
+    }
+
+    // ---- priority and attachment ----
+
+    private void pickPriority(View anchor) {
+        PopupMenu menu = new PopupMenu(this, anchor);
+        String[] names = { "Priority 1", "Priority 2", "Priority 3", "Priority 4" };
+        int[] colors = { R.color.widget_due_overdue, R.color.widget_due_tomorrow, R.color.widget_accent, R.color.widget_text };
+        for (int i = 0; i < 4; i++) {
+            android.text.SpannableString s = new android.text.SpannableString("\u2691  " + names[i]);
+            s.setSpan(new android.text.style.ForegroundColorSpan(getColor(colors[i])), 0, 1, 0);
+            menu.getMenu().add(0, i, i, s);
+        }
+        menu.setOnMenuItemClickListener(item -> {
+            priority = 4 - item.getItemId(); // P1 is stored as 4
+            buildChips();
+            return true;
+        });
+        menu.show();
+    }
+
+    private void pickFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] { "image/*", "application/pdf", "*/*" });
+        try {
+            startActivityForResult(intent, REQUEST_FILE);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "No file picker on this phone.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** Keeps a copy of the picked file until the sync job has stored it. */
+    private void keepFile(android.net.Uri uri) {
+        new Thread(() -> {
+            try {
+                android.content.ContentResolver resolver = getContentResolver();
+                String type = resolver.getType(uri);
+                String name = "file";
+                try (android.database.Cursor c = resolver.query(uri,
+                        new String[] { android.provider.OpenableColumns.DISPLAY_NAME }, null, null, null)) {
+                    if (c != null && c.moveToFirst() && c.getString(0) != null) name = c.getString(0);
+                }
+                String id = TaskLogic.newId();
+                java.io.File dir = new java.io.File(getFilesDir(), "widget_uploads");
+                dir.mkdirs();
+                java.io.File out = new java.io.File(dir, id);
+                try (java.io.InputStream in = resolver.openInputStream(uri);
+                     java.io.OutputStream os = new java.io.FileOutputStream(out)) {
+                    if (in == null) throw new java.io.IOException("unreadable");
+                    byte[] buf = new byte[64 * 1024];
+                    int n;
+                    long total = 0;
+                    while ((n = in.read(buf)) != -1) {
+                        total += n;
+                        if (total > 25L * 1024 * 1024) throw new java.io.IOException("too big");
+                        os.write(buf, 0, n);
+                    }
+                }
+                final String fname = name, ftype = type != null ? type : "application/octet-stream";
+                runOnUiThread(() -> {
+                    if (attachment != null) attachment.delete();
+                    attachment = out;
+                    attachmentId = id;
+                    attachmentName = fname;
+                    attachmentType = ftype;
+                    buildChips();
+                });
+            } catch (java.io.IOException | SecurityException e) {
+                runOnUiThread(() -> Toast.makeText(this, "Couldn't attach that file (up to 10 MB).", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
     }
 
     private TextView chip(String label, Integer icon, int colorRes) {
         TextView chip = new TextView(this);
         chip.setText(label);
-        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
         int color = getColor(colorRes);
         chip.setTextColor(color);
         chip.setGravity(Gravity.CENTER_VERTICAL);
         chip.setBackgroundResource(R.drawable.qa_chip_bg);
-        chip.setMinHeight(dp(46));
-        chip.setPadding(dp(14), 0, dp(16), 0);
+        chip.setMinHeight(dp(50));
+        chip.setPadding(dp(14), 0, label.isEmpty() ? dp(6) : dp(16), 0);
         chip.setSingleLine(true);
         if (icon != null) {
             Drawable d = getDrawable(icon);
             if (d != null) {
-                d.setBounds(0, 0, dp(20), dp(20));
+                d.setBounds(0, 0, dp(22), dp(22));
                 chip.setCompoundDrawables(d, null, null, null);
-                chip.setCompoundDrawablePadding(dp(8));
+                chip.setCompoundDrawablePadding(label.isEmpty() ? 0 : dp(8));
                 chip.setCompoundDrawableTintList(ColorStateList.valueOf(color));
             }
         }
@@ -440,10 +769,25 @@ public class QuickAddActivity extends AppCompatActivity {
             String at = TaskLogic.nowIso();
             String taskDay = parsed.day != null ? parsed.day : day;
             JSONObject due = taskDay != null ? TaskLogic.makeDue(taskDay, parsed.time) : null;
-            JSONObject task = TaskLogic.newTask(TaskLogic.newId(), parsed.content, projectId,
-                    parsed.priority > 0 ? parsed.priority : 1, due, TaskLogic.nextOrder(data, projectId), at);
+            int prio = parsed.priority > 0 ? parsed.priority : priority > 0 ? priority : 1;
+            JSONObject task = TaskLogic.newTask(TaskLogic.newId(), parsed.content, projectId, prio, due,
+                    TaskLogic.nextOrder(data, projectId), at);
+            String notes = description.getText().toString().trim();
+            if (!notes.isEmpty()) task.put("description", notes);
+            if (!labels.isEmpty()) task.put("labels", new JSONArray(labels));
+            if (location != null) task.put("location", location);
             queue(data, new JSONObject().put("id", "create@" + task.getString("id")).put("op", WidgetStore.OP_CREATE)
                     .put("task", task).put("at", at));
+            if (attachment != null) {
+                store.addPendingOp(new JSONObject().put("id", "attach@" + attachmentId).put("op", WidgetStore.OP_ATTACH)
+                        .put("taskId", task.getString("id")).put("attId", attachmentId)
+                        .put("path", attachment.getPath()).put("name", attachmentName).put("type", attachmentType)
+                        .put("at", at));
+                attachment = null; // the sync job has it now
+                WidgetSyncJob.schedule(this);
+            }
+            resetExtras();
+            buildChips();
             JSONObject project = TaskLogic.findProject(data, projectId);
             String where = project == null || project.optBoolean("isInboxProject") ? "Inbox" : project.optString("name");
             confirm("✓ " + parsed.content + " → " + where);
@@ -502,6 +846,10 @@ public class QuickAddActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_FILE) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) keepFile(data.getData());
+            return;
+        }
         if (requestCode != REQUEST_VOICE || resultCode != RESULT_OK || data == null) return;
         ArrayList<String> heard = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
         if (heard == null || heard.isEmpty()) return;

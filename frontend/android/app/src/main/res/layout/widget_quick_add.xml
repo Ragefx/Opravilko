@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The widget's Add task sheet, over the home screen: a text field, chips
-     (project, date / usual items on the shopping list) and a mic/send button. -->
+<!-- The widget's Add task card, floating over the home screen above the
+     keyboard: the name (and, when asked for, a description), then a row of
+     chips (+ for more, project, date, attachment, priority) that scrolls
+     sideways, and the mic / send button. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/qa_scrim"
     android:layout_width="match_parent"
@@ -12,65 +14,93 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@drawable/qa_sheet_bg"
-        android:clickable="true"
-        android:focusable="true"
         android:orientation="vertical"
-        android:paddingStart="18dp"
-        android:paddingTop="18dp"
-        android:paddingEnd="14dp"
-        android:paddingBottom="14dp">
-
-        <TextView
-            android:id="@+id/qa_added"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:textColor="@color/widget_due_today"
-            android:textSize="13sp"
-            android:visibility="gone" />
-
-        <EditText
-            android:id="@+id/qa_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:hint="@string/qa_task_hint"
-            android:imeOptions="actionSend"
-            android:inputType="textCapSentences"
-            android:minHeight="48dp"
-            android:textColor="@color/widget_text"
-            android:textColorHint="@color/widget_text_muted"
-            android:textSize="20sp" />
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp">
 
         <LinearLayout
+            android:id="@+id/qa_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:background="@drawable/qa_sheet_bg"
+            android:clickable="true"
+            android:elevation="8dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="12dp">
 
-            <HorizontalScrollView
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/qa_added"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:scrollbars="none">
+                android:layout_marginBottom="2dp"
+                android:textColor="@color/widget_due_today"
+                android:textSize="13sp"
+                android:visibility="gone" />
 
-                <LinearLayout
-                    android:id="@+id/qa_chips"
-                    android:layout_width="wrap_content"
+            <EditText
+                android:id="@+id/qa_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="@string/qa_task_hint"
+                android:imeOptions="actionSend"
+                android:inputType="textCapSentences"
+                android:minHeight="52dp"
+                android:textColor="@color/widget_text"
+                android:textColorHint="@color/widget_text_muted"
+                android:textSize="23sp" />
+
+            <EditText
+                android:id="@+id/qa_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="@string/qa_description_hint"
+                android:inputType="textCapSentences|textMultiLine"
+                android:maxLines="4"
+                android:minHeight="40dp"
+                android:textColor="@color/widget_text"
+                android:textColorHint="@color/widget_text_muted"
+                android:textSize="17sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <HorizontalScrollView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal" />
-            </HorizontalScrollView>
+                    android:layout_weight="1"
+                    android:fadingEdgeLength="24dp"
+                    android:requiresFadingEdge="horizontal"
+                    android:scrollbars="none">
 
-            <ImageButton
-                android:id="@+id/qa_send"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/qa_send_bg"
-                android:contentDescription="@string/widget_add_by_voice"
-                android:src="@drawable/ic_qa_mic" />
+                    <LinearLayout
+                        android:id="@+id/qa_chips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+                <ImageButton
+                    android:id="@+id/qa_send"
+                    android:layout_width="58dp"
+                    android:layout_height="58dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/qa_send_bg"
+                    android:contentDescription="@string/widget_add_by_voice"
+                    android:elevation="2dp"
+                    android:src="@drawable/ic_qa_mic" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

@@ -78,6 +78,8 @@ public final class WidgetStore {
     public static final String OP_CREATE = "create";
     /** A line added to a shopping list from the widget: {projectId, line, newId}. */
     public static final String OP_SHOP = "shop";
+    /** A file attached in the widget's Add task card (Google sign-in only): {taskId, attId, path, name, type}. */
+    public static final String OP_ATTACH = "attach";
 
     static boolean applyPending(JSONObject data, JSONObject p) {
         String op = p.optString("op");

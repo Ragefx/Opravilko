@@ -16,4 +16,5 @@
     <string name="widget_shopping_empty">The shopping list is empty</string>
     <string name="qa_task_hint">Task name</string>
     <string name="qa_shop_hint">Add: mleko 1 l, 2x jajca</string>
+    <string name="qa_description_hint">Description</string>
 </resources>

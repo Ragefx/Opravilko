@@ -138,6 +138,10 @@ public class WidgetSyncJob extends JobService {
                     processed.add(p.optString("id"));
                     continue;
                 }
+                if (WidgetStore.OP_ATTACH.equals(p.optString("op"))) {
+                    if (AttachmentUploader.upload(firestore, p, uid)) processed.add(p.optString("id"));
+                    continue;
+                }
                 if (WidgetStore.OP_SHOP.equals(p.optString("op"))) {
                     addShopLine(store, firestore, p, uid);
                     processed.add(p.optString("id"));

@@ -132,6 +132,67 @@ final class FirestoreClient {
         throw new IOException("Adding the task failed (HTTP " + status + ")");
     }
 
+    // ---- general writes (attachments from the widget) ----
+
+    /** The full resource name of a document, e.g. "attachments/abc". */
+    String docName(String path) {
+        return "projects/" + store.getFirebaseProjectId() + "/databases/(default)/documents/" + path;
+    }
+
+    /** Creates collection/docId with these fields (already in Firestore's typed form). */
+    void createDocument(String collection, String docId, JSONObject typedFields) throws IOException {
+        HttpURLConnection conn = open("https://firestore.googleapis.com/v1/projects/" + enc(store.getFirebaseProjectId())
+                + "/databases/(default)/documents/" + collection + "?documentId=" + enc(docId), "POST");
+        conn.setRequestProperty("Authorization", "Bearer " + idToken());
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        try {
+            write(conn, new JSONObject().put("fields", typedFields).toString());
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+        int status = conn.getResponseCode();
+        if (status == 200 || status == 409) return;
+        if (status == 401) store.setFirebaseIdToken(null, 0);
+        throw new IOException("Saving " + collection + " failed (HTTP " + status + ")");
+    }
+
+    /** A document's fields as plain JSON, or null if it isn't there (or isn't ours to see). */
+    JSONObject getDocument(String path) throws IOException {
+        HttpURLConnection conn = open("https://firestore.googleapis.com/v1/projects/" + enc(store.getFirebaseProjectId())
+                + "/databases/(default)/documents/" + path, "GET");
+        conn.setRequestProperty("Authorization", "Bearer " + idToken());
+        int status = conn.getResponseCode();
+        if (status == 404 || status == 403) return null;
+        if (status == 401) {
+            store.setFirebaseIdToken(null, 0);
+            throw new IOException("ID token rejected");
+        }
+        if (status != 200) throw new IOException("Reading " + path + " failed (HTTP " + status + ")");
+        try {
+            return fromFields(new JSONObject(read(conn.getInputStream())).optJSONObject("fields"));
+        } catch (JSONException e) {
+            throw new IOException("Unexpected response");
+        }
+    }
+
+    /** Several writes at once, all or nothing (Firestore's commit). False if refused (e.g. over the storage budget). */
+    boolean commit(JSONArray writes) throws IOException {
+        HttpURLConnection conn = open("https://firestore.googleapis.com/v1/projects/" + enc(store.getFirebaseProjectId())
+                + "/databases/(default)/documents:commit", "POST");
+        conn.setRequestProperty("Authorization", "Bearer " + idToken());
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        try {
+            write(conn, new JSONObject().put("writes", writes).toString());
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+        int status = conn.getResponseCode();
+        if (status == 200) return true;
+        if (status == 403) return false;
+        if (status == 401) store.setFirebaseIdToken(null, 0);
+        throw new IOException("Saving failed (HTTP " + status + ")");
+    }
+
     // ---- queries (the widget's own refresh) ----
 
     /** Documents where `field` == `value` (and, if given, `archived` == false), each with its "id". */

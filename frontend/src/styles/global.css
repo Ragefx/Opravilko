@@ -4855,3 +4855,76 @@ kbd {
 .modal.share-sheet .settings-head {
   padding: 0 0 12px;
 }
+
+/* ---------- Website task window, second pass: as tall as its content, no grey panel ---------- */
+.detail-panel.td-web {
+  width: 900px;
+  height: auto;
+  max-height: 100%;
+}
+.td-web .td-scroll {
+  flex: 0 1 auto;
+  padding: 22px 24px 26px;
+}
+.td-web .td-cols {
+  grid-template-rows: auto auto;
+  column-gap: 28px;
+}
+/* The properties: a plain column beside the notes, set off by a thin line. */
+.td-web .td-side {
+  border-left: 1px solid var(--color-border);
+  padding-left: 16px;
+  align-self: stretch;
+}
+.td-web .td-props {
+  background: none;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.td-web .td-row {
+  min-height: 46px;
+  border-radius: 10px;
+  padding: 0 10px 0 10px;
+}
+.td-web .td-row + .td-row {
+  border-top: none;
+}
+.td-web .td-row-tap {
+  margin: 0 -10px;
+  padding: 0 10px;
+  border-radius: 10px;
+}
+.td-web .td-row-body {
+  padding: 5px 0;
+}
+.td-web .td-row-chevron {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.td-web .td-row:hover .td-row-chevron {
+  opacity: 1;
+}
+.td-web .td-clear {
+  height: 30px;
+  min-width: 30px;
+  background: none;
+}
+.td-web .td-clear:hover {
+  background: var(--color-hover);
+}
+/* Narrow windows: one column, the properties as a light card. */
+@media (max-width: 760px) {
+  .td-web .td-side {
+    border-left: none;
+    padding-left: 0;
+  }
+  .td-web .td-props {
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 4px;
+  }
+  .detail-panel.td-web {
+    height: auto;
+  }
+}

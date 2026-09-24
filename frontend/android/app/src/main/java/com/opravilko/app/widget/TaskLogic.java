@@ -488,12 +488,19 @@ public final class TaskLogic {
 
     /** The next order at the end of a project's loose tasks. */
     static long nextOrder(JSONObject data, String projectId) {
+        return nextOrder(data, projectId, null);
+    }
+
+    /** The next order at the end of a section (or, with null, the project's loose tasks). */
+    static long nextOrder(JSONObject data, String projectId, String sectionId) {
         double max = -1;
         JSONArray tasks = data != null ? data.optJSONArray("tasks") : null;
         if (tasks != null) {
             for (int i = 0; i < tasks.length(); i++) {
                 JSONObject t = tasks.optJSONObject(i);
-                if (t != null && projectId.equals(t.optString("projectId")) && t.isNull("sectionId") && t.isNull("parentId")) {
+                boolean sameSection = sectionId == null ? t != null && t.isNull("sectionId")
+                        : t != null && sectionId.equals(t.optString("sectionId"));
+                if (t != null && projectId.equals(t.optString("projectId")) && sameSection && t.isNull("parentId")) {
                     max = Math.max(max, t.optDouble("order", 0));
                 }
             }

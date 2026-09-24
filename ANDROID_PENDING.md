@@ -14,7 +14,9 @@ on every widget row.
 
 ## In the code, not in the app yet
 
-- Nothing yet.
+- Add task (widget card and the app): choose the project's section too,
+  "Inbox / To-do", "Inbox / Dogodki"; a project without sections is just
+  its name.
 
 ## Known gaps
 

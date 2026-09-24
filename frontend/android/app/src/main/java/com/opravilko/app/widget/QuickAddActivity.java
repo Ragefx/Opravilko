@@ -55,6 +55,8 @@ public class QuickAddActivity extends AppCompatActivity {
 
     private boolean shopping;
     private String projectId = "inbox";
+    /** The section within the project ("Inbox / To-do"), or null for the project itself. */
+    private String sectionId;
     /** The date chip: a day, or null for none. Typed dates win over it. */
     private String day;
     /** From the chips and the + menu, for the next task. */
@@ -151,6 +153,16 @@ public class QuickAddActivity extends AppCompatActivity {
         shopping = ShoppingLogic.isShoppingView(data, view);
         projectId = TaskLogic.viewProjectId(view);
         if (!shopping && TaskLogic.findProject(data, projectId) == null) projectId = "inbox";
+        sectionId = null;
+        if (!shopping) {
+            // Start in the view's project: its first section if it has any.
+            for (String[] t : targets(data)) {
+                if (t[0].equals(projectId)) {
+                    sectionId = t[1];
+                    break;
+                }
+            }
+        }
         day = WidgetStore.VIEW_TODAY.equals(view) ? TaskLogic.todayStr() : null;
         resetExtras();
         text.setText("");
@@ -251,8 +263,7 @@ public class QuickAddActivity extends AppCompatActivity {
 
         JSONObject project = TaskLogic.findProject(data, projectId);
         boolean inbox = "inbox".equals(projectId) || project == null || project.optBoolean("isInboxProject");
-        TextView projectChip = chip(inbox ? "Inbox" : project.optString("name"),
-                inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text);
+        TextView projectChip = chip(targetLabel(data), inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text);
         projectChip.setOnClickListener(this::pickProject);
         chips.addView(projectChip);
 
@@ -594,34 +605,69 @@ public class QuickAddActivity extends AppCompatActivity {
         return chip;
     }
 
-    private void pickProject(View anchor) {
-        JSONObject data = store.getSnapshot();
-        PopupMenu menu = new PopupMenu(this, anchor);
-        List<String> ids = new ArrayList<>();
-        menu.getMenu().add(0, 0, 0, "Inbox");
-        ids.add("inbox");
+    /**
+     * Every place a task can go: each project's sections ("Inbox / To-do"), or
+     * the project itself when it has none; the Inbox first, the shopping list
+     * left out. Each entry is {projectId, sectionId or null, label}.
+     */
+    private static List<String[]> targets(JSONObject data) {
+        List<String[]> out = new ArrayList<>();
         JSONArray projects = data != null ? data.optJSONArray("projects") : null;
+        JSONArray sections = data != null ? data.optJSONArray("sections") : null;
+        List<JSONObject> list = new ArrayList<>();
         if (projects != null) {
-            List<JSONObject> list = new ArrayList<>();
             for (int i = 0; i < projects.length(); i++) {
                 JSONObject p = projects.optJSONObject(i);
-                if (p == null || p.optBoolean("isInboxProject") || "inbox".equals(p.optString("id"))) continue;
-                if ("shopping".equals(p.optString("viewStyle"))) continue;
-                list.add(p);
-            }
-            list.sort((a, b) -> Double.compare(a.optDouble("order", 0), b.optDouble("order", 0)));
-            for (JSONObject p : list) {
-                menu.getMenu().add(0, ids.size(), ids.size(), "# " + p.optString("name"));
-                ids.add(p.optString("id"));
+                if (p != null && !"shopping".equals(p.optString("viewStyle"))) list.add(p);
             }
         }
+        list.sort((a, b) -> {
+            boolean ia = a.optBoolean("isInboxProject") || "inbox".equals(a.optString("id"));
+            boolean ib = b.optBoolean("isInboxProject") || "inbox".equals(b.optString("id"));
+            if (ia != ib) return ia ? -1 : 1;
+            return Double.compare(a.optDouble("order", 0), b.optDouble("order", 0));
+        });
+        for (JSONObject p : list) {
+            String pid = p.optString("id");
+            boolean inbox = p.optBoolean("isInboxProject") || "inbox".equals(pid);
+            String name = inbox ? "Inbox" : p.optString("name");
+            List<JSONObject> secs = new ArrayList<>();
+            if (sections != null) {
+                for (int i = 0; i < sections.length(); i++) {
+                    JSONObject s = sections.optJSONObject(i);
+                    if (s != null && pid.equals(s.optString("projectId")) && !s.optBoolean("archived")) secs.add(s);
+                }
+            }
+            secs.sort((a, b) -> Double.compare(a.optDouble("order", 0), b.optDouble("order", 0)));
+            if (secs.isEmpty()) out.add(new String[] { pid, null, name });
+            for (JSONObject s : secs) out.add(new String[] { pid, s.optString("id"), name + " / " + s.optString("name") });
+        }
+        if (out.isEmpty()) out.add(new String[] { "inbox", null, "Inbox" });
+        return out;
+    }
+
+    private String targetLabel(JSONObject data) {
+        for (String[] t : targets(data)) {
+            if (t[0].equals(projectId) && (t[1] == null ? sectionId == null : t[1].equals(sectionId))) return t[2];
+        }
+        JSONObject project = TaskLogic.findProject(data, projectId);
+        return project == null || project.optBoolean("isInboxProject") ? "Inbox" : project.optString("name");
+    }
+
+    private void pickProject(View anchor) {
+        List<String[]> targets = targets(store.getSnapshot());
+        PopupMenu menu = new PopupMenu(this, anchor);
+        for (int i = 0; i < targets.size(); i++) menu.getMenu().add(0, i, i, targets.get(i)[2]);
         menu.setOnMenuItemClickListener(item -> {
-            projectId = ids.get(item.getItemId());
+            String[] t = targets.get(item.getItemId());
+            projectId = t[0];
+            sectionId = t[1];
             buildChips();
             return true;
         });
         menu.show();
     }
+
 
     private void pickDay(View anchor) {
         String today = TaskLogic.todayStr();
@@ -829,7 +875,8 @@ public class QuickAddActivity extends AppCompatActivity {
             JSONObject due = taskDay != null ? TaskLogic.makeDue(taskDay, parsed.time) : null;
             int prio = parsed.priority > 0 ? parsed.priority : priority > 0 ? priority : 1;
             JSONObject task = TaskLogic.newTask(TaskLogic.newId(), parsed.content, projectId, prio, due,
-                    TaskLogic.nextOrder(data, projectId), at);
+                    TaskLogic.nextOrder(data, projectId, sectionId), at);
+            if (sectionId != null) task.put("sectionId", sectionId);
             String notes = description.getText().toString().trim();
             if (!notes.isEmpty()) task.put("description", notes);
             if (!labels.isEmpty()) task.put("labels", new JSONArray(labels));
@@ -847,7 +894,7 @@ public class QuickAddActivity extends AppCompatActivity {
             resetExtras();
             buildChips();
             JSONObject project = TaskLogic.findProject(data, projectId);
-            String where = project == null || project.optBoolean("isInboxProject") ? "Inbox" : project.optString("name");
+            String where = targetLabel(data);
             confirm("✓ " + parsed.content + " → " + where);
         } catch (JSONException e) {
             Toast.makeText(this, "Couldn't add that task.", Toast.LENGTH_SHORT).show();

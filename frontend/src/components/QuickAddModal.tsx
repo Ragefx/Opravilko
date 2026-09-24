@@ -2,6 +2,7 @@ import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
+import { addTargets, firstTargetIn } from "../utils/addTargets";
 import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
 import { type RepeatPreset, applyRecurrence } from "../utils/recurrence";
@@ -35,7 +36,9 @@ export default function QuickAddModal({
   const createTask = useCreateTask();
   const showToast = useToast();
   const [text, setText] = useState("");
-  const [projectId, setProjectId] = useState(defaultProjectId);
+  // Where it goes: a project's section ("Inbox / To-do"), or the project itself.
+  const targets = addTargets(data);
+  const [targetKey, setTargetKey] = useState(() => firstTargetIn(targets, defaultProjectId).key);
   const [recurrence, setRecurrence] = useState<RepeatPreset | "none">("none");
   const [shared, setShared] = useState(false);
   const partner = data?.partner;
@@ -59,14 +62,22 @@ export default function QuickAddModal({
   const typedProject = preview?.projectName
     ? projects.find((p) => p.name.toLowerCase() === preview.projectName!.toLowerCase())
     : undefined;
-  const targetProject = typedProject || projects.find((p) => p.id === projectId);
+  const chosen = targets.find((t) => t.key === targetKey) ?? targets[0];
+  // A typed project narrows the choice to its sections.
+  const choices = typedProject ? targets.filter((t) => t.projectId === typedProject.id) : targets;
+  const target = typedProject
+    ? chosen.projectId === typedProject.id
+      ? chosen
+      : choices[0] ?? { key: `${typedProject.id}:`, projectId: typedProject.id, sectionId: null, label: typedProject.name }
+    : chosen;
 
   function submit() {
     if (!preview?.content) return;
     createTask.mutate(
       {
         content: preview.content,
-        projectId: targetProject?.id || "inbox",
+        projectId: target.projectId,
+        sectionId: target.sectionId,
         priority: preview.priority,
         due: applyRecurrence(baseDue, recurrence),
         labels: preview.labels,
@@ -75,7 +86,7 @@ export default function QuickAddModal({
       {
         onSuccess: () =>
           showToast({
-            message: `Added to ${targetProject?.name || "Inbox"}${partner && (shared || preview.shared) ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
+            message: `Added to ${target.label}${partner && (shared || preview.shared) ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
           }),
       }
     );
@@ -127,14 +138,13 @@ export default function QuickAddModal({
           <div className="quick-add-modal-options">
             <select
               style={{ flex: "1 1 140px", minWidth: 120 }}
-              value={typedProject?.id ?? projectId}
-              disabled={Boolean(typedProject)}
-              onChange={(e) => setProjectId(e.target.value)}
-              title={typedProject ? "Set by the #project you typed" : "Choose a project"}
+              value={target.key}
+              onChange={(e) => setTargetKey(e.target.value)}
+              title={typedProject ? "In the #project you typed" : "Choose where it goes"}
             >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
+              {(choices.length ? choices : [target]).map((t) => (
+                <option key={t.key} value={t.key}>
+                  {t.label}
                 </option>
               ))}
             </select>

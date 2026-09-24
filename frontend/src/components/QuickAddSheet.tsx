@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { format, parseISO } from "date-fns";
 import { useAddAttachments, useBootstrap, useCreateTask } from "../api/hooks";
 import type { Due, Task, TaskLocation } from "../api/types";
-import { parseQuickAddInput } from "../utils/quickAddParse";
+import { highlightParts, parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { type RepeatPreset, REPEAT_PRESETS, applyRecurrence } from "../utils/recurrence";
@@ -94,6 +94,7 @@ export default function QuickAddSheet({
   const dateChip = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const title = useRef<HTMLInputElement>(null);
+  const mirror = useRef<HTMLDivElement>(null);
 
   const [defaultDue] = useState(() =>
     defaultDate
@@ -171,19 +172,35 @@ export default function QuickAddSheet({
     <div className="qas-scrim" onClick={onClose}>
       <div className="qas-card" style={{ marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add task">
         {added && <div className="qas-added">{added}</div>}
-        <input
-          ref={title}
-          className="qas-title"
-          autoFocus
-          placeholder="Task name"
-          value={text}
-          enterKeyHint="send"
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") void submit();
-            if (e.key === "Escape") onClose();
-          }}
-        />
+        {/* What was read as a date, time, p1, #project... shows highlighted: the
+            text is drawn by the copy behind the (see-through) field. */}
+        <div className="qas-title-wrap">
+          <div ref={mirror} className="qas-title qas-title-mirror" aria-hidden="true">
+            {preview
+              ? highlightParts(text, preview.content).map((p, i) => (p.hit ? <mark key={i}>{p.text}</mark> : p.text))
+              : text}
+          </div>
+          <input
+            ref={title}
+            className="qas-title qas-title-input"
+            // Long names scroll sideways: the copy behind follows.
+            onScroll={(e) => {
+              if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
+            }}
+            onSelect={(e) => {
+              if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
+            }}
+            autoFocus
+            placeholder="Task name"
+            value={text}
+            enterKeyHint="send"
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void submit();
+              if (e.key === "Escape") onClose();
+            }}
+          />
+        </div>
         {description !== null && (
           <textarea
             className="qas-desc"

@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
@@ -6,14 +5,11 @@ import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
+import { useSwipeActions } from "./useSwipeActions";
 import TaskMenu from "./TaskMenu";
 import PriorityMark from "./PriorityMark";
 import MidvaBadge from "./MidvaBadge";
 import { useToast } from "./ToastProvider";
-
-/** How far a finger has to drag a row before letting go triggers the action. */
-const SWIPE_TRIGGER = 90;
-const SWIPE_MAX = 140;
 
 export default function TaskRow({
   task,
@@ -42,10 +38,6 @@ export default function TaskRow({
   const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
 
   // Touch swipe: right completes (green), left deletes (red); both can be undone.
-  const rowRef = useRef<HTMLDivElement>(null);
-  const swipe = useRef<{ x: number; y: number; id: number; active: boolean } | null>(null);
-  const suppressClick = useRef(false);
-  const [dx, setDx] = useState(0);
   const deleteTask = useDeleteTask();
   const restoreTasks = useRestoreTasks();
 
@@ -73,48 +65,9 @@ export default function TaskRow({
     });
   }
 
-  function onPointerDown(e: React.PointerEvent) {
-    if (e.pointerType !== "touch" || task.completed) return;
-    swipe.current = { x: e.clientX, y: e.clientY, id: e.pointerId, active: false };
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    const s = swipe.current;
-    if (!s || e.pointerId !== s.id) return;
-    const moveX = e.clientX - s.x;
-    const moveY = e.clientY - s.y;
-    if (!s.active) {
-      // Only claim clearly horizontal drags; vertical ones are page scrolls.
-      if (Math.abs(moveY) > 12) {
-        swipe.current = null;
-        return;
-      }
-      if (Math.abs(moveX) < 12 || Math.abs(moveX) < Math.abs(moveY) * 1.5) return;
-      s.active = true;
-      try {
-        rowRef.current?.setPointerCapture(e.pointerId);
-      } catch {
-        /* pointer already released -- the move handler still works without capture */
-      }
-    }
-    setDx(Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, moveX)));
-  }
-
-  function onPointerEnd() {
-    const s = swipe.current;
-    swipe.current = null;
-    if (!s?.active) return;
-    suppressClick.current = true;
-    const final = dx;
-    setDx(0);
-    if (final >= SWIPE_TRIGGER) {
-      completeWithUndo();
-    } else if (final <= -SWIPE_TRIGGER) {
-      deleteWithUndo();
-    }
-  }
-
-  const swipeDir = dx > 0 ? "right" : dx < 0 ? "left" : undefined;
+  const swipe = useSwipeActions({ onRight: completeWithUndo, onLeft: deleteWithUndo, disabled: task.completed });
+  const dx = swipe.dx;
+  const swipeDir = swipe.dir;
 
   return (
     <div
@@ -123,7 +76,7 @@ export default function TaskRow({
       data-swipe={swipeDir}
     >
       {swipeDir && (
-        <div className={`task-swipe-bg ${Math.abs(dx) >= SWIPE_TRIGGER ? "armed" : ""}`}>
+        <div className={`task-swipe-bg ${swipe.armed ? "armed" : ""}`}>
           {swipeDir === "right" ? (
             <>
               <CheckIcon width={18} height={18} /> Complete
@@ -136,24 +89,13 @@ export default function TaskRow({
         </div>
       )}
       <div
-        ref={rowRef}
+        ref={swipe.rowRef}
         className="task-row"
         style={{
           ...(depth > 0 ? { paddingLeft: depth * 28 } : {}),
           ...(dx ? { transform: `translateX(${dx}px)`, background: "var(--color-surface)" } : {}),
         }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-        onClickCapture={(e) => {
-          // The finger lifting after a swipe would otherwise also "click" the row.
-          if (suppressClick.current) {
-            suppressClick.current = false;
-            e.stopPropagation();
-            e.preventDefault();
-          }
-        }}
+        {...swipe.handlers}
       >
         {onToggleCollapse ? (
           <button

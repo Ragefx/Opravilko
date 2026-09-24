@@ -150,6 +150,9 @@ public class QuickAddActivity extends AppCompatActivity {
             finish();
             return;
         }
+        // Opening the card fetches the latest too (e.g. what your partner just
+        // added to the shopping list), so the widget behind it is current.
+        if (System.currentTimeMillis() - store.getLastRefresh() > 60_000) WidgetSyncJob.schedule(this);
         String view = intent.getStringExtra(EXTRA_VIEW);
         if (view == null) view = WidgetStore.VIEW_TODAY;
         shopping = ShoppingLogic.isShoppingView(data, view);

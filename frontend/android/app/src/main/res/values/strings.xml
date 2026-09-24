@@ -6,5 +6,6 @@
     <string name="custom_url_scheme">com.opravilko.app</string>
     <string name="shortcut_add">Add task</string>
     <string name="shortcut_shopping">Shopping list</string>
+    <string name="shortcut_shopping_voice">Add to shopping</string>
     <string name="shortcut_calendar">Calendar</string>
 </resources>

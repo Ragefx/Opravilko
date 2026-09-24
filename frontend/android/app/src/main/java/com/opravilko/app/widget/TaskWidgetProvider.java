@@ -36,9 +36,15 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         for (int id : appWidgetIds) manager.updateAppWidget(id, buildViews(context, id));
         manager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list);
         WidgetStore store = new WidgetStore(context);
+        if (store.hasAuth()) WidgetSyncJob.schedulePeriodic(context);
         if (store.hasAuth() && System.currentTimeMillis() - store.getLastRefresh() > REFRESH_AFTER_MS) {
             WidgetSyncJob.schedule(context);
         }
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        WidgetSyncJob.cancelPeriodic(context);
     }
 
     @Override

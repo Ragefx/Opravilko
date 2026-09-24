@@ -94,3 +94,44 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
     shared,
   };
 }
+
+/**
+ * The typed text in pieces, each marked when Add task read it as something
+ * (a date, time, repeat, p1, @label, #project, +midva) rather than the name:
+ * the words missing from the parsed `content`, in order.
+ */
+export function highlightParts(raw: string, content: string): { text: string; hit: boolean }[] {
+  const kept = content.split(/\s+/).filter(Boolean);
+  // Each word (with the spaces after it), marked when it isn't part of the name.
+  const words: { word: string; space: string; hit: boolean }[] = [];
+  const lead = raw.match(/^\s*/)![0];
+  let k = 0;
+  for (const m of raw.slice(lead.length).matchAll(/(\S+)(\s*)/g)) {
+    const hit = !(k < kept.length && kept[k] === m[1]);
+    if (!hit) k++;
+    words.push({ word: m[1], space: m[2], hit });
+  }
+  // #project, @label, +midva and p1..p4 are each their own highlight; the words
+  // of a date or a repeat ("ob 9h", "every friday") read as one.
+  const ownPiece = (w: string) => /^[#@+]/.test(w) || /^p[1-4]$/i.test(w);
+  const out: { text: string; hit: boolean }[] = lead ? [{ text: lead, hit: false }] : [];
+  words.forEach((w, i) => {
+    const prev = words[i - 1];
+    const joins = w.hit && prev?.hit && !ownPiece(w.word) && !ownPiece(prev.word);
+    const last = out[out.length - 1];
+    if (joins && last?.hit) last.text += prev.space + w.word;
+    else {
+      if (prev) {
+        const tail = out[out.length - 1];
+        if (tail && !tail.hit) tail.text += prev.space;
+        else if (prev.space) out.push({ text: prev.space, hit: false });
+      }
+      const next = out[out.length - 1];
+      if (!w.hit && next && !next.hit) next.text += w.word;
+      else out.push({ text: w.word, hit: w.hit });
+    }
+  });
+  const end = words[words.length - 1]?.space;
+  if (end) out.push({ text: end, hit: false });
+  return out.filter((p) => p.text);
+}

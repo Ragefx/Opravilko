@@ -55,6 +55,8 @@ public class WidgetBridgePlugin extends Plugin {
         TaskWidgetProvider.updateAll(getContext());
         // Widget completions still waiting (e.g. made offline) go out now.
         if (store.getPending().length() > 0 && store.hasAuth()) WidgetSyncJob.schedule(getContext());
+        // And the widget keeps itself current from now on (every ~15 minutes).
+        if (store.hasAuth()) WidgetSyncJob.schedulePeriodic(getContext());
         call.resolve();
     }
 

@@ -17,6 +17,12 @@ same text size as the other lists.
 - Widget: ticking a shopping item counts towards the "usual items" chips.
 - A task your partner shared from their own Inbox, tapped in the widget (or
   any link), opens in Midva instead of "Project not found".
+- Shopping list: swipe right to tick off (or put back), left to remove (Undo).
+- Add task card: what it read (dates, times, p1, #project, @label) is
+  highlighted in the name as you type.
+- Widget checks for changes every ~15 minutes by itself (Android's shortest),
+  and whenever its add card opens.
+- A 4th app-icon shortcut: "Add to shopping" (opens the list, listening).
 
 ## Known gaps
 

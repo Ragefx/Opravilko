@@ -4438,3 +4438,49 @@ kbd {
   text-align: center;
   color: var(--color-text-secondary);
 }
+
+/* Swipe on shopping items: right ticks off (green), left removes (red). */
+.shopping-row {
+  position: relative;
+  overflow: hidden;
+}
+.shopping-row-inner {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  touch-action: pan-y;
+  position: relative;
+}
+.shopping-row[data-swipe="right"] .task-swipe-bg {
+  justify-content: flex-start;
+  background: var(--color-success);
+}
+.shopping-row[data-swipe="left"] .task-swipe-bg {
+  justify-content: flex-end;
+  background: var(--color-danger);
+}
+
+/* Add task card: what was understood (dates, p1, #project...) highlighted. */
+.qas-title-wrap {
+  position: relative;
+}
+.qas-title-mirror {
+  position: absolute;
+  inset: 0;
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--color-text);
+}
+.qas-title-mirror mark {
+  background: var(--color-selected);
+  color: var(--color-accent);
+  border-radius: 5px;
+  box-shadow: 0 0 0 2px var(--color-selected);
+}
+.qas-title.qas-title-input {
+  position: relative;
+  color: transparent;
+  caret-color: var(--color-text);
+}

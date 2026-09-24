@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Long-press the app icon: straight to adding a task, the shopping list or the calendar. -->
+<!-- Long-press the app icon: straight to adding a task, the shopping list (or adding to it by voice) or the calendar. -->
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
         android:shortcutId="add"
@@ -22,6 +22,17 @@
             android:targetPackage="com.opravilko.app"
             android:targetClass="com.opravilko.app.MainActivity"
             android:data="opravilko://open?view=shopping" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="shopping_voice"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_shopping_voice"
+        android:shortcutShortLabel="@string/shortcut_shopping_voice">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.opravilko.app"
+            android:targetClass="com.opravilko.app.MainActivity"
+            android:data="opravilko://open?view=shopping&amp;voice=1" />
     </shortcut>
     <shortcut
         android:shortcutId="calendar"

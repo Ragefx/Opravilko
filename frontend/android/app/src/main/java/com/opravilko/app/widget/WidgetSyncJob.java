@@ -25,6 +25,8 @@ import java.util.Set;
  */
 public class WidgetSyncJob extends JobService {
     private static final int JOB_ID = 47_110;
+    /** The every-15-minutes check (Android's shortest), so a partner's changes show up. */
+    private static final int PERIODIC_JOB_ID = 47_111;
     private static final Object LOCK = new Object();
 
     public static void schedule(Context context) {
@@ -35,6 +37,28 @@ public class WidgetSyncJob extends JobService {
                 .setBackoffCriteria(30_000, JobInfo.BACKOFF_POLICY_EXPONENTIAL)
                 .build();
         scheduler.schedule(job);
+    }
+
+    /**
+     * Keeps the widget current on its own: a sync about every 15 minutes (the
+     * shortest Android allows; it may run later while the phone sleeps), kept
+     * across restarts. Set once; setting it again leaves the running one be.
+     */
+    public static void schedulePeriodic(Context context) {
+        JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        if (scheduler == null || scheduler.getPendingJob(PERIODIC_JOB_ID) != null) return;
+        JobInfo job = new JobInfo.Builder(PERIODIC_JOB_ID, new ComponentName(context, WidgetSyncJob.class))
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPeriodic(15 * 60 * 1000L, 5 * 60 * 1000L)
+                .setPersisted(true)
+                .build();
+        scheduler.schedule(job);
+    }
+
+    /** No widgets left: stop the periodic check. */
+    public static void cancelPeriodic(Context context) {
+        JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        if (scheduler != null) scheduler.cancel(PERIODIC_JOB_ID);
     }
 
     @Override

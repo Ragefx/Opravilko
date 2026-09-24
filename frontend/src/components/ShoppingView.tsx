@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AppData, Task } from "../api/types";
-import { useBootstrap, useCreateTask, useDeleteTask, useUpdateProject, useUpdateTask } from "../api/hooks";
+import { useBootstrap, useCreateTask, useDeleteTask, useRestoreTasks, useUpdateProject, useUpdateTask } from "../api/hooks";
 import {
   BUILTIN_MEALS,
   customMeals,
@@ -27,7 +27,8 @@ import {
 } from "../utils/shopping";
 import { useToast } from "./ToastProvider";
 import MicButton from "./MicButton";
-import { CheckIcon, XIcon } from "./icons";
+import { CheckIcon, TrashIcon, XIcon } from "./icons";
+import { useSwipeActions } from "./useSwipeActions";
 
 /**
  * An item's extras live in its description, one per line: "za: Palačinke,
@@ -144,6 +145,18 @@ export default function ShoppingView({
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const restoreTasks = useRestoreTasks();
+  /** Takes an item off the list, with Undo. */
+  function removeItem(t: Task) {
+    deleteTask.mutate(t.id, {
+      onSuccess: (removed) =>
+        showToast({
+          message: `Removed ${parseItem(t.content).name}`,
+          actionLabel: "Undo",
+          onAction: () => restoreTasks.mutate(removed),
+        }),
+    });
+  }
   const updateProject = useUpdateProject();
   const showToast = useToast();
   const qc = useQueryClient();
@@ -433,7 +446,7 @@ export default function ShoppingView({
                 key={t.id}
                 task={t}
                 onToggle={() => toggle(t)}
-                onDelete={() => deleteTask.mutate(t.id)}
+                onDelete={() => removeItem(t)}
                 onEdit={() => setEditing(t)}
                 storeColumn={storeColumn}
               />
@@ -451,7 +464,7 @@ export default function ShoppingView({
                   key={t.id}
                   task={t}
                   onToggle={() => toggle(t)}
-                  onDelete={() => deleteTask.mutate(t.id)}
+                  onDelete={() => removeItem(t)}
                   onEdit={() => setEditing(t)}
                   storeColumn={storeColumn}
                 />
@@ -474,7 +487,7 @@ export default function ShoppingView({
                 key={t.id}
                 task={t}
                 onToggle={() => toggle(t)}
-                onDelete={() => deleteTask.mutate(t.id)}
+                onDelete={() => removeItem(t)}
                 onEdit={() => setEditing(t)}
                 storeColumn={storeColumn}
               />
@@ -549,38 +562,60 @@ function ShoppingRow({
   const category = categoryOf(task, item.name);
   const store = storeOf(task);
   const note = noteOf(task.description);
+  // Swipe right ticks it off (or puts it back), left removes it, as with tasks.
+  const swipe = useSwipeActions({ onRight: onToggle, onLeft: onDelete });
   return (
-    <li className={`shopping-row ${task.completed ? "is-done" : ""}`}>
-      {/* The circle side ticks it off; the rest of the row opens it for editing. */}
-      <button
-        className="shopping-tick"
-        onClick={onToggle}
-        aria-pressed={task.completed}
-        aria-label={task.completed ? `Put ${item.name} back` : `Tick off ${item.name}`}
+    <li className={`shopping-row ${task.completed ? "is-done" : ""}`} data-swipe={swipe.dir}>
+      {swipe.dir && (
+        <div className={`task-swipe-bg ${swipe.armed ? "armed" : ""}`}>
+          {swipe.dir === "right" ? (
+            <>
+              <CheckIcon width={18} height={18} /> {task.completed ? "Put back" : "Bought"}
+            </>
+          ) : (
+            <>
+              Delete <TrashIcon width={18} height={18} />
+            </>
+          )}
+        </div>
+      )}
+      <div
+        ref={swipe.rowRef}
+        className="shopping-row-inner"
+        style={swipe.dx ? { transform: `translateX(${swipe.dx}px)`, background: "var(--color-surface)" } : undefined}
+        {...swipe.handlers}
       >
-        <span className="shopping-check" aria-hidden="true">
-          {task.completed && <CheckIcon width={14} height={14} />}
-        </span>
-      </button>
-      <button className="shopping-row-main" onClick={onEdit} aria-label={`Edit ${item.name}`}>
-        <span className="shopping-name">
-          {item.name}
-          {meals.length > 0 && <small>{meals.join(" · ")}</small>}
-          {note && <small className="shopping-note">{note}</small>}
-        </span>
-        {amount && <span className="shopping-amount">{amount}</span>}
-        {storeColumn && (
-          <span className="shopping-store" title={store}>
-            {store}
+        {/* The circle side ticks it off; the rest of the row opens it for editing. */}
+        <button
+          className="shopping-tick"
+          onClick={onToggle}
+          aria-pressed={task.completed}
+          aria-label={task.completed ? `Put ${item.name} back` : `Tick off ${item.name}`}
+        >
+          <span className="shopping-check" aria-hidden="true">
+            {task.completed && <CheckIcon width={14} height={14} />}
           </span>
-        )}
-        <span className="shopping-category" title={category.name}>
-          {category.emoji}
-        </span>
-      </button>
-      <button className="shopping-delete" onClick={onDelete} aria-label={`Remove ${item.name}`}>
-        <XIcon width={14} height={14} />
-      </button>
+        </button>
+        <button className="shopping-row-main" onClick={onEdit} aria-label={`Edit ${item.name}`}>
+          <span className="shopping-name">
+            {item.name}
+            {meals.length > 0 && <small>{meals.join(" · ")}</small>}
+            {note && <small className="shopping-note">{note}</small>}
+          </span>
+          {amount && <span className="shopping-amount">{amount}</span>}
+          {storeColumn && (
+            <span className="shopping-store" title={store}>
+              {store}
+            </span>
+          )}
+          <span className="shopping-category" title={category.name}>
+            {category.emoji}
+          </span>
+        </button>
+        <button className="shopping-delete" onClick={onDelete} aria-label={`Remove ${item.name}`}>
+          <XIcon width={14} height={14} />
+        </button>
+      </div>
     </li>
   );
 }

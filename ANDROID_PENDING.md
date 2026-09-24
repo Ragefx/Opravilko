@@ -13,7 +13,8 @@ dots with the day's list) and the Display icon.
 
 ## In the code, not in the app yet
 
-- Nothing yet.
+- Fix: the widget's Add sheet sits on top of the keyboard (it was hidden
+  behind it), and above the navigation bar when the keyboard is closed.
 
 ## Known gaps
 

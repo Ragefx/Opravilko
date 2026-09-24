@@ -62,6 +62,7 @@ public class QuickAddActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.widget_quick_add);
+        keepAboveKeyboard();
         store = new WidgetStore(this);
         text = findViewById(R.id.qa_text);
         send = findViewById(R.id.qa_send);
@@ -87,6 +88,26 @@ public class QuickAddActivity extends AppCompatActivity {
             else submit();
         });
         setUp(getIntent());
+    }
+
+    /**
+     * The sheet sits right on top of the keyboard (and above the navigation bar
+     * when the keyboard is down). Android draws apps edge to edge now and no
+     * longer lifts a window for the keyboard by itself, so the sheet reads the
+     * keyboard's and the bars' heights and pads itself by them.
+     */
+    private void keepAboveKeyboard() {
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        View scrim = findViewById(R.id.qa_scrim);
+        View sheet = findViewById(R.id.qa_sheet);
+        final int baseBottom = sheet.getPaddingBottom();
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(scrim, (v, insets) -> {
+            int keyboard = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime()).bottom;
+            int bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()).bottom;
+            sheet.setPadding(sheet.getPaddingLeft(), sheet.getPaddingTop(), sheet.getPaddingRight(),
+                    baseBottom + Math.max(keyboard, bars));
+            return androidx.core.view.WindowInsetsCompat.CONSUMED;
+        });
     }
 
     @Override

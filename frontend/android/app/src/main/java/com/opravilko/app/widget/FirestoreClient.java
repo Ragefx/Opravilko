@@ -255,14 +255,33 @@ final class FirestoreClient {
         }
     }
 
+    /**
+     * Only documents changed after `since` (an ISO time, compared with their
+     * updatedAt): a check for changes costs a read per change, not per task.
+     * Needs a composite index on (field, updatedAt); fails without one.
+     */
+    JSONArray whereEqualsSince(String collection, String field, String value, String since) throws IOException {
+        return query(collection, and(filter(field, "EQUAL", value), filter("updatedAt", "GREATER_THAN", since)), false);
+    }
+
+    JSONArray whereContainsSince(String collection, String field, String value, String since) throws IOException {
+        return query(collection, and(filter(field, "ARRAY_CONTAINS", value), filter("updatedAt", "GREATER_THAN", since)), false);
+    }
+
+    private static JSONObject and(JSONObject a, JSONObject b) throws IOException {
+        try {
+            return new JSONObject().put("compositeFilter", new JSONObject()
+                    .put("op", "AND")
+                    .put("filters", new JSONArray().put(a).put(b)));
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
     private JSONArray query(String collection, JSONObject where, boolean openOnly) throws IOException {
         JSONObject body;
         try {
-            if (openOnly) {
-                where = new JSONObject().put("compositeFilter", new JSONObject()
-                        .put("op", "AND")
-                        .put("filters", new JSONArray().put(where).put(filter("archived", "EQUAL", false))));
-            }
+            if (openOnly) where = and(where, filter("archived", "EQUAL", false));
             body = new JSONObject().put("structuredQuery", new JSONObject()
                     .put("from", new JSONArray().put(new JSONObject().put("collectionId", collection)))
                     .put("where", where));

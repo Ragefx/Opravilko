@@ -251,6 +251,17 @@ public class WidgetSyncJob extends JobService {
             throws IOException {
         if (uid == null) return;
         String myInbox = "inbox_" + uid;
+        long started = System.currentTimeMillis();
+        // Mostly just what changed (a few reads); everything every few hours,
+        // which also catches deleted tasks and anything a changes check can't.
+        boolean fullDue = started - store.getFirebaseFullAt() > FULL_REFRESH_MS;
+        if (!fullDue && store.getFirebaseSince() != null && store.getSnapshot() != null) {
+            try {
+                if (refreshChanged(context, store, firestore, uid, myInbox, started)) return;
+            } catch (IOException | JSONException e) {
+                // e.g. the database's index for it not set up: read everything instead.
+            }
+        }
         try {
             JSONArray projects = new JSONArray();
             JSONArray tasks = new JSONArray();
@@ -287,10 +298,79 @@ public class WidgetSyncJob extends JobService {
             data.put("sections", sortByOrder(sections));
             store.saveSnapshot(data, true);
             store.setLastRefresh(System.currentTimeMillis());
+            store.setFirebaseFull(started);
             TaskWidgetProvider.updateAll(context);
         } catch (JSONException e) {
             throw new IOException(e.getMessage());
         }
+    }
+
+    private static final long FULL_REFRESH_MS = 3 * 60 * 60 * 1000L;
+
+    /**
+     * Reads only the tasks changed since the last sync and merges them into
+     * the widget's copy. False (nothing saved) when a full read is needed:
+     * a project was added or removed.
+     */
+    private static boolean refreshChanged(Context context, WidgetStore store, FirestoreClient firestore, String uid,
+            String myInbox, long started) throws IOException, JSONException {
+        String since = store.getFirebaseSince();
+        JSONObject data = store.getSnapshot();
+        JSONArray known = data.optJSONArray("projects");
+        Set<String> knownIds = new HashSet<>();
+        if (known != null) for (int i = 0; i < known.length(); i++) knownIds.add(known.getJSONObject(i).optString("id"));
+
+        JSONArray projects = new JSONArray();
+        JSONArray changed = new JSONArray();
+        Set<String> ids = new HashSet<>();
+        JSONArray found = firestore.whereContains("projects", "members", uid);
+        for (int i = 0; i < found.length(); i++) {
+            JSONObject p = found.getJSONObject(i);
+            String id = p.getString("id");
+            if (p.optBoolean("isInboxProject") && !myInbox.equals(id)) continue;
+            p.put("id", appProjectId(id, myInbox));
+            if (p.has("parentId") && !p.isNull("parentId")) p.put("parentId", appProjectId(p.getString("parentId"), myInbox));
+            projects.put(p);
+            ids.add(p.getString("id"));
+            JSONArray c = firestore.whereEqualsSince("tasks", "projectId", id, since);
+            for (int k = 0; k < c.length(); k++) changed.put(c.getJSONObject(k));
+        }
+        if (!ids.equals(knownIds)) return false;
+        JSONArray shared = firestore.whereContainsSince("tasks", "sharedWith", uid, since);
+        for (int k = 0; k < shared.length(); k++) changed.put(shared.getJSONObject(k));
+
+        data.put("projects", sortByOrder(projects));
+        if (changed.length() > 0) {
+            JSONArray tasks = data.optJSONArray("tasks");
+            if (tasks == null) tasks = new JSONArray();
+            for (int k = 0; k < changed.length(); k++) {
+                JSONObject t = changed.getJSONObject(k);
+                String id = t.getString("id");
+                boolean gone = t.optBoolean("archived");
+                t.remove("archived");
+                t.put("projectId", appProjectId(t.optString("projectId"), myInbox));
+                int at = -1;
+                for (int i = 0; i < tasks.length(); i++) {
+                    if (id.equals(tasks.getJSONObject(i).optString("id"))) {
+                        at = i;
+                        break;
+                    }
+                }
+                if (gone) {
+                    if (at >= 0) tasks.remove(at);
+                } else if (at >= 0) {
+                    tasks.put(at, t);
+                } else {
+                    tasks.put(t);
+                }
+            }
+            data.put("tasks", tasks);
+        }
+        store.saveSnapshot(data, true);
+        store.setLastRefresh(System.currentTimeMillis());
+        store.setFirebaseSince(started);
+        TaskWidgetProvider.updateAll(context);
+        return true;
     }
 
     private static void addTask(JSONArray tasks, Set<String> seen, JSONObject t, String myInbox) throws JSONException {

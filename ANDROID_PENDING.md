@@ -20,6 +20,9 @@ no formatting buttons above task notes.
   to the minute), so ones set on the website ring with the app closed after
   the next sync (~15 min); Done / Snooze 15 min / 1 h on the notification
 - No more automatic "due now" notification for every task with a time
+- Background sync (Firebase) reads only tasks changed since the last one,
+  with a full reread every 3 hours: far fewer Firestore reads. Needs the two
+  indexes in firestore.indexes.json (without them it reads everything, as before)
 
 ## Known gaps
 

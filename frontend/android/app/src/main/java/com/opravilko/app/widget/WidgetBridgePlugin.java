@@ -48,6 +48,8 @@ public class WidgetBridgePlugin extends Plugin {
             // Google sign-in: the widget writes its ticks to Firestore directly.
             store.setFirebaseAuth(firebase.getString("apiKey"), firebase.getString("projectId"),
                     firebase.getString("refreshToken"), firebase.getString("uid"));
+            // The app's data is complete: the widget's next syncs only ask what changed since.
+            store.setFirebaseFull(System.currentTimeMillis());
         } else if (refreshToken != null && !refreshToken.isEmpty()) {
             store.setAuth(call.getString("appKey"), refreshToken, call.getString("dataPath"));
         }

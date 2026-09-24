@@ -32,6 +32,8 @@ public final class WidgetStore {
     private static final String KEY_FB_ID_TOKEN = "fbIdToken";
     private static final String KEY_FB_ID_EXPIRES = "fbIdExpires";
     private static final String KEY_REMINDERS = "remindersOn";
+    private static final String KEY_FB_FULL_AT = "fbFullAt";
+    private static final String KEY_FB_SINCE = "fbSince";
 
     public static final String VIEW_TODAY = "today";
     public static final String VIEW_UPCOMING = "upcoming";
@@ -272,6 +274,25 @@ public final class WidgetStore {
     public boolean remindersEnabled() { return prefs.getBoolean(KEY_REMINDERS, true); }
 
     public void setRemindersEnabled(boolean on) { prefs.edit().putBoolean(KEY_REMINDERS, on).apply(); }
+
+    /**
+     * Firebase: when the tasks were last read in full (or handed over by the
+     * app), and from when on a check for changes asks (ISO time).
+     */
+    public long getFirebaseFullAt() { return prefs.getLong(KEY_FB_FULL_AT, 0); }
+
+    public String getFirebaseSince() { return prefs.getString(KEY_FB_SINCE, null); }
+
+    public void setFirebaseFull(long at) {
+        prefs.edit().putLong(KEY_FB_FULL_AT, at).putString(KEY_FB_SINCE, sinceIso(at)).apply();
+    }
+
+    public void setFirebaseSince(long queriedAt) { prefs.edit().putString(KEY_FB_SINCE, sinceIso(queriedAt)).apply(); }
+
+    /** A margin back from the query, for phones whose clocks run a little apart. */
+    private static String sinceIso(long at) {
+        return TaskLogic.isoFormat().format(new java.util.Date(at - 10 * 60 * 1000L));
+    }
 
     /** Signing out of Dropbox in the app: forget everything. */
     public void clearAll() {

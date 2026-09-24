@@ -4928,3 +4928,50 @@ kbd {
     height: auto;
   }
 }
+
+/* ---------- The task's notes: never wider than the screen, no stray indents ---------- */
+.rich-text-editor,
+.rich-text-body-wrap,
+.rich-text-body {
+  min-width: 0;
+  max-width: 100%;
+}
+.rich-text-body {
+  overflow-wrap: anywhere;
+}
+/* Pasted or imported notes can carry their own margins, widths and nowrap. */
+.rich-text-body * {
+  max-width: 100%;
+  white-space: normal !important;
+}
+.rich-text-body p,
+.rich-text-body div,
+.rich-text-body span {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  text-indent: 0 !important;
+}
+.rich-text-body p,
+.rich-text-body div {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.rich-text-body ul,
+.rich-text-body ol {
+  margin-left: 0;
+  padding-left: 20px;
+}
+/* The app: writing the notes uses the full width (read, they sit under the name). */
+.td-app .td-desc:focus-within {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.td-app .td-desc .rich-text-editor:focus-within {
+  padding: 4px 10px 8px;
+  border-radius: 12px;
+}
+.td-app .td-scroll {
+  overflow-x: hidden;
+}

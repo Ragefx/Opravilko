@@ -18,6 +18,8 @@ the alignment pass (task circles, notes, Add a meal header).
   card adds the spoken items, split like the app does ("mleko kruh in dva
   jajca" -> three items).
 - Shopping circle 18px, exactly the task circle's size (was 20px).
+- Task notes: writing them uses the full width; pasted/imported indents
+  dropped; long lines wrap (the page no longer scrolls sideways).
 
 ## Known gaps
 

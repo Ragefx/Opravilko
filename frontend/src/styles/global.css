@@ -5192,3 +5192,68 @@ kbd {
 .rich-text-body em {
   font-style: italic;
 }
+
+/* ---------- Website task window, third pass: one size in the side column; a boxed description ---------- */
+.td-web .td-row-caption {
+  font-size: 12px;
+}
+.td-web .td-row-value,
+.td-web .td-label-input {
+  font-size: 14px;
+}
+.td-web .td-row-labels .td-row-body {
+  padding: 5px 0;
+}
+.td-web .td-label-chips {
+  margin-top: 1px;
+  gap: 4px;
+}
+.td-web .td-label-chip {
+  height: 22px;
+  font-size: 13px;
+  padding: 0 2px 0 8px;
+}
+.td-web .td-label-chip button {
+  width: 20px;
+  height: 20px;
+}
+.td-web .td-label-input {
+  height: 22px;
+  min-width: 70px;
+}
+.td-web .td-switch {
+  width: 34px;
+  height: 20px;
+  border-radius: 10px;
+}
+.td-web .td-switch::after {
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+}
+.td-web .td-switch:checked::after {
+  transform: translateX(14px);
+}
+/* The description: a box like the comment field's, always there. */
+.td-web .td-desc {
+  padding-top: 10px;
+}
+.td-web .td-desc .rich-text-editor {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  transition: border-color 0.12s ease;
+}
+.td-web .td-desc .rich-text-editor:focus-within {
+  border-color: var(--color-accent);
+}
+.td-web .td-desc .rich-text-body {
+  min-height: 42px;
+  font-size: 14px;
+}
+.td-web .td-desc .rich-text-placeholder {
+  font-size: 14px;
+}

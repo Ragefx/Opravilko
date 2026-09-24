@@ -25,6 +25,9 @@ on every widget row.
   it before); name and notes on top, then one row per property (project /
   section, date, repeat, reminder, priority, labels, location, arrival
   reminder, Midva), then sub-tasks, attachments and comments.
+- Widget view picker (tap the widget's title): a rounded card like
+  Todoist's, grouped into "Default views" (Today, Upcoming, Inbox, Shopping
+  list) and "Projects", each folding open, with the current one ticked.
 - New plugin @capacitor/keyboard (for the card's place above the keyboard).
 
 ## Known gaps

@@ -20,9 +20,14 @@
         <item name="android:background">@drawable/splash</item>
     </style>
 
-    <!-- The widget's "what should this show" picker, as a small dialog. -->
-    <style name="WidgetConfigTheme" parent="Theme.AppCompat.DayNight.Dialog">
-        <item name="windowNoTitle">true</item>
+    <!-- The widget's "what should this show" picker: its own rounded card over
+         the home screen (drawn in WidgetConfigActivity). -->
+    <style name="WidgetConfigTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
     <!-- The widget's Add task sheet: over the home screen, keyboard up at once. -->

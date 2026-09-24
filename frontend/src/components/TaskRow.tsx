@@ -5,6 +5,7 @@ import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
+import { useCompleteAnimation } from "./useCompleteAnimation";
 import TaskMenu from "./TaskMenu";
 import PriorityMark from "./PriorityMark";
 import MidvaBadge from "./MidvaBadge";
@@ -34,6 +35,8 @@ export default function TaskRow({
 }) {
   const completeTask = useCompleteTask();
   const revertRecurring = useRevertRecurringCompletion();
+  const tick = useCompleteAnimation();
+  const recurring = !!task.due?.isRecurring;
   const showToast = useToast();
   const { data } = useBootstrap();
   const priorityColor = PRIORITY_META[task.priority].color;
@@ -48,7 +51,7 @@ export default function TaskRow({
 
   function completeWithUndo() {
     const previousDue = task.due;
-    completeTask.mutate({ id: task.id, completed: true });
+    tick.play(() => completeTask.mutate({ id: task.id, completed: true }), { fold: !recurring });
     showToast({
       message: task.due?.isRecurring ? "Moved to next occurrence" : "Task completed",
       actionLabel: "Undo",
@@ -107,7 +110,11 @@ export default function TaskRow({
   const swipeDir = dx > 0 ? "right" : dx < 0 ? "left" : undefined;
 
   return (
-    <div className="task-swipe-wrap" data-swipe={swipeDir}>
+    <div
+      ref={tick.foldRef}
+      className={`task-swipe-wrap ${tick.phase === "folding" ? "is-folding" : ""}`}
+      data-swipe={swipeDir}
+    >
       {swipeDir && (
         <div className={`task-swipe-bg ${Math.abs(dx) >= SWIPE_TRIGGER ? "armed" : ""}`}>
           {swipeDir === "right" ? (
@@ -154,14 +161,21 @@ export default function TaskRow({
           <span className="task-collapse-spacer" />
         )}
         <TaskCheckbox
-          completed={task.completed}
+          completed={task.completed || tick.busy}
           priorityColor={priorityColor}
-          recurring={!!task.due?.isRecurring}
-          onToggle={(next) => completeTask.mutate({ id: task.id, completed: next })}
+          popping={tick.busy}
+          onToggle={(next) =>
+            next
+              ? tick.play(() => completeTask.mutate({ id: task.id, completed: true }), { fold: !recurring })
+              : completeTask.mutate({ id: task.id, completed: false })
+          }
         />
         <div className="task-main">
-          <div className={`task-content ${task.completed ? "completed" : ""}`} onClick={() => onOpen(task)}>
-            {task.content}
+          <div
+            className={`task-content ${task.completed ? "completed" : ""} ${tick.busy ? "is-striking" : ""}`}
+            onClick={() => onOpen(task)}
+          >
+            <span className="task-content-text">{task.content}</span>
             {subtaskCount && (
               <span className="chip" style={{ marginLeft: 8 }}>
                 {subtaskCount.done}/{subtaskCount.total}

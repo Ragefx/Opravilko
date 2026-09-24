@@ -14,7 +14,9 @@ dots with the day's list) and the Display icon.
 
 ## In the code, not in the app yet
 
-- Nothing yet.
+- Ticking a task off: the circle fills and pops, a line strikes through
+  the name, then the row folds away (repeating tasks stay, with their next
+  date). Lists and board cards.
 
 ## Known gaps
 

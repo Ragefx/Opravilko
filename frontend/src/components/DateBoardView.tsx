@@ -6,6 +6,7 @@ import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
+import { useCompleteAnimation } from "./useCompleteAnimation";
 import TaskDetail from "./TaskDetail";
 import BoardPageDots from "./BoardPageDots";
 import PriorityMark from "./PriorityMark";
@@ -88,35 +89,40 @@ function DateBoardCard({
   onOpen: (task: Task) => void;
 }) {
   const completeTask = useCompleteTask();
+  const tick = useCompleteAnimation();
   const priorityColor = PRIORITY_META[task.priority].color;
 
   return (
-    <div className="board-card" style={{ cursor: "pointer" }} onClick={() => onOpen(task)}>
-      <div className="board-card-top">
-        <TaskCheckbox
-          completed={task.completed}
-          priorityColor={priorityColor}
-          recurring={!!task.due?.isRecurring}
-          onToggle={() => completeTask.mutate({ id: task.id, completed: true })}
-        />
-        <div className="board-card-content">
-          {task.content}
-          {(task.due || projectLabel) && (
-            <div className="task-meta">
-              {task.due && (
-                <span className={`due ${dueDateClass(task.due)}`}>
-                  <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
-                  {formatDueLabel(task.due)}
-                  {task.due.isRecurring && (
-                    <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
-                  )}
-                </span>
-              )}
-              {projectLabel && <span className="chip">{projectLabel}</span>}
-            </div>
-          )}
+    <div ref={tick.foldRef} className={`board-card-fold ${tick.phase === "folding" ? "is-folding" : ""}`}>
+      <div className="board-card" style={{ cursor: "pointer" }} onClick={() => onOpen(task)}>
+        <div className="board-card-top">
+          <TaskCheckbox
+            completed={task.completed || tick.busy}
+            priorityColor={priorityColor}
+            popping={tick.busy}
+            onToggle={() =>
+              tick.play(() => completeTask.mutate({ id: task.id, completed: true }), { fold: !task.due?.isRecurring })
+            }
+          />
+          <div className={`board-card-content ${tick.busy ? "is-striking" : ""}`}>
+            <span className="task-content-text">{task.content}</span>
+            {(task.due || projectLabel) && (
+              <div className="task-meta">
+                {task.due && (
+                  <span className={`due ${dueDateClass(task.due)}`}>
+                    <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
+                    {formatDueLabel(task.due)}
+                    {task.due.isRecurring && (
+                      <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
+                    )}
+                  </span>
+                )}
+                {projectLabel && <span className="chip">{projectLabel}</span>}
+              </div>
+            )}
+          </div>
+          <PriorityMark priority={task.priority} />
         </div>
-        <PriorityMark priority={task.priority} />
       </div>
     </div>
   );

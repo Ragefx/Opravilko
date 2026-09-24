@@ -20,6 +20,7 @@ import TaskDetail from "./TaskDetail";
 import BoardPageDots from "./BoardPageDots";
 import QuickAdd from "./QuickAdd";
 import TaskCheckbox from "./TaskCheckbox";
+import { useCompleteAnimation } from "./useCompleteAnimation";
 import SectionMenu from "./SectionMenu";
 import TaskMenu from "./TaskMenu";
 import PriorityMark from "./PriorityMark";
@@ -371,6 +372,7 @@ function BoardCard({
     id: task.id,
   });
   const completeTask = useCompleteTask();
+  const tick = useCompleteAnimation();
   const { data } = useBootstrap();
   const subtasks = (data?.tasks || []).filter((t) => t.parentId === task.id);
   const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
@@ -382,53 +384,57 @@ function BoardCard({
   const priorityColor = PRIORITY_META[task.priority].color;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="board-card"
-      onClick={() => onOpen(task)}
-    >
-      <div className="board-card-top">
-        <TaskCheckbox
-          completed={task.completed}
-          priorityColor={priorityColor}
-          recurring={!!task.due?.isRecurring}
-          onToggle={() => completeTask.mutate({ id: task.id, completed: true })}
-          ariaLabel="Mark complete"
-        />
-        <div className="board-card-content" style={{ minWidth: 0 }}>
-          {task.content}
-          {subtasks.length > 0 && (
-            <span className="chip" style={{ marginLeft: 8 }}>
-              {subtasks.filter((s) => s.completed).length}/{subtasks.length}
-            </span>
-          )}
-          {task.description && (
-            <div className="board-card-description">{stripHtml(task.description)}</div>
-          )}
-          {(task.due || task.labels.length > 0) && (
-            <div className="task-meta">
-              {task.due && (
-                <span className={`due ${dueDateClass(task.due)}`}>
-                  <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
-                  {formatDueLabel(task.due)}
-                  {task.due.isRecurring && (
-                    <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
-                  )}
-                </span>
-              )}
-              {task.labels.map((l) => (
-                <span key={l} className="chip">
-                  @{l}
-                </span>
-              ))}
-            </div>
-          )}
+    <div ref={tick.foldRef} className={`board-card-fold ${tick.phase === "folding" ? "is-folding" : ""}`}>
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="board-card"
+        onClick={() => onOpen(task)}
+      >
+        <div className="board-card-top">
+          <TaskCheckbox
+            completed={task.completed || tick.busy}
+            priorityColor={priorityColor}
+            popping={tick.busy}
+            onToggle={() =>
+              tick.play(() => completeTask.mutate({ id: task.id, completed: true }), { fold: !task.due?.isRecurring })
+            }
+            ariaLabel="Mark complete"
+          />
+          <div className={`board-card-content ${tick.busy ? "is-striking" : ""}`} style={{ minWidth: 0 }}>
+            <span className="task-content-text">{task.content}</span>
+            {subtasks.length > 0 && (
+              <span className="chip" style={{ marginLeft: 8 }}>
+                {subtasks.filter((s) => s.completed).length}/{subtasks.length}
+              </span>
+            )}
+            {task.description && (
+              <div className="board-card-description">{stripHtml(task.description)}</div>
+            )}
+            {(task.due || task.labels.length > 0) && (
+              <div className="task-meta">
+                {task.due && (
+                  <span className={`due ${dueDateClass(task.due)}`}>
+                    <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
+                    {formatDueLabel(task.due)}
+                    {task.due.isRecurring && (
+                      <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
+                    )}
+                  </span>
+                )}
+                {task.labels.map((l) => (
+                  <span key={l} className="chip">
+                    @{l}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          <PriorityMark priority={task.priority} />
+          <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
         </div>
-        <PriorityMark priority={task.priority} />
-        <TaskMenu task={task} projects={otherProjects} onEdit={() => onOpen(task)} onOpenTask={onOpen} />
       </div>
     </div>
   );

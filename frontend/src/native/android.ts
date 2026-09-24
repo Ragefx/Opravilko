@@ -2,12 +2,15 @@ import { App as NativeApp } from "@capacitor/app";
 import { isNativeApp } from "../dropbox/auth";
 
 /** Overlays that close when their backdrop is tapped, topmost last in the DOM. */
-const DISMISSIBLE = ".dropdown-backdrop, .modal-backdrop, .overlay, .sidebar-scrim";
+const DISMISSIBLE = ".dropdown-backdrop, .modal-backdrop, .overlay, .sidebar-scrim, .qas-scrim";
+
+/** Asks the app (Layout) to go to Now; `detail.handled` is set when it did. */
+export const BACK_HOME = "opravilko:back-home";
 
 /**
- * Android's back button: close whatever is open on top (menu, dialog, task
- * detail, drawer) first; otherwise go back in the app's history; and only
- * leave the app from its first screen.
+ * Android's back button: close whatever is open on top (menu, dialog, Add
+ * task card, task detail, drawer) first; otherwise go straight to Now, not
+ * back through every page visited; and leave the app from Now.
  */
 export function installBackButton(): void {
   if (!isNativeApp) return;
@@ -18,7 +21,11 @@ export function installBackButton(): void {
       top.click();
       return;
     }
-    if (canGoBack && window.history.length > 1) window.history.back();
+    const ask = new CustomEvent<{ handled: boolean }>(BACK_HOME, { detail: { handled: false } });
+    window.dispatchEvent(ask);
+    if (ask.detail.handled) return;
+    // Outside the app's pages (sign-in, setup): as before.
+    if (canGoBack && window.history.length > 1 && !window.location.hash.startsWith("#/app")) window.history.back();
     else void NativeApp.exitApp();
   });
 }

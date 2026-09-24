@@ -6,7 +6,7 @@ import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
 import { REMINDERS_CHANGED, checkDueReminders, syncNativeReminders } from "../utils/notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { hasPendingWrite, isSignedIn, needsSetup } from "../data/store";
-import { onAppResume } from "../native/android";
+import { BACK_HOME, onAppResume } from "../native/android";
 import {
   WIDGET_QUICK_ADD,
   onWidgetDataChanged,
@@ -142,6 +142,17 @@ export default function Layout() {
     return () => window.removeEventListener(WIDGET_ROUTE, go);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Android's back button, with nothing open on top: to Now, or out of the app from there.
+  useEffect(() => {
+    const onBack = (e: Event) => {
+      if (/^\/app\/?(home)?$/.test(location.pathname)) return; // on Now: leave the app
+      (e as CustomEvent<{ handled: boolean }>).detail.handled = true;
+      navigate("/app/home", { replace: true });
+    };
+    window.addEventListener(BACK_HOME, onBack);
+    return () => window.removeEventListener(BACK_HOME, onBack);
+  }, [location.pathname, navigate]);
 
   // Android app: arrival reminders follow the tasks (added, ticked off, moved).
   useEffect(() => {

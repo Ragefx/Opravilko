@@ -18,6 +18,9 @@ open the item, the widget sized like Todoist's, and no ⋯ menu on Shopping.
   ("Inbox"); tapping it opens a list of projects with their sections indented
   under them, like Todoist's. Chips taller (widget 44dp, app 48px), nearer the
   send button (48dp / 52px).
+- Back button: closes what's open on top (Add task card included) first,
+  otherwise goes straight to Now (not back through every page); from Now it
+  leaves the app.
 
 ## Known gaps
 

@@ -16,7 +16,7 @@ widget's grouped view picker.
 - Shopping page: no ⋯ menu (the list is shared with your partner by itself).
 - Widget shopping list: tapping an item opens it in the app (only the circle
   ticks it off); items sorted by shop, then category, with the shop in a
-  small column.
+  small column; a shop filter above the list (All, each shop, Any shop).
 - Widget shopping card: a 🏪 Shop chip next to Meal; what you add is marked
   for that shop (SPAR, Hofer, Lidl, or the list's own shops).
 - Widget sized like Todoist's: smaller text in the list (task names 14sp,

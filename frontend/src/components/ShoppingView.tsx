@@ -35,6 +35,9 @@ import { CheckIcon, XIcon } from "./icons";
  * "trg: SPAR" (the shop to buy it in). Any other lines are your own note.
  */
 const EXTRA_LINE = /^(za|kat|trg): /;
+/** The shop filter's value for items not marked for any shop. */
+const ANY_SHOP = "\u0000any";
+const SHOP_FILTER_KEY = "opravilko.shopFilter";
 function noteOf(description: string): string {
   return description
     .split("\n")
@@ -205,6 +208,34 @@ export default function ShoppingView({
     .sort((a, b) => storeRank(a) - storeRank(b) || categoryRank(a) - categoryRank(b) || a.order - b.order);
   // A column for the shop, once anything on the list has one.
   const storeColumn = items.some((t) => storeOf(t));
+
+  // Which shop you're in: "" all, a shop's name, or ANY_SHOP for items without one.
+  // Remembered on this device.
+  const [shopFilter, setShopFilterState] = useState(() => {
+    try {
+      return localStorage.getItem(SHOP_FILTER_KEY) ?? "";
+    } catch {
+      return "";
+    }
+  });
+  function setShopFilter(value: string) {
+    setShopFilterState(value);
+    try {
+      localStorage.setItem(SHOP_FILTER_KEY, value);
+    } catch {
+      /* ignore */
+    }
+  }
+  const openCount = (shop: string) => open.filter((t) => (storeOf(t) ?? ANY_SHOP) === shop).length;
+  // The shops with something to buy (and the one picked, even when it's done).
+  const filterShops = [
+    ...stores,
+    ...[...new Set(open.map((t) => storeOf(t)).filter((s): s is string => !!s))].filter((s) => !stores.includes(s)),
+  ].filter((s) => openCount(s) > 0 || s === shopFilter);
+  const filtering = storeColumn && shopFilter !== "";
+  const shown = !filtering ? open : open.filter((t) => (storeOf(t) ?? ANY_SHOP) === shopFilter);
+  // In a shop, things that can be bought anywhere follow under their own heading.
+  const anywhere = filtering && shopFilter !== ANY_SHOP ? open.filter((t) => !storeOf(t)) : [];
   // What you usually buy that isn't on the list yet: one tap puts it back.
   const onList = new Set(open.map((t) => parseItem(t.content).name.toLocaleLowerCase("sl")));
   const usual = Object.entries(project?.bought ?? {})
@@ -369,8 +400,35 @@ export default function ShoppingView({
           <p className="shopping-empty">The list is empty. Add things above, or a whole meal with 🍳.</p>
         )}
 
+        {storeColumn && (
+          <div className="shopping-shops" role="group" aria-label="Show a shop's items">
+            <button className={`shopping-shop-chip ${shopFilter === "" ? "is-current" : ""}`} onClick={() => setShopFilter("")}>
+              All <b>{open.length}</b>
+            </button>
+            {filterShops.map((s) => (
+              <button
+                key={s}
+                className={`shopping-shop-chip ${shopFilter === s ? "is-current" : ""}`}
+                onClick={() => setShopFilter(s)}
+              >
+                {s} <b>{openCount(s)}</b>
+              </button>
+            ))}
+            <button
+              className={`shopping-shop-chip ${shopFilter === ANY_SHOP ? "is-current" : ""}`}
+              onClick={() => setShopFilter(ANY_SHOP)}
+            >
+              Any shop <b>{openCount(ANY_SHOP)}</b>
+            </button>
+          </div>
+        )}
+
+        {filtering && shown.length === 0 && anywhere.length === 0 && open.length > 0 && (
+          <p className="shopping-empty">Nothing left for {shopFilter === ANY_SHOP ? "any shop" : shopFilter}.</p>
+        )}
+
         <ul className="shopping-list">
-          {open.map((t) => (
+          {shown.map((t) => (
             <ShoppingRow
                 key={t.id}
                 task={t}
@@ -381,6 +439,26 @@ export default function ShoppingView({
               />
           ))}
         </ul>
+
+        {anywhere.length > 0 && (
+          <>
+            <div className="shopping-basket-head">
+              <span>Any shop · {anywhere.length}</span>
+            </div>
+            <ul className="shopping-list">
+              {anywhere.map((t) => (
+                <ShoppingRow
+                  key={t.id}
+                  task={t}
+                  onToggle={() => toggle(t)}
+                  onDelete={() => deleteTask.mutate(t.id)}
+                  onEdit={() => setEditing(t)}
+                  storeColumn={storeColumn}
+                />
+              ))}
+            </ul>
+          </>
+        )}
 
         {ticked.length > 0 && (
           <>

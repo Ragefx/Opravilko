@@ -4324,3 +4324,43 @@ kbd {
   color: var(--color-text-secondary);
   border-style: dashed;
 }
+/* Which shop you're in: a row of chips above the list. */
+.shopping-shops {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0 10px;
+}
+.shopping-shops::-webkit-scrollbar {
+  display: none;
+}
+.shopping-shop-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.shopping-shop-chip b {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.shopping-shop-chip.is-current {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.shopping-shop-chip.is-current b {
+  color: inherit;
+  opacity: 0.8;
+}

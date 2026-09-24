@@ -107,6 +107,15 @@
             android:windowSoftInputMode="adjustResize|stateAlwaysVisible"
             android:exported="false" />
 
+        <!-- A shopping item tapped in the widget: edited over the home screen. -->
+        <activity
+            android:name=".widget.ShopItemActivity"
+            android:theme="@style/WidgetQuickAddTheme"
+            android:excludeFromRecents="true"
+            android:taskAffinity="com.opravilko.app.shopitem"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
+
         <activity
             android:name=".widget.WidgetConfigActivity"
             android:theme="@style/WidgetConfigTheme"

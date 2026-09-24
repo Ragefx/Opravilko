@@ -104,6 +104,16 @@ final class FirestoreClient {
         throw new IOException("Saving the task failed (HTTP " + status + ")");
     }
 
+    /** Deletes a task; one already gone (or no longer ours) is fine. */
+    void deleteTask(String taskId) throws IOException {
+        HttpURLConnection conn = open(docUrl(taskId), "DELETE");
+        conn.setRequestProperty("Authorization", "Bearer " + idToken());
+        int status = conn.getResponseCode();
+        if (status == 200 || status == 404 || status == 403) return;
+        if (status == 401) store.setFirebaseIdToken(null, 0);
+        throw new IOException("Deleting the task failed (HTTP " + status + ")");
+    }
+
     /** Makes a new task document; one with this id already there (a retry) is fine. */
     void createTask(String taskId, JSONObject task) throws IOException {
         JSONObject fields;

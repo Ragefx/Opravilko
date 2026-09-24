@@ -27,6 +27,11 @@ public class WidgetActionActivity extends Activity {
             complete(taskId, intent.getStringExtra(TaskWidgetProvider.EXTRA_DUE_DATE));
         } else if (TaskWidgetProvider.ACTION_RESCHEDULE.equals(action)) {
             rescheduleOverdue(intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID));
+        } else if (TaskWidgetProvider.ACTION_EDIT_ITEM.equals(action) && taskId != null) {
+            Intent edit = new Intent(this, ShopItemActivity.class);
+            edit.putExtra(ShopItemActivity.EXTRA_TASK_ID, taskId);
+            edit.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(edit);
         } else if (TaskWidgetProvider.ACTION_OPEN.equals(action) && taskId != null) {
             String project = intent.getStringExtra(TaskWidgetProvider.EXTRA_PROJECT_ID);
             Uri uri = Uri.parse("opravilko://open?task=" + Uri.encode(taskId)

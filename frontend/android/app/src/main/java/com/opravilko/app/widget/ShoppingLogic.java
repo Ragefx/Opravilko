@@ -340,6 +340,53 @@ final class ShoppingLogic {
         }
     }
 
+    // ---- editing an item (ShoppingView's ItemEditor) ----
+
+    /** An item's own note: the lines of its notes that aren't "za:", "kat:" or "trg:". */
+    static String noteOf(String description) {
+        StringBuilder out = new StringBuilder();
+        for (String line : (description == null ? "" : description).split("\n")) {
+            if (line.startsWith("za: ") || line.startsWith("kat: ") || line.startsWith("trg: ")) continue;
+            if (out.length() > 0) out.append('\n');
+            out.append(line);
+        }
+        return out.toString().trim();
+    }
+
+    /** The meals line ("za: ...") of an item's notes, or null. */
+    private static String mealsLine(String description) {
+        for (String line : (description == null ? "" : description).split("\n")) if (line.startsWith("za: ")) return line;
+        return null;
+    }
+
+    /**
+     * An edited item's title, as the app saves it: the name (capitalised) and
+     * the amount read the way typing it into the list reads it ("1,5 l", "4",
+     * "500 g"); an amount it can't read is left out.
+     */
+    static String editedTitle(JSONObject guide, String name, String amount) {
+        String n = capitalize(name.trim());
+        if (amount.trim().isEmpty()) return n;
+        Item parsed = parseItem(guide, n + " " + amount.trim());
+        if (parsed.amount == null) return n;
+        return itemTitle(new Item(n, parsed.amount, parsed.unit));
+    }
+
+    /**
+     * An edited item's notes: your note, the meals it's for (kept), the
+     * category when picked by hand (not the one its name suggests), the shop.
+     */
+    static String editedDescription(JSONObject guide, String oldDescription, String name, String note,
+            String categoryId, String store) {
+        List<String> lines = new ArrayList<>();
+        if (!note.trim().isEmpty()) lines.add(note.trim());
+        String meals = mealsLine(oldDescription);
+        if (meals != null) lines.add(meals);
+        if (categoryId != null && !categoryId.equals(guess(guide, name.trim()))) lines.add("kat: " + categoryId);
+        if (store != null && !store.isEmpty()) lines.add("trg: " + store);
+        return join("\n", lines);
+    }
+
     // ---- usual items (ShoppingView: countBought) ----
 
     /** The key an item is counted under in a list's "bought" (its name, lower-case). */

@@ -26,6 +26,8 @@ public class TaskWidgetProvider extends AppWidgetProvider {
     static final String EXTRA_DUE_DATE = "com.opravilko.app.widget.DUE_DATE";
     static final String ACTION_COMPLETE = "complete";
     static final String ACTION_OPEN = "open";
+    /** A shopping item tapped in the widget: its own editing card, over the home screen. */
+    static final String ACTION_EDIT_ITEM = "edit_item";
     static final String ACTION_RESCHEDULE = "reschedule";
 
     /** Refresh from Dropbox on the periodic update if the copy is older than this. */

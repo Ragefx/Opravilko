@@ -202,12 +202,12 @@ public class TaskWidgetService extends RemoteViewsService {
             bought.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_COMPLETE);
             bought.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
             rv.setOnClickFillInIntent(R.id.shop_check, bought);
-            // Tapping the item itself opens it in the app (its note, shop, amount).
-            Intent open = new Intent();
-            open.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_OPEN);
-            open.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
-            open.putExtra(TaskWidgetProvider.EXTRA_PROJECT_ID, row.projectId);
-            rv.setOnClickFillInIntent(R.id.shop_root, open);
+            // Tapping the item itself opens its editing card right over the home
+            // screen (name, amount, note, shop, category), without the app.
+            Intent edit = new Intent();
+            edit.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_EDIT_ITEM);
+            edit.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
+            rv.setOnClickFillInIntent(R.id.shop_root, edit);
             return rv;
         }
 

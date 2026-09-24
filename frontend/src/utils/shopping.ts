@@ -474,6 +474,8 @@ export function shoppingListOf(projects: Project[]): Project | undefined {
 export function categoryGuide() {
   return {
     emoji: Object.fromEntries(CATEGORIES.map((c) => [c.id, c.emoji])),
+    // The category names, for the widget's item card.
+    names: Object.fromEntries(CATEGORIES.map((c) => [c.id, c.name])),
     // The shop-walk order the list is sorted in.
     categoryOrder: CATEGORIES.map((c) => c.id),
     phrases: PHRASES,

@@ -14,6 +14,9 @@ card and the widget's cards) and the shopping circle at the task circle's size.
 
 - Task notes: writing them uses the full width; pasted/imported indents
   dropped; long lines wrap (the page no longer scrolls sideways).
+- Widget: tapping a shopping item opens its own card right over the home
+  screen (name, amount, note, shop, category; Save / Delete), without
+  opening the app; changes sync like ticks.
 - Date picker: no keyboard on opening (tap "Type a date" to type), and the
   sheet stays below the status bar even with the keyboard up.
 

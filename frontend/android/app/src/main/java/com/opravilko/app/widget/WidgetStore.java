@@ -80,11 +80,38 @@ public final class WidgetStore {
     public static final String OP_SHOP = "shop";
     /** A file attached in the widget's Add task card (Google sign-in only): {taskId, attId, path, name, type}. */
     public static final String OP_ATTACH = "attach";
+    /** An item (task) edited in the widget: {taskId, content, description}. */
+    public static final String OP_EDIT = "edit";
+    /** An item (task) deleted in the widget: {taskId}. */
+    public static final String OP_DELETE = "delete";
 
     static boolean applyPending(JSONObject data, JSONObject p) {
         String op = p.optString("op");
         if (OP_TODAY.equals(op)) return TaskLogic.moveToToday(data, p.optString("taskId"), p.optString("at"));
         if (OP_CREATE.equals(op)) return addTaskIfMissing(data, p.optJSONObject("task"));
+        if (OP_EDIT.equals(op)) {
+            JSONObject t = TaskLogic.findTask(data.optJSONArray("tasks"), p.optString("taskId"));
+            if (t == null) return false;
+            try {
+                t.put("content", p.optString("content")).put("description", p.optString("description"))
+                        .put("updatedAt", p.optString("at"));
+            } catch (JSONException e) {
+                return false;
+            }
+            return true;
+        }
+        if (OP_DELETE.equals(op)) {
+            JSONArray tasks = data.optJSONArray("tasks");
+            if (tasks == null) return false;
+            for (int i = 0; i < tasks.length(); i++) {
+                JSONObject t = tasks.optJSONObject(i);
+                if (t != null && p.optString("taskId").equals(t.optString("id"))) {
+                    tasks.remove(i);
+                    return true;
+                }
+            }
+            return false;
+        }
         if (OP_SHOP.equals(op)) {
             JSONArray tasks = data.optJSONArray("tasks");
             if (tasks == null) return false;

@@ -166,6 +166,18 @@ public class WidgetSyncJob extends JobService {
                     if (AttachmentUploader.upload(firestore, p, uid)) processed.add(p.optString("id"));
                     continue;
                 }
+                if (WidgetStore.OP_EDIT.equals(p.optString("op"))) {
+                    firestore.updateTask(p.optString("taskId"), new JSONObject()
+                            .put("content", p.optString("content")).put("description", p.optString("description"))
+                            .put("updatedAt", p.optString("at")));
+                    processed.add(p.optString("id"));
+                    continue;
+                }
+                if (WidgetStore.OP_DELETE.equals(p.optString("op"))) {
+                    firestore.deleteTask(p.optString("taskId"));
+                    processed.add(p.optString("id"));
+                    continue;
+                }
                 if (WidgetStore.OP_SHOP.equals(p.optString("op"))) {
                     addShopLine(store, firestore, p, uid);
                     processed.add(p.optString("id"));

@@ -380,7 +380,14 @@ export default function TaskDetail({
               </button>
             )}
             <div className="td-head-where">
-              {parentTask ? (
+              {parentTask && !appUi ? (
+                // Website: a clear way back up to the task this one belongs to.
+                <button className="td-back" onClick={() => onOpenTask?.(parentTask)} title={`Back to ${parentTask.content}`}>
+                  <ChevronIcon width={16} height={16} className="td-back-icon" />
+                  <span className="td-back-label">Back to</span>
+                  <span className="td-back-name">{parentTask.content}</span>
+                </button>
+              ) : parentTask ? (
                 <button onClick={() => onOpenTask?.(parentTask)}>↰ {parentTask.content}</button>
               ) : (
                 where || `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`

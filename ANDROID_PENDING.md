@@ -17,6 +17,7 @@ card and the widget's cards) and the shopping circle at the task circle's size.
 - Widget: tapping a shopping item opens its own card right over the home
   screen (name, amount, note, shop, category; Save / Delete), without
   opening the app; changes sync like ticks.
+- Task notes: no formatting buttons (B, lists, link) above them any more.
 - Date picker: no keyboard on opening (tap "Type a date" to type), and the
   sheet stays below the status bar even with the keyboard up.
 

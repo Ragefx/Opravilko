@@ -5108,3 +5108,87 @@ kbd {
     box-shadow: 0 0 0 10px color-mix(in srgb, var(--color-danger) 10%, transparent);
   }
 }
+
+/* ---------- Description: the bar that appears over selected text (website) ---------- */
+.rt-bar {
+  position: fixed;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #1f2023;
+  color: #f2f2f2;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.1s ease;
+}
+.rt-bar-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.rt-bar-btn sub {
+  font-size: 10px;
+  margin-top: 6px;
+}
+.rt-bar-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.rt-bar-btn.is-on {
+  background: rgba(255, 255, 255, 0.22);
+}
+.rt-bar-link {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 10px;
+}
+.rt-bar-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.2);
+}
+/* What the bar makes, in the description. */
+.rich-text-body h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 6px 0 2px;
+}
+.rich-text-body h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 6px 0 2px;
+}
+.rich-text-body blockquote {
+  margin: 4px 0;
+  padding: 2px 0 2px 10px;
+  border-left: 3px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+.rich-text-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+.rich-text-body i,
+.rich-text-body em {
+  font-style: italic;
+}

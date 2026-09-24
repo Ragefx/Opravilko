@@ -2,6 +2,7 @@ package com.opravilko.app.widget;
 
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -63,7 +64,12 @@ public class WidgetActionActivity extends Activity {
     }
 
     private void complete(String taskId, String dueDate) {
-        WidgetStore store = new WidgetStore(this);
+        completeTask(this, taskId, dueDate);
+    }
+
+    /** Ticks a task off from outside the app (the widget, a reminder's Done): saved by the sync job. */
+    static void completeTask(Context context, String taskId, String dueDate) {
+        WidgetStore store = new WidgetStore(context);
         String at = TaskLogic.nowIso();
         // Queue first, so data the app pushes meanwhile still gets it re-applied.
         store.addPending(taskId, dueDate, at);
@@ -71,7 +77,7 @@ public class WidgetActionActivity extends Activity {
         if (data != null && TaskLogic.complete(data, taskId, dueDate, at)) {
             store.saveSnapshot(data, false);
         }
-        TaskWidgetProvider.updateAll(this);
-        WidgetSyncJob.schedule(this);
+        TaskWidgetProvider.updateAll(context);
+        WidgetSyncJob.schedule(context);
     }
 }

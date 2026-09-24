@@ -55,7 +55,7 @@ public class WidgetSyncJob extends JobService {
         scheduler.schedule(job);
     }
 
-    /** No widgets left: stop the periodic check. */
+    /** Stops the periodic check. */
     public static void cancelPeriodic(Context context) {
         JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         if (scheduler != null) scheduler.cancel(PERIODIC_JOB_ID);

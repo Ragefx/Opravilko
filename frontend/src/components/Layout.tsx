@@ -3,7 +3,7 @@ import { syncArrivalPlaces } from "../native/places";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { isNativeApp } from "../dropbox/auth";
 import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
-import { REMINDERS_CHANGED, checkDueReminders, syncNativeReminders } from "../utils/notifications";
+import { REMINDERS_CHANGED, checkDueReminders, clearOldAppReminders } from "../utils/notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { hasPendingWrite, isSignedIn, needsSetup } from "../data/store";
 import { BACK_HOME, onAppResume } from "../native/android";
@@ -79,16 +79,18 @@ export default function Layout() {
 
   useEffect(() => {
     if (!tasks) return;
-    // The Android app hands reminders to the OS ahead of time (they fire even
-    // when it's closed); rebuild that schedule shortly after tasks change.
+    // The Android app schedules reminders natively from the widget's copy of
+    // the tasks (pushWidgetData below), so they fire with the app closed.
     if (isNativeApp) {
-      const t = window.setTimeout(() => void syncNativeReminders(tasks).catch(() => {}), 1500);
-      return () => window.clearTimeout(t);
+      clearOldAppReminders();
+      return;
     }
     // On the website, reminders only fire while the tab is open.
-    checkDueReminders(tasks);
-    const id = window.setInterval(() => checkDueReminders(tasks), 60_000);
+    const me = appData?.me;
+    checkDueReminders(tasks, me);
+    const id = window.setInterval(() => checkDueReminders(tasks, me), 60_000);
     return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, remindersVersion]);
 
   // Coming back to the app after a while: pick up edits made on other devices,
@@ -108,7 +110,7 @@ export default function Layout() {
     if (!isNativeApp || !appData) return;
     const t = window.setTimeout(() => pushWidgetData(appData), 800);
     return () => window.clearTimeout(t);
-  }, [appData]);
+  }, [appData, remindersVersion]);
   useEffect(
     () =>
       onWidgetDataChanged(() => {

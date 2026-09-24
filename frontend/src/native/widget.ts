@@ -6,6 +6,7 @@ import { usingFirebase } from "../data/store";
 import { firebaseConfig } from "../firebase/config";
 import { currentUser } from "../firebase/auth";
 import { categoryGuide } from "../utils/shopping";
+import { remindersEnabled } from "../utils/notifications";
 
 /** The native side lives in android/.../widget/WidgetBridgePlugin.java. */
 interface OpravilkoWidgetPlugin {
@@ -16,6 +17,8 @@ interface OpravilkoWidgetPlugin {
     dataPath: string;
     /** With Google sign-in: lets the widget save its ticks to Firestore itself. */
     firebase?: { apiKey: string; projectId: string; refreshToken: string; uid: string } | null;
+    /** Reminders switched on on this phone (they're scheduled natively from `data`). */
+    reminders?: boolean;
   }): Promise<void>;
   clear(): Promise<void>;
   addListener(event: "dataChanged", listener: () => void): Promise<PluginListenerHandle>;
@@ -92,6 +95,7 @@ export function pushWidgetData(data: AppData): void {
     refreshToken: firebase ? null : refreshToken,
     dataPath: DATA_PATH,
     firebase,
+    reminders: remindersEnabled(),
   }).catch(() => {});
 }
 

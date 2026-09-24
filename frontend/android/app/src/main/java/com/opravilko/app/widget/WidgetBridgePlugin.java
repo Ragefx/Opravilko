@@ -51,7 +51,10 @@ public class WidgetBridgePlugin extends Plugin {
         } else if (refreshToken != null && !refreshToken.isEmpty()) {
             store.setAuth(call.getString("appKey"), refreshToken, call.getString("dataPath"));
         }
+        Boolean reminders = call.getBoolean("reminders");
+        if (reminders != null) store.setRemindersEnabled(reminders);
         store.setLastRefresh(System.currentTimeMillis());
+        // Redraws the widget and reschedules the reminders from the new data.
         TaskWidgetProvider.updateAll(getContext());
         // Widget completions still waiting (e.g. made offline) go out now.
         if (store.getPending().length() > 0 && store.hasAuth()) WidgetSyncJob.schedule(getContext());

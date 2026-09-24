@@ -13,7 +13,13 @@ no formatting buttons above task notes.
 
 ## In the code, not in the app yet
 
-- (nothing)
+- Reminders: several per task (before the due time, a time on the day or
+  the day before, or a set day and time), from the task's Reminders row and
+  Add task; defaults in Settings (None unless picked)
+- Reminders scheduled natively from the widget's copy of the tasks (on time
+  to the minute), so ones set on the website ring with the app closed after
+  the next sync (~15 min); Done / Snooze 15 min / 1 h on the notification
+- No more automatic "due now" notification for every task with a time
 
 ## Known gaps
 

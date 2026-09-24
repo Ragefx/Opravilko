@@ -2,7 +2,8 @@ import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
-import { CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BellIcon, CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
+import { remindersOf } from "../utils/reminders";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
 import { useSwipeActions } from "./useSwipeActions";
@@ -33,6 +34,7 @@ export default function TaskRow({
   const revertRecurring = useRevertRecurringCompletion();
   const tick = useCompleteAnimation();
   const recurring = !!task.due?.isRecurring;
+  const hasReminders = !task.completed && remindersOf(task).length > 0;
   const showToast = useToast();
   const { data } = useBootstrap();
   const priorityColor = PRIORITY_META[task.priority].color;
@@ -132,7 +134,7 @@ export default function TaskRow({
               </span>
             )}
           </div>
-          {(task.due || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
+          {(task.due || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
             <div className="task-meta">
               {task.due && (
                 <span className={`due ${dueDateClass(task.due)}`}>
@@ -140,6 +142,12 @@ export default function TaskRow({
                   {task.due.isRecurring && (
                     <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
                   )}
+                  {hasReminders && <BellIcon width={12} height={12} aria-label="Has reminders" style={{ verticalAlign: "-2px", marginLeft: 2 }} />}
+                </span>
+              )}
+              {!task.due && hasReminders && (
+                <span className="chip" title="Reminders">
+                  <BellIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />
                 </span>
               )}
               {task.labels.map((l) => (

@@ -126,8 +126,8 @@
             </intent-filter>
         </activity>
 
-        <!-- Arrival reminders: woken on arriving at a watched place, and
-             re-watching the places after a restart or an app update. -->
+        <!-- Arrival reminders: woken on arriving at a watched place. After a
+             restart or an app update: the places watched and task reminders set again. -->
         <receiver
             android:name=".places.GeofenceReceiver"
             android:exported="false" />
@@ -138,8 +138,15 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
             </intent-filter>
         </receiver>
+
+        <!-- Task reminders: going off, and their Done / Snooze buttons. -->
+        <receiver
+            android:name=".widget.ReminderReceiver"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -161,4 +168,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Task reminders on time to the minute (a reminder app may use exact alarms). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
 </manifest>

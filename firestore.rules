@@ -92,7 +92,7 @@ service cloud.firestore {
         || (sharedWithMe(resource.data)
             && onlyChanges(['content', 'description', 'priority', 'due', 'labels', 'completed', 'completedAt',
                             'completedBy', 'comments', 'reminderMinutes', 'updatedAt', 'order', 'archived',
-                            'attachments', 'location']));
+                            'attachments', 'location', 'reminders']));
     }
 
     // ---- attachments: file contents stored in chunks under attachments/{id} ----

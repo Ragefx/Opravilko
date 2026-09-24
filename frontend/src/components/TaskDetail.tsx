@@ -55,16 +55,8 @@ import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
 import TaskAttachments from "./TaskAttachments";
 import Select from "./Select";
-
-const REMINDER_OPTIONS: [number, string][] = [
-  [0, "Remind at due time"],
-  [5, "5 min before"],
-  [15, "15 min before"],
-  [30, "30 min before"],
-  [60, "1 hour before"],
-  [120, "2 hours before"],
-  [1440, "1 day before"],
-];
+import ReminderSheet from "./ReminderSheet";
+import { describeReminder, remindersOf } from "../utils/reminders";
 
 export default function TaskDetail({
   task: initialTask,
@@ -122,6 +114,8 @@ export default function TaskDetail({
   const [commentText, setCommentText] = useState("");
   const [labelInput, setLabelInput] = useState("");
   const [pickingDate, setPickingDate] = useState(false);
+  const [pickingReminders, setPickingReminders] = useState(false);
+  const taskReminders = remindersOf(task);
   const dateRow = useRef<HTMLButtonElement>(null);
   const [dateAnchor, setDateAnchor] = useState<{ top: number; right: number } | null>(null);
 
@@ -503,27 +497,15 @@ export default function TaskDetail({
                 </PropRow>
               )}
 
-              {due?.datetime && (
-                <PropRow
-                  icon={<BellIcon width={20} height={20} />}
-                  caption="Reminder"
-                  value={REMINDER_OPTIONS.find(([m]) => m === (task.reminderMinutes ?? 0))?.[1] ?? "Remind at due time"}
-                  chevron
-                >
-                  <Select
-                    className="td-cover"
-                    value={task.reminderMinutes ?? 0}
-                    aria-label="Reminder"
-                    onChange={(e) => updateTask.mutate({ id: task.id, reminderMinutes: Number(e.target.value) })}
-                  >
-                    {REMINDER_OPTIONS.map(([minutes, label]) => (
-                      <option key={minutes} value={minutes}>
-                        {label}
-                      </option>
-                    ))}
-                  </Select>
-                </PropRow>
-              )}
+              <PropRow
+                icon={<BellIcon width={20} height={20} />}
+                caption="Reminders"
+                value={taskReminders.length ? taskReminders.map(describeReminder).join(", ") : "No reminders"}
+                muted={!taskReminders.length}
+                color={taskReminders.length ? "var(--color-accent)" : undefined}
+                onClick={() => setPickingReminders(true)}
+                chevron
+              />
 
               <PropRow
                 icon={<FlagIcon width={20} height={20} />}
@@ -653,6 +635,15 @@ export default function TaskDetail({
           <div onClick={(e) => e.stopPropagation()}>
             <DatePickerPopup taskId={task.id} anchor={dateAnchor} onClose={() => setPickingDate(false)} />
           </div>
+        )}
+        {pickingReminders && (
+          <ReminderSheet
+            due={task.due}
+            reminders={taskReminders}
+            me={data?.me}
+            onChange={(next) => updateTask.mutate({ id: task.id, reminders: next })}
+            onClose={() => setPickingReminders(false)}
+          />
         )}
         {pickingLocation && (
           <div onClick={(e) => e.stopPropagation()}>

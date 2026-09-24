@@ -4,6 +4,7 @@ import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } fro
 import { fetchAppData, scheduleSave } from "../data/store";
 import { advanceDate, parseRecurrenceString } from "../utils/recurrence";
 import { todayISO } from "../utils/date";
+import { defaultReminders } from "../utils/reminders";
 import { fetchIcsText, NoConnectionError } from "../utils/calendarSync";
 import { parseIcs } from "../utils/ics";
 import type {
@@ -141,7 +142,11 @@ export function useCreateTask() {
       createdAt: now,
       updatedAt: now,
       ...(sharedWith ? { sharedWith } : {}),
+      ...(input.location ? { location: input.location } : {}),
     };
+    // Reminders as picked, else this device's defaults from Settings (none unless set).
+    const reminders = input.reminders ?? defaultReminders(task.due, data.me);
+    if (reminders.length) task.reminders = reminders;
     data.tasks.push(task);
     return task;
   });

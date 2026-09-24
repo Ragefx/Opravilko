@@ -46,7 +46,8 @@ public class TaskWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-        WidgetSyncJob.cancelPeriodic(context);
+        // The periodic sync keeps running with no widget: reminders set on the
+        // website reach the phone through it.
     }
 
     @Override
@@ -57,6 +58,8 @@ public class TaskWidgetProvider extends AppWidgetProvider {
 
     /** Redraws every Opravilko widget from the stored data. */
     public static void updateAll(Context context) {
+        // Every change to the tasks passes here: keep the reminders in step.
+        ReminderScheduler.reschedule(context);
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, TaskWidgetProvider.class));
         if (ids == null || ids.length == 0) return;

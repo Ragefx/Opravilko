@@ -7,8 +7,10 @@ import { setLook, useLook, type Look } from "../utils/look";
 import { clearTheme, getStoredTheme, setTheme, type ThemeChoice } from "../utils/theme";
 import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import { disableReminders, enableReminders, remindersEnabled } from "../utils/notifications";
+import { ALLDAY_DEFAULT_OPTIONS, TIMED_DEFAULT_OPTIONS, reminderDefaults, setReminderDefault } from "../utils/reminders";
+import Select from "./Select";
 import { activeSession, endSession, usingFirebase } from "../data/store";
-import { disconnect } from "../dropbox/auth";
+import { disconnect, isNativeApp } from "../dropbox/auth";
 import { DATA_PATH } from "../dropbox/store";
 import { currentUser, signOut } from "../firebase/auth";
 import { clearWidget } from "../native/widget";
@@ -201,9 +203,18 @@ function Sharing() {
 function Reminders() {
   const showToast = useToast();
   const [on, setOn] = useState(remindersEnabled);
+  const [defaults, setDefaults] = useState(reminderDefaults);
+  const pickDefault = (kind: "timed" | "allDay", value: string) => {
+    setReminderDefault(kind, value);
+    setDefaults(reminderDefaults());
+  };
   return (
     <>
       <h4>Reminders</h4>
+      <p className="settings-note top">
+        Add reminders to a task from its Reminders row, or while adding it. Your phone notifies you even when the app
+        is closed, including for reminders you set here on the website.
+      </p>
       <label className="settings-switch">
         <input
           type="checkbox"
@@ -216,14 +227,56 @@ function Reminders() {
             }
             const ok = await enableReminders();
             setOn(ok);
-            if (!ok) showToast({ message: "Your browser blocked notifications. Allow them in the site settings, then try again." });
+            if (!ok)
+              showToast({
+                message: isNativeApp
+                  ? "Notifications are blocked. Allow them for Opravilko in Android's settings, then try again."
+                  : "Your browser blocked notifications. Allow them in the site settings, then try again.",
+              });
           }}
         />
         <span>
-          <b>Notify me for tasks with a time</b>
-          <span>At the due time, or earlier if a task has its own reminder. On the website this works while a tab is open.</span>
+          <b>{isNativeApp ? "Notify me on this phone" : "Also notify me in this browser"}</b>
+          <span>
+            {isNativeApp
+              ? "For the reminders you add, at their time."
+              : "Only while a tab is open. Not needed for your phone to remind you."}
+          </span>
         </span>
       </label>
+
+      <h4>Default reminder for new tasks</h4>
+      <div className="settings-pick">
+        <span>Tasks with a time</span>
+        <Select
+          className="select"
+          sheetTitle="Tasks with a time"
+          value={defaults.timed}
+          onChange={(e) => pickDefault("timed", e.target.value)}
+        >
+          {TIMED_DEFAULT_OPTIONS.map(([v, label]) => (
+            <option key={v} value={v}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="settings-pick">
+        <span>All-day tasks</span>
+        <Select
+          className="select"
+          sheetTitle="All-day tasks"
+          value={defaults.allDay}
+          onChange={(e) => pickDefault("allDay", e.target.value)}
+        >
+          {ALLDAY_DEFAULT_OPTIONS.map(([v, label]) => (
+            <option key={v} value={v}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <p className="settings-note">Added to new tasks with a date unless you pick reminders yourself. Saved on this device only.</p>
     </>
   );
 }

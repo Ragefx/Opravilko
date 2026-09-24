@@ -93,8 +93,10 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   comments?: Comment[];
-  /** How long before the due time to notify; absent means at the due time itself. */
+  /** Older single reminder (minutes before the due time); only used when `reminders` is absent. */
   reminderMinutes?: number;
+  /** When to notify. None unless added (or a default from Settings applied when it was added). */
+  reminders?: Reminder[];
   /** Firebase only: who added it, and who ticked it off (shared projects). */
   createdBy?: string;
   completedBy?: string;
@@ -107,6 +109,19 @@ export interface Task {
   /** Where it happens: a place picked from search or a pin on the map. */
   location?: TaskLocation;
 }
+
+/**
+ * One reminder on a task. `by` is who set it (Firebase user id): only their
+ * phone notifies, so a shared task doesn't ping both of you.
+ *   relative: minutes before the due time (tasks with a time)
+ *   day:      a clock time on the due day, or `days` before it (works for
+ *             all-day and repeating tasks)
+ *   absolute: a fixed moment
+ */
+export type Reminder =
+  | { id: string; type: "relative"; minutes: number; by?: string }
+  | { id: string; type: "day"; days: number; time: string; by?: string }
+  | { id: string; type: "absolute"; at: string; by?: string };
 
 export interface TaskLocation {
   /** Short name shown on the task, e.g. "Ljubljana Airport" or "Slovenska cesta 10". */

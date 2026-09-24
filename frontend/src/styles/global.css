@@ -5257,3 +5257,100 @@ kbd {
 .td-web .td-desc .rich-text-placeholder {
   font-size: 14px;
 }
+
+/* ---------- Reminders (a task's list, in the pickers' frame) ---------- */
+.rem-sheet .rem-list {
+  margin-bottom: 6px;
+}
+.rem-row .rem-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 0;
+}
+.rem-row .rem-when {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+.rem-row.is-set {
+  background: var(--color-selected);
+}
+.rem-row.is-set .shop-picker-icon {
+  color: var(--color-accent);
+}
+.rem-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.rem-remove:hover {
+  background: var(--color-hover);
+  color: var(--color-danger);
+}
+.rem-head {
+  margin: 10px 12px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.rem-custom {
+  display: flex;
+  gap: 8px;
+  padding: 6px 4px 0;
+}
+.rem-custom input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+}
+.rem-custom input:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+.rem-custom .btn {
+  height: 44px;
+  border-radius: 12px;
+}
+.rem-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.rem-foot .btn-text {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+/* Settings: a setting and its dropdown on one line. */
+.settings-pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.settings-pick > :last-child {
+  margin: 0;
+  width: 200px;
+  max-width: 55%;
+  flex-shrink: 0;
+}

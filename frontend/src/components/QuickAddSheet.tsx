@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { format, parseISO } from "date-fns";
 import { useAddAttachments, useBootstrap, useCreateTask } from "../api/hooks";
-import type { Due, Task, TaskLocation } from "../api/types";
+import type { Due, Reminder, Task, TaskLocation } from "../api/types";
 import { highlightParts, parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
@@ -15,7 +15,9 @@ import DatePickerPopup from "./DatePickerPopup";
 import LocationPicker from "./LocationPicker";
 import MicButton from "./MicButton";
 import { useToast } from "./ToastProvider";
-import { CalendarIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
+import { BellIcon, CalendarIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
+import ReminderSheet from "./ReminderSheet";
+import { shortReminder } from "../utils/reminders";
 import Select from "./Select";
 import { appUi } from "../utils/appUi";
 
@@ -98,7 +100,9 @@ export default function QuickAddSheet({
   const [added, setAdded] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
   const [where, setWhere] = useState(false);
-  const [picking, setPicking] = useState<null | "date" | "labels" | "location">(null);
+  const [picking, setPicking] = useState<null | "date" | "labels" | "location" | "reminders">(null);
+  // Picked here; left untouched, this device's defaults from Settings apply (none unless set).
+  const [reminders, setReminders] = useState<Reminder[] | undefined>(undefined);
   const dateChip = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const title = useRef<HTMLInputElement>(null);
@@ -150,6 +154,7 @@ export default function QuickAddSheet({
       due: applyRecurrence(baseDue, repeat),
       labels: allLabels,
       ...(location ? { location } : {}),
+      reminders,
       sharedWith: isShared && partner ? [partner.uid] : undefined,
     });
     if (dialog) {
@@ -166,6 +171,7 @@ export default function QuickAddSheet({
     setPriority(null);
     setLabels([]);
     setLocation(null);
+    setReminders(undefined);
     setRepeat("none");
     title.current?.focus();
     if (file) {
@@ -186,6 +192,7 @@ export default function QuickAddSheet({
     { label: "Description", icon: <NotesIcon />, run: () => setDescription((d) => d ?? "") },
     { label: "Labels", icon: <TagIcon width={20} height={20} />, run: () => setPicking("labels") },
     { label: "Location", icon: <MapPinIcon width={20} height={20} />, run: () => setPicking("location") },
+    { label: "Reminders", icon: <BellIcon width={20} height={20} />, run: () => setPicking("reminders") },
   ];
 
   const anchorForDate = () => {
@@ -370,6 +377,19 @@ export default function QuickAddSheet({
                 {location.name}
               </button>
             )}
+            {dialog && !reminders?.length && (
+              <button type="button" className="qas-chip" onClick={() => setPicking("reminders")}>
+                <BellIcon width={20} height={20} />
+                Reminders
+              </button>
+            )}
+            {reminders && reminders.length > 0 && (
+              <button type="button" className="qas-chip is-on" onClick={() => setPicking("reminders")}>
+                <BellIcon width={20} height={20} />
+                {shortReminder(reminders[0])}
+                {reminders.length > 1 ? ` +${reminders.length - 1}` : ""}
+              </button>
+            )}
           </div>
 
           {dialog ? null : text.trim() ? (
@@ -462,6 +482,15 @@ export default function QuickAddSheet({
 
       {picking === "date" && (
         <DatePickerPopup value={baseDue} onPick={setPicked} anchor={anchorForDate()} onClose={() => setPicking(null)} />
+      )}
+      {picking === "reminders" && (
+        <ReminderSheet
+          due={applyRecurrence(baseDue, repeat)}
+          reminders={reminders ?? []}
+          me={data?.me}
+          onChange={setReminders}
+          onClose={() => setPicking(null)}
+        />
       )}
       {picking === "location" && (
         <div onClick={(e) => e.stopPropagation()}>

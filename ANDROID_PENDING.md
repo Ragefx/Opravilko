@@ -13,6 +13,10 @@ shortcut, and fixes for widget ticks (usual items) and partner Inbox tasks.
 
 ## In the code, not in the app yet
 
+- Voice adds straight away when you stop talking (no send to press): the
+  app's and the widget's Add task card add the task; the widget's shopping
+  card adds the spoken items, split like the app does ("mleko kruh in dva
+  jajca" -> three items).
 - No ⋯ menu on task rows and Board cards in the app (tap opens the task).
 - Shop picker in the app's own look (a sheet from the bottom, counts per
   shop, new shop typed in place) instead of Android's plain list.

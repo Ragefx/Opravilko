@@ -1,4 +1,4 @@
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { format, parseISO } from "date-fns";
 import { useAddAttachments, useBootstrap, useCreateTask } from "../api/hooks";
@@ -120,6 +120,16 @@ export default function QuickAddSheet({
   const effectivePriority = (preview && preview.priority !== 1 ? preview.priority : priority ?? 1) as Task["priority"];
   const allLabels = [...new Set([...(preview?.labels ?? []), ...labels])];
   const isInbox = target.projectId === "inbox" || projects.find((p) => p.id === target.projectId)?.isInboxProject;
+
+  // What was said is added as soon as you stop talking (no need to press
+  // send): once the text is in (and read), send it.
+  const [sendSpoken, setSendSpoken] = useState(false);
+  useEffect(() => {
+    if (!sendSpoken) return;
+    setSendSpoken(false);
+    void submit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sendSpoken]);
 
   async function submit() {
     if (!preview?.content) return;
@@ -326,7 +336,10 @@ export default function QuickAddSheet({
             <MicButton
               className="qas-send"
               autoStart={listenOnOpen}
-              onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)}
+              onText={(said) => {
+                setText((t) => (t.trim() ? t.trim() + " " : "") + said);
+                setSendSpoken(true);
+              }}
             />
           )}
         </div>

@@ -1044,9 +1044,18 @@ public class QuickAddActivity extends AppCompatActivity {
         ArrayList<String> heard = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
         if (heard == null || heard.isEmpty()) return;
         String said = heard.get(0).trim();
+        if (said.isEmpty()) return;
+        // Added straight away when you stop talking, no need to press send:
+        // on the shopping list as its items, otherwise as a task (with
+        // anything already typed in front). The card stays for the next one.
+        if (shopping) {
+            addShopLines(ShoppingLogic.splitSpoken(store.getSnapshot(), said));
+            return;
+        }
         String now = text.getText().toString().trim();
         text.setText(now.isEmpty() ? said : now + " " + said);
         text.setSelection(text.getText().length());
+        submit();
     }
 
     private int dp(int value) {

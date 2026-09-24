@@ -135,6 +135,61 @@ final class ShoppingLogic {
         return out;
     }
 
+    /** Spoken numbers and units as they're written (src/utils/shopping.ts: NUMBER_WORDS). */
+    private static final java.util.Map<String, String> NUMBER_WORDS = new java.util.HashMap<>();
+    static {
+        String[][] words = {
+                { "en", "1" }, { "ena", "1" }, { "eno", "1" }, { "enega", "1" }, { "eden", "1" }, { "dva", "2" },
+                { "dve", "2" }, { "tri", "3" }, { "štiri", "4" }, { "stiri", "4" }, { "pet", "5" }, { "šest", "6" },
+                { "sest", "6" }, { "sedem", "7" }, { "osem", "8" }, { "devet", "9" }, { "deset", "10" },
+                { "enajst", "11" }, { "dvanajst", "12" }, { "trije", "3" }, { "štirje", "4" }, { "stirje", "4" },
+                { "pol", "0,5" }, { "kila", "kg" }, { "kile", "kg" }, { "kilo", "kg" }, { "kilogram", "kg" },
+                { "kilograma", "kg" }, { "kilogramov", "kg" }, { "liter", "l" }, { "litra", "l" }, { "litre", "l" },
+                { "litrov", "l" }, { "deci", "dl" }, { "decilitra", "dl" }, { "deka", "dag" }, { "dekagramov", "dag" },
+                { "gramov", "g" }, { "grama", "g" }, { "gram", "g" },
+        };
+        for (String[] w : words) NUMBER_WORDS.put(w[0], w[1]);
+    }
+
+    /**
+     * What voice input heard ("mleko in kruh in dva jajca", "mleko kruh
+     * jajca") as separate list lines, as the app does (splitSpokenItems):
+     * "in" / "pa" / "ter" / commas split, and a run of known groceries with
+     * no amounts is one item each ("toaletni papir" stays together).
+     */
+    static List<String> splitSpoken(JSONObject data, String spoken) {
+        JSONObject guide = data != null ? data.optJSONObject("shoppingGuide") : null;
+        StringBuilder text = new StringBuilder();
+        for (String w : spoken.toLowerCase(SL).replaceAll("[.!?]", " ").trim().split("\\s+")) {
+            if (w.isEmpty()) continue;
+            if (text.length() > 0) text.append(' ');
+            String n = NUMBER_WORDS.get(w);
+            text.append(n != null ? n : w);
+        }
+        List<String> out = new ArrayList<>();
+        for (String raw : text.toString().split(",(?!\\d)|\\s(?:in|pa|ter|and)\\s")) {
+            String part = raw.trim();
+            if (part.isEmpty()) continue;
+            String[] words = part.split(" ");
+            boolean knownPair = false;
+            JSONArray phrases = guide != null ? guide.optJSONArray("phrases") : null;
+            if (phrases != null) {
+                for (int i = 0; i < phrases.length() && !knownPair; i++) {
+                    JSONArray p = phrases.optJSONArray(i);
+                    if (p != null && part.contains(p.optString(0))) knownPair = true;
+                }
+            }
+            boolean allGroceries = words.length > 1 && !knownPair;
+            for (String w : words) {
+                if (!allGroceries) break;
+                if (w.matches(".*\\d.*") || "other".equals(guess(guide, w))) allGroceries = false;
+            }
+            if (allGroceries) java.util.Collections.addAll(out, words);
+            else out.add(part);
+        }
+        return out;
+    }
+
     /** "mleko 1,5 l", "2x jajca", "500 g moke", "kruh" */
     static Item parseItem(JSONObject guide, String text) {
         String raw = text.trim().replaceAll("\\s+", " ");

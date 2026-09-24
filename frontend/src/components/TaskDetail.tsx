@@ -13,7 +13,7 @@ import {
   useUpdateTask,
 } from "../api/hooks";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
-import { makeDue, makeDueFromDateString } from "../utils/date";
+import { makeDue } from "../utils/date";
 import {
   type RepeatPreset,
   describeRecurrence,
@@ -53,20 +53,8 @@ import { useToast } from "./ToastProvider";
 import TaskCheckbox from "./TaskCheckbox";
 import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
-import DateQuickIcons from "./DateQuickIcons";
-import SharedToggle from "./SharedToggle";
 import TaskAttachments from "./TaskAttachments";
 
-function timeFromDatetime(datetime?: string): string {
-  if (!datetime) return "";
-  const d = new Date(datetime);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
-// Native <input type="time"> follows the OS/browser locale for 12h/24h display
-// no matter what `lang` is set to on some browsers, so the time field is built
-// from two plain <select>s instead -- always shows and stores 00:00-23:59.
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
 const REMINDER_OPTIONS: [number, string][] = [
   [0, "Remind at due time"],
   [5, "5 min before"],
@@ -76,7 +64,6 @@ const REMINDER_OPTIONS: [number, string][] = [
   [120, "2 hours before"],
   [1440, "1 day before"],
 ];
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 
 export default function TaskDetail({
   task: initialTask,
@@ -169,24 +156,8 @@ export default function TaskDetail({
     updateTask.mutate({ id: task.id, due: makeDue(date, label) });
   }
 
-  function setProject(projectId: string) {
-    updateTask.mutate({ id: task.id, projectId, sectionId: null });
-  }
 
-  function setManualDate(dateStr: string) {
-    if (!dateStr) {
-      updateTask.mutate({ id: task.id, due: null });
-      return;
-    }
-    const timeStr = timeFromDatetime(task.due?.datetime);
-    updateTask.mutate({ id: task.id, due: makeDueFromDateString(dateStr, timeStr || undefined) });
-  }
 
-  function setManualTime(timeStr: string) {
-    const dateStr = task.due?.date;
-    if (!dateStr) return; // pick a date first
-    updateTask.mutate({ id: task.id, due: makeDueFromDateString(dateStr, timeStr || undefined) });
-  }
 
   function setRecurrence(preset: RepeatPreset | "none") {
     if (!task.due) return;
@@ -213,7 +184,6 @@ export default function TaskDetail({
 
   const currentRule = task.due?.isRecurring ? parseRecurrenceString(task.due.rrule) : null;
   const currentRepeat = currentRule ? presetForRule(currentRule) ?? "custom" : "none";
-  const [timeHour, timeMinute] = timeFromDatetime(task.due?.datetime).split(":");
   const parentTask = task.parentId ? data?.tasks.find((t) => t.id === task.parentId) : undefined;
   const subtasks = (data?.tasks || [])
     .filter((t) => t.parentId === task.id)
@@ -366,11 +336,12 @@ export default function TaskDetail({
   );
 
   /**
-   * The Android app's task view: full screen below the status bar, the name
-   * and notes first, then one row per property (icon, what it is, its value;
-   * tap the row to change it), then sub-tasks, attachments and comments.
+   * The task view: the name and notes, one row per property (icon, what it
+   * is, its value; tap the row to change it), then sub-tasks, attachments and
+   * comments. Full screen below the status bar in the Android app; a window
+   * with the properties in a side panel on the website.
    */
-  function renderApp() {
+  function renderView() {
     const section = task.sectionId ? data?.sections.find((s) => s.id === task.sectionId) : undefined;
     const where = project ? (section ? `${project.name} / ${section.name}` : project.name) : "";
     const targets = addTargets(data);
@@ -394,18 +365,25 @@ export default function TaskDetail({
       const r = dateRow.current?.getBoundingClientRect();
       setDateAnchor({
         top: Math.max(8, Math.min((r?.bottom ?? 200) + 4, window.innerHeight - 540)),
-        right: 12,
+        right: appUi ? 12 : Math.max(8, window.innerWidth - (r?.right ?? window.innerWidth - 12)),
       });
       setPickingDate(true);
     }
 
     return (
-      <div className="overlay td-overlay" onClick={onClose}>
-        <div className="detail-panel td-app" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={task.content}>
+      <div className={`overlay ${appUi ? "td-overlay" : "td-web-overlay"}`} onClick={onClose}>
+        <div
+          className={`detail-panel ${appUi ? "td-app" : "td-web"}`}
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-label={task.content}
+        >
           <div className="td-head">
-            <button className="td-head-btn" onClick={onClose} aria-label="Close">
-              <XIcon width={22} height={22} />
-            </button>
+            {appUi && (
+              <button className="td-head-btn" onClick={onClose} aria-label="Close">
+                <XIcon width={22} height={22} />
+              </button>
+            )}
             <div className="td-head-where">
               {parentTask ? (
                 <button onClick={() => onOpenTask?.(parentTask)}>↰ {parentTask.content}</button>
@@ -420,9 +398,19 @@ export default function TaskDetail({
                 { label: "Delete task", icon: <TrashIcon width={16} height={16} />, danger: true, onClick: handleDelete },
               ]}
             />
+            {!appUi && (
+              <button className="td-head-btn" onClick={onClose} aria-label="Close">
+                <XIcon width={20} height={20} />
+              </button>
+            )}
           </div>
 
+          {/* The name and notes, the properties, then sub-tasks, attachments and
+              comments: one column in the app (and narrow windows); on a wide
+              screen the properties sit in a panel on the right. */}
           <div className="td-scroll">
+           <div className="td-cols">
+            <div className="td-top">
             <div className="td-title-row">
               <TaskCheckbox
                 completed={task.completed}
@@ -447,7 +435,9 @@ export default function TaskDetail({
             <div className="td-desc">
               <RichTextEditor html={description} onChange={setDescription} onBlur={saveDescription} />
             </div>
+            </div>
 
+            <aside className="td-side">
             <div className="td-props">
               <PropRow
                 icon={project?.isInboxProject ? <InboxIcon width={20} height={20} /> : <span className="td-hash">#</span>}
@@ -645,11 +635,16 @@ export default function TaskDetail({
               )}
             </div>
 
+            </aside>
+
+            <div className="td-bottom">
             <div className="td-section">{subtasksBlock}</div>
             <div className="td-section">
               <TaskAttachments task={task} />
             </div>
             <div className="td-section">{commentsBlock}</div>
+            </div>
+           </div>
           </div>
         </div>
 
@@ -674,301 +669,10 @@ export default function TaskDetail({
     );
   }
 
-  if (appUi) return renderApp();
-
-  return (
-    <div className="overlay" onClick={onClose}>
-      <div className="detail-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="detail-header">
-          {project && (
-            <div className="detail-breadcrumb">
-              {project.name}
-              {task.sectionId && data?.sections.find((s) => s.id === task.sectionId) && (
-                <> / {data.sections.find((s) => s.id === task.sectionId)?.name}</>
-              )}
-            </div>
-          )}
-          <div className="detail-header-actions">
-            <RowMenu
-              label="Task"
-              items={[
-                { label: "Duplicate", icon: <CopyIcon width={14} height={14} />, onClick: duplicateTask },
-                {
-                  label: "Delete task",
-                  icon: <TrashIcon width={14} height={14} />,
-                  danger: true,
-                  onClick: handleDelete,
-                },
-              ]}
-            />
-            <button className="btn-text" onClick={onClose} aria-label="Close">
-              <XIcon />
-            </button>
-          </div>
-        </div>
-
-        <div className="detail-scroll">
-          <div className="detail-columns">
-            <div className="detail-main">
-              {parentTask && (
-                <button
-                  className="btn-text"
-                  style={{ padding: "2px 0 8px", fontSize: 12, display: "block" }}
-                  onClick={() => onOpenTask?.(parentTask)}
-                >
-                  ↰ {parentTask.content}
-                </button>
-              )}
-
-              <div className="detail-title-row">
-                <TaskCheckbox
-                  completed={task.completed}
-                  priorityColor={PRIORITY_META[task.priority].color}
-                  recurring={!!task.due?.isRecurring}
-                  onToggle={(next) => completeTask.mutate({ id: task.id, completed: next })}
-                />
-                <textarea
-                  className="detail-title"
-                  value={content}
-                  rows={2}
-                  onChange={(e) => setContent(e.target.value)}
-                  onBlur={saveContent}
-                />
-              </div>
-
-              <RichTextEditor
-                html={description}
-                onChange={setDescription}
-                onBlur={saveDescription}
-              />
-
-              {subtasksBlock}
-
-              <TaskAttachments task={task} />
-
-              {commentsBlock}
-            </div>
-
-            <div className="detail-sidebar">
-              <div className="detail-sidebar-field">
-                <div className="detail-sidebar-label">Project</div>
-                {project ? (
-                  <select
-                    className="detail-sidebar-select"
-                    value={task.projectId}
-                    onChange={(e) => setProject(e.target.value)}
-                  >
-                    {(data?.projects || []).map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  // Shared with you from someone else's project, which you can't see or move it out of.
-                  <div className="detail-shared-from">Midva · from {task.sharedBy?.name.split(" ")[0] || "your partner"}</div>
-                )}
-              </div>
-
-              {project && data?.partner && (
-                <div className="detail-sidebar-field">
-                  <div className="detail-sidebar-label">Sharing</div>
-                  <SharedToggle
-                    partner={data.partner}
-                    on={Boolean(task.sharedWith?.length)}
-                    onChange={(on) => setShared.mutate({ id: task.id, shared: on })}
-                  />
-                </div>
-              )}
-
-              <div className="detail-sidebar-field">
-                <div className="detail-sidebar-label">Date</div>
-                <div className="detail-field-row" style={{ alignItems: "center" }}>
-                  <DateQuickIcons onPick={setDueOffset} />
-                  {task.due && (
-                    <button className="field-pill" onClick={() => setDueOffset(null)}>
-                      <XIcon width={14} height={14} /> Clear date
-                    </button>
-                  )}
-                </div>
-                <div className="detail-field-row">
-                  <label className="field-pill" style={{ gap: 6 }}>
-                    <CalendarIcon width={14} height={14} />
-                    <input
-                      type="date"
-                      className="detail-date-input"
-                      value={task.due?.date || ""}
-                      onChange={(e) => setManualDate(e.target.value)}
-                    />
-                  </label>
-                </div>
-                <div className="detail-field-row">
-                  <label className="field-pill" style={{ gap: 4, opacity: task.due ? 1 : 0.5 }}>
-                    time
-                    <select
-                      className="detail-date-input"
-                      value={timeHour || ""}
-                      disabled={!task.due}
-                      onChange={(e) => setManualTime(`${e.target.value}:${timeMinute || "00"}`)}
-                    >
-                      {!timeHour && <option value="" />}
-                      {HOURS.map((h) => (
-                        <option key={h} value={h}>
-                          {h}
-                        </option>
-                      ))}
-                    </select>
-                    :
-                    <select
-                      className="detail-date-input"
-                      value={timeMinute || ""}
-                      disabled={!task.due}
-                      onChange={(e) => setManualTime(`${timeHour || "00"}:${e.target.value}`)}
-                    >
-                      {!timeMinute && <option value="" />}
-                      {MINUTES.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                {task.due && (
-                  <div className="detail-field-row">
-                    <label className="field-pill" style={{ gap: 6 }}>
-                      <RepeatIcon width={14} height={14} />
-                      <RepeatSelect value={currentRepeat} onChange={setRecurrence} customLabel={describeRecurrence(currentRule)} />
-                    </label>
-                  </div>
-                )}
-                {task.due?.datetime && (
-                  <div className="detail-field-row">
-                    <label className="field-pill" style={{ gap: 6 }} title="Needs reminders turned on in the account menu">
-                      <BellIcon width={14} height={14} />
-                      <select
-                        className="detail-date-input"
-                        value={task.reminderMinutes ?? 0}
-                        onChange={(e) => updateTask.mutate({ id: task.id, reminderMinutes: Number(e.target.value) })}
-                      >
-                        {REMINDER_OPTIONS.map(([minutes, label]) => (
-                          <option key={minutes} value={minutes}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              <div className="detail-sidebar-field">
-                <div className="detail-sidebar-label">Location</div>
-                {task.location ? (
-                  <div className="detail-location">
-                    <a href={mapsUrl(task.location)} target="_blank" rel="noreferrer" title="Open in Google Maps">
-                      <MapPinIcon width={15} height={15} />
-                      <span>
-                        <b>{task.location.name}</b>
-                        {task.location.address && <span>{task.location.address}</span>}
-                      </span>
-                    </a>
-                    <button className="btn btn-text" onClick={() => setPickingLocation(true)}>
-                      Change
-                    </button>
-                  </div>
-                ) : null}
-                {task.location && arrivalRemindersAvailable ? (
-                  <label className="settings-switch arrival-switch">
-                    <input type="checkbox" checked={remindsMe(task)} onChange={(e) => void toggleArrival(e.target.checked)} />
-                    <span>
-                      <b>Remind me when I arrive</b>
-                    </span>
-                  </label>
-                ) : null}
-                {task.location ? null : (
-                  <button className="field-pill" onClick={() => setPickingLocation(true)}>
-                    <MapPinIcon width={14} height={14} /> Add location
-                  </button>
-                )}
-                {pickingLocation && (
-                  <LocationPicker
-                    initial={task.location}
-                    onClose={() => setPickingLocation(false)}
-                    onSave={(loc) => {
-                      updateTask.mutate({ id: task.id, location: loc ?? undefined });
-                      setPickingLocation(false);
-                    }}
-                  />
-                )}
-              </div>
-
-              <div className="detail-sidebar-field">
-                <div className="detail-sidebar-label">Priority</div>
-                <div className="detail-field-row">
-                  {PRIORITY_ORDER.map((p) => (
-                    <button
-                      key={p}
-                      className="field-pill"
-                      style={
-                        task.priority === p
-                          ? {
-                              background: PRIORITY_META[p].color,
-                              borderColor: PRIORITY_META[p].color,
-                              color: "#fff",
-                              fontWeight: 600,
-                            }
-                          : undefined
-                      }
-                      onClick={() => setPriority(p)}
-                    >
-                      <FlagIcon width={14} height={14} />
-                      {PRIORITY_META[p].label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="detail-sidebar-field">
-                <div className="detail-sidebar-label">Labels</div>
-                <div className="detail-label-chips">
-                  {task.labels.map((l) => (
-                    <span key={l} className="chip">
-                      @{l}
-                      <button
-                        className="chip-remove"
-                        onClick={() => removeLabel(l)}
-                        aria-label={`Remove label ${l}`}
-                      >
-                        <XIcon width={10} height={10} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <input
-                  className="detail-label-input"
-                  list="task-detail-existing-labels"
-                  placeholder="Add label…"
-                  value={labelInput}
-                  onChange={(e) => setLabelInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addLabel()}
-                  onBlur={addLabel}
-                />
-                <datalist id="task-detail-existing-labels">
-                  {existingLabelNames.map((n) => (
-                    <option key={n} value={n} />
-                  ))}
-                </datalist>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return renderView();
 }
 
-/** One property of the task in the app's task view: icon, what it is, its value. */
+/** One property of the task in the task view: icon, what it is, its value. */
 const PropRow = forwardRef<
   HTMLButtonElement,
   {

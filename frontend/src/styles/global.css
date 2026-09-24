@@ -4484,3 +4484,125 @@ kbd {
   color: transparent;
   caret-color: var(--color-text);
 }
+
+/* ---------- Task view on the website: a window, properties in a side panel ---------- */
+.detail-panel.td-web {
+  width: 960px;
+  max-width: 100%;
+  height: min(820px, 100%);
+  max-height: 100%;
+  border-radius: 16px;
+  animation: popIn 0.14s ease;
+}
+.td-web .td-head {
+  height: 52px;
+  padding: 0 8px 0 24px;
+}
+.td-web .td-head-where {
+  text-align: left;
+  font-size: 13px;
+}
+.td-web .td-head-btn,
+.td-web .td-head .row-menu-trigger {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+.td-web .td-head-btn:hover,
+.td-web .td-head .row-menu-trigger:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+.td-web .td-scroll {
+  padding: 22px 24px 32px;
+}
+.td-web .td-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-areas: "top side" "bottom side";
+  grid-template-rows: auto 1fr;
+  column-gap: 32px;
+  align-items: start;
+}
+.td-web .td-top {
+  grid-area: top;
+}
+.td-web .td-side {
+  grid-area: side;
+  position: sticky;
+  top: 0;
+}
+.td-web .td-bottom {
+  grid-area: bottom;
+}
+.td-web .td-title-row {
+  padding: 0;
+}
+.detail-panel.td-web textarea.td-title {
+  font-size: 20px;
+}
+.td-web .td-desc {
+  padding: 6px 0 0 34px;
+}
+.td-web .td-props {
+  margin: 0;
+  border-radius: 14px;
+  background: var(--color-sidebar);
+}
+.td-web .td-row {
+  min-height: 52px;
+  padding: 0 12px 0 14px;
+}
+.td-web .td-row-tap {
+  margin: 0 -12px 0 -14px;
+  padding: 0 12px 0 14px;
+}
+.td-web .td-row-value {
+  font-size: 14px;
+}
+.td-web .td-row-body {
+  padding: 7px 0;
+}
+.td-web .td-row:has(> .td-cover):hover,
+.td-web .td-row:has(> .td-row-tap):hover,
+.td-web label.td-row:hover {
+  background: var(--color-hover);
+  cursor: pointer;
+}
+.td-web .td-row-tap,
+.td-web .td-cover {
+  cursor: pointer;
+}
+.td-web .td-section {
+  margin: 26px 0 0 34px;
+}
+.td-web .td-section .task-row .task-content {
+  font-size: 14px !important;
+}
+.td-web .td-section .add-task-trigger {
+  min-height: 36px;
+  font-size: 14px;
+}
+.td-web .td-section .quick-add input {
+  font-size: 14px;
+}
+/* A narrow window: one column, the properties between the notes and the rest. */
+@media (max-width: 760px) {
+  .td-web .td-cols {
+    display: block;
+  }
+  .td-web .td-side {
+    position: static;
+    margin-top: 20px;
+  }
+  .td-web .td-section {
+    margin-left: 0;
+  }
+  .detail-panel.td-web {
+    height: 100%;
+    border-radius: 12px;
+  }
+}
+.overlay.td-web-overlay {
+  padding: calc(24px + var(--inset-top)) 24px calc(24px + var(--inset-bottom));
+}

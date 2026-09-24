@@ -16,6 +16,11 @@ shortcut, and fixes for widget ticks (usual items) and partner Inbox tasks.
 - No ⋯ menu on task rows and Board cards in the app (tap opens the task).
 - Shop picker in the app's own look (a sheet from the bottom, counts per
   shop, new shop typed in place) instead of Android's plain list.
+- Every dropdown in the app (task view rows, Add task's priority/repeat,
+  Display menu, time, Completed filter...) opens the same themed sheet.
+- Widget: tapping a shopping item opens that item (it only opened the list).
+- Alignment pass: task circles line up with "+ Add task" (and with shopping
+  circles), notes under the task name, Add a meal header, dropdown text size.
 
 
 ## Known gaps

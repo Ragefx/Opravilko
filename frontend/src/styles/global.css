@@ -4755,3 +4755,103 @@ kbd {
   border-color: var(--color-accent);
   outline: none;
 }
+
+/* ---------- Dropdowns in the app: a button that opens the app's own sheet ---------- */
+.app-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 38px;
+  min-width: 0;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.app-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-select-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+.app-select:disabled {
+  opacity: 0.5;
+}
+/* Where a whole row or chip is the tap target, the button is invisible on top of it. */
+.td-cover .app-select,
+.app-select.td-cover,
+.qas-chip > .app-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+}
+/* The sheet above other windows (the task view, Add task). */
+.modal-backdrop.shop-picker-backdrop.over-modal {
+  z-index: 330;
+}
+
+/* ---------- App: consistent alignment of list rows and the task view ---------- */
+/* Task circles line up with "+ Add task" and the headings: the sub-task
+   arrow sits in the margin instead of holding an empty slot on every row. */
+:root[data-native] .task-collapse-spacer {
+  display: none;
+}
+:root[data-native] .task-row {
+  position: relative;
+}
+:root[data-native] .task-collapse-toggle {
+  position: absolute;
+  left: -14px;
+  top: 10px;
+  margin: 0;
+}
+:root[data-native] .task-swipe-wrap:not([data-swipe]) {
+  overflow: visible;
+}
+/* Shopping circles on the same line as the task circles. */
+:root[data-native] .shopping-tick {
+  width: 38px;
+  justify-content: flex-start;
+  padding-left: 6px;
+}
+/* The notes start right under the task's name. */
+.td-desc {
+  padding-left: 50px;
+}
+.td-web .td-desc {
+  padding-left: 30px;
+}
+.td-web .td-section {
+  margin-left: 30px;
+}
+@media (max-width: 760px) {
+  .td-web .td-section {
+    margin-left: 0;
+  }
+}
+/* Fields in the item window: a coloured border when typing, not a heavy ring. */
+.item-editor-fields input:focus-visible,
+.item-editor-note textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+}
+/* Windows with their own padding: the header lines up with what's below it
+   (its padding is meant for the Settings window, which has none). */
+.modal.meal-modal .settings-head,
+.modal.share-sheet .settings-head {
+  padding: 0 0 12px;
+}

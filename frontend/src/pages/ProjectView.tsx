@@ -26,20 +26,25 @@ export default function ProjectView() {
   const [display, setDisplay] = useState<DisplayOptions>(DEFAULT_DISPLAY_OPTIONS);
   const [initializedFor, setInitializedFor] = useState<string | null>(null);
 
+  const project = data?.projects.find((p) => p.id === projectId);
+  // The shopping list has its own page, and a task from a project you're not
+  // on (your partner's Inbox) opens in Midva: this page only passes those on,
+  // ?open included -- so it mustn't clear ?open itself (nor before the data's in).
+  const forwards = !!data && (!project || shoppingListOf(data.projects)?.id === project.id);
+
   // ?open=<task id> opens that task (also when it arrives while this page is
   // already showing, e.g. from the Android widget); then drop it from the URL.
   useEffect(() => {
     const open = searchParams.get("open");
-    if (!open) return;
+    if (!open || !data || forwards) return;
     setSearchParams({}, { replace: true });
     setAutoOpenId(null);
     // Cleared first so the same task opens again if it's picked twice. (No
     // cancel on cleanup: clearing the URL above re-runs this effect.)
     window.requestAnimationFrame(() => setAutoOpenId(open));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, !!data, forwards]);
 
-  const project = data?.projects.find((p) => p.id === projectId);
   // The Inbox has its own Calendar page, so it only offers List and Board.
   const isInbox = projectId === "inbox";
 

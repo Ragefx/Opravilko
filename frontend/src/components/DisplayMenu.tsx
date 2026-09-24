@@ -2,6 +2,7 @@ import type { Label } from "../api/types";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { DEFAULT_DISPLAY_OPTIONS, type DisplayOptions } from "../utils/displayOptions";
 import { BoardViewIcon, ListViewIcon, UpcomingIcon } from "./icons";
+import Select from "./Select";
 
 export default function DisplayMenu({
   value,
@@ -73,49 +74,51 @@ export default function DisplayMenu({
         <div className="display-menu-section-title">Sort</div>
         <label className="display-menu-row">
           <span>Grouping</span>
-          <select value={value.grouping} onChange={(e) => set("grouping", e.target.value as DisplayOptions["grouping"])}>
+          <Select sheetTitle="Grouping" value={value.grouping} onChange={(e) => set("grouping", e.target.value as DisplayOptions["grouping"])}>
             <option value="none">None</option>
             <option value="priority">Priority</option>
             <option value="label">Label</option>
             <option value="dueDate">Due date</option>
-          </select>
+          </Select>
         </label>
         <label className="display-menu-row">
           <span>Sorting</span>
-          <select value={value.sorting} onChange={(e) => set("sorting", e.target.value as DisplayOptions["sorting"])}>
+          <Select sheetTitle="Sorting" value={value.sorting} onChange={(e) => set("sorting", e.target.value as DisplayOptions["sorting"])}>
             <option value="manual">Manual</option>
             <option value="date">Date</option>
             <option value="priority">Priority</option>
             <option value="name">Name</option>
             <option value="created">Date created</option>
-          </select>
+          </Select>
         </label>
         <label className="display-menu-row">
           <span>Direction</span>
-          <select
+          <Select
+            sheetTitle="Direction"
             value={value.direction}
             disabled={value.sorting === "manual"}
             onChange={(e) => set("direction", e.target.value as DisplayOptions["direction"])}
           >
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
-          </select>
+          </Select>
         </label>
 
         <div className="display-menu-section-title">Filter</div>
         <label className="display-menu-row">
           <span>Date</span>
-          <select value={value.filterDate} onChange={(e) => set("filterDate", e.target.value as DisplayOptions["filterDate"])}>
+          <Select sheetTitle="Show by date" value={value.filterDate} onChange={(e) => set("filterDate", e.target.value as DisplayOptions["filterDate"])}>
             <option value="all">All</option>
             <option value="today">Today</option>
             <option value="overdue">Overdue</option>
             <option value="upcoming">Upcoming (14d)</option>
             <option value="noDate">No date</option>
-          </select>
+          </Select>
         </label>
         <label className="display-menu-row">
           <span>Priority</span>
-          <select
+          <Select
+            sheetTitle="Show by priority"
             value={value.filterPriority}
             onChange={(e) =>
               set("filterPriority", e.target.value === "all" ? "all" : (Number(e.target.value) as DisplayOptions["filterPriority"]))
@@ -127,18 +130,18 @@ export default function DisplayMenu({
                 {PRIORITY_META[p].label}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="display-menu-row">
           <span>Label</span>
-          <select value={value.filterLabel} onChange={(e) => set("filterLabel", e.target.value)}>
+          <Select sheetTitle="Show by label" value={value.filterLabel} onChange={(e) => set("filterLabel", e.target.value)}>
             <option value="all">All</option>
             {labels.map((l) => (
               <option key={l.id} value={l.name}>
                 {l.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <button className="btn-text display-menu-reset" onClick={() => onChange({ ...DEFAULT_DISPLAY_OPTIONS, layout: value.layout })}>

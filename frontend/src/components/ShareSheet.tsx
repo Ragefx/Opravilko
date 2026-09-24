@@ -7,6 +7,7 @@ import { listenForShares, sharedImageFile, type SharedContent } from "../native/
 import { queueShoppingAdd } from "../utils/shopping";
 import { useToast } from "./ToastProvider";
 import { XIcon } from "./icons";
+import Select from "./Select";
 
 /** A shared link usually comes as the page title (subject) plus its address (text). */
 function titleAndNotes(s: SharedContent): { title: string; notes: string } {
@@ -104,14 +105,14 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
         </div>
         <label className="share-field">
           <span>Add to</span>
-          <select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+          <Select sheetTitle="Add to" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
                 {p.viewStyle === "shopping" ? " (shopping list)" : ""}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         {shopping && !toShopping && (
           <button className="btn btn-text share-shopping-hint" onClick={() => setProjectId(shopping.id)}>

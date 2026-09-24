@@ -54,6 +54,7 @@ import TaskCheckbox from "./TaskCheckbox";
 import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
 import TaskAttachments from "./TaskAttachments";
+import Select from "./Select";
 
 const REMINDER_OPTIONS: [number, string][] = [
   [0, "Remind at due time"],
@@ -446,7 +447,7 @@ export default function TaskDetail({
                 chevron={Boolean(project)}
               >
                 {project && (
-                  <select
+                  <Select
                     className="td-cover"
                     value={hereKey}
                     aria-label="Move to"
@@ -460,7 +461,7 @@ export default function TaskDetail({
                         {t.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 )}
               </PropRow>
 
@@ -509,7 +510,7 @@ export default function TaskDetail({
                   value={REMINDER_OPTIONS.find(([m]) => m === (task.reminderMinutes ?? 0))?.[1] ?? "Remind at due time"}
                   chevron
                 >
-                  <select
+                  <Select
                     className="td-cover"
                     value={task.reminderMinutes ?? 0}
                     aria-label="Reminder"
@@ -520,7 +521,7 @@ export default function TaskDetail({
                         {label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </PropRow>
               )}
 
@@ -532,7 +533,7 @@ export default function TaskDetail({
                 muted={!priorityColor}
                 chevron
               >
-                <select
+                <Select
                   className="td-cover"
                   value={task.priority}
                   aria-label="Priority"
@@ -543,7 +544,7 @@ export default function TaskDetail({
                       {PRIORITY_META[p].label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </PropRow>
 
               <div className="td-row td-row-labels">

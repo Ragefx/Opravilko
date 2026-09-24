@@ -1,4 +1,5 @@
 import { REPEAT_PRESETS, type RepeatPreset } from "../utils/recurrence";
+import Select from "./Select";
 
 /**
  * The "Doesn't repeat / Every day / ..." dropdown. A repeat typed some other
@@ -14,7 +15,7 @@ export default function RepeatSelect({
   customLabel?: string;
 }) {
   return (
-    <select
+    <Select
       className="detail-date-input"
       value={value}
       onChange={(e) => onChange(e.target.value as RepeatPreset | "none")}
@@ -27,6 +28,6 @@ export default function RepeatSelect({
           {p.label}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }

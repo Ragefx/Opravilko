@@ -8,6 +8,7 @@ import { PRIORITY_META } from "../utils/priority";
 import { useToast } from "../components/ToastProvider";
 import { CheckCircleIcon, SearchIcon } from "../components/icons";
 import { activeSession, usingFirebase } from "../data/store";
+import Select from "../components/Select";
 
 function groupLabel(iso: string): string {
   const d = parseISO(iso);
@@ -76,7 +77,7 @@ export default function CompletedView() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <select
+        <Select sheetTitle="Project"
           className="detail-sidebar-select"
           style={{ width: 180 }}
           value={projectId}
@@ -88,7 +89,7 @@ export default function CompletedView() {
               {p.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {usingFirebase() && olderState !== "done" && (

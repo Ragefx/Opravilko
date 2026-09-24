@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import Select from "./Select";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
@@ -46,21 +47,21 @@ export default function TimePickerPopup({
         <div className="time-picker-row">
           <span className="time-picker-label">Time</span>
           <div className="time-picker-inputs">
-            <select value={hour} onChange={(e) => setHour(e.target.value)}>
+            <Select sheetTitle="Hour" value={hour} onChange={(e) => setHour(e.target.value)}>
               {HOURS.map((h) => (
                 <option key={h} value={h}>
                   {h}
                 </option>
               ))}
-            </select>
+            </Select>
             :
-            <select value={minute} onChange={(e) => setMinute(e.target.value)}>
+            <Select sheetTitle="Minute" value={minute} onChange={(e) => setMinute(e.target.value)}>
               {MINUTES.map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
         <div className="time-picker-actions">

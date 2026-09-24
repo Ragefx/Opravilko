@@ -29,6 +29,7 @@ import { useToast } from "./ToastProvider";
 import MicButton from "./MicButton";
 import { CheckIcon, TrashIcon, XIcon } from "./icons";
 import { useSwipeActions } from "./useSwipeActions";
+import PickSheet from "./PickSheet";
 
 /**
  * An item's extras live in its description, one per line: "za: Palačinke,
@@ -653,68 +654,47 @@ function ShopPicker({
 }) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
-  const rows: { value: string; label: string }[] = [
-    { value: "", label: "Any shop" },
-    ...stores.map((s) => ({ value: s, label: s })),
-  ];
   return (
-    <div className="modal-backdrop shop-picker-backdrop" onClick={onClose}>
-      <div className="shop-picker" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Buy at">
-        <div className="shop-picker-handle" aria-hidden="true" />
-        <h3>Buy at</h3>
-        <p>What you add now goes on the list for this shop.</p>
-        <div className="shop-picker-list" role="listbox">
-          {rows.map((r) => {
-            const n = countOf(r.value);
-            return (
-              <button
-                key={r.value || "any"}
-                role="option"
-                aria-selected={current === r.value}
-                className={`shop-picker-row ${current === r.value ? "is-current" : ""}`}
-                onClick={() => onPick(r.value)}
-              >
-                <span className="shop-picker-icon" aria-hidden="true">
-                  {r.value ? "🏪" : "🛒"}
-                </span>
-                <span className="shop-picker-name">{r.label}</span>
-                {n > 0 && <span className="shop-picker-count">{n}</span>}
-                <span className="shop-picker-check" aria-hidden="true">
-                  {current === r.value && <CheckIcon width={18} height={18} />}
-                </span>
-              </button>
-            );
-          })}
-          {adding ? (
-            <form
-              className="shop-picker-new"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (name.trim()) onNew(name);
-              }}
-            >
-              <input
-                autoFocus
-                placeholder="Shop name, e.g. Mercator"
-                value={name}
-                enterKeyHint="done"
-                onChange={(e) => setName(e.target.value)}
-              />
-              <button type="submit" className="btn btn-primary" disabled={!name.trim()}>
-                Add
-              </button>
-            </form>
-          ) : (
-            <button className="shop-picker-row is-add" onClick={() => setAdding(true)}>
-              <span className="shop-picker-icon" aria-hidden="true">
-                +
-              </span>
-              <span className="shop-picker-name">New shop</span>
+    <PickSheet
+      title="Buy at"
+      subtitle="What you add now goes on the list for this shop."
+      options={[
+        { value: "", label: "Any shop", icon: "🛒", count: countOf("") },
+        ...stores.map((s) => ({ value: s, label: s, icon: "🏪", count: countOf(s) })),
+      ]}
+      current={current}
+      onPick={onPick}
+      onClose={onClose}
+      footer={
+        adding ? (
+          <form
+            className="shop-picker-new"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (name.trim()) onNew(name);
+            }}
+          >
+            <input
+              autoFocus
+              placeholder="Shop name, e.g. Mercator"
+              value={name}
+              enterKeyHint="done"
+              onChange={(e) => setName(e.target.value)}
+            />
+            <button type="submit" className="btn btn-primary" disabled={!name.trim()}>
+              Add
             </button>
-          )}
-        </div>
-      </div>
-    </div>
+          </form>
+        ) : (
+          <button className="shop-picker-row is-add" onClick={() => setAdding(true)}>
+            <span className="shop-picker-icon" aria-hidden="true">
+              +
+            </span>
+            <span className="shop-picker-name">New shop</span>
+          </button>
+        )
+      }
+    />
   );
 }
 

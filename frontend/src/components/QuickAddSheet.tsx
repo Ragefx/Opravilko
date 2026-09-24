@@ -16,6 +16,7 @@ import LocationPicker from "./LocationPicker";
 import MicButton from "./MicButton";
 import { useToast } from "./ToastProvider";
 import { CalendarIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
+import Select from "./Select";
 
 /** A paper clip, as on the widget's card. */
 const AttachIcon = () => (
@@ -266,7 +267,7 @@ export default function QuickAddSheet({
             <label className="qas-chip" style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}>
               <FlagIcon width={20} height={20} />
               <span>{effectivePriority !== 1 ? `P${5 - effectivePriority}` : "Priority"}</span>
-              <select
+              <Select
                 value={effectivePriority}
                 onChange={(e) => setPriority(Number(e.target.value))}
                 aria-label="Priority"
@@ -276,20 +277,20 @@ export default function QuickAddSheet({
                     {PRIORITY_META[p].label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
 
             <label className="qas-chip" style={repeat !== "none" ? { color: "var(--color-accent)" } : undefined}>
               <RepeatIcon width={20} height={20} />
               <span>{repeat === "none" ? "Repeat" : REPEAT_PRESETS.find((p) => p.key === repeat)?.label}</span>
-              <select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
+              <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
                 <option value="none">Doesn't repeat</option>
                 {REPEAT_PRESETS.map((p) => (
                   <option key={p.key} value={p.key}>
                     {p.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
 
             {partner && (

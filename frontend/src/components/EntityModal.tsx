@@ -9,6 +9,7 @@ import {
   useUpdateProject,
 } from "../api/hooks";
 import { COLOR_NAMES, colorHex } from "../utils/colors";
+import Select from "./Select";
 
 export type EntityKind = "project" | "label" | "filter";
 
@@ -124,14 +125,14 @@ export default function EntityModal({
         {kind === "project" && parentOptions.length > 0 && (
           <label className="entity-parent-field">
             <span>Parent project</span>
-            <select value={parentId ?? ""} onChange={(e) => setParentId(e.target.value || null)}>
+            <Select sheetTitle="Inside" value={parentId ?? ""} onChange={(e) => setParentId(e.target.value || null)}>
               <option value="">No parent</option>
               {parentOptions.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         <div className="color-swatch-grid">

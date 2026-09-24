@@ -17,6 +17,7 @@ import MicButton from "./MicButton";
 import { useToast } from "./ToastProvider";
 import { CalendarIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
 import Select from "./Select";
+import { appUi } from "../utils/appUi";
 
 /** A paper clip, as on the widget's card. */
 const AttachIcon = () => (
@@ -53,6 +54,10 @@ async function taskSaved(): Promise<void> {
  * row of chips that scrolls sideways: + (description, labels, location,
  * repeat, share), where it goes, the date, an attachment and the priority.
  * It stays open for the next task.
+ *
+ * On the website the same card is a window near the top of the screen
+ * (Todoist-like): name, description, a row of small buttons, and a footer
+ * with where it goes, Cancel and Add task; it closes once the task is added.
  */
 export default function QuickAddSheet({
   onClose,
@@ -80,7 +85,9 @@ export default function QuickAddSheet({
     () => (places.find((t) => t.projectId === defaultProjectId && !t.sectionId) ?? places[0]).key
   );
   const [text, setText] = useState("");
-  const [description, setDescription] = useState<string | null>(null);
+  // The website's window (the app has the card on the keyboard).
+  const dialog = !appUi;
+  const [description, setDescription] = useState<string | null>(dialog ? "" : null);
   const [picked, setPicked] = useState<Due | null | undefined>(undefined);
   const [priority, setPriority] = useState<number | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
@@ -145,10 +152,17 @@ export default function QuickAddSheet({
       ...(location ? { location } : {}),
       sharedWith: isShared && partner ? [partner.uid] : undefined,
     });
-    setAdded(`✓ ${preview.content} → ${target.label}`);
+    if (dialog) {
+      showToast({
+        message: `Added to ${target.label}${isShared && partner ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
+      });
+      onClose();
+    } else {
+      setAdded(`✓ ${preview.content} → ${target.label}`);
+    }
     // Ready for the next one: the name and the extras go, where and when stay.
     setText("");
-    setDescription(null);
+    setDescription(dialog ? "" : null);
     setPriority(null);
     setLabels([]);
     setLocation(null);
@@ -176,12 +190,13 @@ export default function QuickAddSheet({
 
   const anchorForDate = () => {
     const r = dateChip.current?.getBoundingClientRect();
+    if (dialog) return { top: Math.min((r?.bottom ?? 200) + 6, window.innerHeight - 480), right: Math.max(8, window.innerWidth - (r?.right ?? 300) - 120) };
     return { top: Math.max(8, (r?.top ?? 400) - 450), right: Math.max(8, window.innerWidth - (r?.right ?? 300)) };
   };
 
   return createPortal(
-    <div className="qas-scrim" onClick={onClose}>
-      <div className="qas-card" style={{ marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add task">
+    <div className={`qas-scrim ${dialog ? "qas-dialog-scrim" : ""}`} onClick={onClose}>
+      <div className={`qas-card ${dialog ? "qas-dialog" : ""}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add task">
         {added && <div className="qas-added">{added}</div>}
         {/* What was read as a date, time, p1, #project... shows highlighted: the
             text is drawn by the copy behind the (see-through) field. */}
@@ -215,7 +230,9 @@ export default function QuickAddSheet({
         {description !== null && (
           <textarea
             className="qas-desc"
-            autoFocus
+            // Picked from the + menu in the app: straight into it. The website's
+            // window always shows it, and starts in the task's name.
+            autoFocus={!dialog}
             rows={1}
             placeholder="Description"
             value={description}
@@ -229,6 +246,8 @@ export default function QuickAddSheet({
 
         <div className="qas-bar">
           <div className="qas-chips">
+            {!dialog && (
+              <>
             <button
               type="button"
               className="qas-chip is-icon"
@@ -255,6 +274,9 @@ export default function QuickAddSheet({
               {isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
               <span>{target.label.split(" / ")[0]}</span>
             </button>
+
+              </>
+            )}
 
             <button ref={dateChip} type="button" className="qas-chip" style={{ color: dueColor }} onClick={() => setPicking("date")}>
               <CalendarIcon width={20} height={20} />
@@ -315,6 +337,18 @@ export default function QuickAddSheet({
               </button>
             )}
 
+            {dialog && allLabels.length === 0 && (
+              <button type="button" className="qas-chip" onClick={() => setPicking("labels")}>
+                <TagIcon width={20} height={20} />
+                Labels
+              </button>
+            )}
+            {dialog && !location && (
+              <button type="button" className="qas-chip" onClick={() => setPicking("location")}>
+                <MapPinIcon width={20} height={20} />
+                Location
+              </button>
+            )}
             {allLabels.length > 0 && (
               <button type="button" className="qas-chip is-on" onClick={() => setPicking("labels")}>
                 <TagIcon width={20} height={20} />@{allLabels.join(" @")}
@@ -328,7 +362,12 @@ export default function QuickAddSheet({
             )}
           </div>
 
-          {text.trim() ? (
+          {dialog ? (
+            <MicButton
+              autoStart={listenOnOpen}
+              onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)}
+            />
+          ) : text.trim() ? (
             <button type="button" className="qas-send" onClick={() => void submit()} aria-label="Add task">
               <SendIcon />
             </button>
@@ -343,6 +382,34 @@ export default function QuickAddSheet({
             />
           )}
         </div>
+
+        {dialog && (
+          <div className="qas-footer">
+            {/* Just the project here; its sections are in the list this opens. */}
+            <button
+              type="button"
+              className="qas-chip qas-where-chip"
+              onClick={() => {
+                setMenu(false);
+                setWhere((w) => !w);
+              }}
+              aria-label={`Where it goes: ${target.label}`}
+              aria-expanded={where}
+            >
+              {isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
+              <span>{target.label.split(" / ")[0]}</span>
+            </button>
+
+            <div className="qas-footer-actions">
+              <button type="button" className="btn btn-text" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => void submit()} disabled={!preview?.content}>
+                Add task
+              </button>
+            </div>
+          </div>
+        )}
 
         {where && (
           <div className="qas-menu qas-where" role="listbox" aria-label="Where it goes">

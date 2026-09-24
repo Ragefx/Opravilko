@@ -4976,3 +4976,91 @@ kbd {
 .td-app .td-scroll {
   overflow-x: hidden;
 }
+
+/* ---------- Add task on the website: the app's card as a window near the top ---------- */
+.qas-scrim.qas-dialog-scrim {
+  justify-content: flex-start;
+  align-items: center;
+  padding: calc(12vh + var(--inset-top)) 16px 16px;
+}
+.qas-card.qas-dialog {
+  width: 620px;
+  max-width: 100%;
+  border-radius: 14px;
+  padding: 16px 16px 0;
+  animation: popIn 0.14s ease;
+}
+.qas-dialog .qas-title {
+  font-size: 17px;
+  font-weight: 600;
+  padding: 2px 4px;
+}
+.qas-dialog .qas-desc {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  padding: 2px 4px;
+  margin-top: 2px;
+}
+.qas-dialog .qas-bar {
+  margin-top: 12px;
+  align-items: flex-start;
+}
+.qas-dialog .qas-chips {
+  flex-wrap: wrap;
+  overflow: visible;
+  gap: 6px;
+}
+.qas-dialog .qas-chip {
+  height: 32px;
+  padding: 0 10px;
+  gap: 6px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.qas-dialog .qas-chip svg {
+  width: 16px;
+  height: 16px;
+}
+.qas-dialog .qas-chip:hover {
+  background: var(--color-hover);
+}
+.qas-dialog .qas-chip .qas-hash {
+  font-size: 15px;
+}
+.qas-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px -16px 0;
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-border);
+}
+.qas-footer-actions {
+  display: flex;
+  gap: 8px;
+}
+.qas-footer .qas-where-chip {
+  border-color: transparent;
+  background: var(--color-hover);
+  font-weight: 500;
+}
+/* Its menus open below (the window sits near the top of the screen). */
+.qas-dialog .qas-menu {
+  top: calc(100% + 6px);
+  bottom: auto;
+}
+.qas-dialog .qas-menu button {
+  height: 40px;
+  font-size: 14px;
+}
+.qas-dialog .qas-menu.qas-where button.is-section {
+  padding-left: 38px;
+}
+.qas-dialog .qas-menu.qas-where {
+  left: 12px;
+  right: auto;
+  min-width: 260px;
+  max-width: calc(100% - 24px);
+}

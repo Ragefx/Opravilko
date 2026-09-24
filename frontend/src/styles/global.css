@@ -5064,3 +5064,47 @@ kbd {
   min-width: 260px;
   max-width: calc(100% - 24px);
 }
+
+/* The name and, in the website's window, the mic beside it. */
+.qas-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.qas-head .qas-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+/* The mic: filled in the accent colour, like the app's big button; red while listening. */
+.qas-mic {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  cursor: pointer;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.qas-mic:hover {
+  transform: translateY(-1px);
+}
+.qas-mic svg {
+  width: 20px;
+  height: 20px;
+}
+.qas-mic.is-listening {
+  background: var(--color-danger);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-danger) 20%, transparent);
+  animation: qasMicPulse 1.2s ease-in-out infinite;
+}
+@keyframes qasMicPulse {
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--color-danger) 10%, transparent);
+  }
+}

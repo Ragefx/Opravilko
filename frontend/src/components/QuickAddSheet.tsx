@@ -200,32 +200,42 @@ export default function QuickAddSheet({
         {added && <div className="qas-added">{added}</div>}
         {/* What was read as a date, time, p1, #project... shows highlighted: the
             text is drawn by the copy behind the (see-through) field. */}
-        <div className="qas-title-wrap">
-          <div ref={mirror} className="qas-title qas-title-mirror" aria-hidden="true">
-            {preview
-              ? highlightParts(text, preview.content).map((p, i) => (p.hit ? <mark key={i}>{p.text}</mark> : p.text))
-              : text}
+        <div className="qas-head">
+          <div className="qas-title-wrap">
+            <div ref={mirror} className="qas-title qas-title-mirror" aria-hidden="true">
+              {preview
+                ? highlightParts(text, preview.content).map((p, i) => (p.hit ? <mark key={i}>{p.text}</mark> : p.text))
+                : text}
+            </div>
+            <input
+              ref={title}
+              className="qas-title qas-title-input"
+              // Long names scroll sideways: the copy behind follows.
+              onScroll={(e) => {
+                if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
+              }}
+              onSelect={(e) => {
+                if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
+              }}
+              autoFocus
+              placeholder="Task name"
+              value={text}
+              enterKeyHint="send"
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void submit();
+                if (e.key === "Escape") onClose();
+              }}
+            />
           </div>
-          <input
-            ref={title}
-            className="qas-title qas-title-input"
-            // Long names scroll sideways: the copy behind follows.
-            onScroll={(e) => {
-              if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
-            }}
-            onSelect={(e) => {
-              if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
-            }}
-            autoFocus
-            placeholder="Task name"
-            value={text}
-            enterKeyHint="send"
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") void submit();
-              if (e.key === "Escape") onClose();
-            }}
-          />
+          {/* The website's window: the mic up here, standing out as in the app. */}
+          {dialog && (
+            <MicButton
+              className="qas-mic"
+              autoStart={listenOnOpen}
+              onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)}
+            />
+          )}
         </div>
         {description !== null && (
           <textarea
@@ -362,12 +372,7 @@ export default function QuickAddSheet({
             )}
           </div>
 
-          {dialog ? (
-            <MicButton
-              autoStart={listenOnOpen}
-              onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)}
-            />
-          ) : text.trim() ? (
+          {dialog ? null : text.trim() ? (
             <button type="button" className="qas-send" onClick={() => void submit()} aria-label="Add task">
               <SendIcon />
             </button>

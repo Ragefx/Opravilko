@@ -13,7 +13,7 @@ open the item, the widget sized like Todoist's, and no ⋯ menu on Shopping.
 
 ## In the code, not in the app yet
 
-- (nothing)
+- Shopping list at the same text size as the other lists (app only).
 
 ## Known gaps
 

@@ -4364,3 +4364,46 @@ kbd {
   color: inherit;
   opacity: 0.8;
 }
+
+/* The app: the shopping list at the same size as the other lists. */
+:root[data-native] .shopping-row-main {
+  font-size: 14px;
+  gap: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+:root[data-native] .shopping-tick {
+  width: 44px;
+}
+:root[data-native] .shopping-check {
+  width: 20px;
+  height: 20px;
+  border-width: 1.5px;
+}
+:root[data-native] .shopping-check svg {
+  width: 12px;
+  height: 12px;
+}
+:root[data-native] .shopping-name small {
+  font-size: 11px;
+}
+:root[data-native] .shopping-amount {
+  font-size: 12px;
+  padding: 2px 8px;
+}
+:root[data-native] .shopping-store {
+  flex-basis: 44px;
+  font-size: 10px;
+}
+:root[data-native] .shopping-category {
+  width: 24px;
+  font-size: 17px;
+}
+:root[data-native] .shopping-delete {
+  width: 34px;
+}
+:root[data-native] .shopping-shop-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}

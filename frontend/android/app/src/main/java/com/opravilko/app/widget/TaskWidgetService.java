@@ -35,7 +35,7 @@ public class TaskWidgetService extends RemoteViewsService {
         final boolean muted;
         final boolean reschedule;
         final TaskLogic.Row row;
-        /** Date views: the row's heading already says the day, so only a time is shown. */
+        /** Date views: the row sits under its day's heading. */
         final boolean dateInHeading;
         /** Shopping list: the item's name, amount and icon. */
         String shopName, shopAmount, shopIcon;
@@ -208,13 +208,11 @@ public class TaskWidgetService extends RemoteViewsService {
             rv.setImageViewResource(R.id.row_check, checkDrawable(row.priority));
             rv.setTextViewText(R.id.row_title, row.content);
 
-            // The date: in a day's own group only the time (or just the icon, like the app).
-            String due = null;
-            if (row.dueDate != null) due = item.dateInHeading ? TaskLogic.dueTime(row) : TaskLogic.dueLabel(row);
+            // The date next to the calendar icon: Today, Yesterday, Tomorrow or "27 Sep" (and a time).
+            String due = row.dueDate != null ? TaskLogic.dueLabel(row) : null;
             boolean hasDue = row.dueDate != null;
-            int dueColor = context.getColor(hasDue ? dueColor(row) : R.color.widget_text_secondary);
             int neutral = context.getColor(R.color.widget_text_secondary);
-            int iconColor = item.dateInHeading ? neutral : dueColor;
+            int iconColor = context.getColor(hasDue ? dueColor(row) : R.color.widget_text_secondary);
             rv.setViewVisibility(R.id.row_due_icon, hasDue ? View.VISIBLE : View.GONE);
             rv.setInt(R.id.row_due_icon, "setColorFilter", iconColor);
             rv.setViewVisibility(R.id.row_due, due != null ? View.VISIBLE : View.GONE);

@@ -20,6 +20,8 @@ dots with the day's list) and the Display icon.
 - Shopping list sorted by category (fruit and veg, bread, dairy, meat,
   pantry, spices, frozen, sweets, drinks, household, toiletries, pets,
   other), in the app and the widget.
+- Widget rows always show the date next to the calendar icon: Today,
+  Yesterday, Tomorrow or "27 Sep" (and the time).
 
 ## Known gaps
 

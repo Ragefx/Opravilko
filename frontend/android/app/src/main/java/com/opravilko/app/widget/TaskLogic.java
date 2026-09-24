@@ -370,9 +370,9 @@ public final class TaskLogic {
     }
 
     /**
-     * The date as a row shows it: Today, Tomorrow, a weekday within the
-     * coming week, otherwise "31 Aug" (with the year if it's another year);
-     * plus the time if the task has one.
+     * The date as a row shows it: Today, Yesterday, Tomorrow, otherwise
+     * "27 Sep" (with the year if it's another year); plus the time if the
+     * task has one.
      */
     public static String dueLabel(Row row) {
         if (row.dueDate == null) return null;
@@ -382,10 +382,9 @@ public final class TaskLogic {
         Calendar c = calendarFor(row.dueDate);
         if (kind == DueKind.TODAY) label = "Today";
         else if (kind == DueKind.TOMORROW) label = "Tomorrow";
+        else if (row.dueDate.equals(addDaysStr(today, -1))) label = "Yesterday";
         else if (c == null) label = row.dueDate;
-        else if (kind == DueKind.LATER && row.dueDate.compareTo(addDaysStr(today, 6)) <= 0) {
-            label = new SimpleDateFormat("EEEE", Locale.ENGLISH).format(c.getTime());
-        } else {
+        else {
             boolean thisYear = row.dueDate.substring(0, 4).equals(today.substring(0, 4));
             label = new SimpleDateFormat(thisYear ? "d MMM" : "d MMM yyyy", Locale.ENGLISH).format(c.getTime());
         }

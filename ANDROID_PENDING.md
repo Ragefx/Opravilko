@@ -19,6 +19,9 @@ page's Later today card, and the redesigned meals window.
   meal); the widget's meal picker has tick boxes for the same
 - Meals: a shop per ingredient (chip next to it, or "@Hofer" in the recipe);
   adding the meal marks each item for its shop (widget too)
+- Attachments open in the phone's own viewer (photos, PDFs, documents); they
+  did nothing in the app before. Also from Settings > Storage
+- Calendar shows sub-tasks with their own date
 
 ## Known gaps
 

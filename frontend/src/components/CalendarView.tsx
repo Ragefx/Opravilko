@@ -117,7 +117,8 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
 
   const tasksByDate = new Map<string, Task[]>();
   for (const t of tasks) {
-    if (t.completed || !t.due || t.parentId) continue;
+    // Sub-tasks with their own date show too (as in Now and Upcoming).
+    if (t.completed || !t.due) continue;
     const key = t.due.date;
     if (!tasksByDate.has(key)) tasksByDate.set(key, []);
     tasksByDate.get(key)!.push(t);

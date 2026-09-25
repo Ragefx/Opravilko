@@ -10,6 +10,7 @@ export interface SharedContent {
 
 interface OpravilkoSharePlugin {
   take(): Promise<SharedContent>;
+  openFile(options: { name: string; type: string; data: string }): Promise<void>;
   addListener(event: "shared", cb: () => void): Promise<{ remove: () => void }>;
 }
 const OpravilkoShare = registerPlugin<OpravilkoSharePlugin>("OpravilkoShare");
@@ -44,4 +45,15 @@ export function listenForShares(onShare: (s: SharedContent) => void): () => void
 export async function sharedImageFile(image: { name: string; type: string; dataUrl: string }): Promise<File> {
   const blob = await (await fetch(image.dataUrl)).blob();
   return new File([blob], image.name, { type: image.type });
+}
+
+/** Android app: opens a file (an attachment) in the phone's own viewer. */
+export async function openFileNatively(blob: Blob, name: string, type: string): Promise<void> {
+  const data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).replace(/^data:[^,]*,/, ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+  await OpravilkoShare.openFile({ name, type: type || blob.type || "application/octet-stream", data });
 }

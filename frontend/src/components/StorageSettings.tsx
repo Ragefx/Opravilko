@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useBootstrap, useRemoveAttachment } from "../api/hooks";
 import { activeSession } from "../data/store";
+import { isNativeApp } from "../dropbox/auth";
+import { openFileNatively } from "../native/share";
 import { ATTACHMENT_BUDGET, WARN_AT, formatSize, loadAttachment, watchStorageUsed } from "../firebase/attachments";
 import type { Attachment, Task } from "../api/types";
 import { FileIcon, TrashIcon } from "./icons";
@@ -82,7 +84,13 @@ export default function StorageSettings() {
               <button
                 className="attachment-name"
                 onClick={async () => {
-                  const url = URL.createObjectURL(await loadAttachment(att));
+                  const blob = await loadAttachment(att);
+                  // The app: the phone's own viewer.
+                  if (isNativeApp) {
+                    await openFileNatively(blob, att.name, att.type).catch(() => {});
+                    return;
+                  }
+                  const url = URL.createObjectURL(blob);
                   window.open(url, "_blank", "noopener");
                   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
                 }}

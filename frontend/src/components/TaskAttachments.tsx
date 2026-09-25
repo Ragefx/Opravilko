@@ -12,6 +12,8 @@ import {
 } from "../firebase/attachments";
 import { usingFirebase } from "../data/store";
 import { FileIcon, PaperclipIcon, TrashIcon } from "./icons";
+import { isNativeApp } from "../dropbox/auth";
+import { openFileNatively } from "../native/share";
 import { useToast } from "./ToastProvider";
 
 /**
@@ -94,6 +96,15 @@ export default function TaskAttachments({ task }: { task: Task }) {
     setOpening(att.id);
     try {
       const blob = await loadAttachment(att);
+      // The app: the phone's own viewer (a browser tab or download does nothing there).
+      if (isNativeApp) {
+        try {
+          await openFileNatively(blob, att.name, att.type);
+        } catch {
+          showToast({ message: `No app on this phone can open “${att.name}”.` });
+        }
+        return;
+      }
       const url = URL.createObjectURL(blob);
       // Photos, PDFs and text open in a new tab; anything else downloads.
       if (/^(image\/|application\/pdf|text\/)/.test(att.type)) {

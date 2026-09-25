@@ -44,6 +44,49 @@ public class SharePlugin extends Plugin {
         notifyListeners("shared", new JSObject(), true);
     }
 
+    /**
+     * Opens a task's attachment in the phone's own viewer (photos, PDFs,
+     * documents): {name, type, data (base64)} is written to the app's cache
+     * and handed over through the FileProvider. Rejects when no app can open it.
+     */
+    @PluginMethod
+    public void openFile(PluginCall call) {
+        String name = call.getString("name", "attachment");
+        String type = call.getString("type", "application/octet-stream");
+        String data = call.getString("data");
+        if (data == null) {
+            call.reject("data is required");
+            return;
+        }
+        getBridge().execute(() -> {
+            try {
+                java.io.File dir = new java.io.File(getContext().getCacheDir(), "attachments");
+                if (!dir.exists() && !dir.mkdirs()) throw new IOException("No cache folder");
+                // Keep the name (the viewer shows it), minus anything that isn't a plain file name.
+                String safe = name.replaceAll("[\\/:*?\"<>|]", "_");
+                java.io.File file = new java.io.File(dir, safe.isEmpty() ? "attachment" : safe);
+                try (java.io.FileOutputStream out = new java.io.FileOutputStream(file)) {
+                    out.write(Base64.decode(data, Base64.DEFAULT));
+                }
+                Uri uri = androidx.core.content.FileProvider.getUriForFile(getContext(),
+                        getContext().getPackageName() + ".fileprovider", file);
+                Intent view = new Intent(Intent.ACTION_VIEW).setDataAndType(uri, type)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                Intent chooser = Intent.createChooser(view, name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getActivity().runOnUiThread(() -> {
+                    try {
+                        getContext().startActivity(chooser);
+                        call.resolve();
+                    } catch (android.content.ActivityNotFoundException e) {
+                        call.reject("No app can open this file");
+                    }
+                });
+            } catch (IOException | IllegalArgumentException e) {
+                call.reject("Couldn't open the file", e);
+            }
+        });
+    }
+
     /** The waiting share ({text, subject, images: [{name, type, dataUrl}]}), once; empty if none. */
     @PluginMethod
     public void take(PluginCall call) {

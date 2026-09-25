@@ -25,6 +25,9 @@ export default function AwaySheet({
   const [title, setTitle] = useState(period?.title ?? "");
   const [start, setStart] = useState(period?.start ?? startDay ?? "");
   const [end, setEnd] = useState(period?.end ?? startDay ?? "");
+  const [startTime, setStartTime] = useState(period?.startTime ?? "");
+  const [endTime, setEndTime] = useState(period?.endTime ?? "");
+  const [note, setNote] = useState(period?.note ?? "");
   const all = data?.away ?? [];
   const valid = Boolean(start && end);
 
@@ -32,7 +35,16 @@ export default function AwaySheet({
     if (!valid) return;
     // The days in order, whichever way round they were picked.
     const [from, to] = start <= end ? [start, end] : [end, start];
-    const next: AwayPeriod = { id: period?.id ?? nanoid(8), title: title.trim() || "Away", start: from, end: to };
+    const next: AwayPeriod = {
+      id: period?.id ?? nanoid(8),
+      title: title.trim() || "Away",
+      start: from,
+      end: to,
+      // Only what's filled in (the database refuses empty values).
+      ...(startTime ? { startTime } : {}),
+      ...(endTime ? { endTime } : {}),
+      ...(note.trim() ? { note: note.trim() } : {}),
+    };
     saveAway.mutate(period ? all.map((a) => (a.id === period.id ? next : a)) : [...all, next]);
     onClose();
   }
@@ -51,7 +63,10 @@ export default function AwaySheet({
             <XIcon width={18} height={18} />
           </button>
         </div>
-        <p className="away-note">Shows across these days in the calendar. Tasks on them stay as they are.</p>
+        <p className="away-note">
+          Shows across these days in the calendar{data?.partner ? `, yours and ${data.partner.name.split(" ")[0]}'s` : ""}.
+          Tasks on them stay as they are.
+        </p>
         <label className="away-field">
           <span>Where / what</span>
           <input
@@ -65,7 +80,7 @@ export default function AwaySheet({
         </label>
         <div className="away-dates">
           <label className="away-field">
-            <span>From</span>
+            <span>Leaving</span>
             <input
               id="away-start"
               type="date"
@@ -77,10 +92,22 @@ export default function AwaySheet({
             />
           </label>
           <label className="away-field">
-            <span>To</span>
+            <span>Time (optional)</span>
+            <input id="away-start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          </label>
+          <label className="away-field">
+            <span>Back</span>
             <input id="away-end" type="date" value={end} min={start || undefined} onChange={(e) => setEnd(e.target.value)} />
           </label>
+          <label className="away-field">
+            <span>Time (optional)</span>
+            <input id="away-end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+          </label>
         </div>
+        <label className="away-field">
+          <span>Note (optional)</span>
+          <input id="away-note" value={note} placeholder="e.g. flight JU 386, Terminal 1" onChange={(e) => setNote(e.target.value)} />
+        </label>
         <div className="modal-actions away-actions">
           {period && (
             <button className="btn btn-text meal-danger" onClick={remove}>

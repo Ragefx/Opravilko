@@ -129,6 +129,12 @@ export interface AwayPeriod {
   title: string;
   start: string;
   end: string;
+  /** Leaving on the first day, e.g. a flight at "07:15". */
+  startTime?: string;
+  /** Back on the last day, e.g. landing at "22:40". */
+  endTime?: string;
+  /** Anything else worth knowing: "JU 386, Terminal 1". */
+  note?: string;
 }
 
 export interface TaskLocation {

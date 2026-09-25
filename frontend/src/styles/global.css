@@ -6051,3 +6051,29 @@ button.sidebar-link {
 .calendar-away-label.is-partner.is-quiet {
   background: color-mix(in srgb, #c2477a 45%, transparent);
 }
+.calendar-away-time {
+  margin-left: 6px;
+  font-weight: 500;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+.away-dates {
+  grid-template-columns: 1.4fr 1fr;
+}
+.mcal-away-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.mcal-away-text > span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.mcal-away-banner .mcal-away-text,
+.mcal-away-banner .mcal-away-text > span {
+  margin-left: 0;
+}
+.mcal-away-banner .mcal-away-text {
+  font-size: 14px;
+  color: var(--color-text);
+}

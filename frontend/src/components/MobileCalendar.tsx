@@ -217,8 +217,14 @@ export default function MobileCalendar({
                 className={`mcal-away-banner ${t.mine ? "" : "is-partner"}`}
                 onClick={() => t.mine && setAwayEdit({ period: t.period })}
               >
-                ✈️ <b>Away · {tripName(t)}</b>
-                <span>{awayRange(t.period)}</span>
+                ✈️
+                <span className="mcal-away-text">
+                  <b>Away · {tripName(t)}</b>
+                  <span>
+                    {awayRange(t.period)}
+                    {t.period.note ? ` · ${t.period.note}` : ""}
+                  </span>
+                </span>
               </button>
             ))}
           </div>

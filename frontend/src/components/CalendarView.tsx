@@ -31,7 +31,7 @@ import {
 import type { CalendarEvent, Due, Task } from "../api/types";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, tripName, tripsOf, tripsOn } from "../utils/away";
+import { awayRange, awayTimeOn, tripName, tripsOf, tripsOn } from "../utils/away";
 import AwaySheet from "./AwaySheet";
 import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
@@ -246,19 +246,23 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                   <span>{format(day, "d")}</span>
                   {mode === "week" && <b className="calendar-cell-weekday">{format(day, "EEE")}</b>}
                 </div>
-                {dayTrips.map((t) => (
-                  // Every day of a trip carries its name.
+                {dayTrips.map((t) => {
+                  // Every day of a trip carries its name; leaving and back times on the ends.
+                  const time = awayTimeOn(t.period, key);
+                  return (
                   <button
                     key={t.period.id}
                     className={`calendar-away-label ${t.mine ? "" : "is-partner"}`}
                     onClick={() =>
-                      t.mine ? setAwayEdit({ period: t.period }) : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}` })
+                      t.mine ? setAwayEdit({ period: t.period }) : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}` })
                     }
-                    title={`Away: ${tripName(t)} · ${awayRange(t.period)}`}
+                    title={`Away: ${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}`}
                   >
                     ✈️ {tripName(t)}
+                    {time && <span className="calendar-away-time">{time}</span>}
                   </button>
-                ))}
+                  );
+                })}
                 {shownEvents.map((e) => (
                   <div key={e.id} className="calendar-event-chip" style={{ borderLeftColor: e.color }} title={e.title}>
                     {e.start && !e.allDay && <span className="calendar-chip-time">{format(new Date(e.start), "HH:mm")}</span>}

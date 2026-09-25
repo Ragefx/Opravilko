@@ -6166,3 +6166,282 @@ button.sidebar-link {
 .rem-custom .time-input {
   flex-shrink: 0;
 }
+
+/* ---------- The phone's add button at the bottom (Settings > Appearance) ---------- */
+@media (max-width: 600px) {
+  :root:not([data-add="top"]) .soca-add,
+  :root:not([data-add="top"]) .mobile-appbar-btn[aria-label="Add task"] {
+    display: none !important;
+  }
+  /* The bottom bar has the main places, so the chips row makes way. */
+  :root[data-add="tabs"] .soca-chips {
+    display: none !important;
+  }
+  :root:not([data-add="top"]) .toast {
+    bottom: calc(92px + var(--inset-bottom));
+  }
+}
+.add-float {
+  position: fixed;
+  right: 18px;
+  bottom: calc(20px + var(--inset-bottom));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.12s ease, bottom 0.2s ease;
+}
+.add-float:active {
+  transform: scale(0.93);
+}
+/* On Now, above its Now / Next / Later switch. */
+.add-float.is-raised {
+  bottom: calc(84px + var(--inset-bottom));
+}
+.add-corner {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+.add-dot {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--color-accent) 42%, transparent);
+}
+.add-dot b {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+.add-menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+}
+.add-menu {
+  position: fixed;
+  z-index: 62;
+  right: 20px;
+  bottom: calc(92px + var(--inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.add-menu.is-raised {
+  bottom: calc(156px + var(--inset-bottom));
+}
+.add-menu-tabs {
+  right: 50%;
+  transform: translateX(50%);
+  align-items: center;
+  bottom: calc(96px + var(--inset-bottom));
+}
+.add-menu-bar {
+  bottom: calc(84px + var(--inset-bottom));
+}
+.add-menu button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px 0 14px;
+  border-radius: 21px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+.add-menu button svg {
+  color: var(--color-accent);
+}
+/* B: a bottom bar with the + raised in the middle. */
+.add-tabs {
+  flex-shrink: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  height: 62px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.add-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+.add-tab.is-active {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+.add-tabs-plus {
+  justify-self: center;
+  width: 58px;
+  height: 58px;
+  margin-top: -26px;
+  border-radius: 50%;
+  border: 4px solid var(--color-surface);
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-accent) 45%, transparent);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+/* C: an "Add a task…" bar. */
+.add-bar-wrap {
+  flex-shrink: 0;
+  padding: 8px 12px 12px;
+}
+.add-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 54px;
+  padding: 0 6px 0 4px;
+  border-radius: 27px;
+  background: #1b1d1f;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+.add-bar-text {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: none;
+  color: #b9c0bc;
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+  padding: 0 14px;
+  cursor: text;
+}
+.add-bar-mic {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: #d5dbd7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.add-bar-go {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .add-bar {
+    background: #2a2e31;
+  }
+}
+:root[data-theme="dark"] .add-bar {
+  background: #2a2e31;
+}
+/* The dot's tick is on the button now, not after the name. */
+@media (max-width: 600px) {
+  :root[data-add="dot"] .soca-wordmark i {
+    visibility: hidden;
+  }
+}
+/* Settings: tiny phone sketches of each add button. */
+.add-preview {
+  flex-shrink: 0;
+  position: relative;
+  width: 40px;
+  height: 58px;
+  border-radius: 7px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+.add-preview i {
+  position: absolute;
+  background: var(--color-accent);
+}
+.add-preview-corner i {
+  right: 5px;
+  bottom: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+.add-preview-dot i {
+  right: 5px;
+  bottom: 5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+}
+.add-preview-tabs {
+  box-shadow: inset 0 -9px 0 var(--color-border);
+}
+.add-preview-tabs i {
+  left: 50%;
+  bottom: 3px;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border-radius: 50%;
+}
+.add-preview-bar i {
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-text);
+}
+.add-preview-top i {
+  right: 4px;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}

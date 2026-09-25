@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { AppData } from "../api/types";
 import { useBootstrap } from "../api/hooks";
 import { setLook, useLook, type Look } from "../utils/look";
+import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { clearTheme, getStoredTheme, setTheme, type ThemeChoice } from "../utils/theme";
 import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import {
@@ -41,6 +42,14 @@ const LOOKS: { id: Look; name: string; blurb: string }[] = [
     name: "Classic",
     blurb: "Sidebar on the left, Today, Upcoming and projects as lists.",
   },
+];
+
+const ADD_STYLES: { id: AddStyle; name: string; blurb: string }[] = [
+  { id: "corner", name: "Corner button", blurb: "Bottom right. Hold it for task, shopping item or voice." },
+  { id: "tabs", name: "Bottom bar", blurb: "Now, Calendar, +, Shopping, Midva at the bottom; the chips row goes away." },
+  { id: "bar", name: "Add bar", blurb: "An “Add a task…” bar at the bottom, with a mic for voice." },
+  { id: "dot", name: "The dot", blurb: "The logo’s dot as the button. Swipe it left for shopping, up for voice." },
+  { id: "top", name: "At the top", blurb: "The + in the header, as before." },
 ];
 
 /** Saves everything as one JSON file -- the same format the Dropbox storage used. */
@@ -119,6 +128,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 
 function Appearance() {
   const look = useLook();
+  const addStyle = useAddStyle();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
 
@@ -148,6 +158,27 @@ function Appearance() {
             <span className="look-option-text">
               <b>{l.name}</b>
               <span>{l.blurb}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <h4>Add button on the phone</h4>
+      <div className="look-options add-style-options" role="radiogroup" aria-label="Add button on the phone">
+        {ADD_STYLES.map((a) => (
+          <button
+            key={a.id}
+            role="radio"
+            aria-checked={addStyle === a.id}
+            className={`look-option ${addStyle === a.id ? "is-selected" : ""}`}
+            onClick={() => setAddStyle(a.id)}
+          >
+            <span className={`add-preview add-preview-${a.id}`} aria-hidden="true">
+              <i />
+            </span>
+            <span className="look-option-text">
+              <b>{a.name}</b>
+              <span>{a.blurb}</span>
             </span>
           </button>
         ))}

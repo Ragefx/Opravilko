@@ -13,6 +13,7 @@ import "./styles/soca.css";
 import App from "./App";
 import { initTheme } from "./utils/theme";
 import { initLook } from "./utils/look";
+import { initAddStyle } from "./utils/addStyle";
 import { bindQueryClient, installSyncGuards } from "./data/store";
 import { initFirebaseAuth } from "./firebase/auth";
 import { isNativeApp } from "./dropbox/auth";
@@ -21,6 +22,7 @@ import { installBackButton } from "./native/android";
 
 initTheme();
 initLook();
+initAddStyle();
 installSyncGuards();
 installBackButton();
 

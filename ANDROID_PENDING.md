@@ -14,6 +14,11 @@ add buttons, and the compact month calendar.
 
 ## In the code, not in the app yet
 
+- The add button moved to the bottom, in a style you pick in Settings >
+  Appearance: corner button (the default), bottom bar with a raised +, an
+  "Add a task…" bar, or the Opravilko dot (swipe left = shopping, up =
+  voice); "At the top" keeps the old one. Hold any of them for Task /
+  Shopping item / Voice
 - Trip projects: the dates chip sits on its own line under the name, so the
   project's buttons stay top right and their menus open on screen
 - Next trip on Now opens the calendar on the trip's month, with its first day

@@ -25,6 +25,9 @@ import ShortcutsModal from "./ShortcutsModal";
 import CommandPalette from "./CommandPalette";
 import SettingsModal from "./SettingsModal";
 import SocaTopBar from "./SocaTopBar";
+import AddDock from "./AddDock";
+import { useNarrowScreen } from "./MobileCalendar";
+import { useAddStyle } from "../utils/addStyle";
 import { useLook } from "../utils/look";
 import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import SyncIndicator from "./SyncIndicator";
@@ -61,6 +64,9 @@ export default function Layout() {
     return () => window.removeEventListener(OPEN_WEEKLY_REVIEW, open);
   }, []);
   const look = useLook();
+  // On a phone, the add button can sit at the bottom (Settings > Appearance).
+  const addStyle = useAddStyle();
+  const narrow = useNarrowScreen();
   const pinned = useSidebarPinned(look);
   const openSettings = useCallback(() => setSettingsOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
@@ -276,6 +282,16 @@ export default function Layout() {
           </div>
           {look !== "soca" && <SyncIndicator />}
           <Outlet />
+          {narrow && addStyle !== "top" && (
+            <AddDock
+              style={addStyle}
+              onTask={() => setQuickAddOpen(true)}
+              onVoice={() => {
+                setQuickAddPreset({ projectId: location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox", today: false, voice: true });
+                setQuickAddOpen(true);
+              }}
+            />
+          )}
         </main>
         {searchOpen &&
           (look === "soca" ? (

@@ -6012,3 +6012,42 @@ button.sidebar-link {
   text-align: left;
   cursor: pointer;
 }
+/* Your partner's trips: the same band, in a rose of their own. */
+.calendar-cell.is-away-partner {
+  background-color: color-mix(in srgb, #c2477a 7%, transparent);
+  background-image: repeating-linear-gradient(135deg, color-mix(in srgb, #c2477a 9%, transparent) 0 6px, transparent 6px 12px);
+}
+.calendar-away-label.is-partner {
+  background: color-mix(in srgb, #c2477a 16%, var(--color-surface));
+  color: #b03a6c;
+}
+.calendar-away-label.is-partner.is-quiet {
+  background: none;
+}
+.mcal-day.is-away-partner {
+  --away-band: color-mix(in srgb, #c2477a 16%, var(--color-bg));
+}
+.mcal-away-banner.is-partner {
+  background: color-mix(in srgb, #c2477a 12%, var(--color-surface));
+  cursor: default;
+}
+.mcal-away-banner.is-partner b {
+  color: #b03a6c;
+}
+.mcal-away-banner + .mcal-away-banner {
+  margin-top: 0;
+}
+/* A trip carrying on through the day: a thin bar in its colour. */
+.calendar-away-label.is-quiet,
+.calendar-away-label.is-partner.is-quiet {
+  align-self: stretch;
+  height: 5px;
+  min-height: 5px;
+  padding: 0;
+  border-radius: 3px;
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+.calendar-away-label.is-partner.is-quiet {
+  background: color-mix(in srgb, #c2477a 45%, transparent);
+}

@@ -23,7 +23,7 @@ import TaskListView from "./TaskListView";
 import RescheduleButton from "./RescheduleButton";
 import { ChevronIcon } from "./icons";
 import type { AwayPeriod } from "../api/types";
-import { awayOn, awayRange } from "../utils/away";
+import { awayRange, tripName, tripsOf, tripsOn } from "../utils/away";
 import AwaySheet from "./AwaySheet";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
@@ -82,7 +82,7 @@ export default function MobileCalendar({
 
   // Sub-tasks with their own date too (as in Now and Upcoming).
   const open = tasks.filter((t) => !t.completed && t.due);
-  const away = data?.away;
+  const trips = tripsOf(data);
   const [awayEdit, setAwayEdit] = useState<{ period?: AwayPeriod; startDay?: string } | null>(null);
   const byDate = new Map<string, Task[]>();
   for (const t of open) {
@@ -123,7 +123,7 @@ export default function MobileCalendar({
   }
 
   const key = format(selected, "yyyy-MM-dd");
-  const selectedTrip = awayOn(away, key);
+  const selectedTrips = tripsOn(trips, key);
   const showOverdue = isToday(selected);
   const overdue = showOverdue ? open.filter((t) => isOverdue(t.due)) : [];
   const dayTasks = byDate.get(key) ?? [];
@@ -168,7 +168,8 @@ export default function MobileCalendar({
               .slice(0, 3)
               .map((t) => PRIORITY_META[t.priority].color);
             const more = list.length - dots.length;
-            const trip = awayOn(away, k);
+            const dayTrips = tripsOn(trips, k);
+            const trip = dayTrips[0]?.period;
             return (
               <button
                 key={k}
@@ -178,6 +179,7 @@ export default function MobileCalendar({
                   isToday(d) ? "is-today" : "",
                   monthOpen && !isSameMonth(d, cursor) ? "is-outside" : "",
                   trip ? "is-away" : "",
+                  dayTrips.length > 0 && dayTrips.every((t) => !t.mine) ? "is-away-partner" : "",
                   trip && k === trip.start ? "is-away-start" : "",
                   trip && k === trip.end ? "is-away-end" : "",
                 ]
@@ -208,13 +210,17 @@ export default function MobileCalendar({
       <TaskListView
         key={key}
         header={
-          <div className="mcal-list-pad">
-            {selectedTrip && (
-              <button className="mcal-away-banner" onClick={() => setAwayEdit({ period: selectedTrip })}>
-                ✈️ <b>Away · {selectedTrip.title}</b>
-                <span>{awayRange(selectedTrip)}</span>
+          <div className={`mcal-list-pad ${selectedTrips.length ? "has-away" : ""}`}>
+            {selectedTrips.map((t) => (
+              <button
+                key={t.period.id}
+                className={`mcal-away-banner ${t.mine ? "" : "is-partner"}`}
+                onClick={() => t.mine && setAwayEdit({ period: t.period })}
+              >
+                ✈️ <b>Away · {tripName(t)}</b>
+                <span>{awayRange(t.period)}</span>
               </button>
-            )}
+            ))}
           </div>
         }
         title={dayLabel}

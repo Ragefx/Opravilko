@@ -23,7 +23,7 @@ page's Later today card, and the redesigned meals window.
   did nothing in the app before. Also from Settings > Storage
 - Calendar shows sub-tasks with their own date (the phone's calendar too)
 - Away periods (trips): ✈️ in the calendar; a band across the days, a banner
-  on the day's list
+  on the day's list; your partner's trips show too (their name, in rose)
 - Weekly review: overdue and undated tasks one at a time (Today, Tomorrow,
   Weekend, Next week, Keep, Done, Delete); in the menu, and offered on Now at
   the weekend

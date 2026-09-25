@@ -9,7 +9,8 @@ rules_version = '2';
 // - Only a project's owner changes who's in it; anyone else can only leave.
 // - A task can also be shared on its own with your partner (sharedWith).
 // - Labels, filters, calendars and completion history under users/{uid}
-//   are private to that person.
+//   are private to that person (your partner can read only the profile
+//   document itself, for your trips).
 // - userEmails/{email} lets someone who knows your exact email address find
 //   you to share a project with; nobody can list them.
 service cloud.firestore {
@@ -37,6 +38,10 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read, write: if signedIn() && me() == uid;
+      // Your partner (whose profile names you as theirs) can read your profile,
+      // e.g. to show your trips in their calendar. Labels, filters and the rest
+      // below it stay private.
+      allow get: if signedIn() && resource.data.get('partner', {}).get('uid', '') == me();
       match /{rest=**} {
         allow read, write: if signedIn() && me() == uid;
       }

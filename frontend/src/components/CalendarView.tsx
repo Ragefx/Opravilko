@@ -31,7 +31,7 @@ import {
 import type { CalendarEvent, Due, Task } from "../api/types";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import type { AwayPeriod } from "../api/types";
-import { awayOn, awayRange } from "../utils/away";
+import { awayRange, tripName, tripsOf, tripsOn } from "../utils/away";
 import AwaySheet from "./AwaySheet";
 import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
@@ -90,7 +90,7 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   const [dragging, setDragging] = useState<Task | null>(null);
   const updateTask = useUpdateTask();
   const showToast = useToast();
-  const away = useBootstrap().data?.away;
+  const trips = tripsOf(useBootstrap().data);
   const [awayEdit, setAwayEdit] = useState<{ period?: AwayPeriod; startDay?: string } | null>(null);
 
   // A short press still opens the task; dragging starts after a small move
@@ -228,30 +228,43 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
             const shownTasks = dayTasks.slice(0, Math.max(0, limit - shownEvents.length));
             const hidden = dayEvents.length + dayTasks.length - shownEvents.length - shownTasks.length;
             // A trip: a band across its days, named where it starts and at the start of each week.
-            const trip = awayOn(away, key);
-            const tripLabel = trip && (key === trip.start || day.getDay() === 1);
+            const dayTrips = tripsOn(trips, key);
+            const trip = dayTrips[0]?.period;
+            const onlyPartner = dayTrips.length > 0 && dayTrips.every((t) => !t.mine);
             return (
               <DayCell
                 key={key}
                 dateKey={key}
                 className={`calendar-cell ${mode === "month" && !isSameMonth(day, cursor) ? "outside-month" : ""} ${
                   isToday(day) ? "is-today" : ""
-                } ${trip ? "is-away" : ""} ${trip && key === trip.start ? "is-away-start" : ""} ${trip && key === trip.end ? "is-away-end" : ""}`}
+                } ${trip ? "is-away" : ""} ${onlyPartner ? "is-away-partner" : ""} ${trip && key === trip.start ? "is-away-start" : ""} ${
+                  trip && key === trip.end ? "is-away-end" : ""
+                }`}
                 onAdd={() => requestQuickAdd({ projectId, today: false, date: key })}
               >
                 <div className="calendar-cell-header">
                   <span>{format(day, "d")}</span>
                   {mode === "week" && <b className="calendar-cell-weekday">{format(day, "EEE")}</b>}
                 </div>
-                {trip && (
-                  <button
-                    className={`calendar-away-label ${tripLabel ? "" : "is-quiet"}`}
-                    onClick={() => setAwayEdit({ period: trip })}
-                    title={`Away: ${trip.title} · ${awayRange(trip)}`}
-                  >
-                    {tripLabel ? `✈️ ${trip.title}` : "✈️"}
-                  </button>
-                )}
+                {dayTrips.map((t) => {
+                  // Named where it starts and at the start of each week.
+                  const named = key === t.period.start || day.getDay() === 1;
+                  return (
+                    <button
+                      key={t.period.id}
+                      className={`calendar-away-label ${named ? "" : "is-quiet"} ${t.mine ? "" : "is-partner"}`}
+                      onClick={() =>
+                        t.mine
+                          ? setAwayEdit({ period: t.period })
+                          : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}` })
+                      }
+                      title={`Away: ${tripName(t)} · ${awayRange(t.period)}`}
+                      aria-label={`Away: ${tripName(t)}`}
+                    >
+                      {named ? `✈️ ${tripName(t)}` : ""}
+                    </button>
+                  );
+                })}
                 {shownEvents.map((e) => (
                   <div key={e.id} className="calendar-event-chip" style={{ borderLeftColor: e.color }} title={e.title}>
                     {e.start && !e.allDay && <span className="calendar-chip-time">{format(new Date(e.start), "HH:mm")}</span>}

@@ -220,6 +220,8 @@ export interface AppData {
   templates?: TaskTemplate[];
   /** Days you're away (a trip), shown across the calendar; kept with your profile. */
   away?: AwayPeriod[];
+  /** Firebase only: your partner's trips (read from their profile; theirs to change). */
+  partnerAway?: AwayPeriod[];
   /** Firebase only: your id, and your partner for shared tasks. */
   me?: string;
   partner?: Partner | null;

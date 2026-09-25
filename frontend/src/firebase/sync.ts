@@ -125,6 +125,11 @@ export class FirestoreSync {
 
   // Live state, keyed by Firestore document id.
   private profile: DocumentData | null = null;
+  /** Your partner's trips, from their profile (the rules let partners read each other's). */
+  private partnerAway: AwayPeriod[] = [];
+  private partnerWatch: { uid: string; stop: () => void } | null = null;
+  /** Asking again after a refusal (your partner hasn't connected you back yet). */
+  private partnerRetry: { timer: number; delay: number } | null = null;
   private projects = new Map<string, DocumentData>();
   private sectionsByProject = new Map<string, Map<string, DocumentData>>();
   private tasksByProject = new Map<string, Map<string, DocumentData>>();
@@ -192,6 +197,7 @@ export class FirestoreSync {
         doc(db, "users", this.uid),
         (snap) => {
           this.profile = snap.data() ?? null;
+          this.watchPartnerProfile();
           this.scheduleEmit();
           arrived("profile");
         },
@@ -351,6 +357,10 @@ export class FirestoreSync {
   stop() {
     this.unsubs.forEach((u) => u());
     this.unsubs = [];
+    this.partnerWatch?.stop();
+    this.partnerWatch = null;
+    if (this.partnerRetry) window.clearTimeout(this.partnerRetry.timer);
+    this.partnerRetry = null;
     for (const id of [...this.projectUnsubs.keys()]) this.stopProject(id);
     if (this.emitTimer) window.clearTimeout(this.emitTimer);
   }
@@ -411,6 +421,40 @@ export class FirestoreSync {
 
   async clearPartner(): Promise<void> {
     await setDoc(doc(firestore(), "users", this.uid), { partner: deleteField() }, { merge: true });
+  }
+
+  /**
+   * Follows your partner's profile for their trips. Only works once you've
+   * connected each other (their profile names you as their partner);
+   * otherwise it's refused, and there's simply nothing to show.
+   */
+  private watchPartnerProfile() {
+    const uid = (this.profile?.partner as Partner | undefined)?.uid ?? null;
+    if (this.partnerWatch?.uid === uid) return;
+    this.partnerWatch?.stop();
+    this.partnerWatch = null;
+    const retry = this.partnerRetry as { timer: number; delay: number } | null;
+    if (retry) window.clearTimeout(retry.timer);
+    const delay = retry?.delay ?? 30_000;
+    this.partnerRetry = null;
+    this.partnerAway = [];
+    if (!uid) return;
+    const stop = onSnapshot(
+      doc(firestore(), "users", uid),
+      (snap) => {
+        this.partnerAway = (snap.data()?.away as AwayPeriod[] | undefined) ?? [];
+        this.scheduleEmit();
+      },
+      () => {
+        // Refused: they haven't connected you back yet. Ask again later, less often each time.
+        this.partnerAway = [];
+        this.partnerWatch = null;
+        this.scheduleEmit();
+        const timer = window.setTimeout(() => this.watchPartnerProfile(), delay);
+        this.partnerRetry = { timer, delay: Math.min(delay * 2, 10 * 60_000) };
+      }
+    );
+    this.partnerWatch = { uid, stop };
   }
 
   private myProfile(): MemberProfile {
@@ -525,6 +569,7 @@ export class FirestoreSync {
       completionLog,
       templates: (this.profile?.templates as TaskTemplate[] | undefined) ?? [],
       away: (this.profile?.away as AwayPeriod[] | undefined) ?? [],
+      partnerAway: this.partnerAway,
       me: this.uid,
       partner: (this.profile?.partner as Partner | undefined) ?? null,
     };

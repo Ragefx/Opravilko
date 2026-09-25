@@ -3515,8 +3515,8 @@ kbd {
   gap: 6px;
   border: none;
   background: none;
-  padding: 8px 0;
-  font-size: 20px;
+  padding: 6px 0;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-text);
   cursor: pointer;
@@ -3533,8 +3533,8 @@ kbd {
   gap: 2px;
 }
 .mcal-nav button {
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 36px;
+  min-height: 36px;
   border: none;
   background: none;
   border-radius: 10px;
@@ -3566,22 +3566,22 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  min-height: 50px;
-  padding: 4px 0;
+  gap: 2px;
+  min-height: 40px;
+  padding: 3px 0;
   border: none;
   background: none;
   cursor: pointer;
   color: var(--color-text);
 }
 .mcal-num {
-  width: 36px;
-  height: 36px;
+  width: 29px;
+  height: 29px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 15px;
 }
 .mcal-day.is-today .mcal-num {
   color: var(--color-accent);
@@ -5844,14 +5844,14 @@ kbd {
 /* The phone's calendar: a band behind the days away (the day circles sit on it). */
 .mcal-day.is-away {
   --away-band: color-mix(in srgb, var(--color-accent) 16%, var(--color-bg));
-  background: linear-gradient(var(--away-band), var(--away-band)) 0 4px / 100% 36px no-repeat;
+  background: linear-gradient(var(--away-band), var(--away-band)) 0 3px / 100% 29px no-repeat;
 }
 .mcal-day.is-away-start {
-  background-position: 100% 4px;
-  background-size: 50% 36px;
+  background-position: 100% 3px;
+  background-size: 50% 29px;
 }
 .mcal-day.is-away-end {
-  background-size: 50% 36px;
+  background-size: 50% 29px;
 }
 .mcal-day.is-away-start.is-away-end {
   background: none;

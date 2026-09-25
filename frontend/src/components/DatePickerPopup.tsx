@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   addDays,
@@ -62,6 +62,23 @@ export default function DatePickerPopup({
   const [showTime, setShowTime] = useState(false);
   const [showRepeat, setShowRepeat] = useState(false);
   const timeBtnRef = useRef<HTMLButtonElement>(null);
+  const repeatRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // Keep the whole panel on screen on short windows.
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const over = el.getBoundingClientRect().bottom - (window.innerHeight - 8);
+    if (over > 0) el.style.top = `${Math.max(8, anchor.top - over)}px`;
+  }, [anchor.top]);
+  // Near the bottom of the screen the flyout would open off it; lift it up.
+  useLayoutEffect(() => {
+    const el = repeatRef.current;
+    if (!showRepeat || !el) return;
+    el.style.top = "0px";
+    const over = el.getBoundingClientRect().bottom - (window.innerHeight - 8);
+    if (over > 0) el.style.top = `${-over}px`;
+  }, [showRepeat]);
 
   if (!onPick && !task) return null;
 
@@ -130,6 +147,7 @@ export default function DatePickerPopup({
         }}
       />
       <div
+        ref={panelRef}
         className={`dropdown-panel date-picker-panel ${onPick ? "over-modal" : ""}`}
         style={{ top: anchor.top, right: anchor.right }}
         onPointerDown={(e) => e.stopPropagation()}
@@ -234,7 +252,7 @@ export default function DatePickerPopup({
               <RepeatIcon width={14} height={14} /> Repeat
             </button>
             {showRepeat && (
-              <div className="date-picker-repeat-flyout">
+              <div ref={repeatRef} className="date-picker-repeat-flyout">
                 <button onClick={() => setRepeat("daily")}>Every day</button>
                 <button onClick={() => setRepeat("weekdays")}>Every weekday (Mon - Fri)</button>
                 <button onClick={() => setRepeat("weekly")}>Every week on {format(selectedDate || today, "EEEE")}</button>

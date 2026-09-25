@@ -28,7 +28,7 @@ import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
-const OPEN_KEY = "opravilko.calendarMonthOpen";
+const OPEN_KEY = "opravilko.mcalMonth";
 
 /** Narrow screens (a phone): the month grid's cells are too small to read there. */
 const NARROW = "(max-width: 600px)";
@@ -43,11 +43,12 @@ export function useNarrowScreen(): boolean {
   );
 }
 
+/** The whole month shows unless you've folded it down to a week. */
 function storedOpen(): boolean {
   try {
-    return localStorage.getItem(OPEN_KEY) === "1";
+    return localStorage.getItem(OPEN_KEY) !== "0";
   } catch {
-    return false;
+    return true;
   }
 }
 

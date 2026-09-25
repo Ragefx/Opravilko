@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 29,
+    date: "2026-09-25",
+    items: [
+      "Settings > About: the app's version (build number, when it was built) and what every build brought, from the first one.",
+    ],
+  },
+  {
     build: 28,
     date: "2026-09-25",
     items: [

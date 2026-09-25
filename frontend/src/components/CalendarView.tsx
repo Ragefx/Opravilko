@@ -325,7 +325,7 @@ function DayCell({
       ref={setNodeRef}
       className={`${className} ${isOver ? "is-drop-target" : ""}`}
       onClick={(e) => {
-        if ((e.target as HTMLElement).closest(".calendar-task-chip, .calendar-event-chip, .calendar-more")) return;
+        if ((e.target as HTMLElement).closest(".calendar-task-chip, .calendar-event-chip, .calendar-more, .calendar-away-label")) return;
         onAdd();
       }}
     >

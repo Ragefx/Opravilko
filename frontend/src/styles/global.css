@@ -1788,7 +1788,7 @@ kbd {
   transition: opacity 0.12s;
 }
 @media (hover: hover) {
-  .calendar-cell:hover:not(:has(.calendar-task-chip:hover, .calendar-event-chip:hover, .calendar-more:hover))::after {
+  .calendar-cell:hover:not(:has(.calendar-task-chip:hover, .calendar-event-chip:hover, .calendar-more:hover, .calendar-away-label:hover))::after {
     opacity: 0.35;
   }
 }

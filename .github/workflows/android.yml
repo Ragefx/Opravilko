@@ -71,8 +71,10 @@ jobs:
         run: |
           chmod +x gradlew
           if [ -n "$ANDROID_KEYSTORE_FILE" ]; then
-            ./gradlew --no-daemon assembleRelease -PversionCode=${{ github.run_number }}
+            # The APK to install directly; the bundle (.aab) is what Google Play takes.
+            ./gradlew --no-daemon assembleRelease bundleRelease -PversionCode=${{ github.run_number }}
             cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/Opravilko.apk"
+            cp app/build/outputs/bundle/release/app-release.aab "$RUNNER_TEMP/Opravilko.aab"
           else
             ./gradlew --no-daemon assembleDebug -PversionCode=${{ github.run_number }}
             cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/Opravilko.apk"
@@ -92,5 +94,9 @@ jobs:
           make_latest: true
           body: |
             Download **Opravilko.apk** below on your Android phone and open it to install.
+            **Opravilko.aab** is the same build for uploading to Google Play.
             Built from ${{ github.sha }}.
-          files: ${{ runner.temp }}/Opravilko.apk
+          files: |
+            ${{ runner.temp }}/Opravilko.apk
+            ${{ runner.temp }}/Opravilko.aab
+          fail_on_unmatched_files: false

@@ -27,6 +27,15 @@ function timeOf(iso: string): string {
   return format(parseISO(iso), "HH:mm");
 }
 
+/** "in 25 min", "in 3 h", "in 10 h 44 min". */
+function untilText(iso: string): string {
+  const mins = Math.max(1, Math.round((new Date(iso).getTime() - Date.now()) / 60_000));
+  if (mins < 60) return `in ${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m ? `in ${h} h ${m} min` : `in ${h} h`;
+}
+
 /** Moves a due date to tomorrow, keeping its time and repeat rule. */
 function dueTomorrow(due: Due | null): Due {
   const tomorrow = addDays(new Date(), 1);
@@ -82,15 +91,21 @@ export default function Home() {
     const todaysEvents = eventsByDate.get(today) || [];
     const allDay = todaysEvents.filter((e) => e.allDay || !e.start);
 
+    // Timed tasks (still open, so a passed one is late) and the calendar
+    // events not over yet -- finished ones are only clutter.
+    const nowMs = Date.now();
     const clock: ClockEntry[] = [
       ...rest.filter((t) => isDueToday(t.due) && t.due?.datetime).map((t) => ({ kind: "task" as const, at: t.due!.datetime!, task: t })),
-      ...todaysEvents.filter((e) => !e.allDay && e.start).map((e) => ({ kind: "event" as const, at: e.start!, event: e })),
+      ...todaysEvents
+        .filter((e) => !e.allDay && e.start && new Date(e.end || e.start).getTime() > nowMs)
+        .map((e) => ({ kind: "event" as const, at: e.start!, event: e })),
     ];
-    if (clock.length) clock.push({ kind: "now", at: new Date().toISOString() });
-    clock.sort((a, b) => a.at.localeCompare(b.at));
-    // A marker with nothing after it (or before it) says nothing.
-    const nowIdx = clock.findIndex((c) => c.kind === "now");
-    if (nowIdx === clock.length - 1 || nowIdx === 0) clock.splice(nowIdx, 1);
+    clock.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+    // The "now" line goes between what's passed and what's still to come,
+    // only when there's something on both sides.
+    const firstAhead = clock.findIndex((c) => new Date(c.at).getTime() > nowMs);
+    if (firstAhead > 0) clock.splice(firstAhead, 0, { kind: "now", at: new Date(nowMs).toISOString() });
+    const nextUp = clock.find((c) => c.kind !== "now" && new Date(c.at).getTime() > nowMs);
 
     const anytime = rest.filter((t) => !(isDueToday(t.due) && t.due?.datetime));
 
@@ -109,7 +124,7 @@ export default function Home() {
 
     const lateCount = nowTasks.filter((t) => isOverdue(t.due)).length;
     const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));
-    return { nowTasks, focus, clock, allDay, anytime, nextDays, later, lateCount, projectNameById };
+    return { nowTasks, focus, clock, nextUp, allDay, anytime, nextDays, later, lateCount, projectNameById };
   }, [data]);
 
   if (isLoading || !data || !view) return null;
@@ -197,28 +212,45 @@ export default function Home() {
       )}
 
       {view.clock.length > 0 && (
-        <div className="home-group">
+        <div className="home-group home-clock">
           <div className="home-label">
             <span>On the clock</span>
+            {view.nextUp && <span className="home-clock-next">next {untilText(view.nextUp.at)}</span>}
           </div>
-          {view.clock.map((c) =>
-            c.kind === "now" ? (
-              <div key="now" className="home-now-line">
-                <span>{timeOf(c.at)}</span>
-              </div>
-            ) : c.kind === "event" ? (
-              <div key={c.event.id} className="home-event" style={{ ["--event-color" as string]: c.event.color }}>
-                <span className="home-mono">{timeOf(c.at)}</span>
+          {view.clock.map((c) => {
+            if (c.kind === "now") {
+              return (
+                <div key="now" className="home-now-line">
+                  <span>{timeOf(c.at)}</span>
+                </div>
+              );
+            }
+            const start = new Date(c.at).getTime();
+            const end = c.kind === "event" && c.event.end ? new Date(c.event.end).getTime() : start;
+            const now = Date.now();
+            const state = start > now ? "ahead" : end > now ? "on" : "late";
+            const isNext = view.nextUp === c;
+            const when = (
+              <span className={`home-clock-when is-${state} ${isNext ? "is-next" : ""}`}>
+                <span className="home-mono home-clock-time">{timeOf(c.at)}</span>
+                <span className="home-clock-rel">
+                  {state === "ahead" ? untilText(c.at) : state === "on" ? "now" : c.kind === "task" ? "late" : ""}
+                </span>
+              </span>
+            );
+            return c.kind === "event" ? (
+              <div key={c.event.id} className={`home-clock-row home-event ${isNext ? "is-next" : ""}`} style={{ ["--event-color" as string]: c.event.color }}>
+                {when}
                 <span className="home-event-title">{c.event.title}</span>
-                {c.event.end && <span className="home-mono home-event-end">–{timeOf(c.event.end)}</span>}
+                {c.event.end && <span className="home-mono home-event-end">until {timeOf(c.event.end)}</span>}
               </div>
             ) : (
-              <div key={c.task.id} className="home-timed">
-                <span className="home-mono home-time">{timeOf(c.at)}</span>
+              <div key={c.task.id} className={`home-clock-row home-timed ${isNext ? "is-next" : ""}`}>
+                {when}
                 <TaskRow task={c.task} onOpen={setOpenTask} projectLabel={projectLabel(c.task)} />
               </div>
-            )
-          )}
+            );
+          })}
         </div>
       )}
 

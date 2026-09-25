@@ -1568,3 +1568,60 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------- On the clock: what's timed today, and how soon ---------- */
+.home-clock .home-clock-next {
+  color: var(--color-accent);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.home-clock .home-timed,
+.home-clock .home-event {
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+}
+.home-clock-when {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 11px;
+  align-self: start;
+}
+.home-clock .home-event .home-clock-when {
+  padding-top: 0;
+  align-self: center;
+}
+.home-clock-time {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.home-clock-rel {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.home-clock-when.is-next .home-clock-time,
+.home-clock-when.is-on .home-clock-time,
+.home-clock-when.is-next .home-clock-rel,
+.home-clock-when.is-on .home-clock-rel {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.home-clock-when.is-late .home-clock-time,
+.home-clock-when.is-late .home-clock-rel {
+  color: var(--color-danger);
+}
+/* The time is on the left already: no second "Today 19:00" on the task. */
+.home-clock .home-timed .task-meta .due {
+  display: none;
+}
+.home-clock .home-event-title {
+  color: var(--color-text);
+}
+.home-clock .home-now-line {
+  margin: 14px 0 12px 72px;
+}
+.home-clock .home-now-line span {
+  left: -72px;
+  top: -6px;
+}

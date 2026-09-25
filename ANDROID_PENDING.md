@@ -14,7 +14,8 @@ picker.
 
 ## In the code, not in the app yet
 
-- (nothing)
+- Now page, On the clock: finished events hidden, "in 1 h 35 min" / now /
+  late beside each time, the next one highlighted, a countdown in the header
 
 ## Known gaps
 

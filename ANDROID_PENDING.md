@@ -14,7 +14,8 @@ add buttons, and the compact month calendar.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Trip projects: the dates chip sits on its own line under the name, so the
+  project's buttons stay top right and their menus open on screen
 
 ## Known gaps
 

@@ -6089,13 +6089,30 @@ button.sidebar-link {
   font-size: 15px;
   font-weight: 400;
 }
-/* A project that is a trip: its dates and countdown next to the name. */
+/* A project that is a trip: its dates and countdown on a line under the name. */
+.project-topbar {
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.project-topbar > div:nth-child(2) {
+  flex-shrink: 0;
+}
 .project-title-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+  flex: 1 1 0;
   min-width: 0;
+}
+.project-title-row h1 {
+  overflow-wrap: anywhere;
+}
+.project-trip-line {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.project-trip-line .project-trip-chip {
+  max-width: 100%;
 }
 .project-trip-chip {
   display: inline-flex;

@@ -105,15 +105,9 @@ export default function ProjectView() {
   );
 
   const header = (
-    <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
+    <div className="topbar project-topbar" style={{ padding: "0 0 16px", border: "none" }}>
       <div className="project-title-row">
         <h1>{project.name}</h1>
-        {project.trip && (
-          <button className="project-trip-chip" onClick={() => setTripOpen(true)} title="Trip dates">
-            ✈️ {awayRange(project.trip)}
-            {tripWhen(project.trip, todayISO()) && <b>{tripWhen(project.trip, todayISO())}</b>}
-          </button>
-        )}
         {tripOpen && <AwaySheet projectId={project.id} onClose={() => setTripOpen(false)} />}
       </div>
       <div style={{ display: "flex", gap: 8 }}>
@@ -157,6 +151,15 @@ export default function ProjectView() {
           <ProjectMenu project={project} templatesOnly={project.isInboxProject} />
         </span>
       </div>
+      {/* On its own line, so the buttons stay top right next to the name. */}
+      {project.trip && (
+        <div className="project-trip-line">
+          <button className="project-trip-chip" onClick={() => setTripOpen(true)} title="Trip dates">
+            ✈️ {awayRange(project.trip)}
+            {tripWhen(project.trip, todayISO()) && <b>{tripWhen(project.trip, todayISO())}</b>}
+          </button>
+        </div>
+      )}
     </div>
   );
 

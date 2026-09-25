@@ -4,16 +4,14 @@ The Android app carries its own copy of the web code, so website changes reach
 it only when a new APK is built (Actions -> "Android app" -> Run workflow, on
 the work branch). Changes are collected here and built together when asked.
 
-Last build: **build 27** (commit `b5952da`, Sep 25 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-27
+Last build: **build 28** (commit `df6872a`, Sep 25 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-28
 
-Build 27 fixes the bottom add button also opening the date picker.
+Build 28 adds trips by plane or by car (✈️ / 🚗 everywhere a trip shows).
 
 ## In the code, not in the app yet
 
-- Trips by plane or by car: a "Getting there" choice on each trip; the
-  calendar, the day's banner, Next trip on Now and a trip project's chip show
-  ✈️ or 🚗
+(nothing yet)
 
 ## Known gaps
 

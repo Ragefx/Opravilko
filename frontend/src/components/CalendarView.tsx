@@ -246,25 +246,19 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                   <span>{format(day, "d")}</span>
                   {mode === "week" && <b className="calendar-cell-weekday">{format(day, "EEE")}</b>}
                 </div>
-                {dayTrips.map((t) => {
-                  // Named where it starts and at the start of each week.
-                  const named = key === t.period.start || day.getDay() === 1;
-                  return (
-                    <button
-                      key={t.period.id}
-                      className={`calendar-away-label ${named ? "" : "is-quiet"} ${t.mine ? "" : "is-partner"}`}
-                      onClick={() =>
-                        t.mine
-                          ? setAwayEdit({ period: t.period })
-                          : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}` })
-                      }
-                      title={`Away: ${tripName(t)} · ${awayRange(t.period)}`}
-                      aria-label={`Away: ${tripName(t)}`}
-                    >
-                      {named ? `✈️ ${tripName(t)}` : ""}
-                    </button>
-                  );
-                })}
+                {dayTrips.map((t) => (
+                  // Every day of a trip carries its name.
+                  <button
+                    key={t.period.id}
+                    className={`calendar-away-label ${t.mine ? "" : "is-partner"}`}
+                    onClick={() =>
+                      t.mine ? setAwayEdit({ period: t.period }) : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}` })
+                    }
+                    title={`Away: ${tripName(t)} · ${awayRange(t.period)}`}
+                  >
+                    ✈️ {tripName(t)}
+                  </button>
+                ))}
                 {shownEvents.map((e) => (
                   <div key={e.id} className="calendar-event-chip" style={{ borderLeftColor: e.color }} title={e.title}>
                     {e.start && !e.allDay && <span className="calendar-chip-time">{format(new Date(e.start), "HH:mm")}</span>}

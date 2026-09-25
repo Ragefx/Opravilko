@@ -353,7 +353,7 @@ public class QuickAddActivity extends AppCompatActivity {
             row.setPadding(dp(20), 0, dp(28), 0);
             Drawable d = getDrawable((Integer) r[1]);
             if (d != null) {
-                d.setBounds(0, 0, dp(20), dp(20));
+                d.setBounds(0, 0, dp(22), dp(22));
                 row.setCompoundDrawables(d, null, null, null);
                 row.setCompoundDrawablePadding(dp(16));
                 row.setCompoundDrawableTintList(ColorStateList.valueOf(getColor(R.color.widget_text_secondary)));
@@ -583,18 +583,19 @@ public class QuickAddActivity extends AppCompatActivity {
     private TextView chip(String label, Integer icon, int colorRes) {
         TextView chip = new TextView(this);
         chip.setText(label);
-        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         int color = getColor(colorRes);
         chip.setTextColor(color);
         chip.setGravity(Gravity.CENTER_VERTICAL);
         chip.setBackgroundResource(R.drawable.qa_chip_bg);
-        chip.setMinHeight(dp(44));
-        chip.setPadding(dp(12), 0, label.isEmpty() ? dp(4) : dp(14), 0);
+        // Tall, easy targets (like Todoist's card), level with the send button.
+        chip.setMinHeight(dp(52));
+        chip.setPadding(dp(14), 0, label.isEmpty() ? dp(6) : dp(16), 0);
         chip.setSingleLine(true);
         if (icon != null) {
             Drawable d = getDrawable(icon);
             if (d != null) {
-                d.setBounds(0, 0, dp(20), dp(20));
+                d.setBounds(0, 0, dp(22), dp(22));
                 chip.setCompoundDrawables(d, null, null, null);
                 chip.setCompoundDrawablePadding(label.isEmpty() ? 0 : dp(8));
                 chip.setCompoundDrawableTintList(ColorStateList.valueOf(color));

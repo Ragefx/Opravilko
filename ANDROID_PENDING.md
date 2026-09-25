@@ -22,6 +22,7 @@ page's Later today card, and the redesigned meals window.
 - Attachments open in the phone's own viewer (photos, PDFs, documents); they
   did nothing in the app before. Also from Settings > Storage
 - Calendar shows sub-tasks with their own date
+- Widget Add task / shopping card: taller buttons (52 dp chips, 56 dp send)
 
 ## Known gaps
 

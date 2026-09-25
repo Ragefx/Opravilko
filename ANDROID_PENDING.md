@@ -4,17 +4,14 @@ The Android app carries its own copy of the web code, so website changes reach
 it only when a new APK is built (Actions -> "Android app" -> Run workflow, on
 the work branch). Changes are collected here and built together when asked.
 
-Last build: **build 26** (commit `ebac72b`, Sep 25 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-26
+Last build: **build 27** (commit `b5952da`, Sep 25 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-27
 
-Build 26 adds the add button at the bottom (four styles in Settings >
-Appearance), Next trip opening the calendar on the trip's month, and the trip
-chip on its own line under a trip project's name.
+Build 27 fixes the bottom add button also opening the date picker.
 
 ## In the code, not in the app yet
 
-- Bottom add button: a tap no longer also opens the date picker (the tap's
-  click landed on the Add task card's date chip)
+(nothing yet)
 
 ## Known gaps
 

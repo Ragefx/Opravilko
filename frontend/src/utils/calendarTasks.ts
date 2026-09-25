@@ -15,3 +15,12 @@ export function openThisMonth(data: AppData): number {
   const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   return calendarTasks(data).filter((t) => t.due?.date.startsWith(ym)).length;
 }
+
+/** The day a calendar opens on: `?day=YYYY-MM-DD` when given (a trip), else today. */
+export function dayFromParam(day: string | null): Date {
+  if (day && /^\d{4}-\d{2}-\d{2}$/.test(day)) {
+    const [y, m, d] = day.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date();
+}

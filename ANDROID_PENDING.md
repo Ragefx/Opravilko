@@ -16,6 +16,8 @@ add buttons, and the compact month calendar.
 
 - Trip projects: the dates chip sits on its own line under the name, so the
   project's buttons stay top right and their menus open on screen
+- Next trip on Now opens the calendar on the trip's month, with its first day
+  picked
 
 ## Known gaps
 

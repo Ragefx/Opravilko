@@ -1,4 +1,6 @@
 import { useRef, useState, useSyncExternalStore } from "react";
+import { useSearchParams } from "react-router-dom";
+import { dayFromParam } from "../utils/calendarTasks";
 import {
   addDays,
   addMonths,
@@ -67,8 +69,9 @@ export default function MobileCalendar({
   eventsByDate?: Map<string, CalendarEvent[]>;
 }) {
   const { data } = useBootstrap();
-  const [selected, setSelected] = useState(() => new Date());
-  const [cursor, setCursor] = useState(() => new Date());
+  const [searchParams] = useSearchParams();
+  const [selected, setSelected] = useState(() => dayFromParam(searchParams.get("day")));
+  const [cursor, setCursor] = useState(() => dayFromParam(searchParams.get("day")));
   const [monthOpen, setMonthOpenState] = useState(storedOpen);
   const touch = useRef<{ x: number; y: number } | null>(null);
 

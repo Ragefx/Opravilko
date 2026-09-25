@@ -232,7 +232,12 @@ export default function Home() {
       {nextTrip && (
         <button
           className="home-trip"
-          onClick={() => navigate(nextTrip.trip.projectId ? projectRoute(nextTrip.trip.projectId) : "/app/calendar")}
+          onClick={() => {
+            // Open the calendar on the trip's month (today's, if it's already under way).
+            const start = nextTrip.trip.period.start;
+            const day = start > todayISO() ? start : todayISO();
+            navigate(nextTrip.trip.projectId ? projectRoute(nextTrip.trip.projectId) : `/app/calendar?day=${day}`);
+          }}
         >
           <span aria-hidden="true">✈️</span>
           <span className="home-trip-text">

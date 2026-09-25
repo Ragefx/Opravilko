@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
+import { dayFromParam } from "../utils/calendarTasks";
 import { isNativeApp } from "../dropbox/auth";
 import {
   addDays,
@@ -85,7 +87,8 @@ export default function CalendarView(props: CalendarProps) {
 
 function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   const [mode, setModeState] = useState<Mode>(storedMode);
-  const [cursor, setCursor] = useState(() => new Date());
+  const [searchParams] = useSearchParams();
+  const [cursor, setCursor] = useState(() => dayFromParam(searchParams.get("day")));
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dragging, setDragging] = useState<Task | null>(null);

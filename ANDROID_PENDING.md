@@ -15,6 +15,8 @@ page's Later today card, and the redesigned meals window.
 
 - Remind me at the shop: the place search opened behind the sheet (now it
   replaces it while you pick); "Add another Hofer" for more of the same shop
+- Meals: tap ingredients you already have to leave them off (remembered per
+  meal); the widget's meal picker has tick boxes for the same
 
 ## Known gaps
 

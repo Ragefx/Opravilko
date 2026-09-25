@@ -870,21 +870,38 @@ public class QuickAddActivity extends AppCompatActivity {
         stepper.addView(plus);
         body.addView(stepper);
 
-        TextView list = new TextView(this);
-        list.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        list.setTextColor(getColor(R.color.widget_text_secondary));
-        list.setPadding(0, dp(12), 0, 0);
-        list.setLineSpacing(dp(3), 1f);
-        body.addView(list);
+        TextView hint = new TextView(this);
+        hint.setText("Untick what you already have at home.");
+        hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        hint.setTextColor(getColor(R.color.widget_text_secondary));
+        hint.setPadding(0, dp(10), 0, dp(2));
+        body.addView(hint);
+
+        // One tick box per ingredient: ticked ones go on the list.
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        android.widget.ScrollView listScroll = new android.widget.ScrollView(this);
+        listScroll.addView(list);
+        body.addView(listScroll, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, Math.round(getResources().getDisplayMetrics().heightPixels * 0.4f)));
+        JSONArray ings = meal.optJSONArray("ingredients");
+        final boolean[] skip = new boolean[ings != null ? ings.length() : 0];
 
         Runnable refresh = () -> {
             count.setText(servings[0] + (servings[0] == 1 ? " serving" : " servings"));
-            StringBuilder b = new StringBuilder();
-            for (ShoppingLogic.Item item : ingredients(meal, servings[0])) {
-                if (b.length() > 0) b.append("\n");
-                b.append("\u2022 ").append(ShoppingLogic.itemTitle(item));
+            list.removeAllViews();
+            List<ShoppingLogic.Item> items = ingredients(meal, servings[0]);
+            for (int i = 0; i < items.size() && i < skip.length; i++) {
+                final int n = i;
+                android.widget.CheckBox box = new android.widget.CheckBox(this);
+                box.setText(ShoppingLogic.itemTitle(items.get(i)));
+                box.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                box.setTextColor(getColor(R.color.widget_text));
+                box.setButtonTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.widget_accent)));
+                box.setChecked(!skip[n]);
+                box.setOnCheckedChangeListener((b, checked) -> skip[n] = !checked);
+                list.addView(box);
             }
-            list.setText(b);
         };
         minus.setOnClickListener(v -> {
             if (servings[0] > 1) servings[0]--;
@@ -899,7 +916,7 @@ public class QuickAddActivity extends AppCompatActivity {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(meal.optString("emoji", "") + "  " + meal.optString("name"))
                 .setView(body)
-                .setPositiveButton("Add to list", (d, w) -> addMeal(meal, servings[0]))
+                .setPositiveButton("Add to list", (d, w) -> addMeal(meal, servings[0], skip))
                 .setNegativeButton("Back", (d, w) -> pickMeal())
                 .show();
     }
@@ -916,13 +933,16 @@ public class QuickAddActivity extends AppCompatActivity {
         return out;
     }
 
-    private void addMeal(JSONObject meal, int servings) {
+    private void addMeal(JSONObject meal, int servings, boolean[] skip) {
         JSONObject data = store.getSnapshot();
         if (data == null) return;
         String name = meal.optString("name");
         try {
             String at = TaskLogic.nowIso();
-            List<ShoppingLogic.Item> items = ingredients(meal, servings);
+            List<ShoppingLogic.Item> all = ingredients(meal, servings);
+            // Leave out what's already at home.
+            List<ShoppingLogic.Item> items = new ArrayList<>();
+            for (int i = 0; i < all.size(); i++) if (i >= skip.length || !skip[i]) items.add(all.get(i));
             for (ShoppingLogic.Item item : items) {
                 String id = TaskLogic.newId();
                 queue(data, new JSONObject().put("id", "shop@" + id).put("op", WidgetStore.OP_SHOP)

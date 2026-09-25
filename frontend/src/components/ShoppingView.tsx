@@ -556,12 +556,12 @@ export default function ShoppingView({
           saved={listMeals ?? customMeals()}
           onSave={saveMeals}
           onClose={() => setMealsOpen(false)}
-          onAdd={async (meal, servings) => {
+          onAdd={async (meal, servings, have) => {
             setMealsOpen(false);
-            const list = meal.ingredients.map((ing) => scaled(ing, servings));
+            const list = meal.ingredients.filter((_, n) => !have.has(n)).map((ing) => scaled(ing, servings));
             const undo = await addItems(list, meal.name);
             showToast({
-              message: `Added ${list.length} ingredients for ${meal.name} (${servings})`,
+              message: `Added ${list.length} ingredients for ${meal.name} (${servings})${have.size ? `, ${have.size} at home` : ""}`,
               actionLabel: "Undo",
               onAction: undo,
             });
@@ -844,6 +844,28 @@ function ItemEditor({
   );
 }
 
+const MEAL_HAVE_KEY = "opravilko.mealHave";
+
+/** What you had at home last time you added this meal (ingredient names), as indices. */
+function rememberedHave(meal: Meal): Set<number> {
+  try {
+    const names: string[] = JSON.parse(localStorage.getItem(MEAL_HAVE_KEY) || "{}")[meal.id] ?? [];
+    return new Set(meal.ingredients.flatMap((ing, n) => (names.includes(ing.name) ? [n] : [])));
+  } catch {
+    return new Set();
+  }
+}
+
+function rememberHave(meal: Meal, have: Set<number>): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(MEAL_HAVE_KEY) || "{}");
+    all[meal.id] = meal.ingredients.filter((_, n) => have.has(n)).map((ing) => ing.name);
+    localStorage.setItem(MEAL_HAVE_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Food icons to pick from for a meal. */
 const MEAL_EMOJI = [
   "🍝", "🍕", "🍔", "🌭", "🌮", "🌯", "🥙", "🥪", "🥗", "🥘", "🍲", "🫕", "🍛", "🍜", "🍣", "🍱",
@@ -862,9 +884,12 @@ function MealPicker({
   saved: Meal[];
   onSave: (meals: Meal[]) => void;
   onClose: () => void;
-  onAdd: (meal: Meal, servings: number) => void;
+  /** Adds the meal's ingredients, leaving out the ones you already have (by index). */
+  onAdd: (meal: Meal, servings: number, have: Set<number>) => void;
 }) {
   const [mine, setMine] = useState<Meal[]>(saved);
+  // Ingredients you already have at home: left off the list (remembered per meal).
+  const [have, setHave] = useState<Set<number>>(new Set());
   const [picked, setPicked] = useState<Meal | null>(null);
   const [servings, setServings] = useState(2);
   const [form, setForm] = useState<{ id?: string; emoji: string; name: string; servings: number; text: string } | null>(null);
@@ -889,6 +914,7 @@ function MealPicker({
 
   function open(meal: Meal | null) {
     setPicked(meal);
+    setHave(meal ? rememberedHave(meal) : new Set());
     setChoosingIcon(false);
     setConfirmDelete(false);
   }
@@ -1044,13 +1070,32 @@ function MealPicker({
                 +
               </button>
             </div>
-            <ul className="meal-ingredients">
+            <p className="meal-have-hint">Tap what you already have at home: it's left off the list.</p>
+            <ul className="meal-ingredients is-pickable">
               {picked.ingredients.map((ing, n) => {
                 const it = scaled(ing, servings);
+                const home = have.has(n);
                 return (
                   <li key={n}>
-                    <span>{it.name}</span>
-                    <span>{formatAmount(it.amount, it.unit)}</span>
+                    <button
+                      type="button"
+                      className={`meal-ing ${home ? "is-home" : ""}`}
+                      aria-pressed={!home}
+                      onClick={() =>
+                        setHave((h) => {
+                          const next = new Set(h);
+                          if (next.has(n)) next.delete(n);
+                          else next.add(n);
+                          return next;
+                        })
+                      }
+                    >
+                      <span className="meal-ing-check" aria-hidden="true">
+                        {!home && <CheckIcon width={14} height={14} />}
+                      </span>
+                      <span className="meal-ing-name">{it.name}</span>
+                      <span className="meal-ing-amount">{home ? "at home" : formatAmount(it.amount, it.unit)}</span>
+                    </button>
                   </li>
                 );
               })}
@@ -1080,8 +1125,16 @@ function MealPicker({
                   </button>
                 )}
               </div>
-              <button className="btn btn-primary" onClick={() => onAdd(picked, servings)}>
-                Add {servings === 1 ? "for 1" : `for ${servings}`}
+              <button
+                className="btn btn-primary"
+                disabled={have.size >= picked.ingredients.length}
+                onClick={() => {
+                  rememberHave(picked, have);
+                  onAdd(picked, servings, have);
+                }}
+              >
+                {have.size ? `Add ${picked.ingredients.length - have.size} of ${picked.ingredients.length}` : "Add"}
+                {servings === 1 ? " for 1" : ` for ${servings}`}
               </button>
             </div>
           </>

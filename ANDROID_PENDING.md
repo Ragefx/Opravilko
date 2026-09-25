@@ -18,4 +18,6 @@ page's Later today card, and the redesigned meals window.
 
 ## Known gaps
 
-- (none known)
+- Arrival reminders (tasks and shops) need Location on. Android drops the
+  watched places when Location is switched off; they're set up again only
+  on a restart or when the app next pushes its data (left as is for now)

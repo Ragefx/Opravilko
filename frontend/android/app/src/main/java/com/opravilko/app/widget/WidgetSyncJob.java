@@ -167,9 +167,12 @@ public class WidgetSyncJob extends JobService {
                     continue;
                 }
                 if (WidgetStore.OP_EDIT.equals(p.optString("op"))) {
-                    firestore.updateTask(p.optString("taskId"), new JSONObject()
+                    JSONObject fields = new JSONObject()
                             .put("content", p.optString("content")).put("description", p.optString("description"))
-                            .put("updatedAt", p.optString("at")));
+                            .put("updatedAt", p.optString("at"));
+                    if (p.has("priority")) fields.put("priority", p.optInt("priority", 1));
+                    if (p.optBoolean("dueSet")) fields.put("due", p.has("due") && !p.isNull("due") ? p.get("due") : JSONObject.NULL);
+                    firestore.updateTask(p.optString("taskId"), fields);
                     processed.add(p.optString("id"));
                     continue;
                 }

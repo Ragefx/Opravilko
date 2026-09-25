@@ -116,6 +116,15 @@
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false" />
 
+        <!-- A task tapped in the widget: opened over the home screen. -->
+        <activity
+            android:name=".widget.TaskItemActivity"
+            android:theme="@style/WidgetQuickAddTheme"
+            android:excludeFromRecents="true"
+            android:taskAffinity="com.opravilko.app.taskitem"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false" />
+
         <activity
             android:name=".widget.WidgetConfigActivity"
             android:theme="@style/WidgetConfigTheme"

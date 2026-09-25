@@ -191,7 +191,12 @@ public class TaskWidgetService extends RemoteViewsService {
         private RemoteViews shopView(Item item) {
             TaskLogic.Row row = item.row;
             RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_shop_row);
-            rv.setTextViewText(R.id.shop_name, item.shopName);
+            int phase = CompleteAnimation.phase(row.id);
+            rv.setImageViewResource(R.id.shop_check,
+                    phase != CompleteAnimation.NONE ? CompleteAnimation.doneDrawable(row.priority) : R.drawable.widget_check_1);
+            rv.setTextViewText(R.id.shop_name, phase != CompleteAnimation.NONE ? CompleteAnimation.struck(item.shopName) : item.shopName);
+            rv.setTextColor(R.id.shop_name, context.getColor(phase != CompleteAnimation.NONE ? R.color.widget_text_muted : R.color.widget_text));
+            rv.setFloat(R.id.shop_root, "setAlpha", phase == CompleteAnimation.FADING ? CompleteAnimation.FADED_ALPHA : 1f);
             rv.setViewVisibility(R.id.shop_amount, item.shopAmount != null ? View.VISIBLE : View.GONE);
             if (item.shopAmount != null) rv.setTextViewText(R.id.shop_amount, item.shopAmount);
             rv.setTextViewText(R.id.shop_icon, item.shopIcon);
@@ -230,8 +235,13 @@ public class TaskWidgetService extends RemoteViewsService {
         private RemoteViews taskView(Item item) {
             TaskLogic.Row row = item.row;
             RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_task_row);
-            rv.setImageViewResource(R.id.row_check, checkDrawable(row.priority));
-            rv.setTextViewText(R.id.row_title, row.content);
+            // Being ticked off: the filled circle and a line through the name, then faded.
+            int phase = CompleteAnimation.phase(row.id);
+            rv.setImageViewResource(R.id.row_check,
+                    phase != CompleteAnimation.NONE ? CompleteAnimation.doneDrawable(row.priority) : checkDrawable(row.priority));
+            rv.setTextViewText(R.id.row_title, phase != CompleteAnimation.NONE ? CompleteAnimation.struck(row.content) : row.content);
+            rv.setTextColor(R.id.row_title, context.getColor(phase != CompleteAnimation.NONE ? R.color.widget_text_muted : R.color.widget_text));
+            rv.setFloat(R.id.row_root, "setAlpha", phase == CompleteAnimation.FADING ? CompleteAnimation.FADED_ALPHA : 1f);
 
             // The date next to the calendar icon: Today, Yesterday, Tomorrow or "27 Sep" (and a time).
             String due = row.dueDate != null ? TaskLogic.dueLabel(row) : null;
@@ -267,10 +277,11 @@ public class TaskWidgetService extends RemoteViewsService {
             if (row.recurring) complete.putExtra(TaskWidgetProvider.EXTRA_DUE_DATE, row.dueDate);
             rv.setOnClickFillInIntent(R.id.row_check, complete);
 
+            // Tapping the task opens its card right over the home screen (name,
+            // notes, date, priority), without the app; the card can open the app.
             Intent open = new Intent();
-            open.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_OPEN);
+            open.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_EDIT_TASK);
             open.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
-            open.putExtra(TaskWidgetProvider.EXTRA_PROJECT_ID, row.projectId);
             rv.setOnClickFillInIntent(R.id.row_root, open);
             return rv;
         }

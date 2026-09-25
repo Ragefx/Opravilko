@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A ticked circle in the widget (priority 1), shown while the task leaves the list. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/widget_check_none" />
+            <size android:width="21dp" android:height="21dp" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/ic_w_tick" android:gravity="center" android:width="13dp" android:height="13dp" />
+</layer-list>

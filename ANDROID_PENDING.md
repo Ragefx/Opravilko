@@ -16,6 +16,10 @@ picker.
 
 - Now page: a small "Later today" card under the focus task (the next few
   timed tasks and events, with how soon) instead of the On the clock block
+- Widget: ticking a task off plays the app's effect in steps (filled tick
+  circle and a line through the name, then a fade, then it's gone)
+- Widget: tapping a task opens its card over the home screen (name, notes,
+  date, priority; Save, Delete, Open in app), without opening the app
 
 ## Known gaps
 

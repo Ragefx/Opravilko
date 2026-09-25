@@ -28,6 +28,8 @@ public class TaskWidgetProvider extends AppWidgetProvider {
     static final String ACTION_OPEN = "open";
     /** A shopping item tapped in the widget: its own editing card, over the home screen. */
     static final String ACTION_EDIT_ITEM = "edit_item";
+    /** A task tapped in the widget: opened over the home screen (TaskItemActivity). */
+    static final String ACTION_EDIT_TASK = "editTask";
     static final String ACTION_RESCHEDULE = "reschedule";
 
     /** Refresh from Dropbox on the periodic update if the copy is older than this. */

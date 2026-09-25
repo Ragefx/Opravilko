@@ -83,7 +83,7 @@ public final class WidgetStore {
     public static final String OP_SHOP = "shop";
     /** A file attached in the widget's Add task card (Google sign-in only): {taskId, attId, path, name, type}. */
     public static final String OP_ATTACH = "attach";
-    /** An item (task) edited in the widget: {taskId, content, description}. */
+    /** An item (task) edited in the widget: {taskId, content, description, priority?, due? (with dueSet)}. */
     public static final String OP_EDIT = "edit";
     /** An item (task) deleted in the widget: {taskId}. */
     public static final String OP_DELETE = "delete";
@@ -98,6 +98,8 @@ public final class WidgetStore {
             try {
                 t.put("content", p.optString("content")).put("description", p.optString("description"))
                         .put("updatedAt", p.optString("at"));
+                if (p.has("priority")) t.put("priority", p.optInt("priority", 1));
+                if (p.optBoolean("dueSet")) t.put("due", p.has("due") && !p.isNull("due") ? p.get("due") : JSONObject.NULL);
             } catch (JSONException e) {
                 return false;
             }

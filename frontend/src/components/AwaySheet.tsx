@@ -6,6 +6,7 @@ import type { AwayPeriod, TripDates } from "../api/types";
 import Select from "./Select";
 import TimeInput from "./TimeInput";
 import { XIcon } from "./icons";
+import { tripIcon } from "../utils/away";
 
 /**
  * A trip: its days, and optionally leaving / back times and a note. It's
@@ -40,6 +41,7 @@ export default function AwaySheet({
   const [startTime, setStartTime] = useState(from.startTime ?? "");
   const [endTime, setEndTime] = useState(from.endTime ?? "");
   const [note, setNote] = useState(from.note ?? "");
+  const [by, setBy] = useState<"plane" | "car">(from.by ?? "plane");
   const all = data?.away ?? [];
   const valid = Boolean(start && end);
   const editing = Boolean(period || existingProject?.trip);
@@ -53,6 +55,7 @@ export default function AwaySheet({
       ...(startTime ? { startTime } : {}),
       ...(endTime ? { endTime } : {}),
       ...(note.trim() ? { note: note.trim() } : {}),
+      by,
     };
   }
 
@@ -87,7 +90,9 @@ export default function AwaySheet({
     <div className="modal-backdrop over-modal" onClick={onClose}>
       <div className="modal away-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Trip">
         <div className="settings-head">
-          <h3>✈️ {editing ? "Trip" : "New trip"}</h3>
+          <h3>
+            {tripIcon({ by })} {editing ? "Trip" : "New trip"}
+          </h3>
           <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
             <XIcon width={18} height={18} />
           </button>
@@ -127,6 +132,23 @@ export default function AwaySheet({
             />
           </label>
         )}
+        <div className="away-field">
+          <span>Getting there</span>
+          <div className="segmented away-by" role="radiogroup" aria-label="Getting there">
+            {(["plane", "car"] as const).map((b) => (
+              <button
+                key={b}
+                type="button"
+                role="radio"
+                aria-checked={by === b}
+                className={by === b ? "active" : ""}
+                onClick={() => setBy(b)}
+              >
+                {b === "plane" ? "✈️ Plane" : "🚗 Car"}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="away-dates">
           <label className="away-field">
             <span>Leaving</span>
@@ -155,7 +177,7 @@ export default function AwaySheet({
         </div>
         <label className="away-field">
           <span>Note (optional)</span>
-          <input id="away-note" value={note} placeholder="e.g. flight JU 386, Terminal 1" onChange={(e) => setNote(e.target.value)} />
+          <input id="away-note" value={note} placeholder={by === "car" ? "e.g. via Graz, charge in Maribor" : "e.g. flight JU 386, Terminal 1"} onChange={(e) => setNote(e.target.value)} />
         </label>
         <div className="modal-actions away-actions">
           {editing && (

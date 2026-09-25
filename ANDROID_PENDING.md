@@ -11,7 +11,9 @@ Build 27 fixes the bottom add button also opening the date picker.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Trips by plane or by car: a "Getting there" choice on each trip; the
+  calendar, the day's banner, Next trip on Now and a trip project's chip show
+  ✈️ or 🚗
 
 ## Known gaps
 

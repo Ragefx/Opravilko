@@ -10,7 +10,7 @@ import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
 import { isDueToday, isOverdue, todayISO } from "../utils/date";
 import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "../components/WeeklyReview";
-import { awayRange, projectRoute, tripsOf, tripWhen } from "../utils/away";
+import { awayRange, projectRoute, tripsOf, tripWhen, tripIcon } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 
 type Pane = "now" | "next" | "later";
@@ -239,7 +239,7 @@ export default function Home() {
             navigate(nextTrip.trip.projectId ? projectRoute(nextTrip.trip.projectId) : `/app/calendar?day=${day}`);
           }}
         >
-          <span aria-hidden="true">✈️</span>
+          <span aria-hidden="true">{tripIcon(nextTrip.trip.period)}</span>
           <span className="home-trip-text">
             <b>
               {nextTrip.when === "now" ? "Away · " : "Next trip · "}

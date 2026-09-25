@@ -1,6 +1,11 @@
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import type { AwayPeriod, Project, TripDates } from "../api/types";
 
+/** A trip's icon: 🚗 by car, ✈️ otherwise. */
+export function tripIcon(a?: { by?: "plane" | "car" }): string {
+  return a?.by === "car" ? "🚗" : "✈️";
+}
+
 /** The away period covering this day ("yyyy-MM-dd"), if any. */
 export function awayOn(away: AwayPeriod[] | undefined, day: string): AwayPeriod | undefined {
   return away?.find((a) => a.start <= day && day <= a.end);

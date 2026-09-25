@@ -140,6 +140,8 @@ export interface AwayPeriod {
   endTime?: string;
   /** Anything else worth knowing: "JU 386, Terminal 1". */
   note?: string;
+  /** How you're getting there: shown as ✈️ or 🚗 (a plane unless set). */
+  by?: "plane" | "car";
 }
 
 export interface TaskLocation {

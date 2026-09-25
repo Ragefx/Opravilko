@@ -25,7 +25,7 @@ import TaskListView from "./TaskListView";
 import RescheduleButton from "./RescheduleButton";
 import { ChevronIcon } from "./icons";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, projectRoute, tripName, tripsOf, tripsOn } from "../utils/away";
+import { awayRange, projectRoute, tripName, tripsOf, tripsOn, tripIcon } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 
@@ -223,7 +223,7 @@ export default function MobileCalendar({
                 className={`mcal-away-banner ${t.mine ? "" : "is-partner"}`}
                 onClick={() => (t.projectId ? navigate(projectRoute(t.projectId)) : t.mine && setAwayEdit({ period: t.period }))}
               >
-                ✈️
+                {tripIcon(t.period)}
                 <span className="mcal-away-text">
                   <b>Away · {tripName(t)}</b>
                   <span>

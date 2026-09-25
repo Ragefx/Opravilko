@@ -14,7 +14,7 @@ import { DEFAULT_DISPLAY_OPTIONS, filterTasks, groupKeyFor, sortTasks, type Disp
 import { setStoredDisplayOptions, withStoredDisplayOptions } from "../utils/displayOptionsStorage";
 import { groupEventsByDate } from "../utils/calendarSync";
 import AwaySheet from "../components/AwaySheet";
-import { awayRange, tripWhen } from "../utils/away";
+import { awayRange, tripWhen, tripIcon } from "../utils/away";
 import { todayISO } from "../utils/date";
 
 export default function ProjectView() {
@@ -155,7 +155,7 @@ export default function ProjectView() {
       {project.trip && (
         <div className="project-trip-line">
           <button className="project-trip-chip" onClick={() => setTripOpen(true)} title="Trip dates">
-            ✈️ {awayRange(project.trip)}
+            {tripIcon(project.trip)} {awayRange(project.trip)}
             {tripWhen(project.trip, todayISO()) && <b>{tripWhen(project.trip, todayISO())}</b>}
           </button>
         </div>

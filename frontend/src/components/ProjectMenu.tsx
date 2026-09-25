@@ -1,3 +1,4 @@
+import { tripIcon } from "../utils/away";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -70,7 +71,7 @@ export default function ProjectMenu({
           { label: "Edit project", icon: <EditIcon width={14} height={14} />, onClick: () => setModal("edit") },
           { label: "Add sub-project", icon: <PlusIcon width={14} height={14} />, onClick: () => setModal("sub") },
           ...(p.viewStyle !== "shopping"
-            ? [{ label: p.trip ? "✈️ Trip dates…" : "✈️ It's a trip…", icon: <CalendarIcon width={14} height={14} />, onClick: () => setTripOpen(true) }]
+            ? [{ label: p.trip ? `${tripIcon(p.trip)} Trip dates…` : "✈️ It's a trip…", icon: <CalendarIcon width={14} height={14} />, onClick: () => setTripOpen(true) }]
             : []),
           ...(usingFirebase()
             ? [{ label: "Share…", icon: <ShareIcon width={14} height={14} />, onClick: () => setSharing(true) }]

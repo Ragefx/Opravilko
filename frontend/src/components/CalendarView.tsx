@@ -33,7 +33,7 @@ import {
 import type { CalendarEvent, Due, Task } from "../api/types";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, awayTimeOn, projectRoute, tripName, tripsOf, tripsOn } from "../utils/away";
+import { awayRange, awayTimeOn, projectRoute, tripName, tripsOf, tripsOn, tripIcon } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 import { PRIORITY_META } from "../utils/priority";
@@ -268,7 +268,7 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                     }
                     title={`Away: ${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}`}
                   >
-                    ✈️ {tripName(t)}
+                    {tripIcon(t.period)} {tripName(t)}
                     {time && <span className="calendar-away-time">{time}</span>}
                   </button>
                   );

@@ -6445,3 +6445,10 @@ button.sidebar-link {
   height: 9px;
   border-radius: 3px;
 }
+/* A trip: by plane or by car. */
+.away-by {
+  justify-self: start;
+}
+.away-by button {
+  font-weight: 600;
+}

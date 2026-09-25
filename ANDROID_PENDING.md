@@ -14,8 +14,8 @@ picker.
 
 ## In the code, not in the app yet
 
-- Now page, On the clock: finished events hidden, "in 1 h 35 min" / now /
-  late beside each time, the next one highlighted, a countdown in the header
+- Now page: a small "Later today" card under the focus task (the next few
+  timed tasks and events, with how soon) instead of the On the clock block
 
 ## Known gaps
 

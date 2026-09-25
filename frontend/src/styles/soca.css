@@ -1569,59 +1569,98 @@
   white-space: nowrap;
 }
 
-/* ---------- On the clock: what's timed today, and how soon ---------- */
-.home-clock .home-clock-next {
-  color: var(--color-accent);
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: 600;
-}
-.home-clock .home-timed,
-.home-clock .home-event {
-  grid-template-columns: 72px minmax(0, 1fr) auto;
-}
-.home-clock-when {
-  display: flex;
-  flex-direction: column;
+/* ---------- Later today: the timed things still ahead, in a small card ---------- */
+.home-agenda {
+  display: grid;
   gap: 2px;
-  padding-top: 11px;
-  align-self: start;
+  margin-top: -4px;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
 }
-.home-clock .home-event .home-clock-when {
-  padding-top: 0;
-  align-self: center;
+.home-agenda-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
-.home-clock-time {
-  font-size: 13px;
+.home-agenda-row {
+  display: grid;
+  grid-template-columns: 46px 14px minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 6px;
+  margin: 0 -6px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+}
+button.home-agenda-row {
+  cursor: pointer;
+}
+button.home-agenda-row:hover {
+  background: var(--color-hover);
+}
+.home-agenda-time {
+  font: 600 12px var(--font-mono);
   color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
-.home-clock-rel {
-  font-size: 11px;
+.home-agenda-kind {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.home-agenda-kind.is-event {
+  border-radius: 1px;
+  transform: rotate(45deg);
+  background: var(--color-text-muted);
+}
+.home-agenda-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-agenda-rel {
+  font: 500 11px var(--font-mono);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
-.home-clock-when.is-next .home-clock-time,
-.home-clock-when.is-on .home-clock-time,
-.home-clock-when.is-next .home-clock-rel,
-.home-clock-when.is-on .home-clock-rel {
+.home-agenda-row.is-first .home-agenda-time,
+.home-agenda-row.is-first .home-agenda-rel,
+.home-agenda-row.is-on .home-agenda-time,
+.home-agenda-row.is-on .home-agenda-rel {
   color: var(--color-accent);
-  font-weight: 600;
 }
-.home-clock-when.is-late .home-clock-time,
-.home-clock-when.is-late .home-clock-rel {
+.home-agenda-row.is-late .home-agenda-time,
+.home-agenda-row.is-late .home-agenda-rel {
   color: var(--color-danger);
 }
-/* The time is on the left already: no second "Today 19:00" on the task. */
-.home-clock .home-timed .task-meta .due {
-  display: none;
+.home-agenda-row.is-late .home-agenda-kind {
+  background: var(--color-danger);
 }
-.home-clock .home-event-title {
-  color: var(--color-text);
+.home-agenda-more {
+  justify-self: start;
+  margin-top: 2px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
 }
-.home-clock .home-now-line {
-  margin: 14px 0 12px 72px;
-}
-.home-clock .home-now-line span {
-  left: -72px;
-  top: -6px;
+.home-agenda-more:hover {
+  color: var(--color-accent);
 }

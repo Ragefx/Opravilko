@@ -27,13 +27,16 @@ function timeOf(iso: string): string {
   return format(parseISO(iso), "HH:mm");
 }
 
-/** "in 25 min", "in 3 h", "in 10 h 44 min". */
+/** How many timed things the Later today card lists before "+ N more". */
+const AGENDA_ROWS = 3;
+
+/** "in 25 min", "in 1 h 35 min", "in 4 h" (minutes dropped from 3 h on). */
 function untilText(iso: string): string {
   const mins = Math.max(1, Math.round((new Date(iso).getTime() - Date.now()) / 60_000));
   if (mins < 60) return `in ${mins} min`;
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return m ? `in ${h} h ${m} min` : `in ${h} h`;
+  return m && h < 3 ? `in ${h} h ${m} min` : `in ${h} h`;
 }
 
 /** Moves a due date to tomorrow, keeping its time and repeat rule. */
@@ -53,14 +56,13 @@ function dueTomorrow(due: Due | null): Due {
 
 type ClockEntry =
   | { kind: "task"; at: string; task: Task }
-  | { kind: "event"; at: string; event: CalendarEvent }
-  | { kind: "now"; at: string };
+  | { kind: "event"; at: string; event: CalendarEvent };
 
 /**
  * The Soča home: Now (today and anything late), Next (the rest of this week)
  * and Later (everything further out). Now leads with one focus task, then
- * splits into what's on the clock -- timed tasks and calendar events, with a
- * "now" marker -- and what can happen any time today.
+ * shows a small Later today card -- timed tasks and calendar events not over
+ * yet, with how soon -- and then what can happen any time today.
  */
 export default function Home() {
   const { data, isLoading } = useBootstrap();
@@ -71,6 +73,7 @@ export default function Home() {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [focusTask, setFocusTask] = useState<Task | null>(null);
   const [pane, setPane] = useState<Pane>("now");
+  const [agendaOpen, setAgendaOpen] = useState(false);
   // Re-render each minute so the "now" marker and late labels stay current.
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -101,11 +104,6 @@ export default function Home() {
         .map((e) => ({ kind: "event" as const, at: e.start!, event: e })),
     ];
     clock.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
-    // The "now" line goes between what's passed and what's still to come,
-    // only when there's something on both sides.
-    const firstAhead = clock.findIndex((c) => new Date(c.at).getTime() > nowMs);
-    if (firstAhead > 0) clock.splice(firstAhead, 0, { kind: "now", at: new Date(nowMs).toISOString() });
-    const nextUp = clock.find((c) => c.kind !== "now" && new Date(c.at).getTime() > nowMs);
 
     const anytime = rest.filter((t) => !(isDueToday(t.due) && t.due?.datetime));
 
@@ -124,7 +122,7 @@ export default function Home() {
 
     const lateCount = nowTasks.filter((t) => isOverdue(t.due)).length;
     const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));
-    return { nowTasks, focus, clock, nextUp, allDay, anytime, nextDays, later, lateCount, projectNameById };
+    return { nowTasks, focus, clock, allDay, anytime, nextDays, later, lateCount, projectNameById };
   }, [data]);
 
   if (isLoading || !data || !view) return null;
@@ -156,6 +154,10 @@ export default function Home() {
   }
 
   const focus = view.focus;
+  // The next thing still to come: highlighted in Later today.
+  const firstAhead = view.clock.find(
+    (c) => (c.kind === "event" && c.event.end ? new Date(c.event.end) : new Date(c.at)).getTime() > Date.now()
+  );
   const lateDays = focus && isOverdue(focus.due) ? Math.round((parseISO(todayISO()).getTime() - parseISO(focus.due!.date).getTime()) / 86_400_000) : 0;
 
   const nowPane = (
@@ -212,52 +214,53 @@ export default function Home() {
       )}
 
       {view.clock.length > 0 && (
-        <div className="home-group home-clock">
-          <div className="home-label">
-            <span>On the clock</span>
-            {view.nextUp && <span className="home-clock-next">next {untilText(view.nextUp.at)}</span>}
+        <div className="home-agenda">
+          <div className="home-agenda-head">
+            <span>Later today</span>
+            <span>{view.clock.length}</span>
           </div>
-          {view.clock.map((c) => {
-            if (c.kind === "now") {
-              return (
-                <div key="now" className="home-now-line">
-                  <span>{timeOf(c.at)}</span>
-                </div>
-              );
-            }
+          {(agendaOpen ? view.clock : view.clock.slice(0, AGENDA_ROWS)).map((c) => {
             const start = new Date(c.at).getTime();
             const end = c.kind === "event" && c.event.end ? new Date(c.event.end).getTime() : start;
             const now = Date.now();
             const state = start > now ? "ahead" : end > now ? "on" : "late";
-            const isNext = view.nextUp === c;
-            const when = (
-              <span className={`home-clock-when is-${state} ${isNext ? "is-next" : ""}`}>
-                <span className="home-mono home-clock-time">{timeOf(c.at)}</span>
-                <span className="home-clock-rel">
-                  {state === "ahead" ? untilText(c.at) : state === "on" ? "now" : c.kind === "task" ? "late" : ""}
-                </span>
-              </span>
+            const title = c.kind === "event" ? c.event.title : c.task.content;
+            const rel = state === "ahead" ? untilText(c.at) : state === "on" ? "now" : "late";
+            const body = (
+              <>
+                <span className="home-agenda-time">{timeOf(c.at)}</span>
+                <span
+                  className={`home-agenda-kind ${c.kind === "event" ? "is-event" : ""}`}
+                  style={c.kind === "event" && c.event.color ? { background: c.event.color } : undefined}
+                  aria-hidden="true"
+                />
+                <span className="home-agenda-title">{title}</span>
+                <span className="home-agenda-rel">{rel}</span>
+              </>
             );
-            return c.kind === "event" ? (
-              <div key={c.event.id} className={`home-clock-row home-event ${isNext ? "is-next" : ""}`} style={{ ["--event-color" as string]: c.event.color }}>
-                {when}
-                <span className="home-event-title">{c.event.title}</span>
-                {c.event.end && <span className="home-mono home-event-end">until {timeOf(c.event.end)}</span>}
-              </div>
+            const cls = `home-agenda-row is-${state} ${c === firstAhead ? "is-first" : ""}`;
+            return c.kind === "task" ? (
+              <button key={c.task.id} type="button" className={cls} onClick={() => setOpenTask(c.task)}>
+                {body}
+              </button>
             ) : (
-              <div key={c.task.id} className={`home-clock-row home-timed ${isNext ? "is-next" : ""}`}>
-                {when}
-                <TaskRow task={c.task} onOpen={setOpenTask} projectLabel={projectLabel(c.task)} />
+              <div key={c.event.id} className={cls}>
+                {body}
               </div>
             );
           })}
+          {view.clock.length > AGENDA_ROWS && (
+            <button type="button" className="home-agenda-more" onClick={() => setAgendaOpen((o) => !o)}>
+              {agendaOpen ? "Show less" : `+ ${view.clock.length - AGENDA_ROWS} more`}
+            </button>
+          )}
         </div>
       )}
 
       {view.anytime.length > 0 && (
         <div className="home-group">
           <div className="home-label">
-            <span>{view.clock.length > 0 ? "Any time today" : "Also today"}</span>
+            <span>Also today</span>
             <span>{view.anytime.length}</span>
           </div>
           {view.anytime.map((t) => (

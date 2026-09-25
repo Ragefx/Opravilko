@@ -295,6 +295,7 @@ public class WidgetSyncJob extends JobService {
             }
 
             JSONObject old = store.getSnapshot();
+            JSONObject before = old != null ? new JSONObject(old.toString()) : null;
             JSONObject data = old != null ? old : new JSONObject().put("version", 1);
             data.put("projects", sortByOrder(projects));
             data.put("tasks", tasks);
@@ -303,6 +304,7 @@ public class WidgetSyncJob extends JobService {
             store.setLastRefresh(System.currentTimeMillis());
             store.setFirebaseFull(started);
             TaskWidgetProvider.updateAll(context);
+            PartnerNotifier.check(context, store, before, store.getSnapshot());
         } catch (JSONException e) {
             throw new IOException(e.getMessage());
         }
@@ -319,6 +321,7 @@ public class WidgetSyncJob extends JobService {
             String myInbox, long started) throws IOException, JSONException {
         String since = store.getFirebaseSince();
         JSONObject data = store.getSnapshot();
+        JSONObject before = new JSONObject(data.toString());
         JSONArray known = data.optJSONArray("projects");
         Set<String> knownIds = new HashSet<>();
         if (known != null) for (int i = 0; i < known.length(); i++) knownIds.add(known.getJSONObject(i).optString("id"));
@@ -373,6 +376,7 @@ public class WidgetSyncJob extends JobService {
         store.setLastRefresh(System.currentTimeMillis());
         store.setFirebaseSince(started);
         TaskWidgetProvider.updateAll(context);
+        if (changed.length() > 0) PartnerNotifier.check(context, store, before, store.getSnapshot());
         return true;
     }
 

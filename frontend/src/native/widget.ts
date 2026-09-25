@@ -6,7 +6,7 @@ import { usingFirebase } from "../data/store";
 import { firebaseConfig } from "../firebase/config";
 import { currentUser } from "../firebase/auth";
 import { categoryGuide } from "../utils/shopping";
-import { remindersEnabled } from "../utils/notifications";
+import { partnerNewsEnabled, remindersEnabled } from "../utils/notifications";
 
 /** The native side lives in android/.../widget/WidgetBridgePlugin.java. */
 interface OpravilkoWidgetPlugin {
@@ -19,6 +19,8 @@ interface OpravilkoWidgetPlugin {
     firebase?: { apiKey: string; projectId: string; refreshToken: string; uid: string } | null;
     /** Reminders switched on on this phone (they're scheduled natively from `data`). */
     reminders?: boolean;
+    /** Notify about your partner's changes, noticed by the background sync. */
+    partnerNews?: boolean;
   }): Promise<void>;
   clear(): Promise<void>;
   addListener(event: "dataChanged", listener: () => void): Promise<PluginListenerHandle>;
@@ -96,6 +98,7 @@ export function pushWidgetData(data: AppData): void {
     dataPath: DATA_PATH,
     firebase,
     reminders: remindersEnabled(),
+    partnerNews: partnerNewsEnabled(),
   }).catch(() => {});
 }
 
@@ -149,6 +152,8 @@ export function parseWidgetLink(url: string): { route: string } | { quickAdd: Qu
   if (view === "shopping" && (q.get("add") === "1" || q.get("voice") === "1")) {
     return { route: `/app/shopping?${q.get("voice") === "1" ? "voice" : "add"}=1` };
   }
+  // Arriving at a shop: the list, showing that shop's items.
+  if (view === "shopping" && q.get("shop")) return { route: `/app/shopping?shop=${encodeURIComponent(q.get("shop")!)}` };
   if (["today", "upcoming", "inbox", "calendar", "shopping"].includes(view)) return { route: `/app/${view}` };
   if (view.startsWith("project:")) {
     const id = view.slice("project:".length);

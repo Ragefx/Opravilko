@@ -13,13 +13,16 @@ import {
   useUpdateTask,
 } from "../api/hooks";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
-import { makeDue } from "../utils/date";
+import { makeDue, todayISO } from "../utils/date";
 import {
+  type RecurrenceRule,
   type RepeatPreset,
   describeRecurrence,
   dueWithPreset,
+  nextOccurrence,
   parseRecurrenceString,
   presetForRule,
+  serializeRecurrence,
 } from "../utils/recurrence";
 import RepeatSelect from "./RepeatSelect";
 import {
@@ -160,7 +163,22 @@ export default function TaskDetail({
       updateTask.mutate({ id: task.id, due: { ...task.due, isRecurring: false, rrule: undefined } });
       return;
     }
-    updateTask.mutate({ id: task.id, due: dueWithPreset({ ...task.due, isRecurring: false }, preset) });
+    // Switching between repeats keeps "count from when it's done".
+    const afterDone = Boolean(parseRecurrenceString(task.due.rrule)?.afterDone);
+    updateTask.mutate({ id: task.id, due: dueWithPreset({ ...task.due, isRecurring: false }, preset, afterDone) });
+  }
+
+  /** "Count from when it's done" on or off for a repeating task. */
+  function setAfterDone(on: boolean) {
+    const rule = task.due?.isRecurring ? parseRecurrenceString(task.due.rrule) : null;
+    if (!task.due || !rule) return;
+    const next: RecurrenceRule = { ...rule };
+    if (on) next.afterDone = true;
+    else delete next.afterDone;
+    updateTask.mutate({
+      id: task.id,
+      due: { ...task.due, rrule: serializeRecurrence(next), string: describeRecurrence(next) },
+    });
   }
 
   function addLabel() {
@@ -502,6 +520,24 @@ export default function TaskDetail({
                     <RepeatSelect value={currentRepeat} onChange={setRecurrence} customLabel={describeRecurrence(currentRule)} />
                   </span>
                 </PropRow>
+              )}
+              {currentRule && (
+                <label className="td-row td-row-switch">
+                  <span className="td-row-icon" />
+                  <span className="td-row-body">
+                    <span className="td-row-value">Count from when it's done</span>
+                    <span className="td-row-sub">
+                      Done today → next{" "}
+                      {task.due && format(parseISO(nextOccurrence(task.due.date, currentRule, todayISO())), "d MMM")}
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="td-switch"
+                    checked={Boolean(currentRule.afterDone)}
+                    onChange={(e) => setAfterDone(e.target.checked)}
+                  />
+                </label>
               )}
 
               <PropRow

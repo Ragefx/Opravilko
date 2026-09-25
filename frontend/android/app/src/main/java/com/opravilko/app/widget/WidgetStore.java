@@ -33,6 +33,7 @@ public final class WidgetStore {
     private static final String KEY_FB_ID_EXPIRES = "fbIdExpires";
     private static final String KEY_REMINDERS = "remindersOn";
     private static final String KEY_FB_FULL_AT = "fbFullAt";
+    private static final String KEY_PARTNER_NEWS = "partnerNews";
     private static final String KEY_FB_SINCE = "fbSince";
 
     public static final String VIEW_TODAY = "today";
@@ -276,6 +277,11 @@ public final class WidgetStore {
     public boolean remindersEnabled() { return prefs.getBoolean(KEY_REMINDERS, true); }
 
     public void setRemindersEnabled(boolean on) { prefs.edit().putBoolean(KEY_REMINDERS, on).apply(); }
+
+    /** Notifications about your partner's changes (Settings in the app); on unless switched off. */
+    public boolean partnerNewsEnabled() { return prefs.getBoolean(KEY_PARTNER_NEWS, true); }
+
+    public void setPartnerNewsEnabled(boolean on) { prefs.edit().putBoolean(KEY_PARTNER_NEWS, on).apply(); }
 
     /**
      * Firebase: when the tasks were last read in full (or handed over by the

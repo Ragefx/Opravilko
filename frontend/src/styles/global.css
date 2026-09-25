@@ -5419,3 +5419,35 @@ kbd {
   height: 22px;
   line-height: 22px;
 }
+
+/* ---------- Shopping: shops pinned on the map (app) ---------- */
+.shopping-places-link {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  margin: 18px auto 0;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.shopping-places-link:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.shop-places-store + .shop-places-store {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+.shop-places-name {
+  margin: 4px 12px 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}

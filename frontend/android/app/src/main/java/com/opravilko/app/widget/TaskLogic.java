@@ -139,8 +139,16 @@ public final class TaskLogic {
     static void advanceRecurringDue(JSONObject due, JSONObject rule) throws JSONException {
         String date = due.getString("date");
         String today = todayStr();
-        String next = advanceDate(date, rule);
-        while (next.compareTo(today) < 0) next = advanceDate(next, rule);
+        String next;
+        if (rule.optBoolean("afterDone")) {
+            // "After done": counted from today, pinned days don't apply.
+            JSONObject plain = new JSONObject().put("freq", rule.optString("freq"));
+            if (rule.has("interval")) plain.put("interval", rule.optInt("interval"));
+            next = advanceDate(today, plain);
+        } else {
+            next = advanceDate(date, rule);
+            while (next.compareTo(today) < 0) next = advanceDate(next, rule);
+        }
         if (due.has("datetime") && !due.isNull("datetime")) {
             Date dt = parseIso(due.optString("datetime"));
             if (dt != null) {

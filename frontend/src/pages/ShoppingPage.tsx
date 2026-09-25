@@ -15,14 +15,15 @@ export default function ShoppingPage() {
   const list = data ? shoppingListOf(data.projects) : undefined;
   const creating = useRef(false);
   // From the widget: ?add=1 focuses the add box, ?voice=1 starts listening,
-  // ?open=<id> opens that item.
+  // ?open=<id> opens that item, ?shop=<name> (arriving there) shows that shop's items.
   const [params, setParams] = useSearchParams();
-  const [start, setStart] = useState<{ n: number; mode: "add" | "voice" | "open"; id?: string } | null>(null);
+  const [start, setStart] = useState<{ n: number; mode: "add" | "voice" | "open" | "shop"; id?: string } | null>(null);
   useEffect(() => {
     const open = params.get("open");
-    const mode = open ? "open" : params.get("voice") === "1" ? "voice" : params.get("add") === "1" ? "add" : null;
+    const shop = params.get("shop");
+    const mode = open ? "open" : shop ? "shop" : params.get("voice") === "1" ? "voice" : params.get("add") === "1" ? "add" : null;
     if (!mode || !data) return;
-    setStart((s) => ({ n: (s?.n ?? 0) + 1, mode, id: open ?? undefined }));
+    setStart((s) => ({ n: (s?.n ?? 0) + 1, mode, id: open ?? shop ?? undefined }));
     setParams({}, { replace: true });
   }, [params, setParams, data]);
 

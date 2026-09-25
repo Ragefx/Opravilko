@@ -16,6 +16,7 @@ import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 import com.opravilko.app.MainActivity;
 import com.opravilko.app.R;
+import com.opravilko.app.widget.ShopArrival;
 
 import org.json.JSONObject;
 
@@ -35,7 +36,10 @@ public class GeofenceReceiver extends BroadcastReceiver {
         ensureChannel(context);
         for (Geofence fence : fences) {
             JSONObject place = Geofences.find(context, fence.getRequestId());
-            if (place != null) notify(context, place);
+            if (place == null) continue;
+            // One of your shops: what's on the list for it.
+            if ("shop".equals(place.optString("kind"))) ShopArrival.notify(context, place.optString("shop"));
+            else notify(context, place);
         }
     }
 

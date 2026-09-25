@@ -35,9 +35,12 @@ public class WidgetBridgePlugin extends Plugin {
             return;
         }
         WidgetStore store = new WidgetStore(getContext());
+        JSONObject before = store.getSnapshot();
         try {
             JSONObject data = WidgetSyncJob.stripForWidget(new JSONObject(json));
             store.saveSnapshot(data, true);
+            // Data arriving while the app is in the background: your partner's changes.
+            PartnerNotifier.check(getContext(), store, before, data);
         } catch (JSONException e) {
             call.reject("Invalid data", e);
             return;
@@ -55,6 +58,8 @@ public class WidgetBridgePlugin extends Plugin {
         }
         Boolean reminders = call.getBoolean("reminders");
         if (reminders != null) store.setRemindersEnabled(reminders);
+        Boolean partnerNews = call.getBoolean("partnerNews");
+        if (partnerNews != null) store.setPartnerNewsEnabled(partnerNews);
         store.setLastRefresh(System.currentTimeMillis());
         // Redraws the widget and reschedules the reminders from the new data.
         TaskWidgetProvider.updateAll(getContext());
@@ -63,6 +68,18 @@ public class WidgetBridgePlugin extends Plugin {
         // And the widget keeps itself current from now on (every ~15 minutes).
         if (store.hasAuth()) WidgetSyncJob.schedulePeriodic(getContext());
         call.resolve();
+    }
+
+    @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        PartnerNotifier.appInForeground = true;
+    }
+
+    @Override
+    protected void handleOnPause() {
+        super.handleOnPause();
+        PartnerNotifier.appInForeground = false;
     }
 
     /** Signed out: forget the data and credentials. */

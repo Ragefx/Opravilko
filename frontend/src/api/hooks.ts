@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tansta
 import { nanoid } from "nanoid";
 import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } from "date-fns";
 import { fetchAppData, scheduleSave } from "../data/store";
-import { advanceDate, parseRecurrenceString } from "../utils/recurrence";
+import { nextOccurrence, parseRecurrenceString } from "../utils/recurrence";
 import { todayISO } from "../utils/date";
 import { defaultReminders } from "../utils/reminders";
 import { fetchIcsText, NoConnectionError } from "../utils/calendarSync";
@@ -208,9 +208,7 @@ export function useUpdateTask() {
 function advanceRecurringDue(due: Due): Due | null {
   const rule = parseRecurrenceString(due.rrule);
   if (!rule) return null;
-  const today = todayISO();
-  let next = advanceDate(due.date, rule);
-  while (next < today) next = advanceDate(next, rule);
+  const next = nextOccurrence(due.date, rule, todayISO());
   let datetime = due.datetime;
   if (datetime) {
     const dayShift = differenceInCalendarDays(parseISO(next), parseISO(due.date));

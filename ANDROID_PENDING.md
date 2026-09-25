@@ -20,6 +20,13 @@ picker.
   circle and a line through the name, then a fade, then it's gone)
 - Widget: tapping a task opens its card over the home screen (name, notes,
   date, priority; Save, Delete, Open in app), without opening the app
+- Notifications about your partner's changes ("Maruša added to Shopping:
+  milk, eggs", "... finished", "... bought"), from the background sync; not
+  while you're in the app; switch in Settings > Sharing
+- Remind me at the shop: pin your SPAR/Hofer/Lidl (Shopping, bottom); on
+  arrival a notification lists that shop's items (plus any-shop ones) and
+  opens the list filtered to it (needs location "Allow all the time")
+- Widget ticks honour "Count from when it's done" repeats
 
 ## Known gaps
 

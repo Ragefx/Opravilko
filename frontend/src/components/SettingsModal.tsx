@@ -6,7 +6,13 @@ import { useBootstrap } from "../api/hooks";
 import { setLook, useLook, type Look } from "../utils/look";
 import { clearTheme, getStoredTheme, setTheme, type ThemeChoice } from "../utils/theme";
 import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
-import { disableReminders, enableReminders, remindersEnabled } from "../utils/notifications";
+import {
+  disableReminders,
+  enableReminders,
+  partnerNewsEnabled,
+  remindersEnabled,
+  setPartnerNewsEnabled,
+} from "../utils/notifications";
 import { ALLDAY_DEFAULT_OPTIONS, TIMED_DEFAULT_OPTIONS, reminderDefaults, setReminderDefault } from "../utils/reminders";
 import Select from "./Select";
 import { activeSession, endSession, usingFirebase } from "../data/store";
@@ -196,6 +202,34 @@ function Sharing() {
       ) : (
         <PartnerConnect compact />
       )}
+      {data.partner && isNativeApp && <PartnerNewsSwitch name={data.partner.name.split(" ")[0]} />}
+    </>
+  );
+}
+
+/** App only: notifications when your partner adds to or ticks off your shared lists. */
+function PartnerNewsSwitch({ name }: { name: string }) {
+  const [on, setOn] = useState(partnerNewsEnabled);
+  return (
+    <>
+      <h4>Notifications</h4>
+      <label className="settings-switch">
+        <input
+          type="checkbox"
+          checked={on}
+          onChange={(e) => {
+            setPartnerNewsEnabled(e.target.checked);
+            setOn(e.target.checked);
+          }}
+        />
+        <span>
+          <b>Tell me what {name} adds or finishes</b>
+          <span>
+            For example "{name} added to Shopping: milk, eggs". Checked about every 15 minutes, also with the app
+            closed; not while you're in the app.
+          </span>
+        </span>
+      </label>
     </>
   );
 }

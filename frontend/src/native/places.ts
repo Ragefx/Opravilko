@@ -3,6 +3,7 @@ import type { Task } from "../api/types";
 import { isNativeApp } from "../dropbox/auth";
 import { currentUser } from "../firebase/auth";
 import { usingFirebase } from "../data/store";
+import { shopPlaces } from "../utils/shopPlaces";
 
 /**
  * Arrival reminders ("Remind me when I arrive" on a task's location), Android
@@ -23,6 +24,9 @@ interface Place {
   projectId: string;
   lat: number;
   lng: number;
+  /** A shop from the shopping list (arriving shows its items), not a task. */
+  kind?: "shop";
+  shop?: string;
 }
 
 interface OpravilkoPlacesPlugin {
@@ -56,9 +60,27 @@ export function openLocationSettings(): void {
 
 let lastSent = "";
 
-/** Tells Android which places to watch: open tasks with my arrival reminder on. */
+let lastTasks: Task[] = [];
+
+/** Watches again after your shops' places changed. */
+export function resyncArrivalPlaces(): void {
+  syncArrivalPlaces(lastTasks);
+}
+
+/** Tells Android which places to watch: open tasks with my arrival reminder on, and my shops. */
 export function syncArrivalPlaces(tasks: Task[]): void {
+  lastTasks = tasks;
   if (!isNativeApp) return;
+  const shops: Place[] = shopPlaces().map((p) => ({
+    id: `shop:${p.id}`,
+    kind: "shop",
+    shop: p.shop,
+    title: p.shop,
+    placeName: p.name,
+    projectId: "",
+    lat: p.lat,
+    lng: p.lng,
+  }));
   const places: Place[] = tasks
     .filter((t) => !t.completed && t.location && remindsMe(t))
     .map((t) => ({
@@ -68,7 +90,8 @@ export function syncArrivalPlaces(tasks: Task[]): void {
       projectId: t.projectId,
       lat: t.location!.lat,
       lng: t.location!.lng,
-    }));
+    }))
+    .concat(shops);
   const key = JSON.stringify(places);
   if (key === lastSent) return;
   lastSent = key;

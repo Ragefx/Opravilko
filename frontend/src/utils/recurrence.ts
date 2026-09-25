@@ -11,6 +11,8 @@ export interface RecurrenceRule {
   byDay?: number[]; // 0=Sun..6=Sat, used by weekly to pin to specific day(s)
   /** monthly: always on this day of the month (clamped to short months); -1 = the last day. */
   byMonthDay?: number;
+  /** The next date counts from when it's done, not from its date ("every 3 months after done"). */
+  afterDone?: boolean;
 }
 
 const WEEKDAY_NAMES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -35,6 +37,11 @@ function ordinal(n: number): string {
 
 export function describeRecurrence(rule: RecurrenceRule | null): string {
   if (!rule) return "";
+  if (rule.afterDone) {
+    // Pinned days don't apply when counting from the day it's done.
+    const base = describeRecurrence({ freq: rule.freq, interval: rule.interval });
+    return base ? `${base} after done` : "";
+  }
   const n = Math.max(1, rule.interval || 1);
   switch (rule.freq) {
     case "daily":
@@ -105,6 +112,17 @@ export function advanceDate(dateStr: string, rule: RecurrenceRule): string {
   return format(d, "yyyy-MM-dd");
 }
 
+/**
+ * The next date for a repeating task done on `doneOn`: counted from its own
+ * date (skipping missed ones), or with afterDone from the day it was done.
+ */
+export function nextOccurrence(dateStr: string, rule: RecurrenceRule, doneOn: string): string {
+  if (rule.afterDone) return advanceDate(doneOn, { freq: rule.freq, interval: rule.interval });
+  let next = advanceDate(dateStr, rule);
+  while (next < doneOn) next = advanceDate(next, rule);
+  return next;
+}
+
 /** Picks the first date (today or later) that satisfies the rule, as "yyyy-MM-dd". */
 export function initialDueForRecurrence(rule: RecurrenceRule): string {
   let d = startOfDay(new Date());
@@ -163,8 +181,8 @@ export function presetForRule(rule: RecurrenceRule | null): RepeatPreset | null 
 }
 
 /** A due date made to repeat with a picker choice, starting from its own date (or today). */
-export function dueWithPreset(due: Due | null, preset: RepeatPreset): Due {
-  const rule = ruleForPreset(preset, due?.date ?? format(new Date(), "yyyy-MM-dd"));
+export function dueWithPreset(due: Due | null, preset: RepeatPreset, afterDone = false): Due {
+  const rule: RecurrenceRule = { ...ruleForPreset(preset, due?.date ?? format(new Date(), "yyyy-MM-dd")), ...(afterDone ? { afterDone } : {}) };
   let date = due?.date ?? initialDueForRecurrence(rule);
   if (rule.freq === "monthly" && rule.byMonthDay === -1) date = format(endOfMonth(parseISO(date)), "yyyy-MM-dd");
   if (rule.freq === "weekdays" && !due) date = initialDueForRecurrence(rule);

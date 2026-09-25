@@ -135,3 +135,27 @@ export function clearOldAppReminders(): void {
   }
   void cancelScheduledReminders().catch(() => {});
 }
+
+// ---- Android app: your partner's changes ----
+
+const PARTNER_NEWS_KEY = "opravilko.partnerNews";
+
+/** Notify on this phone when your partner adds to or ticks off shared lists (on unless switched off). */
+export function partnerNewsEnabled(): boolean {
+  try {
+    return localStorage.getItem(PARTNER_NEWS_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
+
+export function setPartnerNewsEnabled(on: boolean): void {
+  try {
+    if (on) localStorage.removeItem(PARTNER_NEWS_KEY);
+    else localStorage.setItem(PARTNER_NEWS_KEY, "0");
+  } catch {
+    /* ignore */
+  }
+  window.dispatchEvent(new Event(REMINDERS_CHANGED));
+  if (on && isNativeApp) void LocalNotifications.requestPermissions().catch(() => {});
+}

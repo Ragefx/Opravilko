@@ -27,9 +27,11 @@ import {
 } from "../utils/shopping";
 import { useToast } from "./ToastProvider";
 import MicButton from "./MicButton";
-import { CheckIcon, TrashIcon, XIcon } from "./icons";
+import { CheckIcon, MapPinIcon, TrashIcon, XIcon } from "./icons";
 import { useSwipeActions } from "./useSwipeActions";
 import PickSheet from "./PickSheet";
+import ShopPlacesSheet from "./ShopPlacesSheet";
+import { appUi } from "../utils/appUi";
 
 /**
  * An item's extras live in its description, one per line: "za: Palačinke,
@@ -136,7 +138,7 @@ export default function ShoppingView({
   projectId: string;
   header: ReactNode;
   /** From the widget: focus the add box, or start voice input (a new `n` each time). */
-  start?: { n: number; mode: "add" | "voice" | "open"; id?: string } | null;
+  start?: { n: number; mode: "add" | "voice" | "open" | "shop"; id?: string } | null;
 }) {
   const addInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -242,6 +244,12 @@ export default function ShoppingView({
       /* ignore */
     }
   }
+  // Arriving at a shop (its notification): show that shop's items.
+  useEffect(() => {
+    if (start?.mode === "shop" && start.id) setShopFilter(start.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start]);
+  const [placesOpen, setPlacesOpen] = useState(false);
   const openCount = (shop: string) => open.filter((t) => (storeOf(t) ?? ANY_SHOP) === shop).length;
   // The shops with something to buy (and the one picked, even when it's done).
   const filterShops = [
@@ -489,7 +497,16 @@ export default function ShoppingView({
             </ul>
           </>
         )}
+
+        {appUi && stores.length > 0 && (
+          <button type="button" className="shopping-places-link" onClick={() => setPlacesOpen(true)}>
+            <MapPinIcon width={16} height={16} />
+            Remind me at the shop
+          </button>
+        )}
       </div>
+
+      {placesOpen && <ShopPlacesSheet stores={stores} onClose={() => setPlacesOpen(false)} />}
 
       {editing && (
         <ItemEditor

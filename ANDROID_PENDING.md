@@ -4,25 +4,16 @@ The Android app carries its own copy of the web code, so website changes reach
 it only when a new APK is built (Actions -> "Android app" -> Run workflow, on
 the work branch). Changes are collected here and built together when asked.
 
-Last build: **build 25** (commit `1f682cb`, Sep 25 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-25
+Last build: **build 26** (commit `ebac72b`, Sep 25 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-26
 
-Build 25 adds trips (shared with your partner, with times, notes and trip
-projects), the weekly review, 24-hour times, sub-tasks in the calendar,
-attachments opening on the phone, a shop per meal ingredient, taller widget
-add buttons, and the compact month calendar.
+Build 26 adds the add button at the bottom (four styles in Settings >
+Appearance), Next trip opening the calendar on the trip's month, and the trip
+chip on its own line under a trip project's name.
 
 ## In the code, not in the app yet
 
-- The add button moved to the bottom, in a style you pick in Settings >
-  Appearance: corner button (the default), bottom bar with a raised +, an
-  "Add a task…" bar, or the Opravilko dot (swipe left = shopping, up =
-  voice); "At the top" keeps the old one. Hold any of them for Task /
-  Shopping item / Voice
-- Trip projects: the dates chip sits on its own line under the name, so the
-  project's buttons stay top right and their menus open on screen
-- Next trip on Now opens the calendar on the trip's month, with its first day
-  picked
+(nothing yet)
 
 ## Known gaps
 

@@ -30,6 +30,7 @@ import MicButton from "./MicButton";
 import { CheckIcon, ChevronIcon, MapPinIcon, TrashIcon, XIcon } from "./icons";
 import { useSwipeActions } from "./useSwipeActions";
 import PickSheet from "./PickSheet";
+import Select from "./Select";
 import ShopPlacesSheet from "./ShopPlacesSheet";
 import { appUi } from "../utils/appUi";
 
@@ -279,6 +280,8 @@ export default function ShoppingView({
     const created: string[] = [];
     const changed: { id: string; content: string; description: string }[] = [];
     for (const item of list) {
+      // A meal's ingredient can have its own shop.
+      const shop = item.store ?? store;
       // The latest list (earlier lines of this same add included).
       const latest = qc.getQueryData<AppData>(["bootstrap"])?.tasks ?? [];
       const onList = latest.filter((t) => t.projectId === projectId && !t.completed && !t.parentId);
@@ -294,13 +297,13 @@ export default function ShoppingView({
           id: existing.id,
           content: itemTitle(next),
           // Marked for a shop now, unless it already was.
-          description: withMeal(storeOf(existing) ? existing.description : withStore(existing.description, store), meal),
+          description: withMeal(storeOf(existing) ? existing.description : withStore(existing.description, shop), meal),
         });
       } else {
         const t = await createTask.mutateAsync({
-          content: itemTitle(item),
+          content: itemTitle({ name: item.name, amount: item.amount, unit: item.unit }),
           projectId,
-          description: withStore(meal ? `za: ${meal}` : "", store),
+          description: withStore(meal ? `za: ${meal}` : "", shop),
         });
         created.push(t.id);
       }
@@ -553,6 +556,7 @@ export default function ShoppingView({
 
       {mealsOpen && (
         <MealPicker
+          stores={stores}
           saved={listMeals ?? customMeals()}
           onSave={saveMeals}
           onClose={() => setMealsOpen(false)}
@@ -875,11 +879,14 @@ const MEAL_EMOJI = [
 ];
 
 function MealPicker({
+  stores,
   saved,
   onSave,
   onClose,
   onAdd,
 }: {
+  /** The list's shops, for marking where an ingredient is bought. */
+  stores: string[];
   /** Your own meals, and built-in ones you've edited or hidden (same id as the original). */
   saved: Meal[];
   onSave: (meals: Meal[]) => void;
@@ -927,6 +934,22 @@ function MealPicker({
     setForm(null);
     open(meal);
     setServings(form.servings);
+  }
+
+  /** Where an ingredient is always bought ("" = any shop). */
+  function setIngredientStore(n: number, store: string) {
+    if (!picked) return;
+    const meal: Meal = {
+      ...picked,
+      ingredients: picked.ingredients.map((ing, i) => {
+        if (i !== n) return ing;
+        const { store: _old, ...rest } = ing;
+        void _old;
+        return store ? { ...rest, store } : rest;
+      }),
+    };
+    put(meal);
+    setPicked(meal);
   }
 
   function setIcon(emoji: string) {
@@ -1027,7 +1050,7 @@ function MealPicker({
             </label>
             <textarea
               rows={8}
-              placeholder={"One ingredient per line:\n250 g moke\n0,5 l mleka\n3 jajca\nsol"}
+              placeholder={"One ingredient per line (@ for a shop):\n250 g moke\n0,5 l mleka @Hofer\n3 jajca\nsol"}
               value={form.text}
               onChange={(e) => setForm({ ...form, text: e.target.value })}
             />
@@ -1075,8 +1098,9 @@ function MealPicker({
               {picked.ingredients.map((ing, n) => {
                 const it = scaled(ing, servings);
                 const home = have.has(n);
+                const shops = ing.store && !stores.includes(ing.store) ? [...stores, ing.store] : stores;
                 return (
-                  <li key={n}>
+                  <li key={n} className="meal-ing-row">
                     <button
                       type="button"
                       className={`meal-ing ${home ? "is-home" : ""}`}
@@ -1096,6 +1120,22 @@ function MealPicker({
                       <span className="meal-ing-name">{it.name}</span>
                       <span className="meal-ing-amount">{home ? "at home" : formatAmount(it.amount, it.unit)}</span>
                     </button>
+                    <label className={`meal-ing-store ${ing.store ? "is-set" : ""}`} title="Where it's bought">
+                      <span>{ing.store ?? "Any shop"}</span>
+                      <Select
+                        value={ing.store ?? ""}
+                        sheetTitle={`Where do you buy ${ing.name}?`}
+                        aria-label={`Shop for ${ing.name}`}
+                        onChange={(e) => setIngredientStore(n, e.target.value)}
+                      >
+                        <option value="">Any shop</option>
+                        {shops.map((sh) => (
+                          <option key={sh} value={sh}>
+                            {sh}
+                          </option>
+                        ))}
+                      </Select>
+                    </label>
                   </li>
                 );
               })}

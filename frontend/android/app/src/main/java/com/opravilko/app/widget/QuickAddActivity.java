@@ -940,16 +940,21 @@ public class QuickAddActivity extends AppCompatActivity {
         try {
             String at = TaskLogic.nowIso();
             List<ShoppingLogic.Item> all = ingredients(meal, servings);
-            // Leave out what's already at home.
-            List<ShoppingLogic.Item> items = new ArrayList<>();
-            for (int i = 0; i < all.size(); i++) if (i >= skip.length || !skip[i]) items.add(all.get(i));
-            for (ShoppingLogic.Item item : items) {
+            JSONArray ings = meal.optJSONArray("ingredients");
+            int added = 0;
+            for (int i = 0; i < all.size(); i++) {
+                // Leave out what's already at home.
+                if (i < skip.length && skip[i]) continue;
+                // An ingredient bought at its own shop ("@Hofer" in the app) keeps it.
+                JSONObject ing = ings != null ? ings.optJSONObject(i) : null;
+                String own = ing != null ? ing.optString("store", "") : "";
                 String id = TaskLogic.newId();
                 queue(data, new JSONObject().put("id", "shop@" + id).put("op", WidgetStore.OP_SHOP)
-                        .put("projectId", projectId).put("line", ShoppingLogic.itemTitle(item)).put("meal", name)
-                        .put("newId", id).put("at", at).putOpt("store", shopStore));
+                        .put("projectId", projectId).put("line", ShoppingLogic.itemTitle(all.get(i))).put("meal", name)
+                        .put("newId", id).put("at", at).putOpt("store", own.isEmpty() ? shopStore : own));
+                added++;
             }
-            confirm("\u2713 " + name + " (" + servings + "): " + items.size() + " ingredients");
+            confirm("\u2713 " + name + " (" + servings + "): " + added + " ingredients");
         } catch (JSONException e) {
             Toast.makeText(this, "Couldn't add that meal.", Toast.LENGTH_SHORT).show();
         }

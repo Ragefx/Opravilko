@@ -17,6 +17,8 @@ page's Later today card, and the redesigned meals window.
   replaces it while you pick); "Add another Hofer" for more of the same shop
 - Meals: tap ingredients you already have to leave them off (remembered per
   meal); the widget's meal picker has tick boxes for the same
+- Meals: a shop per ingredient (chip next to it, or "@Hofer" in the recipe);
+  adding the meal marks each item for its shop (widget too)
 
 ## Known gaps
 

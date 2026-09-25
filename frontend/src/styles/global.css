@@ -5716,3 +5716,43 @@ kbd {
   font-size: 13px;
   color: var(--color-text-muted);
 }
+/* A meal ingredient's shop, next to it. */
+.meal-ing-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.meal-ing-row .meal-ing {
+  flex: 1;
+  min-width: 0;
+}
+.meal-ing-store {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px dashed var(--color-border);
+  border-radius: 13px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.meal-ing-store.is-set {
+  border-style: solid;
+  border-color: var(--color-accent);
+  background: var(--color-selected);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+/* The dropdown (or the app's sheet button) sits invisibly over the chip. */
+.meal-ing-store > select,
+.meal-ing-store > button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}

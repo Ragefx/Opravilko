@@ -15,6 +15,8 @@ export interface Item {
   name: string;
   amount?: number;
   unit?: Unit;
+  /** From a meal: the shop it's always bought at. */
+  store?: string;
 }
 
 const UNIT_RE =
@@ -127,6 +129,8 @@ export interface Ingredient {
   /** Per serving; absent for "to taste" things like salt. */
   amount?: number;
   unit?: Unit;
+  /** The shop it's bought at, when it matters ("@Hofer" in the recipe box). */
+  store?: string;
 }
 
 export interface Meal {
@@ -231,6 +235,11 @@ export const BUILTIN_MEALS: Meal[] = [
 
 /** Scales a per-serving amount and rounds it to what you'd actually buy. */
 export function scaled(ing: Ingredient, servings: number): Item {
+  const item = scaledAmount(ing, servings);
+  return ing.store ? { ...item, store: ing.store } : item;
+}
+
+function scaledAmount(ing: Ingredient, servings: number): Item {
   if (ing.amount === undefined || !ing.unit) return { name: ing.name };
   const x = ing.amount * servings;
   let amount: number;
@@ -272,8 +281,12 @@ export function mealFromText(
     .map((l) => l.replace(/^[-•*]\s*/, "").trim())
     .filter(Boolean)
     .map((line) => {
-      const it = parseItem(line);
-      return it.amount !== undefined ? { ...it, amount: it.amount / Math.max(1, servings) } : { name: it.name };
+      // "250 g moke @Hofer": always bought at that shop.
+      const at = /\s@\s*([^@]+)$/.exec(line);
+      const store = at?.[1].trim() || undefined;
+      const it = parseItem(at ? line.slice(0, at.index).trim() : line);
+      const ing: Ingredient = it.amount !== undefined ? { ...it, amount: it.amount / Math.max(1, servings) } : { name: it.name };
+      return store ? { ...ing, store } : ing;
     });
   return {
     id: keep?.id ?? `custom-${Date.now().toString(36)}`,
@@ -287,7 +300,11 @@ export function mealFromText(
 /** A meal's ingredients for `servings` people, one per line, as the edit box shows them. */
 export function mealToText(meal: Meal, servings: number): string {
   return meal.ingredients
-    .map((ing) => itemTitle({ name: ing.name, amount: ing.amount !== undefined ? ing.amount * servings : undefined, unit: ing.unit }))
+    .map(
+      (ing) =>
+        itemTitle({ name: ing.name, amount: ing.amount !== undefined ? ing.amount * servings : undefined, unit: ing.unit }) +
+        (ing.store ? ` @${ing.store}` : "")
+    )
     .join("\n");
 }
 

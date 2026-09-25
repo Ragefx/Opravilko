@@ -1747,3 +1747,9 @@ button.home-agenda-row:hover {
   font-size: 12px;
   font-weight: 700;
 }
+/* The blocks under the focus task sit at the page's own spacing (18px apart). */
+.home-now > .home-trip,
+.home-now > .home-review,
+.home-now > .home-agenda {
+  margin-top: 0;
+}

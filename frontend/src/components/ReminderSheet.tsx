@@ -15,6 +15,7 @@ import {
   type ReminderSpec,
 } from "../utils/reminders";
 import { todayISO } from "../utils/date";
+import TimeInput from "./TimeInput";
 import { BellIcon, ClockIcon, PlusIcon, XIcon } from "./icons";
 
 function whenText(at: Date | null): string {
@@ -136,7 +137,7 @@ export default function ReminderSheet({
               }}
             >
               <input type="date" value={day} onChange={(e) => setDay(e.target.value)} aria-label="Day" required />
-              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} aria-label="Time" required />
+              <TimeInput idPrefix="reminder-time" value={time} onChange={setTime} label="Reminder" />
               <button type="submit" className="btn btn-primary">
                 Add
               </button>

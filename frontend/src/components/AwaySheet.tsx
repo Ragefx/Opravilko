@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import { useBootstrap, useSaveAway, useUpdateProject } from "../api/hooks";
 import type { AwayPeriod, TripDates } from "../api/types";
 import Select from "./Select";
+import TimeInput from "./TimeInput";
 import { XIcon } from "./icons";
 
 /**
@@ -141,7 +142,7 @@ export default function AwaySheet({
           </label>
           <label className="away-field">
             <span>Time (optional)</span>
-            <input id="away-start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            <TimeInput idPrefix="away-start-time" value={startTime} onChange={setStartTime} optional label="Leaving" />
           </label>
           <label className="away-field">
             <span>Back</span>
@@ -149,7 +150,7 @@ export default function AwaySheet({
           </label>
           <label className="away-field">
             <span>Time (optional)</span>
-            <input id="away-end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            <TimeInput idPrefix="away-end-time" value={endTime} onChange={setEndTime} optional label="Back" />
           </label>
         </div>
         <label className="away-field">

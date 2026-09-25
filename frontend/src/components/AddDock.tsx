@@ -13,6 +13,9 @@ type Action = "task" | "shop" | "voice";
 function useGestures(on: { tap: () => void; hold: () => void; left?: () => void; up?: () => void }) {
   const start = useRef<{ x: number; y: number; t: number } | null>(null);
   const held = useRef(false);
+  // A plain tap waits for the click: opening the card on finger-up let the
+  // phone's click that follows land on whatever the card put under the finger.
+  const tapped = useRef(false);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
   return {
@@ -21,6 +24,7 @@ function useGestures(on: { tap: () => void; hold: () => void; left?: () => void;
       (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
       start.current = { x: e.clientX, y: e.clientY, t: Date.now() };
       held.current = false;
+      tapped.current = false;
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => {
         held.current = true;
@@ -41,7 +45,12 @@ function useGestures(on: { tap: () => void; hold: () => void; left?: () => void;
       const dy = e.clientY - s.y;
       if (on.left && dx < -40 && Math.abs(dx) > Math.abs(dy)) on.left();
       else if (on.up && dy < -40 && Math.abs(dy) > Math.abs(dx)) on.up();
-      else if (Math.hypot(dx, dy) < 12) on.tap();
+      else if (Math.hypot(dx, dy) < 12) tapped.current = true;
+    },
+    onClick: () => {
+      if (!tapped.current) return;
+      tapped.current = false;
+      on.tap();
     },
     onPointerCancel: () => {
       window.clearTimeout(timer.current);

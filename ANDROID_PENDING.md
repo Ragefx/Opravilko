@@ -13,7 +13,8 @@ chip on its own line under a trip project's name.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Bottom add button: a tap no longer also opens the date picker (the tap's
+  click landed on the Add task card's date chip)
 
 ## Known gaps
 

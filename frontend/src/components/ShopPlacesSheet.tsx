@@ -37,6 +37,23 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
     }
   }
 
+  // Picking a place: just the map search (the sheet sits above other windows,
+  // so it would cover it), then back to the sheet.
+  if (adding) {
+    return (
+      <LocationPicker
+        onClose={() => setAdding(null)}
+        onSave={(loc) => {
+          if (loc) {
+            addShopPlace({ shop: adding, name: loc.name, lat: loc.lat, lng: loc.lng });
+            void askAccess();
+          }
+          setAdding(null);
+        }}
+      />
+    );
+  }
+
   return createPortal(
     <div
       className="modal-backdrop shop-picker-backdrop over-modal"
@@ -48,7 +65,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
       <div className="shop-picker shop-places" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Shops on the map">
         <div className="shop-picker-handle" aria-hidden="true" />
         <h3>Remind me at the shop</h3>
-        <p>Pin your shops. When you arrive at one, your phone shows what to buy there, even with the app closed.</p>
+        <p>Pin your shops (as many of each as you like). When you arrive at one, your phone shows what to buy there, even with the app closed.</p>
         <div className="shop-picker-list">
           {stores.map((store) => {
             const mine = places.filter((p) => p.shop === store);
@@ -75,7 +92,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
                   <span className="shop-picker-icon" aria-hidden="true">
                     <PlusIcon width={18} height={18} />
                   </span>
-                  <span className="shop-picker-name">{mine.length ? `Another ${store}` : `Pin your ${store}`}</span>
+                  <span className="shop-picker-name">{mine.length ? `Add another ${store}` : `Pin your ${store}`}</span>
                 </button>
               </div>
             );
@@ -87,20 +104,6 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
           </button>
         </div>
       </div>
-      {adding && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <LocationPicker
-            onClose={() => setAdding(null)}
-            onSave={(loc) => {
-              if (loc) {
-                addShopPlace({ shop: adding, name: loc.name, lat: loc.lat, lng: loc.lng });
-                void askAccess();
-              }
-              setAdding(null);
-            }}
-          />
-        </div>
-      )}
     </div>,
     document.body
   );

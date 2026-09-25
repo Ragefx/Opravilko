@@ -13,7 +13,8 @@ page's Later today card, and the redesigned meals window.
 
 ## In the code, not in the app yet
 
-- (nothing)
+- Remind me at the shop: the place search opened behind the sheet (now it
+  replaces it while you pick); "Add another Hofer" for more of the same shop
 
 ## Known gaps
 

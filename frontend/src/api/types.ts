@@ -123,6 +123,14 @@ export type Reminder =
   | { id: string; type: "day"; days: number; time: string; by?: string }
   | { id: string; type: "absolute"; at: string; by?: string };
 
+/** Days you're away, e.g. "Athens" from Thu 2 to Sat 4 Oct (dates inclusive, "yyyy-MM-dd"). */
+export interface AwayPeriod {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+}
+
 export interface TaskLocation {
   /** Short name shown on the task, e.g. "Ljubljana Airport" or "Slovenska cesta 10". */
   name: string;
@@ -210,6 +218,8 @@ export interface AppData {
   completionLog?: CompletionEntry[];
   /** Your reusable checklists (kept with your profile). */
   templates?: TaskTemplate[];
+  /** Days you're away (a trip), shown across the calendar; kept with your profile. */
+  away?: AwayPeriod[];
   /** Firebase only: your id, and your partner for shared tasks. */
   me?: string;
   partner?: Partner | null;

@@ -13,5 +13,5 @@ export function calendarTasks(data: AppData): Task[] {
 export function openThisMonth(data: AppData): number {
   const now = new Date();
   const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  return calendarTasks(data).filter((t) => !t.parentId && t.due?.date.startsWith(ym)).length;
+  return calendarTasks(data).filter((t) => t.due?.date.startsWith(ym)).length;
 }

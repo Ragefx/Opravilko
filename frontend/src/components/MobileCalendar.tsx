@@ -22,6 +22,9 @@ import { isOverdue } from "../utils/date";
 import TaskListView from "./TaskListView";
 import RescheduleButton from "./RescheduleButton";
 import { ChevronIcon } from "./icons";
+import type { AwayPeriod } from "../api/types";
+import { awayOn, awayRange } from "../utils/away";
+import AwaySheet from "./AwaySheet";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
 const OPEN_KEY = "opravilko.calendarMonthOpen";
@@ -77,7 +80,10 @@ export default function MobileCalendar({
     }
   }
 
-  const open = tasks.filter((t) => !t.completed && t.due && !t.parentId);
+  // Sub-tasks with their own date too (as in Now and Upcoming).
+  const open = tasks.filter((t) => !t.completed && t.due);
+  const away = data?.away;
+  const [awayEdit, setAwayEdit] = useState<{ period?: AwayPeriod; startDay?: string } | null>(null);
   const byDate = new Map<string, Task[]>();
   for (const t of open) {
     const key = t.due!.date;
@@ -117,6 +123,7 @@ export default function MobileCalendar({
   }
 
   const key = format(selected, "yyyy-MM-dd");
+  const selectedTrip = awayOn(away, key);
   const showOverdue = isToday(selected);
   const overdue = showOverdue ? open.filter((t) => isOverdue(t.due)) : [];
   const dayTasks = byDate.get(key) ?? [];
@@ -134,6 +141,9 @@ export default function MobileCalendar({
           <div className="mcal-nav">
             <button onClick={() => step(-1)} aria-label={monthOpen ? "Previous month" : "Previous week"}>
               <ChevronIcon width={18} height={18} style={{ transform: "rotate(90deg)" }} />
+            </button>
+            <button className="mcal-away-btn" onClick={() => setAwayEdit({ startDay: format(selected, "yyyy-MM-dd") })} aria-label="Mark days you're away">
+              ✈️
             </button>
             <button className="mcal-today" onClick={goToday}>
               Today
@@ -158,6 +168,7 @@ export default function MobileCalendar({
               .slice(0, 3)
               .map((t) => PRIORITY_META[t.priority].color);
             const more = list.length - dots.length;
+            const trip = awayOn(away, k);
             return (
               <button
                 key={k}
@@ -166,6 +177,9 @@ export default function MobileCalendar({
                   isSameDay(d, selected) ? "is-selected" : "",
                   isToday(d) ? "is-today" : "",
                   monthOpen && !isSameMonth(d, cursor) ? "is-outside" : "",
+                  trip ? "is-away" : "",
+                  trip && k === trip.start ? "is-away-start" : "",
+                  trip && k === trip.end ? "is-away-end" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -190,9 +204,19 @@ export default function MobileCalendar({
           aria-label={monthOpen ? "Show one week" : "Show the whole month"}
         />
       </div>
+      {awayEdit && <AwaySheet period={awayEdit.period} startDay={awayEdit.startDay} onClose={() => setAwayEdit(null)} />}
       <TaskListView
         key={key}
-        header={<div className="mcal-list-pad" />}
+        header={
+          <div className="mcal-list-pad">
+            {selectedTrip && (
+              <button className="mcal-away-banner" onClick={() => setAwayEdit({ period: selectedTrip })}>
+                ✈️ <b>Away · {selectedTrip.title}</b>
+                <span>{awayRange(selectedTrip)}</span>
+              </button>
+            )}
+          </div>
+        }
         title={dayLabel}
         tasks={[...overdue, ...dayTasks]}
         quickAddProjectId={projectId}

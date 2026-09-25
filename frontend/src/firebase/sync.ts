@@ -33,7 +33,7 @@ import type {
   Partner,
   Project,
   Section,
-  Task, TaskTemplate } from "../api/types";
+  Task, TaskTemplate, AwayPeriod } from "../api/types";
 import type { SyncState } from "../dropbox/store";
 
 /**
@@ -524,6 +524,7 @@ export class FirestoreSync {
       calendarEvents: this.events,
       completionLog,
       templates: (this.profile?.templates as TaskTemplate[] | undefined) ?? [],
+      away: (this.profile?.away as AwayPeriod[] | undefined) ?? [],
       me: this.uid,
       partner: (this.profile?.partner as Partner | undefined) ?? null,
     };
@@ -562,6 +563,9 @@ export class FirestoreSync {
     this.scheduleAttachmentCleanup(prev, next);
 
     // Templates live on your profile document.
+    if (JSON.stringify(prev.away ?? []) !== JSON.stringify(next.away ?? [])) {
+      ops.push({ kind: "set", path: ["users", uid], data: { away: (next.away ?? []).map(stripUndefined) } });
+    }
     if (JSON.stringify(prev.templates ?? []) !== JSON.stringify(next.templates ?? [])) {
       ops.push({ kind: "set", path: ["users", uid], data: { templates: (next.templates ?? []).map(stripUndefined) } });
     }

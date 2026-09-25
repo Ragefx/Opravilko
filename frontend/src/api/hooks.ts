@@ -9,6 +9,7 @@ import { fetchIcsText, NoConnectionError } from "../utils/calendarSync";
 import { parseIcs } from "../utils/ics";
 import type {
   AppData,
+  AwayPeriod,
   Attachment,
   CalendarEvent,
   CalendarFeed,
@@ -357,6 +358,13 @@ export function useCreateProject() {
     };
     data.projects.push(project);
     return project;
+  });
+}
+
+/** Replaces your away periods (trips). */
+export function useSaveAway() {
+  return useLocalMutation<AwayPeriod[], void>((data, away) => {
+    data.away = away;
   });
 }
 

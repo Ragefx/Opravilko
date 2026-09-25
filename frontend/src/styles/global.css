@@ -5756,3 +5756,141 @@ kbd {
   opacity: 0;
   cursor: pointer;
 }
+
+/* ---------- Away (trips) across the calendar ---------- */
+.calendar-cell.is-away {
+  background-color: color-mix(in srgb, var(--color-accent) 7%, transparent);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 9%, transparent) 0 6px,
+    transparent 6px 12px
+  );
+}
+.calendar-away-label {
+  align-self: stretch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.calendar-away-label.is-quiet {
+  align-self: flex-start;
+  padding: 0 6px;
+  background: none;
+  font-weight: 400;
+  opacity: 0.7;
+}
+.calendar-away-btn {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.away-modal {
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.away-modal .settings-head {
+  padding: 0;
+  margin: 0;
+}
+.away-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.away-field {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.away-field input {
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+}
+.away-field input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+.away-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.away-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* The phone's calendar: a band behind the days away (the day circles sit on it). */
+.mcal-day.is-away {
+  --away-band: color-mix(in srgb, var(--color-accent) 16%, var(--color-bg));
+  background: linear-gradient(var(--away-band), var(--away-band)) 0 4px / 100% 36px no-repeat;
+}
+.mcal-day.is-away-start {
+  background-position: 100% 4px;
+  background-size: 50% 36px;
+}
+.mcal-day.is-away-end {
+  background-size: 50% 36px;
+}
+.mcal-day.is-away-start.is-away-end {
+  background: none;
+}
+.mcal-day.is-away-start .mcal-num,
+.mcal-day.is-away-end .mcal-num {
+  background: var(--away-band);
+}
+.mcal-day.is-away.is-selected .mcal-num {
+  background: var(--color-accent);
+}
+.mcal-away-btn {
+  font-size: 16px;
+}
+.mcal-away-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.mcal-away-banner b {
+  color: var(--color-accent);
+}
+.mcal-away-banner span {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.mcal-list-pad:has(.mcal-away-banner) {
+  height: auto;
+  padding-bottom: 6px;
+}

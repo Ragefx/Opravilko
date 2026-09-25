@@ -30,6 +30,7 @@ import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import SyncIndicator from "./SyncIndicator";
 import { ToastProvider } from "./ToastProvider";
 import { MenuIcon, PlusIcon, SearchIcon } from "./icons";
+import WeeklyReview, { OPEN_WEEKLY_REVIEW } from "./WeeklyReview";
 
 /** True when focus is in a text field, where single-letter shortcuts must not fire. */
 function isTyping(target: EventTarget | null): boolean {
@@ -52,6 +53,13 @@ export default function Layout() {
   const [quickAddPreset, setQuickAddPreset] = useState<QuickAddRequest | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // The weekly review, opened from Now, the command palette...
+  const [reviewOpen, setReviewOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setReviewOpen(true);
+    window.addEventListener(OPEN_WEEKLY_REVIEW, open);
+    return () => window.removeEventListener(OPEN_WEEKLY_REVIEW, open);
+  }, []);
   const look = useLook();
   const pinned = useSidebarPinned(look);
   const openSettings = useCallback(() => setSettingsOpen(true), []);
@@ -276,6 +284,7 @@ export default function Layout() {
             <SearchModal onClose={closeSearch} />
           ))}
         {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+        {reviewOpen && <WeeklyReview onClose={() => setReviewOpen(false)} />}
         {/* The app: the card on top of the keyboard; the website: the same card as a window. */}
         {quickAddOpen && (
           <QuickAddSheet

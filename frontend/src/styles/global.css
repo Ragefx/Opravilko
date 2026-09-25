@@ -5894,3 +5894,121 @@ kbd {
   height: auto;
   padding-bottom: 6px;
 }
+
+/* ---------- Weekly review ---------- */
+.review-modal {
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.review-modal .settings-head {
+  padding: 0;
+  margin: 0;
+}
+.review-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-hover);
+  overflow: hidden;
+}
+.review-progress span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.2s ease;
+}
+.review-count {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.review-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.review-card:hover {
+  border-color: var(--color-accent);
+}
+.review-card b {
+  font-size: 18px;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.review-card span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.review-grid button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+.review-grid button:hover {
+  border-color: var(--color-accent);
+  background: var(--color-selected);
+}
+.review-grid button b {
+  font-size: 15px;
+}
+.review-grid button span {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.review-done {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px 8px 4px;
+  text-align: center;
+}
+.review-done > span {
+  font-size: 40px;
+}
+.review-done b {
+  font-size: 18px;
+}
+.review-done p {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+button.sidebar-link {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}

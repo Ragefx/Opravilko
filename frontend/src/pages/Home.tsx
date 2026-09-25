@@ -9,6 +9,7 @@ import PriorityMark from "../components/PriorityMark";
 import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
 import { isDueToday, isOverdue, todayISO } from "../utils/date";
+import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "../components/WeeklyReview";
 
 type Pane = "now" | "next" | "later";
 
@@ -154,6 +155,7 @@ export default function Home() {
   }
 
   const focus = view.focus;
+  const reviewCount = reviewDueToday(data);
   // The next thing still to come: highlighted in Later today.
   const firstAhead = view.clock.find(
     (c) => (c.kind === "event" && c.event.end ? new Date(c.event.end) : new Date(c.at)).getTime() > Date.now()
@@ -211,6 +213,19 @@ export default function Home() {
           <b>Nothing due today.</b>
           <span>Pick something from Next, or enjoy the free day.</span>
         </div>
+      )}
+
+      {reviewCount > 0 && (
+        <button className="home-review" onClick={() => window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW))}>
+          <span aria-hidden="true">🗂️</span>
+          <span className="home-review-text">
+            <b>Weekly review</b>
+            <span>
+              {reviewCount} {reviewCount === 1 ? "task" : "tasks"} to sort: overdue or without a date
+            </span>
+          </span>
+          <span className="home-review-go">Start</span>
+        </button>
       )}
 
       {view.clock.length > 0 && (

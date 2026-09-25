@@ -23,6 +23,7 @@ import {
   UpcomingIcon,
 } from "./icons";
 import { useToast } from "./ToastProvider";
+import { OPEN_WEEKLY_REVIEW } from "./WeeklyReview";
 
 interface Command {
   key: string;
@@ -74,6 +75,16 @@ export default function CommandPalette({
       { key: "v-shopping", group: "Go to", label: "Shopping", icon: <CartIcon width={16} height={16} />, run: go("/app/shopping") },
       { key: "v-completed", group: "Go to", label: "Completed", icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
       { key: "v-stats", group: "Go to", label: "Productivity", icon: <ChartIcon width={16} height={16} />, run: go("/app/stats") },
+      {
+        key: "v-review",
+        group: "Go to",
+        label: "Weekly review",
+        icon: <CalendarIcon width={16} height={16} />,
+        run: () => {
+          onClose();
+          window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW));
+        },
+      },
       {
         key: "v-settings",
         group: "Go to",

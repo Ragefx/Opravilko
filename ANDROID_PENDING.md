@@ -24,6 +24,9 @@ page's Later today card, and the redesigned meals window.
 - Calendar shows sub-tasks with their own date (the phone's calendar too)
 - Away periods (trips): ✈️ in the calendar; a band across the days, a banner
   on the day's list
+- Weekly review: overdue and undated tasks one at a time (Today, Tomorrow,
+  Weekend, Next week, Keep, Done, Delete); in the menu, and offered on Now at
+  the weekend
 - Widget Add task / shopping card: taller buttons (52 dp chips, 56 dp send)
 
 ## Known gaps

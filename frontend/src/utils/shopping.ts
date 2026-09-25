@@ -135,6 +135,8 @@ export interface Meal {
   emoji: string;
   ingredients: Ingredient[];
   custom?: boolean;
+  /** A built-in meal you deleted: kept hidden (it can be brought back). */
+  hidden?: boolean;
 }
 
 const i = (name: string, amount?: number, unit?: Unit): Ingredient => ({ name, amount, unit });

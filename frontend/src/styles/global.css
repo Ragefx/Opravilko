@@ -5451,3 +5451,209 @@ kbd {
   font-weight: 700;
   color: var(--color-text-secondary);
 }
+
+/* ---------- Meals window, second pass ---------- */
+.modal.meal-modal {
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.meal-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.meal-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  transition: border-color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+.meal-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+.meal-card .meal-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-hover);
+  font-size: 24px;
+}
+.meal-card-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.meal-card-text b {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.meal-card-text small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+.meal-card.is-new {
+  border-style: dashed;
+  background: none;
+}
+.meal-card.is-new .meal-emoji {
+  background: var(--color-selected);
+  color: var(--color-accent);
+  font-size: 22px;
+}
+.meal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 4px 2px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.meal-back svg {
+  transform: rotate(90deg);
+}
+.meal-back:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+.meal-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.meal-hero-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.meal-hero-text h3 {
+  margin: 0;
+  font-size: 20px;
+  text-wrap: balance;
+}
+.meal-hero-text span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.meal-icon-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  background: var(--color-hover);
+  font-size: 24px;
+  cursor: pointer;
+}
+.meal-icon-btn.is-big {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  font-size: 32px;
+}
+.meal-icon-btn:hover {
+  border-color: var(--color-accent);
+}
+.meal-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.meal-icons button {
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+.meal-icons button:hover {
+  background: var(--color-hover);
+}
+.meal-icons button.is-current {
+  background: var(--color-selected);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+.meal-name-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.meal-name-row input {
+  flex: 1;
+  min-width: 0;
+}
+.meal-servings {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--color-hover);
+}
+.meal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.meal-actions-side {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+.meal-hidden {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+.meal-hidden-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2px 4px 2px 12px;
+  border-radius: 10px;
+  background: var(--color-hover);
+  font-size: 14px;
+}
+@media (max-width: 480px) {
+  .meal-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .meal-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+  }
+  .meal-card .meal-emoji {
+    width: 38px;
+    height: 38px;
+    font-size: 21px;
+    flex-shrink: 0;
+  }
+  .meal-card-text b {
+    font-size: 13px;
+  }
+}

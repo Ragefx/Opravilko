@@ -27,7 +27,7 @@ import {
 } from "../utils/shopping";
 import { useToast } from "./ToastProvider";
 import MicButton from "./MicButton";
-import { CheckIcon, MapPinIcon, TrashIcon, XIcon } from "./icons";
+import { CheckIcon, ChevronIcon, MapPinIcon, TrashIcon, XIcon } from "./icons";
 import { useSwipeActions } from "./useSwipeActions";
 import PickSheet from "./PickSheet";
 import ShopPlacesSheet from "./ShopPlacesSheet";
@@ -844,13 +844,21 @@ function ItemEditor({
   );
 }
 
+/** Food icons to pick from for a meal. */
+const MEAL_EMOJI = [
+  "🍝", "🍕", "🍔", "🌭", "🌮", "🌯", "🥙", "🥪", "🥗", "🥘", "🍲", "🫕", "🍛", "🍜", "🍣", "🍱",
+  "🥟", "🍤", "🍗", "🍖", "🥩", "🥓", "🐟", "🦐", "🍳", "🥚", "🥞", "🧇", "🥐", "🥖", "🍞", "🧀",
+  "🥔", "🍠", "🥕", "🌽", "🥦", "🍄", "🍅", "🫑", "🍚", "🍙", "🍰", "🎂", "🧁", "🍪", "🍩", "🍫",
+  "🍎", "🍓", "🍌", "🥑", "🍋", "🫐", "🍽️", "🥣",
+];
+
 function MealPicker({
   saved,
   onSave,
   onClose,
   onAdd,
 }: {
-  /** Your own meals, and built-in ones you've edited (same id as the original). */
+  /** Your own meals, and built-in ones you've edited or hidden (same id as the original). */
   saved: Meal[];
   onSave: (meals: Meal[]) => void;
   onClose: () => void;
@@ -859,47 +867,103 @@ function MealPicker({
   const [mine, setMine] = useState<Meal[]>(saved);
   const [picked, setPicked] = useState<Meal | null>(null);
   const [servings, setServings] = useState(2);
-  const [form, setForm] = useState<{ id?: string; emoji?: string; name: string; servings: number; text: string } | null>(null);
+  const [form, setForm] = useState<{ id?: string; emoji: string; name: string; servings: number; text: string } | null>(null);
+  const [choosingIcon, setChoosingIcon] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
   const builtinIds = new Set(BUILTIN_MEALS.map((m) => m.id));
   const mineIds = new Set(mine.map((m) => m.id));
-  const meals = [...mine.filter((m) => !builtinIds.has(m.id)), ...BUILTIN_MEALS.map((b) => mine.find((m) => m.id === b.id) ?? b)];
+  const all = [...mine.filter((m) => !builtinIds.has(m.id)), ...BUILTIN_MEALS.map((b) => mine.find((m) => m.id === b.id) ?? b)];
+  const meals = all.filter((m) => !m.hidden);
+  const hidden = all.filter((m) => m.hidden);
 
   function store(next: Meal[]) {
     setMine(next);
     onSave(next);
   }
 
+  /** Saves a meal: your own, or a built-in one as your edited copy (same id). */
+  function put(meal: Meal) {
+    store(mineIds.has(meal.id) ? mine.map((m) => (m.id === meal.id ? meal : m)) : [meal, ...mine]);
+  }
+
+  function open(meal: Meal | null) {
+    setPicked(meal);
+    setChoosingIcon(false);
+    setConfirmDelete(false);
+  }
+
   function saveForm() {
     if (!form || !form.text.trim()) return;
-    const keep = form.id ? { id: form.id, emoji: form.emoji ?? "🍽️" } : undefined;
-    const meal = mealFromText(form.name, form.text, form.servings, keep);
+    const meal = { ...mealFromText(form.name, form.text, form.servings, form.id ? { id: form.id, emoji: form.emoji } : undefined), emoji: form.emoji };
     if (!meal.ingredients.length) return;
-    store(mineIds.has(meal.id) ? mine.map((m) => (m.id === meal.id ? meal : m)) : [meal, ...mine]);
+    put(meal);
     setForm(null);
-    setPicked(meal);
+    open(meal);
     setServings(form.servings);
   }
 
-  /** Deletes your own meal, or puts an edited built-in one back as it was. */
-  function removeMine(id: string) {
-    store(mine.filter((m) => m.id !== id));
-    const original = BUILTIN_MEALS.find((m) => m.id === id);
-    setPicked(original ?? null);
+  function setIcon(emoji: string) {
+    if (form) {
+      setForm({ ...form, emoji });
+    } else if (picked) {
+      const meal = { ...picked, emoji };
+      put(meal);
+      setPicked(meal);
+    }
+    setChoosingIcon(false);
   }
 
-  const title = form
-    ? form.id
-      ? "Edit meal"
-      : "New meal"
-    : picked
-      ? `${picked.emoji} ${picked.name}`
-      : "Add a meal";
+  /** Your own meal goes for good; a built-in one is hidden (and can be brought back). */
+  function deleteMeal(meal: Meal) {
+    if (builtinIds.has(meal.id)) put({ ...meal, hidden: true });
+    else store(mine.filter((m) => m.id !== meal.id));
+    open(null);
+  }
+
+  function unhide(meal: Meal) {
+    const { hidden: _h, ...rest } = meal;
+    void _h;
+    put(rest);
+  }
+
+  /** Puts an edited built-in meal back as it was. */
+  function reset(meal: Meal) {
+    store(mine.filter((m) => m.id !== meal.id));
+    open(BUILTIN_MEALS.find((m) => m.id === meal.id) ?? null);
+  }
+
+  const icons = choosingIcon && (
+    <div className="meal-icons" role="listbox" aria-label="Icon">
+      {MEAL_EMOJI.map((e) => (
+        <button
+          key={e}
+          type="button"
+          role="option"
+          aria-selected={(form?.emoji ?? picked?.emoji) === e}
+          className={(form?.emoji ?? picked?.emoji) === e ? "is-current" : ""}
+          onClick={() => setIcon(e)}
+        >
+          {e}
+        </button>
+      ))}
+    </div>
+  );
+
+  const title = form ? (form.id ? "Edit meal" : "New meal") : picked ? "" : "Meals";
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal meal-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add a meal">
+      <div className="modal meal-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Meals">
         <div className="settings-head">
-          <h3>{title}</h3>
+          {picked && !form ? (
+            <button className="meal-back" onClick={() => open(null)} aria-label="All meals">
+              <ChevronIcon width={18} height={18} />
+              Meals
+            </button>
+          ) : (
+            <h3>{title}</h3>
+          )}
           <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
             <XIcon width={18} height={18} />
           </button>
@@ -907,12 +971,24 @@ function MealPicker({
 
         {form ? (
           <div className="meal-new">
-            <input
-              placeholder="Name, e.g. Mamina juha"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              autoFocus
-            />
+            <div className="meal-name-row">
+              <button
+                type="button"
+                className="meal-icon-btn"
+                onClick={() => setChoosingIcon((c) => !c)}
+                aria-label="Change icon"
+                title="Change icon"
+              >
+                {form.emoji}
+              </button>
+              <input
+                placeholder="Name, e.g. Mamina juha"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                autoFocus={!form.id}
+              />
+            </div>
+            {icons}
             <label className="meal-servings-label">
               The recipe is for
               <input
@@ -931,7 +1007,7 @@ function MealPicker({
             />
             <div className="modal-actions">
               <button className="btn btn-text" onClick={() => setForm(null)}>
-                Back
+                Cancel
               </button>
               <button className="btn btn-primary" onClick={saveForm} disabled={!form.text.trim()}>
                 Save meal
@@ -940,6 +1016,24 @@ function MealPicker({
           </div>
         ) : picked ? (
           <>
+            <div className="meal-hero">
+              <button
+                type="button"
+                className="meal-icon-btn is-big"
+                onClick={() => setChoosingIcon((c) => !c)}
+                aria-label="Change icon"
+                title="Change icon"
+              >
+                {picked.emoji}
+              </button>
+              <div className="meal-hero-text">
+                <h3>{picked.name}</h3>
+                <span>
+                  {picked.ingredients.length} ingredients{builtinIds.has(picked.id) && mineIds.has(picked.id) ? " · edited" : ""}
+                </span>
+              </div>
+            </div>
+            {icons}
             <div className="meal-servings">
               <span>Servings</span>
               <button className="btn btn-secondary" onClick={() => setServings((s) => Math.max(1, s - 1))} aria-label="Fewer">
@@ -961,31 +1055,33 @@ function MealPicker({
                 );
               })}
             </ul>
-            <div className="modal-actions">
-              <button className="btn btn-text" onClick={() => setPicked(null)}>
-                Back
-              </button>
-              <button
-                className="btn btn-text"
-                onClick={() =>
-                  setForm({
-                    id: picked.id,
-                    emoji: picked.emoji,
-                    name: picked.name,
-                    servings,
-                    text: mealToText(picked, servings),
-                  })
-                }
-              >
-                Edit
-              </button>
-              {mineIds.has(picked.id) && (
-                <button className="btn btn-text meal-danger" onClick={() => removeMine(picked.id)}>
-                  {builtinIds.has(picked.id) ? "Reset" : "Delete"}
+            <div className="meal-actions">
+              <div className="meal-actions-side">
+                {confirmDelete ? (
+                  <button className="btn btn-text meal-danger" onClick={() => deleteMeal(picked)}>
+                    Yes, delete
+                  </button>
+                ) : (
+                  <button className="btn btn-text meal-danger" onClick={() => setConfirmDelete(true)}>
+                    Delete
+                  </button>
+                )}
+                <button
+                  className="btn btn-text"
+                  onClick={() =>
+                    setForm({ id: picked.id, emoji: picked.emoji, name: picked.name, servings, text: mealToText(picked, servings) })
+                  }
+                >
+                  Edit
                 </button>
-              )}
+                {builtinIds.has(picked.id) && mineIds.has(picked.id) && (
+                  <button className="btn btn-text" onClick={() => reset(picked)}>
+                    Reset
+                  </button>
+                )}
+              </div>
               <button className="btn btn-primary" onClick={() => onAdd(picked, servings)}>
-                Add to list
+                Add {servings === 1 ? "for 1" : `for ${servings}`}
               </button>
             </div>
           </>
@@ -993,18 +1089,40 @@ function MealPicker({
           <>
             <div className="meal-grid">
               {meals.map((m) => (
-                <button key={m.id} className="meal-card" onClick={() => setPicked(m)}>
+                <button key={m.id} className="meal-card" onClick={() => open(m)}>
                   <span className="meal-emoji">{m.emoji}</span>
-                  <span>{m.name}</span>
+                  <span className="meal-card-text">
+                    <b>{m.name}</b>
+                    <small>{m.ingredients.length} ingredients</small>
+                  </span>
                 </button>
               ))}
+              <button className="meal-card is-new" onClick={() => setForm({ name: "", emoji: "🍽️", servings: 2, text: "" })}>
+                <span className="meal-emoji">＋</span>
+                <span className="meal-card-text">
+                  <b>My own meal</b>
+                  <small>Paste a recipe</small>
+                </span>
+              </button>
             </div>
-            <button
-              className="btn btn-secondary meal-new-btn"
-              onClick={() => setForm({ name: "", servings: 2, text: "" })}
-            >
-              + My own meal
-            </button>
+            {hidden.length > 0 && (
+              <div className="meal-hidden">
+                <button className="btn btn-text" onClick={() => setShowHidden((v) => !v)}>
+                  {showHidden ? "Hide deleted" : `Deleted meals (${hidden.length})`}
+                </button>
+                {showHidden &&
+                  hidden.map((m) => (
+                    <div key={m.id} className="meal-hidden-row">
+                      <span>
+                        {m.emoji} {m.name}
+                      </span>
+                      <button className="btn btn-text" onClick={() => unhide(m)}>
+                        Bring back
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
           </>
         )}
       </div>

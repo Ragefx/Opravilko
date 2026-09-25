@@ -483,7 +483,7 @@ final class ShoppingLogic {
         if (mine != null) {
             for (int i = 0; i < mine.length(); i++) {
                 JSONObject m = mine.optJSONObject(i);
-                if (m != null && !builtinIds.contains(m.optString("id"))) out.add(m);
+                if (m != null && !builtinIds.contains(m.optString("id")) && !m.optBoolean("hidden")) out.add(m);
             }
         }
         if (builtin != null) {
@@ -496,7 +496,8 @@ final class ShoppingLogic {
                         if (m != null && b.optString("id").equals(m.optString("id"))) edited = m;
                     }
                 }
-                out.add(edited != null ? edited : b);
+                JSONObject meal = edited != null ? edited : b;
+                if (!meal.optBoolean("hidden")) out.add(meal); // deleted in the app
             }
         }
         return out;

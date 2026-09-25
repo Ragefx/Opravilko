@@ -27,6 +27,8 @@ picker.
   arrival a notification lists that shop's items (plus any-shop ones) and
   opens the list filtered to it (needs location "Allow all the time")
 - Widget ticks honour "Count from when it's done" repeats
+- Meals window redesign (icons, delete/bring back built-in meals, icon picker);
+  the widget's meal list leaves out deleted meals
 
 ## Known gaps
 

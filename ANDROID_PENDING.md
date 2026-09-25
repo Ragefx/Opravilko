@@ -25,6 +25,9 @@ page's Later today card, and the redesigned meals window.
 - Away periods (trips): ✈️ in the calendar; a band across the days, a banner
   on the day's list; your partner's trips show too (their name, in rose);
   leaving / back times and a note (flight number) on each trip
+- Trips can be projects (Tromsø): trip dates from the project's ⋯ menu, a
+  countdown chip in its header, the band opens the project; "Make it a trip
+  project" on a task; "Next trip" line on Now
 - Weekly review: overdue and undated tasks one at a time (Today, Tomorrow,
   Weekend, Next week, Keep, Done, Delete); in the menu, and offered on Now at
   the weekend

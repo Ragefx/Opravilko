@@ -13,6 +13,9 @@ import { ArchiveIcon, DisplayIcon } from "../components/icons";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, groupKeyFor, sortTasks, type DisplayOptions } from "../utils/displayOptions";
 import { setStoredDisplayOptions, withStoredDisplayOptions } from "../utils/displayOptionsStorage";
 import { groupEventsByDate } from "../utils/calendarSync";
+import AwaySheet from "../components/AwaySheet";
+import { awayRange, tripWhen } from "../utils/away";
+import { todayISO } from "../utils/date";
 
 export default function ProjectView() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +28,15 @@ export default function ProjectView() {
   const [showArchivedMenu, setShowArchivedMenu] = useState(false);
   const [display, setDisplay] = useState<DisplayOptions>(DEFAULT_DISPLAY_OPTIONS);
   const [initializedFor, setInitializedFor] = useState<string | null>(null);
+  const [tripOpen, setTripOpen] = useState(false);
+  // From "Make it a trip project": straight to the trip dates.
+  useEffect(() => {
+    if (searchParams.get("trip") !== "1") return;
+    setTripOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("trip");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const project = data?.projects.find((p) => p.id === projectId);
   // The shopping list has its own page, and a task from a project you're not
@@ -94,7 +106,16 @@ export default function ProjectView() {
 
   const header = (
     <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
-      <h1>{project.name}</h1>
+      <div className="project-title-row">
+        <h1>{project.name}</h1>
+        {project.trip && (
+          <button className="project-trip-chip" onClick={() => setTripOpen(true)} title="Trip dates">
+            ✈️ {awayRange(project.trip)}
+            {tripWhen(project.trip, todayISO()) && <b>{tripWhen(project.trip, todayISO())}</b>}
+          </button>
+        )}
+        {tripOpen && <AwaySheet projectId={project.id} onClose={() => setTripOpen(false)} />}
+      </div>
       <div style={{ display: "flex", gap: 8 }}>
         {archivedSections.length > 0 && (
           <div style={{ position: "relative" }}>

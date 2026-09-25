@@ -9,7 +9,8 @@ import EntityModal from "./EntityModal";
 import ShareModal from "./ShareModal";
 import RowMenu from "./RowMenu";
 import { useToast } from "./ToastProvider";
-import { CopyIcon, EditIcon, ListViewIcon, PlusIcon, ShareIcon, TrashIcon } from "./icons";
+import { CalendarIcon, CopyIcon, EditIcon, ListViewIcon, PlusIcon, ShareIcon, TrashIcon } from "./icons";
+import AwaySheet from "./AwaySheet";
 
 /**
  * A project's "⋯" menu: edit, add a sub-project, share, delete (or leave, for
@@ -30,6 +31,7 @@ export default function ProjectMenu({
   const restoreProject = useRestoreProject();
   const [modal, setModal] = useState<"edit" | "sub" | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [tripOpen, setTripOpen] = useState(false);
   const [templates, setTemplates] = useState<null | { startWith?: { name: string; text: string } }>(null);
   const { data } = useBootstrap();
 
@@ -67,6 +69,9 @@ export default function ProjectMenu({
         items={templatesOnly ? templateItems : [
           { label: "Edit project", icon: <EditIcon width={14} height={14} />, onClick: () => setModal("edit") },
           { label: "Add sub-project", icon: <PlusIcon width={14} height={14} />, onClick: () => setModal("sub") },
+          ...(p.viewStyle !== "shopping"
+            ? [{ label: p.trip ? "✈️ Trip dates…" : "✈️ It's a trip…", icon: <CalendarIcon width={14} height={14} />, onClick: () => setTripOpen(true) }]
+            : []),
           ...(usingFirebase()
             ? [{ label: "Share…", icon: <ShareIcon width={14} height={14} />, onClick: () => setSharing(true) }]
             : []),
@@ -91,6 +96,7 @@ export default function ProjectMenu({
               },
         ]}
       />
+      {tripOpen && <AwaySheet projectId={p.id} onClose={() => setTripOpen(false)} />}
       {(modal || sharing || templates) &&
         // Outside the sidebar's project link, and clicks in here don't reach it.
         createPortal(

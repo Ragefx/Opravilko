@@ -10,6 +10,8 @@ import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
 import { isDueToday, isOverdue, todayISO } from "../utils/date";
 import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "../components/WeeklyReview";
+import { awayRange, projectRoute, tripsOf, tripWhen } from "../utils/away";
+import { useNavigate } from "react-router-dom";
 
 type Pane = "now" | "next" | "later";
 
@@ -67,6 +69,7 @@ type ClockEntry =
  */
 export default function Home() {
   const { data, isLoading } = useBootstrap();
+  const navigate = useNavigate();
   const completeTask = useCompleteTask();
   const revertRecurring = useRevertRecurringCompletion();
   const updateTask = useUpdateTask();
@@ -156,6 +159,17 @@ export default function Home() {
 
   const focus = view.focus;
   const reviewCount = reviewDueToday(data);
+  // The next trip (yours or a project's) in the coming two months, or the one under way.
+  const nextTrip = (() => {
+    const today = todayISO();
+    const soon = format(addDays(new Date(), 60), "yyyy-MM-dd");
+    const trip = tripsOf(data)
+      .filter((t) => t.mine && t.period.end >= today && t.period.start <= soon)
+      .sort((a, b) => a.period.start.localeCompare(b.period.start))[0];
+    if (!trip) return null;
+    const todo = trip.projectId ? data.tasks.filter((t) => t.projectId === trip.projectId && !t.completed).length : 0;
+    return { trip, when: tripWhen(trip.period, today)!, todo };
+  })();
   // The next thing still to come: highlighted in Later today.
   const firstAhead = view.clock.find(
     (c) => (c.kind === "event" && c.event.end ? new Date(c.event.end) : new Date(c.at)).getTime() > Date.now()
@@ -213,6 +227,26 @@ export default function Home() {
           <b>Nothing due today.</b>
           <span>Pick something from Next, or enjoy the free day.</span>
         </div>
+      )}
+
+      {nextTrip && (
+        <button
+          className="home-trip"
+          onClick={() => navigate(nextTrip.trip.projectId ? projectRoute(nextTrip.trip.projectId) : "/app/calendar")}
+        >
+          <span aria-hidden="true">✈️</span>
+          <span className="home-trip-text">
+            <b>
+              {nextTrip.when === "now" ? "Away · " : "Next trip · "}
+              {nextTrip.trip.period.title}
+            </b>
+            <span>
+              {awayRange(nextTrip.trip.period)}
+              {nextTrip.todo > 0 ? ` · ${nextTrip.todo} to do` : ""}
+            </span>
+          </span>
+          <span className="home-trip-when">{nextTrip.when === "now" ? "now" : nextTrip.when}</span>
+        </button>
       )}
 
       {reviewCount > 0 && (

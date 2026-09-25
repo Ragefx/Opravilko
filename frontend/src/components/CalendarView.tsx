@@ -31,7 +31,8 @@ import {
 import type { CalendarEvent, Due, Task } from "../api/types";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, awayTimeOn, tripName, tripsOf, tripsOn } from "../utils/away";
+import { awayRange, awayTimeOn, projectRoute, tripName, tripsOf, tripsOn } from "../utils/away";
+import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 import { PRIORITY_META } from "../utils/priority";
 import TaskDetail from "./TaskDetail";
@@ -91,6 +92,7 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   const updateTask = useUpdateTask();
   const showToast = useToast();
   const trips = tripsOf(useBootstrap().data);
+  const navigate = useNavigate();
   const [awayEdit, setAwayEdit] = useState<{ period?: AwayPeriod; startDay?: string } | null>(null);
 
   // A short press still opens the task; dragging starts after a small move
@@ -254,7 +256,12 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                     key={t.period.id}
                     className={`calendar-away-label ${t.mine ? "" : "is-partner"}`}
                     onClick={() =>
-                      t.mine ? setAwayEdit({ period: t.period }) : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}` })
+                      // A project's trip opens the project (its prep tasks); yours opens to change.
+                      t.projectId
+                        ? navigate(projectRoute(t.projectId))
+                        : t.mine
+                          ? setAwayEdit({ period: t.period })
+                          : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}` })
                     }
                     title={`Away: ${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}`}
                   >

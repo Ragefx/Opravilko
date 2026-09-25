@@ -23,7 +23,8 @@ import TaskListView from "./TaskListView";
 import RescheduleButton from "./RescheduleButton";
 import { ChevronIcon } from "./icons";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, tripName, tripsOf, tripsOn } from "../utils/away";
+import { awayRange, projectRoute, tripName, tripsOf, tripsOn } from "../utils/away";
+import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
@@ -83,6 +84,7 @@ export default function MobileCalendar({
   // Sub-tasks with their own date too (as in Now and Upcoming).
   const open = tasks.filter((t) => !t.completed && t.due);
   const trips = tripsOf(data);
+  const navigate = useNavigate();
   const [awayEdit, setAwayEdit] = useState<{ period?: AwayPeriod; startDay?: string } | null>(null);
   const byDate = new Map<string, Task[]>();
   for (const t of open) {
@@ -215,7 +217,7 @@ export default function MobileCalendar({
               <button
                 key={t.period.id}
                 className={`mcal-away-banner ${t.mine ? "" : "is-partner"}`}
-                onClick={() => t.mine && setAwayEdit({ period: t.period })}
+                onClick={() => (t.projectId ? navigate(projectRoute(t.projectId)) : t.mine && setAwayEdit({ period: t.period }))}
               >
                 ✈️
                 <span className="mcal-away-text">

@@ -5,13 +5,17 @@ import {
   useAddComment,
   useBootstrap,
   useCompleteTask,
+  useCreateProject,
   useCreateTask,
   useDeleteComment,
   useDeleteTask,
   useRestoreTasks,
   useSetTaskShared,
+  useUpdateProject,
   useUpdateTask,
 } from "../api/hooks";
+import { useNavigate } from "react-router-dom";
+import { projectRoute } from "../utils/away";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { makeDue, todayISO } from "../utils/date";
 import {
@@ -81,6 +85,9 @@ export default function TaskDetail({
   const deleteTask = useDeleteTask();
   const restoreTasks = useRestoreTasks();
   const createTask = useCreateTask();
+  const createProject = useCreateProject();
+  const updateProject = useUpdateProject();
+  const navigate = useNavigate();
   const completeTask = useCompleteTask();
   const addComment = useAddComment();
   const deleteComment = useDeleteComment();
@@ -222,6 +229,31 @@ export default function TaskDetail({
     if (!value) return;
     addComment.mutate({ taskId: task.id, text: value });
     setCommentText("");
+  }
+
+  /**
+   * A task that's really a trip ("Weekend in Piran") becomes a project: its
+   * date the trip's first day, its sub-tasks the project's tasks. The task
+   * itself goes, unless it has notes, comments or files (then it moves in too).
+   */
+  async function makeTripProject() {
+    const project = await createProject.mutateAsync({ name: task.content, color: "blue" });
+    if (task.due) {
+      const time = task.due.datetime ? format(new Date(task.due.datetime), "HH:mm") : undefined;
+      await updateProject.mutateAsync({
+        id: project.id,
+        trip: { start: task.due.date, end: task.due.date, ...(time ? { startTime: time } : {}) },
+      });
+    }
+    for (const sub of data?.tasks.filter((t) => t.parentId === task.id) ?? []) {
+      await updateTask.mutateAsync({ id: sub.id, projectId: project.id, sectionId: null, parentId: null });
+    }
+    const keep = Boolean(task.description?.trim() || task.comments?.length || task.attachments?.length);
+    if (keep) await updateTask.mutateAsync({ id: task.id, projectId: project.id, sectionId: null, parentId: null, due: null });
+    else await deleteTask.mutateAsync(task.id);
+    onClose();
+    // On the project, with its trip dates to fill in.
+    navigate(`${projectRoute(project.id)}?trip=1`);
   }
 
   function duplicateTask() {
@@ -415,6 +447,9 @@ export default function TaskDetail({
               label="Task"
               items={[
                 { label: "Duplicate", icon: <CopyIcon width={16} height={16} />, onClick: duplicateTask },
+                ...(!task.parentId
+                  ? [{ label: "✈️ Make it a trip project", icon: <CalendarIcon width={16} height={16} />, onClick: () => void makeTripProject() }]
+                  : []),
                 { label: "Delete task", icon: <TrashIcon width={16} height={16} />, danger: true, onClick: handleDelete },
               ]}
             />

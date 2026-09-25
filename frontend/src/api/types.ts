@@ -25,6 +25,8 @@ export interface Project {
   bought?: Record<string, { name: string; n: number }>;
   /** Shopping lists: the shops items can be marked for (SPAR, Hofer, Lidl unless changed). */
   stores?: string[];
+  /** A project that is a trip (Tromsø): its dates, shown across the calendar for everyone on it. */
+  trip?: TripDates;
   /** Firebase only: who created it and who can see it (see firebase/sync.ts). */
   ownerId?: string;
   members?: string[];
@@ -122,6 +124,9 @@ export type Reminder =
   | { id: string; type: "relative"; minutes: number; by?: string }
   | { id: string; type: "day"; days: number; time: string; by?: string }
   | { id: string; type: "absolute"; at: string; by?: string };
+
+/** A trip's days and times, on an away period or a project. */
+export type TripDates = Omit<AwayPeriod, "id" | "title">;
 
 /** Days you're away, e.g. "Athens" from Thu 2 to Sat 4 Oct (dates inclusive, "yyyy-MM-dd"). */
 export interface AwayPeriod {

@@ -25,11 +25,12 @@ import PartnerConnect from "./PartnerConnect";
 import CalendarFeedsModal from "./CalendarFeedsModal";
 import ImportModal from "./ImportModal";
 import { useToast } from "./ToastProvider";
-import { BellIcon, CalendarIcon, ImportIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
+import { BellIcon, CalendarIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
 import StorageSettings from "./StorageSettings";
+import AboutSection from "./AboutSection";
 
 type ThemeSetting = ThemeChoice | "system";
-type Section = "appearance" | "sharing" | "calendars" | "reminders" | "storage" | "data" | "account";
+type Section = "appearance" | "sharing" | "calendars" | "reminders" | "storage" | "data" | "account" | "about";
 
 const LOOKS: { id: Look; name: string; blurb: string }[] = [
   {
@@ -81,6 +82,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     ...(firebase ? [{ id: "storage" as const, label: "Storage", icon: <PaperclipIcon width={16} height={16} /> }] : []),
     { id: "data", label: "Import & backup", icon: <ImportIcon width={16} height={16} /> },
     { id: "account", label: "Account", icon: <LogOutIcon width={16} height={16} /> },
+    { id: "about", label: "About", icon: <InfoIcon width={16} height={16} /> },
   ];
 
   return (
@@ -119,6 +121,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
             {section === "storage" && <StorageSettings />}
             {section === "data" && <DataSection onClose={onClose} />}
             {section === "account" && <Account onClose={onClose} />}
+            {section === "about" && <AboutSection />}
           </div>
         </div>
       </div>

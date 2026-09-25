@@ -339,3 +339,10 @@ export const FileIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M14 3v5h5" />
   </svg>
 );
+
+export const InfoIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 8h.01" />
+  </svg>
+);

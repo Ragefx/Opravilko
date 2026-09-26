@@ -20,6 +20,8 @@ import ReminderSheet from "./ReminderSheet";
 import { shortReminder } from "../utils/reminders";
 import Select from "./Select";
 import { appUi } from "../utils/appUi";
+import { Keyboard } from "@capacitor/keyboard";
+import { isNativeApp } from "../dropbox/auth";
 
 /** A paper clip, as on the widget's card. */
 const AttachIcon = () => (
@@ -101,6 +103,26 @@ export default function QuickAddSheet({
   const [menu, setMenu] = useState(false);
   const [where, setWhere] = useState(false);
   const [picking, setPicking] = useState<null | "date" | "labels" | "location" | "reminders">(null);
+  // In the app, Back first only closes the keyboard (Android leaves the name
+  // field focused). Close the card along with it, so one Back does both --
+  // unless the keyboard went because of a tap in the card (a chip, the mic,
+  // a picker) or something is open over it.
+  const lastTouch = useRef(0);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  const pickingRef = useRef<string | null>(null);
+  pickingRef.current = picking;
+  useEffect(() => {
+    if (!isNativeApp) return;
+    const listener = Keyboard.addListener("keyboardDidHide", () => {
+      if (Date.now() - lastTouch.current < 800 || pickingRef.current) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && el.closest(".qas-card") && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) closeRef.current();
+    });
+    return () => {
+      void listener.then((l) => l.remove());
+    };
+  }, []);
   // Picked here; left untouched, this device's defaults from Settings apply (none unless set).
   const [reminders, setReminders] = useState<Reminder[] | undefined>(undefined);
   const dateChip = useRef<HTMLButtonElement>(null);
@@ -203,7 +225,7 @@ export default function QuickAddSheet({
 
   return createPortal(
     <div className={`qas-scrim ${dialog ? "qas-dialog-scrim" : ""}`} onClick={onClose}>
-      <div className={`qas-card ${dialog ? "qas-dialog" : ""}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add task">
+      <div className={`qas-card ${dialog ? "qas-dialog" : ""}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label="Add task">
         {added && <div className="qas-added">{added}</div>}
         {/* What was read as a date, time, p1, #project... shows highlighted: the
             text is drawn by the copy behind the (see-through) field. */}

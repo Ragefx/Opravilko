@@ -17,6 +17,8 @@ Build 29 adds Settings > About (version and every build's changes).
 - Builds also make Opravilko.aab (for Google Play) next to the APK
 - Shopping list: the bottom add button comes back after Back closes the
   keyboard (it stayed hidden until you changed page)
+- Add task card: one Back closes the keyboard and the card together (it took
+  two); tapping a chip, the mic or a picker still keeps the card open
 
 ## Known gaps
 

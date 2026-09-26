@@ -187,10 +187,10 @@ public class TaskItemActivity extends WidgetSheetActivity {
 
     private void buildPriorityChips() {
         priorityChips.removeAllViews();
-        // Stored 4..1, shown as P1..P4 (as in the app).
+        // Stored 4..2, shown as P1..P3, and 1 as None (as in the app).
         for (int stored = 4; stored >= 1; stored--) {
             final int p = stored;
-            addChip(priorityChips, "P" + (5 - stored), priority == stored, v -> {
+            addChip(priorityChips, stored == 1 ? "None" : "P" + (5 - stored), priority == stored, v -> {
                 priority = p;
                 buildPriorityChips();
             });

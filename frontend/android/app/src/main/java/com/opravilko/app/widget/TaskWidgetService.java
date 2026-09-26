@@ -295,7 +295,7 @@ public class TaskWidgetService extends RemoteViewsService {
         }
         @Override public boolean hasStableIds() { return true; }
 
-        /** Stored priority 4..1 is shown as p1..p4 (red, yellow, green, plain grey), like the app. */
+        /** Stored priority 4..1 is shown as p1..p3 (red, yellow, green) and none (plain grey), like the app. */
         private static int checkDrawable(int priority) {
             switch (priority) {
                 case 4: return R.drawable.widget_check_4;

@@ -8,7 +8,7 @@ import {
   serializeRecurrence,
 } from "./recurrence";
 
-const PRIORITY_FLAG_RE = /\bp([1-4])\b/i;
+const PRIORITY_FLAG_RE = /\bp([1-3])\b/i;
 // Unicode-aware (so "@služba" isn't cut to "@slu") and anchored to a word
 // start, so an email address like "ana@example.com" isn't read as a label.
 const LABEL_RE = /(?<=^|\s)@([\p{L}\p{N}_-]+)/gu;
@@ -37,8 +37,8 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
   let priority: Priority = 1;
   const pm = content.match(PRIORITY_FLAG_RE);
   if (pm) {
-    const typed = parseInt(pm[1], 10); // p1 (urgent) .. p4 (none), as the user types it
-    priority = (5 - typed) as Priority; // stored inverted: p1 -> 4 .. p4 -> 1
+    const typed = parseInt(pm[1], 10); // p1 (urgent) .. p3, as the user types it
+    priority = (5 - typed) as Priority; // stored inverted: p1 -> 4 .. p3 -> 2
     content = content.replace(PRIORITY_FLAG_RE, "").trim();
   }
 
@@ -111,7 +111,7 @@ export function highlightParts(raw: string, content: string): { text: string; hi
     if (!hit) k++;
     words.push({ word: m[1], space: m[2], hit });
   }
-  // #project, @label, +midva and p1..p4 are each their own highlight; the words
+  // #project, @label, +midva and p1..p3 are each their own highlight; the words
   // of a date or a repeat ("ob 9h", "every friday") read as one.
   const ownPiece = (w: string) => /^[#@+]/.test(w) || /^p[1-4]$/i.test(w);
   const out: { text: string; hit: boolean }[] = lead ? [{ text: lead, hit: false }] : [];

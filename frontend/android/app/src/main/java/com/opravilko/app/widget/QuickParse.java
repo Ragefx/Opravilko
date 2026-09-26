@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * The widget's Add task box reads a few things from what you type, like the
  * app's quick add (src/utils/quickAddParse.ts) does: a day ("danes", "jutri",
  * "pojutrišnjem", "v petek", "today", "friday"), a time ("ob 9h", "ob 9:30",
- * "14:00") and a priority ("p1".."p4"). Everything else is the task's name.
+ * "14:00") and a priority ("p1".."p3"). Everything else is the task's name.
  */
 final class QuickParse {
     private static final Locale SL = Locale.forLanguageTag("sl");
@@ -19,7 +19,7 @@ final class QuickParse {
     final String day;
     /** "HH:mm" or null. */
     final String time;
-    /** Stored priority 1..4 (p4..p1), or 0 if none typed. */
+    /** Stored priority 2..4 (p3..p1), or 0 if none typed. */
     final int priority;
 
     private QuickParse(String content, String day, String time, int priority) {
@@ -47,7 +47,7 @@ final class QuickParse {
         String time = null;
         int priority = 0;
 
-        Matcher p = Pattern.compile("(?i)\\s[pP]([1-4])(?=\\s)").matcher(text);
+        Matcher p = Pattern.compile("(?i)\\s[pP]([1-3])(?=\\s)").matcher(text);
         if (p.find()) {
             priority = 5 - Integer.parseInt(p.group(1));
             text = text.substring(0, p.start()) + text.substring(p.end());

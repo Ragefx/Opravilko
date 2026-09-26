@@ -695,15 +695,15 @@ public class QuickAddActivity extends AppCompatActivity {
 
     private void pickPriority(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
-        String[] names = { "Priority 1", "Priority 2", "Priority 3", "Priority 4" };
-        int[] colors = { R.color.widget_due_overdue, R.color.widget_due_tomorrow, R.color.widget_accent, R.color.widget_text };
+        String[] names = { "Priority 1", "Priority 2", "Priority 3", "No priority" };
+        int[] colors = { R.color.widget_due_overdue, R.color.widget_due_tomorrow, R.color.widget_accent, R.color.widget_text_secondary };
         for (int i = 0; i < 4; i++) {
             android.text.SpannableString s = new android.text.SpannableString("\u2691  " + names[i]);
             s.setSpan(new android.text.style.ForegroundColorSpan(getColor(colors[i])), 0, 1, 0);
             menu.getMenu().add(0, i, i, s);
         }
         menu.setOnMenuItemClickListener(item -> {
-            priority = 4 - item.getItemId(); // P1 is stored as 4
+            priority = item.getItemId() == 3 ? 0 : 4 - item.getItemId(); // P1 is stored as 4; 0 is none
             buildChips();
             return true;
         });

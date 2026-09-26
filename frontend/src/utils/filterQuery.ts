@@ -3,7 +3,7 @@ import { isDueToday, isDueWithinDays, isOverdue } from "./date";
 
 /**
  * A tiny filter query language, inspired by Todoist's: space-separated tokens, ANDed together.
- *   today | overdue | upcoming | p1..p4 | @label | #ProjectName | no date
+ *   today | overdue | upcoming | p1..p3 | p4 (no priority) | @label | #ProjectName | no date
  */
 export function matchesQuery(task: Task, query: string, data: AppData): boolean {
   const tokens = query

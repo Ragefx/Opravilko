@@ -21,6 +21,9 @@ reorderable Add task icons, the Today widget opening Now.
   Weekly review); off, it's hidden from Now, the menu and search
 - Weekly review: a task opened from it now shows its date picker on top
   (it opened behind the task)
+- Priority: three levels (P1 red, P2 yellow, P3 green) plus "No priority"
+  (was shown as a blue "Priority 4"); also in the widget's Add card and task
+  sheet, and typing p4 no longer sets anything
 
 ## Known gaps
 

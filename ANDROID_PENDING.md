@@ -22,6 +22,11 @@ Build 29 adds Settings > About (version and every build's changes).
   newer build (Update → Android's Install; the first time Android asks to
   allow installing apps), and Check for updates in Settings > About. New
   native plugin UpdatePlugin + REQUEST_INSTALL_PACKAGES permission
+- New Add task card (app and widget) and widget shopping card: name 18,
+  a description line, what's set as small tokens (tap to change, × to
+  clear), a line, then where it goes, one row of same-size icons and a round
+  send. Opens with an animation: rises from the bottom (grows out of the +
+  with the bottom bar style)
 
 ## Known gaps
 

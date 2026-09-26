@@ -2,5 +2,5 @@
 <!-- The Add task card: rounded all round, floating above the keyboard. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <solid android:color="@color/widget_bg" />
-    <corners android:radius="32dp" />
+    <corners android:radius="24dp" />
 </shape>

@@ -50,7 +50,10 @@ public class QuickAddActivity extends AppCompatActivity {
     private WidgetStore store;
     private EditText text;
     private ImageButton send;
-    private LinearLayout chips;
+    /** What's set (tap to change, × to clear), the row of icons, and where it goes. */
+    private LinearLayout tokens, tools;
+    private View tokensScroll;
+    private TextView where;
     private TextView added;
 
     private boolean shopping;
@@ -80,7 +83,10 @@ public class QuickAddActivity extends AppCompatActivity {
         store = new WidgetStore(this);
         text = findViewById(R.id.qa_text);
         send = findViewById(R.id.qa_send);
-        chips = findViewById(R.id.qa_chips);
+        tokens = findViewById(R.id.qa_tokens);
+        tokensScroll = findViewById(R.id.qa_tokens_scroll);
+        tools = findViewById(R.id.qa_tools);
+        where = findViewById(R.id.qa_where);
         added = findViewById(R.id.qa_added);
         description = findViewById(R.id.qa_description);
         preview = findViewById(R.id.qa_preview);
@@ -107,6 +113,23 @@ public class QuickAddActivity extends AppCompatActivity {
             else submit();
         });
         setUp(getIntent());
+        animateIn();
+    }
+
+    /** The card rises from the bottom with a small bounce while the page behind dims. */
+    private void animateIn() {
+        View card = findViewById(R.id.qa_card);
+        Drawable dim = findViewById(R.id.qa_scrim).getBackground();
+        if (dim != null) {
+            dim.setAlpha(0);
+            android.animation.ValueAnimator fade = android.animation.ValueAnimator.ofInt(0, 255);
+            fade.setDuration(200);
+            fade.addUpdateListener(a -> dim.setAlpha((int) a.getAnimatedValue()));
+            fade.start();
+        }
+        card.setTranslationY(dp(420));
+        card.animate().translationY(0).setDuration(300)
+                .setInterpolator(new android.view.animation.OvershootInterpolator(0.9f)).start();
     }
 
     /**
@@ -236,74 +259,168 @@ public class QuickAddActivity extends AppCompatActivity {
     // ---- chips ----
 
     private void buildChips() {
-        chips.removeAllViews();
+        tokens.removeAllViews();
+        tools.removeAllViews();
         JSONObject data = store.getSnapshot();
         if (shopping) {
+            // Left: the shop what's added now is for.
+            setWhere("\uD83C\uDFEA " + (shopStore != null ? shopStore : "Any shop"), null,
+                    shopStore != null ? R.color.widget_accent : R.color.widget_text_secondary);
+            where.setOnClickListener(v -> pickStore());
             // A meal: its ingredients, for so many servings, like the app's Meal button.
-            TextView mealChip = chip("\uD83C\uDF73 Meal", null, R.color.widget_accent);
-            mealChip.setOnClickListener(v -> pickMeal());
-            chips.addView(mealChip);
-            // The shop: marked on everything added while it's picked.
-            TextView storeChip = chip("\uD83C\uDFEA " + (shopStore != null ? shopStore : "Shop"), null,
-                    shopStore != null ? R.color.widget_accent : R.color.widget_text);
-            storeChip.setOnClickListener(v -> pickStore());
-            chips.addView(storeChip);
+            TextView meal = toolText("\uD83C\uDF73 Meal");
+            meal.setOnClickListener(v -> pickMeal());
+            tools.addView(meal);
+            // Your usual items, one tap each.
             for (String name : usualItems(data)) {
-                TextView chip = chip("+ " + name, null, R.color.widget_text);
-                chip.setOnClickListener(v -> {
+                View t = token("+ " + name, R.color.widget_text_secondary, null);
+                t.setOnClickListener(v -> {
                     addShopLines(java.util.Collections.singletonList(name));
-                    chips.removeView(v);
+                    tokens.removeView(v);
+                    tokensScroll.setVisibility(tokens.getChildCount() > 0 ? View.VISIBLE : View.GONE);
                 });
-                chips.addView(chip);
+                tokens.addView(t);
             }
+            tokensScroll.setVisibility(tokens.getChildCount() > 0 ? View.VISIBLE : View.GONE);
             return;
         }
-        TextView more = chip("", R.drawable.ic_qa_plus, R.color.widget_text);
-        more.setContentDescription("More");
-        more.setOnClickListener(this::showMore);
-        chips.addView(more);
 
         JSONObject project = TaskLogic.findProject(data, projectId);
         boolean inbox = "inbox".equals(projectId) || project == null || project.optBoolean("isInboxProject");
-        TextView projectChip = chip(projectName(data), inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text);
-        projectChip.setOnClickListener(this::pickProject);
-        chips.addView(projectChip);
+        setWhere(projectName(data), inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text_secondary);
+        where.setOnClickListener(this::pickProject);
 
-        TextView dateChip = chip(dayLabel(day), R.drawable.ic_w_calendar, dayColor(day));
-        dateChip.setOnClickListener(this::pickDay);
-        chips.addView(dateChip);
-
+        // One row of same-size icons, tinted when that thing is set.
+        tools.addView(tool(R.drawable.ic_w_calendar, "Date", day != null, dayColor(day), this::pickDay));
+        tools.addView(tool(R.drawable.ic_qa_flag, "Priority", priority > 0,
+                priority > 0 ? priorityColor(priority) : R.color.widget_text_secondary, this::pickPriority));
+        tools.addView(tool(R.drawable.ic_qa_label, "Labels", !labels.isEmpty(), R.color.widget_accent, v -> pickLabels()));
+        tools.addView(tool(R.drawable.ic_qa_pin, "Location", location != null, R.color.widget_accent, v -> pickLocation()));
         // Attachments live in Firebase, so only with Google sign-in (as in the app).
         if (store.isFirebase()) {
-            TextView attach = chip(attachment != null ? attachmentName : "Attachment", R.drawable.ic_qa_attach,
-                    attachment != null ? R.color.widget_accent : R.color.widget_text);
-            attach.setOnClickListener(v -> {
-                if (attachment != null) {
-                    attachment.delete();
-                    attachment = null;
-                    buildChips();
-                } else {
-                    pickFile();
-                }
-            });
-            chips.addView(attach);
+            tools.addView(tool(R.drawable.ic_qa_attach, "Attachment", attachment != null, R.color.widget_accent, v -> pickFile()));
         }
 
-        TextView prio = chip(priority > 0 ? "P" + (5 - priority) : "Priority", R.drawable.ic_qa_flag,
-                priority > 0 ? priorityColor(priority) : R.color.widget_text);
-        prio.setOnClickListener(this::pickPriority);
-        chips.addView(prio);
-
+        // What's set, as tokens: tap to change, × to clear.
+        if (day != null) {
+            View t = token(dayLabel(day), dayColor(day), () -> day = null);
+            t.setOnClickListener(this::pickDay);
+            tokens.addView(t);
+        }
+        if (priority > 0) {
+            View t = token("P" + (5 - priority), priorityColor(priority), () -> priority = 0);
+            t.setOnClickListener(this::pickPriority);
+            tokens.addView(t);
+        }
         if (!labels.isEmpty()) {
-            TextView l = chip("@" + android.text.TextUtils.join(" @", labels), R.drawable.ic_qa_label, R.color.widget_accent);
-            l.setOnClickListener(v -> pickLabels());
-            chips.addView(l);
+            View t = token("@" + android.text.TextUtils.join(" @", labels), R.color.widget_accent, labels::clear);
+            t.setOnClickListener(v -> pickLabels());
+            tokens.addView(t);
         }
         if (location != null) {
-            TextView loc = chip(location.optString("name"), R.drawable.ic_qa_pin, R.color.widget_accent);
-            loc.setOnClickListener(v -> pickLocation());
-            chips.addView(loc);
+            View t = token("\uD83D\uDCCD " + location.optString("name"), R.color.widget_accent, () -> location = null);
+            t.setOnClickListener(v -> pickLocation());
+            tokens.addView(t);
         }
+        if (attachment != null) {
+            View t = token("\uD83D\uDCCE " + attachmentName, R.color.widget_accent, () -> {
+                attachment.delete();
+                attachment = null;
+            });
+            t.setOnClickListener(v -> pickFile());
+            tokens.addView(t);
+        }
+        tokensScroll.setVisibility(tokens.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    private void setWhere(String label, Integer icon, int colorRes) {
+        where.setText(label);
+        int color = getColor(colorRes);
+        where.setTextColor(color);
+        Drawable d = icon != null ? getDrawable(icon) : null;
+        if (d != null) {
+            d.setBounds(0, 0, dp(17), dp(17));
+            d.setTintList(ColorStateList.valueOf(color));
+        }
+        where.setCompoundDrawables(d, null, null, null);
+    }
+
+    /** A soft rounded background: the colour at a light tint, or clear. */
+    private android.graphics.drawable.GradientDrawable soft(int color, boolean on, int radiusDp) {
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setCornerRadius(dp(radiusDp));
+        g.setColor(on ? (color & 0x00FFFFFF) | 0x22000000 : android.graphics.Color.TRANSPARENT);
+        return g;
+    }
+
+    /** One of the row's icons, 38 dp, tinted and softly filled when set. */
+    private ImageButton tool(int icon, String label, boolean on, int colorRes, View.OnClickListener click) {
+        ImageButton b = new ImageButton(this);
+        int color = getColor(on ? colorRes : R.color.widget_text_secondary);
+        b.setImageResource(icon);
+        b.setImageTintList(ColorStateList.valueOf(color));
+        b.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
+        b.setPadding(dp(9), dp(9), dp(9), dp(9));
+        b.setBackground(soft(color, on, 10));
+        b.setContentDescription(label);
+        b.setOnClickListener(click);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(38), dp(38));
+        lp.setMarginEnd(dp(2));
+        b.setLayoutParams(lp);
+        return b;
+    }
+
+    /** A worded button in the icon row (the shopping card's Meal). */
+    private TextView toolText(String label) {
+        TextView t = new TextView(this);
+        t.setText(label);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        t.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        t.setTextColor(getColor(R.color.widget_accent));
+        t.setGravity(Gravity.CENTER_VERTICAL);
+        t.setPadding(dp(10), 0, dp(12), 0);
+        t.setBackground(soft(getColor(R.color.widget_accent), true, 10));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(38));
+        lp.setMarginEnd(dp(4));
+        t.setLayoutParams(lp);
+        return t;
+    }
+
+    /** A token: its label (tap: change it), and × to clear it when `clear` is given. */
+    private LinearLayout token(String label, int colorRes, Runnable clear) {
+        int color = getColor(colorRes);
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.HORIZONTAL);
+        box.setGravity(Gravity.CENTER_VERTICAL);
+        box.setBackground(soft(color, true, 9));
+        box.setMinimumHeight(dp(30));
+        TextView name = new TextView(this);
+        name.setText(label);
+        name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        name.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        name.setTextColor(color);
+        name.setSingleLine(true);
+        name.setPadding(dp(10), dp(5), clear != null ? dp(2) : dp(10), dp(5));
+        box.addView(name);
+        if (clear != null) {
+            TextView x = new TextView(this);
+            x.setText("\u00D7");
+            x.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            x.setTextColor(color);
+            x.setAlpha(0.6f);
+            x.setPadding(dp(5), 0, dp(9), 0);
+            x.setContentDescription("Clear " + label);
+            x.setOnClickListener(v -> {
+                clear.run();
+                buildChips();
+            });
+            box.addView(x);
+        }
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMarginEnd(dp(6));
+        box.setLayoutParams(lp);
+        return box;
     }
 
     private void resetExtras() {
@@ -313,7 +430,7 @@ public class QuickAddActivity extends AppCompatActivity {
         if (attachment != null) attachment.delete();
         attachment = null;
         description.setText("");
-        description.setVisibility(View.GONE);
+        description.setVisibility(shopping ? View.GONE : View.VISIBLE);
     }
 
     private static int priorityColor(int stored) {
@@ -583,13 +700,13 @@ public class QuickAddActivity extends AppCompatActivity {
     private TextView chip(String label, Integer icon, int colorRes) {
         TextView chip = new TextView(this);
         chip.setText(label);
-        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         int color = getColor(colorRes);
         chip.setTextColor(color);
         chip.setGravity(Gravity.CENTER_VERTICAL);
         chip.setBackgroundResource(R.drawable.qa_chip_bg);
         // Tall, easy targets (like Todoist's card), level with the send button.
-        chip.setMinHeight(dp(52));
+        chip.setMinHeight(dp(40));
         chip.setPadding(dp(14), 0, label.isEmpty() ? dp(6) : dp(16), 0);
         chip.setSingleLine(true);
         if (icon != null) {

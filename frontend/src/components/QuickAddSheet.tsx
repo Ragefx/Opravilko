@@ -20,6 +20,7 @@ import ReminderSheet from "./ReminderSheet";
 import { shortReminder } from "../utils/reminders";
 import Select from "./Select";
 import { appUi } from "../utils/appUi";
+import { useAddStyle } from "../utils/addStyle";
 import { Keyboard } from "@capacitor/keyboard";
 import { isNativeApp } from "../dropbox/auth";
 
@@ -81,6 +82,8 @@ export default function QuickAddSheet({
   const addAttachments = useAddAttachments();
   const showToast = useToast();
   const keyboard = useKeyboardInset();
+  // Opening: it grows out of the bottom bar's +, and rises for every other style.
+  const addStyle = useAddStyle();
   const partner = data?.partner;
   const projects = data?.projects ?? [];
 
@@ -91,7 +94,7 @@ export default function QuickAddSheet({
   const [text, setText] = useState("");
   // The website's window (the app has the card on the keyboard).
   const dialog = !appUi;
-  const [description, setDescription] = useState<string | null>(dialog ? "" : null);
+  const [description, setDescription] = useState<string | null>("");
   const [picked, setPicked] = useState<Due | null | undefined>(undefined);
   const [priority, setPriority] = useState<number | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
@@ -150,7 +153,7 @@ export default function QuickAddSheet({
     typedProject && chosen.projectId !== typedProject.id
       ? places.find((t) => t.projectId === typedProject.id && !t.sectionId) ?? chosen
       : chosen;
-  const effectivePriority = (preview && preview.priority !== 1 ? preview.priority : priority ?? 1) as Task["priority"];
+  const effectivePriority = (priority ?? (preview && preview.priority !== 1 ? preview.priority : 1)) as Task["priority"];
   const allLabels = [...new Set([...(preview?.labels ?? []), ...labels])];
   const isInbox = target.projectId === "inbox" || projects.find((p) => p.id === target.projectId)?.isInboxProject;
 
@@ -189,7 +192,7 @@ export default function QuickAddSheet({
     }
     // Ready for the next one: the name and the extras go, where and when stay.
     setText("");
-    setDescription(dialog ? "" : null);
+    setDescription("");
     setPriority(null);
     setLabels([]);
     setLocation(null);
@@ -209,6 +212,46 @@ export default function QuickAddSheet({
     }
   }
 
+  // The app's tokens: each thing that's set, to change or clear.
+  const tokens: { key: string; label: string; color?: string; open: () => void; clear: () => void }[] = [];
+  if (baseDue)
+    tokens.push({
+      key: "date",
+      label: formatDueLabel(baseDue),
+      color: baseDue.date < todayISO() ? "var(--color-danger)" : "var(--color-accent)",
+      open: () => setPicking("date"),
+      clear: () => setPicked(null),
+    });
+  if (effectivePriority !== 1)
+    tokens.push({
+      key: "priority",
+      label: `P${5 - effectivePriority}`,
+      color: PRIORITY_META[effectivePriority].color,
+      open: () => {},
+      clear: () => setPriority(1),
+    });
+  if (repeat !== "none")
+    tokens.push({
+      key: "repeat",
+      label: REPEAT_PRESETS.find((p) => p.key === repeat)?.label ?? "Repeats",
+      open: () => {},
+      clear: () => setRepeat("none"),
+    });
+  if (reminders?.length)
+    tokens.push({
+      key: "reminders",
+      label: `🔔 ${shortReminder(reminders[0])}${reminders.length > 1 ? ` +${reminders.length - 1}` : ""}`,
+      open: () => setPicking("reminders"),
+      clear: () => setReminders([]),
+    });
+  if (allLabels.length)
+    tokens.push({ key: "labels", label: `@${allLabels.join(" @")}`, open: () => setPicking("labels"), clear: () => setLabels([]) });
+  if (location)
+    tokens.push({ key: "location", label: `📍 ${location.name}`, open: () => setPicking("location"), clear: () => setLocation(null) });
+  if (file) tokens.push({ key: "file", label: `📎 ${file.name}`, open: () => fileInput.current?.click(), clear: () => setFile(null) });
+  if (shared && partner)
+    tokens.push({ key: "shared", label: `With ${partner.name.split(" ")[0]}`, open: () => setShared(false), clear: () => setShared(false) });
+
   const dueColor = !baseDue ? undefined : baseDue.date < todayISO() ? "var(--color-danger)" : "var(--color-accent)";
   const menuItems: { label: string; icon: ReactNode; run: () => void }[] = [
     { label: "Description", icon: <NotesIcon />, run: () => setDescription((d) => d ?? "") },
@@ -225,7 +268,7 @@ export default function QuickAddSheet({
 
   return createPortal(
     <div className={`qas-scrim ${dialog ? "qas-dialog-scrim" : ""}`} onClick={onClose}>
-      <div className={`qas-card ${dialog ? "qas-dialog" : ""}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label="Add task">
+      <div className={`qas-card ${dialog ? "qas-dialog" : `qab ${addStyle === "tabs" ? "qab-anim-grow" : "qab-anim-rise"}`}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label="Add task">
         {added && <div className="qas-added">{added}</div>}
         {/* What was read as a date, time, p1, #project... shows highlighted: the
             text is drawn by the copy behind the (see-through) field. */}
@@ -271,7 +314,7 @@ export default function QuickAddSheet({
             className="qas-desc"
             // Picked from the + menu in the app: straight into it. The website's
             // window always shows it, and starts in the task's name.
-            autoFocus={!dialog}
+            autoFocus={false}
             rows={1}
             placeholder="Description"
             value={description}
@@ -283,26 +326,27 @@ export default function QuickAddSheet({
           />
         )}
 
-        <div className="qas-bar">
-          <div className="qas-chips">
-            {!dialog && (
-              <>
+        {/* The app: what's set as tokens (tap to change, × to clear), then one
+            row of same-size icons, where it goes on the left, send on the right. */}
+        {!dialog && tokens.length > 0 && (
+          <div className="qab-tokens">
+            {tokens.map((t) => (
+              <span key={t.key} className="qab-token" style={t.color ? { color: t.color, background: `color-mix(in srgb, ${t.color} 13%, transparent)` } : undefined}>
+                <button type="button" className="qab-token-main" onClick={t.open}>
+                  {t.label}
+                </button>
+                <button type="button" className="qab-token-x" onClick={t.clear} aria-label={`Clear ${t.label}`}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        {!dialog && (
+          <div className="qab-bar">
             <button
               type="button"
-              className="qas-chip is-icon"
-              onClick={() => {
-                setWhere(false);
-                setMenu((m) => !m);
-              }}
-              aria-label="More"
-            >
-              <PlusIcon width={20} height={20} />
-            </button>
-
-            {/* Just the project here; its sections are in the list this opens. */}
-            <button
-              type="button"
-              className="qas-chip"
+              className="qab-where"
               onClick={() => {
                 setMenu(false);
                 setWhere((w) => !w);
@@ -310,126 +354,228 @@ export default function QuickAddSheet({
               aria-label={`Where it goes: ${target.label}`}
               aria-expanded={where}
             >
-              {isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
+              {isInbox ? <InboxIcon width={17} height={17} /> : <span className="qas-hash">#</span>}
               <span>{target.label.split(" / ")[0]}</span>
             </button>
-
-              </>
+            <div className="qab-tools">
+              <button ref={dateChip} type="button" className={`qab-tool ${baseDue ? "is-on" : ""}`} onClick={() => setPicking("date")} aria-label="Date">
+                <CalendarIcon width={19} height={19} />
+              </button>
+              <label
+                className={`qab-tool ${effectivePriority !== 1 ? "is-on" : ""}`}
+                style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}
+                aria-label="Priority"
+              >
+                <FlagIcon width={19} height={19} />
+                <Select value={effectivePriority} onChange={(e) => setPriority(Number(e.target.value))} aria-label="Priority">
+                  {PRIORITY_ORDER.map((p) => (
+                    <option key={p} value={p}>
+                      {PRIORITY_META[p].label}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <button type="button" className={`qab-tool ${reminders?.length ? "is-on" : ""}`} onClick={() => setPicking("reminders")} aria-label="Reminders">
+                <BellIcon width={19} height={19} />
+              </button>
+              <button type="button" className={`qab-tool ${allLabels.length ? "is-on" : ""}`} onClick={() => setPicking("labels")} aria-label="Labels">
+                <TagIcon width={19} height={19} />
+              </button>
+              <button type="button" className={`qab-tool ${location ? "is-on" : ""}`} onClick={() => setPicking("location")} aria-label="Location">
+                <MapPinIcon width={19} height={19} />
+              </button>
+              <label className={`qab-tool ${repeat !== "none" ? "is-on" : ""}`} aria-label="Repeat">
+                <RepeatIcon width={19} height={19} />
+                <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
+                  <option value="none">Doesn't repeat</option>
+                  {REPEAT_PRESETS.map((p) => (
+                    <option key={p.key} value={p.key}>
+                      {p.label}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              {usingFirebase() && (
+                <button type="button" className={`qab-tool ${file ? "is-on" : ""}`} onClick={() => fileInput.current?.click()} aria-label="Attach a photo or file">
+                  <AttachIcon />
+                </button>
+              )}
+              {partner && (
+                <button
+                  type="button"
+                  className={`qab-tool ${shared ? "is-on" : ""}`}
+                  onClick={() => setShared((v) => !v)}
+                  aria-pressed={shared}
+                  aria-label={`Share with ${partner.name.split(" ")[0]}`}
+                >
+                  <ShareIcon width={19} height={19} />
+                </button>
+              )}
+            </div>
+            {text.trim() ? (
+              <button type="button" className="qas-send qab-send" onClick={() => void submit()} aria-label="Add task">
+                <SendIcon />
+              </button>
+            ) : (
+              <MicButton
+                className="qas-send qab-send"
+                autoStart={listenOnOpen}
+                onText={(said) => {
+                  setText((t) => (t.trim() ? t.trim() + " " : "") + said);
+                  setSendSpoken(true);
+                }}
+              />
             )}
-
-            <button ref={dateChip} type="button" className="qas-chip" style={{ color: dueColor }} onClick={() => setPicking("date")}>
-              <CalendarIcon width={20} height={20} />
-              {baseDue ? formatDueLabel(baseDue) : "Date"}
-            </button>
-
-            {usingFirebase() && (
+          </div>
+        )}
+        {dialog && (
+        <div className="qas-bar">
+            <div className="qas-chips">
+              {!dialog && (
+                <>
+              <button
+                type="button"
+                className="qas-chip is-icon"
+                onClick={() => {
+                  setWhere(false);
+                  setMenu((m) => !m);
+                }}
+                aria-label="More"
+              >
+                <PlusIcon width={20} height={20} />
+              </button>
+  
+              {/* Just the project here; its sections are in the list this opens. */}
               <button
                 type="button"
                 className="qas-chip"
-                style={file ? { color: "var(--color-accent)" } : undefined}
-                onClick={() => (file ? setFile(null) : fileInput.current?.click())}
-                title={file ? "Tap to remove" : "Attach a photo or file"}
+                onClick={() => {
+                  setMenu(false);
+                  setWhere((w) => !w);
+                }}
+                aria-label={`Where it goes: ${target.label}`}
+                aria-expanded={where}
               >
-                <AttachIcon />
-                {file ? file.name : "Attachment"}
+                {isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
+                <span>{target.label.split(" / ")[0]}</span>
               </button>
-            )}
-
-            <label className="qas-chip" style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}>
-              <FlagIcon width={20} height={20} />
-              <span>{effectivePriority !== 1 ? `P${5 - effectivePriority}` : "Priority"}</span>
-              <Select
-                value={effectivePriority}
-                onChange={(e) => setPriority(Number(e.target.value))}
-                aria-label="Priority"
-              >
-                {PRIORITY_ORDER.map((p) => (
-                  <option key={p} value={p}>
-                    {PRIORITY_META[p].label}
-                  </option>
-                ))}
-              </Select>
-            </label>
-
-            <label className="qas-chip" style={repeat !== "none" ? { color: "var(--color-accent)" } : undefined}>
-              <RepeatIcon width={20} height={20} />
-              <span>{repeat === "none" ? "Repeat" : REPEAT_PRESETS.find((p) => p.key === repeat)?.label}</span>
-              <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
-                <option value="none">Doesn't repeat</option>
-                {REPEAT_PRESETS.map((p) => (
-                  <option key={p.key} value={p.key}>
-                    {p.label}
-                  </option>
-                ))}
-              </Select>
-            </label>
-
-            {partner && (
-              <button
-                type="button"
-                className={`qas-chip ${shared ? "is-on" : ""}`}
-                onClick={() => setShared((s) => !s)}
-                aria-pressed={shared}
-              >
-                <ShareIcon width={20} height={20} />
-                {shared ? `With ${partner.name.split(" ")[0]}` : "Share"}
+  
+                </>
+              )}
+  
+              <button ref={dateChip} type="button" className="qas-chip" style={{ color: dueColor }} onClick={() => setPicking("date")}>
+                <CalendarIcon width={20} height={20} />
+                {baseDue ? formatDueLabel(baseDue) : "Date"}
               </button>
-            )}
-
-            {dialog && allLabels.length === 0 && (
-              <button type="button" className="qas-chip" onClick={() => setPicking("labels")}>
-                <TagIcon width={20} height={20} />
-                Labels
+  
+              {usingFirebase() && (
+                <button
+                  type="button"
+                  className="qas-chip"
+                  style={file ? { color: "var(--color-accent)" } : undefined}
+                  onClick={() => (file ? setFile(null) : fileInput.current?.click())}
+                  title={file ? "Tap to remove" : "Attach a photo or file"}
+                >
+                  <AttachIcon />
+                  {file ? file.name : "Attachment"}
+                </button>
+              )}
+  
+              <label className="qas-chip" style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}>
+                <FlagIcon width={20} height={20} />
+                <span>{effectivePriority !== 1 ? `P${5 - effectivePriority}` : "Priority"}</span>
+                <Select
+                  value={effectivePriority}
+                  onChange={(e) => setPriority(Number(e.target.value))}
+                  aria-label="Priority"
+                >
+                  {PRIORITY_ORDER.map((p) => (
+                    <option key={p} value={p}>
+                      {PRIORITY_META[p].label}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+  
+              <label className="qas-chip" style={repeat !== "none" ? { color: "var(--color-accent)" } : undefined}>
+                <RepeatIcon width={20} height={20} />
+                <span>{repeat === "none" ? "Repeat" : REPEAT_PRESETS.find((p) => p.key === repeat)?.label}</span>
+                <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
+                  <option value="none">Doesn't repeat</option>
+                  {REPEAT_PRESETS.map((p) => (
+                    <option key={p.key} value={p.key}>
+                      {p.label}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+  
+              {partner && (
+                <button
+                  type="button"
+                  className={`qas-chip ${shared ? "is-on" : ""}`}
+                  onClick={() => setShared((s) => !s)}
+                  aria-pressed={shared}
+                >
+                  <ShareIcon width={20} height={20} />
+                  {shared ? `With ${partner.name.split(" ")[0]}` : "Share"}
+                </button>
+              )}
+  
+              {dialog && allLabels.length === 0 && (
+                <button type="button" className="qas-chip" onClick={() => setPicking("labels")}>
+                  <TagIcon width={20} height={20} />
+                  Labels
+                </button>
+              )}
+              {dialog && !location && (
+                <button type="button" className="qas-chip" onClick={() => setPicking("location")}>
+                  <MapPinIcon width={20} height={20} />
+                  Location
+                </button>
+              )}
+              {allLabels.length > 0 && (
+                <button type="button" className="qas-chip is-on" onClick={() => setPicking("labels")}>
+                  <TagIcon width={20} height={20} />@{allLabels.join(" @")}
+                </button>
+              )}
+              {location && (
+                <button type="button" className="qas-chip is-on" onClick={() => setPicking("location")}>
+                  <MapPinIcon width={20} height={20} />
+                  {location.name}
+                </button>
+              )}
+              {dialog && !reminders?.length && (
+                <button type="button" className="qas-chip" onClick={() => setPicking("reminders")}>
+                  <BellIcon width={20} height={20} />
+                  Reminders
+                </button>
+              )}
+              {reminders && reminders.length > 0 && (
+                <button type="button" className="qas-chip is-on" onClick={() => setPicking("reminders")}>
+                  <BellIcon width={20} height={20} />
+                  {shortReminder(reminders[0])}
+                  {reminders.length > 1 ? ` +${reminders.length - 1}` : ""}
+                </button>
+              )}
+            </div>
+  
+            {dialog ? null : text.trim() ? (
+              <button type="button" className="qas-send" onClick={() => void submit()} aria-label="Add task">
+                <SendIcon />
               </button>
-            )}
-            {dialog && !location && (
-              <button type="button" className="qas-chip" onClick={() => setPicking("location")}>
-                <MapPinIcon width={20} height={20} />
-                Location
-              </button>
-            )}
-            {allLabels.length > 0 && (
-              <button type="button" className="qas-chip is-on" onClick={() => setPicking("labels")}>
-                <TagIcon width={20} height={20} />@{allLabels.join(" @")}
-              </button>
-            )}
-            {location && (
-              <button type="button" className="qas-chip is-on" onClick={() => setPicking("location")}>
-                <MapPinIcon width={20} height={20} />
-                {location.name}
-              </button>
-            )}
-            {dialog && !reminders?.length && (
-              <button type="button" className="qas-chip" onClick={() => setPicking("reminders")}>
-                <BellIcon width={20} height={20} />
-                Reminders
-              </button>
-            )}
-            {reminders && reminders.length > 0 && (
-              <button type="button" className="qas-chip is-on" onClick={() => setPicking("reminders")}>
-                <BellIcon width={20} height={20} />
-                {shortReminder(reminders[0])}
-                {reminders.length > 1 ? ` +${reminders.length - 1}` : ""}
-              </button>
+            ) : (
+              <MicButton
+                className="qas-send"
+                autoStart={listenOnOpen}
+                onText={(said) => {
+                  setText((t) => (t.trim() ? t.trim() + " " : "") + said);
+                  setSendSpoken(true);
+                }}
+              />
             )}
           </div>
-
-          {dialog ? null : text.trim() ? (
-            <button type="button" className="qas-send" onClick={() => void submit()} aria-label="Add task">
-              <SendIcon />
-            </button>
-          ) : (
-            <MicButton
-              className="qas-send"
-              autoStart={listenOnOpen}
-              onText={(said) => {
-                setText((t) => (t.trim() ? t.trim() + " " : "") + said);
-                setSendSpoken(true);
-              }}
-            />
-          )}
-        </div>
-
+        )}
         {dialog && (
           <div className="qas-footer">
             {/* Just the project here; its sections are in the list this opens. */}

@@ -7,22 +7,17 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 30** (commit `fbee596`, Sep 26 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-30
+Last build: **build 31** (commit `e48fc91`, Sep 26 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-31
 
-Build 30 adds updating from inside the app, the new Add task / shopping
-cards with opening animations, and one-Back closing of the Add task card.
+Build 31: ticking off in the task view closes it (with Undo), "@shop" when
+adding shopping items, the + under the task view, the project list above the
+Add task card no longer cut off. First build installable from the in-app
+Update card (from build 30).
 
 ## In the code, not in the app yet
 
-- Add task card (bottom bar style): the project list above the card was cut
-  off in a curve (the grow animation's clip stayed on)
-- Shopping: "@shop" in a typed item marks it for that shop ("hrenovke 2
-  @spar" → Hrenovke 2× at SPAR), in the app's add box and the widget's
-  shopping card (its preview shows the shop too)
-- Ticking a task off in the task view plays the tick (pop, strike through),
-  closes the task and offers Undo; the bottom-right + no longer sits on top
-  of the task view
+(nothing yet)
 
 ## Known gaps
 

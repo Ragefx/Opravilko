@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { format, parseISO } from "date-fns";
 import { useAddAttachments, useBootstrap, useCreateTask } from "../api/hooks";
@@ -46,6 +46,22 @@ const SendIcon = () => (
     <path d="M12 19V5M5 12l7-7 7 7" />
   </svg>
 );
+
+/** The app card's icons, and the order they were dragged into (kept on this device). */
+const TOOL_ORDER_KEY = "opravilko.addTools";
+const TOOLS = ["date", "priority", "reminders", "labels", "location", "repeat", "attach", "share"];
+function storedTools(): string[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TOOL_ORDER_KEY) ?? "null");
+    if (Array.isArray(saved)) {
+      const known = saved.filter((k): k is string => TOOLS.includes(k));
+      return [...known, ...TOOLS.filter((k) => !known.includes(k))];
+    }
+  } catch {
+    /* ignore */
+  }
+  return TOOLS;
+}
 
 /** Waits (up to ~10 s) until the new task has reached the database, so a file can go on it. */
 async function taskSaved(): Promise<void> {
@@ -131,6 +147,28 @@ export default function QuickAddSheet({
   const dateChip = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const title = useRef<HTMLInputElement>(null);
+  const [toolOrder, setToolOrder] = useState(storedTools);
+  useEffect(() => {
+    try {
+      localStorage.setItem(TOOL_ORDER_KEY, JSON.stringify(toolOrder));
+    } catch {
+      /* ignore */
+    }
+  }, [toolOrder]);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const toolsRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ id: string; x: number; y: number; pointer: number; active: boolean; timer: number } | null>(null);
+  const justDragged = useRef(false);
+  // While an icon is being dragged the row mustn't scroll away under it.
+  useEffect(() => {
+    const row = toolsRef.current;
+    if (!row) return;
+    const stop = (e: TouchEvent) => {
+      if (drag.current?.active) e.preventDefault();
+    };
+    row.addEventListener("touchmove", stop, { passive: false });
+    return () => row.removeEventListener("touchmove", stop);
+  }, []);
   const mirror = useRef<HTMLDivElement>(null);
 
   const [defaultDue] = useState(() =>
@@ -157,15 +195,6 @@ export default function QuickAddSheet({
   const allLabels = [...new Set([...(preview?.labels ?? []), ...labels])];
   const isInbox = target.projectId === "inbox" || projects.find((p) => p.id === target.projectId)?.isInboxProject;
 
-  // What was said is added as soon as you stop talking (no need to press
-  // send): once the text is in (and read), send it.
-  const [sendSpoken, setSendSpoken] = useState(false);
-  useEffect(() => {
-    if (!sendSpoken) return;
-    setSendSpoken(false);
-    void submit();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sendSpoken]);
 
   async function submit() {
     if (!preview?.content) return;
@@ -259,6 +288,134 @@ export default function QuickAddSheet({
     { label: "Location", icon: <MapPinIcon width={20} height={20} />, run: () => setPicking("location") },
     { label: "Reminders", icon: <BellIcon width={20} height={20} />, run: () => setPicking("reminders") },
   ];
+
+  // The app card's icons, in the order you've dragged them into.
+  const toolEls: Record<string, ReactNode> = {
+    date: (
+      <button ref={dateChip} type="button" className={`qab-tool ${baseDue ? "is-on" : ""}`} onClick={() => setPicking("date")} aria-label="Date">
+        <CalendarIcon width={19} height={19} />
+      </button>
+    ),
+    priority: (
+      <label
+        className={`qab-tool ${effectivePriority !== 1 ? "is-on" : ""}`}
+        style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}
+        aria-label="Priority"
+      >
+        <FlagIcon width={19} height={19} />
+        <Select value={effectivePriority} onChange={(e) => setPriority(Number(e.target.value))} aria-label="Priority">
+          {PRIORITY_ORDER.map((p) => (
+            <option key={p} value={p}>
+              {PRIORITY_META[p].label}
+            </option>
+          ))}
+        </Select>
+      </label>
+    ),
+    reminders: (
+      <button type="button" className={`qab-tool ${reminders?.length ? "is-on" : ""}`} onClick={() => setPicking("reminders")} aria-label="Reminders">
+        <BellIcon width={19} height={19} />
+      </button>
+    ),
+    labels: (
+      <button type="button" className={`qab-tool ${allLabels.length ? "is-on" : ""}`} onClick={() => setPicking("labels")} aria-label="Labels">
+        <TagIcon width={19} height={19} />
+      </button>
+    ),
+    location: (
+      <button type="button" className={`qab-tool ${location ? "is-on" : ""}`} onClick={() => setPicking("location")} aria-label="Location">
+        <MapPinIcon width={19} height={19} />
+      </button>
+    ),
+    repeat: (
+      <label className={`qab-tool ${repeat !== "none" ? "is-on" : ""}`} aria-label="Repeat">
+        <RepeatIcon width={19} height={19} />
+        <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
+          <option value="none">Doesn't repeat</option>
+          {REPEAT_PRESETS.map((p) => (
+            <option key={p.key} value={p.key}>
+              {p.label}
+            </option>
+          ))}
+        </Select>
+      </label>
+    ),
+    attach: usingFirebase() ? (
+      <button type="button" className={`qab-tool ${file ? "is-on" : ""}`} onClick={() => fileInput.current?.click()} aria-label="Attach a photo or file">
+        <AttachIcon />
+      </button>
+    ) : null,
+    share: partner ? (
+      <button
+        type="button"
+        className={`qab-tool ${shared ? "is-on" : ""}`}
+        onClick={() => setShared((v) => !v)}
+        aria-pressed={shared}
+        aria-label={`Share with ${partner.name.split(" ")[0]}`}
+      >
+        <ShareIcon width={19} height={19} />
+      </button>
+    ) : null,
+  };
+
+  // Hold an icon, then slide it left or right: the row reorders under your finger.
+  function onToolDown(e: ReactPointerEvent) {
+    justDragged.current = false;
+    const slot = (e.target as HTMLElement).closest<HTMLElement>("[data-tool]");
+    if (!slot) return;
+    const d = { id: slot.dataset.tool!, x: e.clientX, y: e.clientY, pointer: e.pointerId, active: false, timer: 0 };
+    d.timer = window.setTimeout(() => {
+      d.active = true;
+      setDragging(d.id);
+      navigator.vibrate?.(15);
+      try {
+        toolsRef.current?.setPointerCapture(d.pointer);
+      } catch {
+        /* ignore */
+      }
+    }, 380);
+    drag.current = d;
+  }
+  function onToolMove(e: ReactPointerEvent) {
+    const d = drag.current;
+    if (!d) return;
+    if (!d.active) {
+      // Moved before the hold: it's a scroll or a tap, not a drag.
+      if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8) {
+        window.clearTimeout(d.timer);
+        drag.current = null;
+      }
+      return;
+    }
+    const row = toolsRef.current;
+    if (!row) return;
+    // Near the ends, the row scrolls along.
+    const box = row.getBoundingClientRect();
+    if (e.clientX < box.left + 24) row.scrollLeft -= 8;
+    else if (e.clientX > box.right - 24) row.scrollLeft += 8;
+    const over = [...row.querySelectorAll<HTMLElement>("[data-tool]")].find((t) => {
+      const r = t.getBoundingClientRect();
+      return e.clientX >= r.left && e.clientX < r.right;
+    });
+    const target = over?.dataset.tool;
+    if (!target || target === d.id) return;
+    setToolOrder((order) => {
+      const next = order.filter((k) => k !== d.id);
+      const at = next.indexOf(target);
+      next.splice(order.indexOf(d.id) < order.indexOf(target) ? at + 1 : at, 0, d.id);
+      return next;
+    });
+  }
+  function onToolUp() {
+    const d = drag.current;
+    drag.current = null;
+    if (!d) return;
+    window.clearTimeout(d.timer);
+    if (d.active) {
+      justDragged.current = true;
+      setDragging(null);
+    }
+  }
 
   const anchorForDate = () => {
     const r = dateChip.current?.getBoundingClientRect();
@@ -357,60 +514,30 @@ export default function QuickAddSheet({
               {isInbox ? <InboxIcon width={17} height={17} /> : <span className="qas-hash">#</span>}
               <span>{target.label.split(" / ")[0]}</span>
             </button>
-            <div className="qab-tools">
-              <button ref={dateChip} type="button" className={`qab-tool ${baseDue ? "is-on" : ""}`} onClick={() => setPicking("date")} aria-label="Date">
-                <CalendarIcon width={19} height={19} />
-              </button>
-              <label
-                className={`qab-tool ${effectivePriority !== 1 ? "is-on" : ""}`}
-                style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}
-                aria-label="Priority"
-              >
-                <FlagIcon width={19} height={19} />
-                <Select value={effectivePriority} onChange={(e) => setPriority(Number(e.target.value))} aria-label="Priority">
-                  {PRIORITY_ORDER.map((p) => (
-                    <option key={p} value={p}>
-                      {PRIORITY_META[p].label}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-              <button type="button" className={`qab-tool ${reminders?.length ? "is-on" : ""}`} onClick={() => setPicking("reminders")} aria-label="Reminders">
-                <BellIcon width={19} height={19} />
-              </button>
-              <button type="button" className={`qab-tool ${allLabels.length ? "is-on" : ""}`} onClick={() => setPicking("labels")} aria-label="Labels">
-                <TagIcon width={19} height={19} />
-              </button>
-              <button type="button" className={`qab-tool ${location ? "is-on" : ""}`} onClick={() => setPicking("location")} aria-label="Location">
-                <MapPinIcon width={19} height={19} />
-              </button>
-              <label className={`qab-tool ${repeat !== "none" ? "is-on" : ""}`} aria-label="Repeat">
-                <RepeatIcon width={19} height={19} />
-                <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
-                  <option value="none">Doesn't repeat</option>
-                  {REPEAT_PRESETS.map((p) => (
-                    <option key={p.key} value={p.key}>
-                      {p.label}
-                    </option>
-                  ))}
-                </Select>
-              </label>
-              {usingFirebase() && (
-                <button type="button" className={`qab-tool ${file ? "is-on" : ""}`} onClick={() => fileInput.current?.click()} aria-label="Attach a photo or file">
-                  <AttachIcon />
-                </button>
-              )}
-              {partner && (
-                <button
-                  type="button"
-                  className={`qab-tool ${shared ? "is-on" : ""}`}
-                  onClick={() => setShared((v) => !v)}
-                  aria-pressed={shared}
-                  aria-label={`Share with ${partner.name.split(" ")[0]}`}
-                >
-                  <ShareIcon width={19} height={19} />
-                </button>
-              )}
+            <div
+              ref={toolsRef}
+              className={`qab-tools ${dragging ? "is-sorting" : ""}`}
+              onPointerDown={onToolDown}
+              onPointerMove={onToolMove}
+              onPointerUp={onToolUp}
+              onPointerCancel={onToolUp}
+              onClickCapture={(e) => {
+                // The tap that ends a drag doesn't open that icon's picker.
+                if (justDragged.current) {
+                  justDragged.current = false;
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+            >
+              {toolOrder.map((id) => {
+                const el = toolEls[id];
+                return el ? (
+                  <span key={id} data-tool={id} className={`qab-slot ${dragging === id ? "is-dragging" : ""}`}>
+                    {el}
+                  </span>
+                ) : null;
+              })}
             </div>
             {text.trim() ? (
               <button type="button" className="qas-send qab-send" onClick={() => void submit()} aria-label="Add task">
@@ -422,7 +549,8 @@ export default function QuickAddSheet({
                 autoStart={listenOnOpen}
                 onText={(said) => {
                   setText((t) => (t.trim() ? t.trim() + " " : "") + said);
-                  setSendSpoken(true);
+                  // Only into the field: check it, then send (or keep talking).
+                  title.current?.focus();
                 }}
               />
             )}
@@ -570,7 +698,8 @@ export default function QuickAddSheet({
                 autoStart={listenOnOpen}
                 onText={(said) => {
                   setText((t) => (t.trim() ? t.trim() + " " : "") + said);
-                  setSendSpoken(true);
+                  // Only into the field: check it, then send (or keep talking).
+                  title.current?.focus();
                 }}
               />
             )}

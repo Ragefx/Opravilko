@@ -294,16 +294,26 @@ public class QuickAddActivity extends AppCompatActivity {
         setWhere(projectName(data), inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text_secondary);
         where.setOnClickListener(this::pickProject);
 
-        // One row of same-size icons, tinted when that thing is set.
-        tools.addView(tool(R.drawable.ic_w_calendar, "Date", day != null, dayColor(day), this::pickDay));
-        tools.addView(tool(R.drawable.ic_qa_flag, "Priority", priority > 0,
+        // One row of same-size icons, tinted when that thing is set, in the
+        // order they were dragged into (hold one, then slide it).
+        java.util.Map<String, View> byId = new java.util.HashMap<>();
+        byId.put("date", tool(R.drawable.ic_w_calendar, "Date", day != null, dayColor(day), this::pickDay));
+        byId.put("priority", tool(R.drawable.ic_qa_flag, "Priority", priority > 0,
                 priority > 0 ? priorityColor(priority) : R.color.widget_text_secondary, this::pickPriority));
-        tools.addView(tool(R.drawable.ic_qa_label, "Labels", !labels.isEmpty(), R.color.widget_accent, v -> pickLabels()));
-        tools.addView(tool(R.drawable.ic_qa_pin, "Location", location != null, R.color.widget_accent, v -> pickLocation()));
+        byId.put("labels", tool(R.drawable.ic_qa_label, "Labels", !labels.isEmpty(), R.color.widget_accent, v -> pickLabels()));
+        byId.put("location", tool(R.drawable.ic_qa_pin, "Location", location != null, R.color.widget_accent, v -> pickLocation()));
         // Attachments live in Firebase, so only with Google sign-in (as in the app).
         if (store.isFirebase()) {
-            tools.addView(tool(R.drawable.ic_qa_attach, "Attachment", attachment != null, R.color.widget_accent, v -> pickFile()));
+            byId.put("attach", tool(R.drawable.ic_qa_attach, "Attachment", attachment != null, R.color.widget_accent, v -> pickFile()));
         }
+        for (String id : toolOrder()) {
+            View v = byId.get(id);
+            if (v == null) continue;
+            v.setTag(id);
+            v.setOnLongClickListener(this::startToolDrag);
+            tools.addView(v);
+        }
+        tools.setOnDragListener(this::onToolDrag);
 
         // What's set, as tokens: tap to change, × to clear.
         if (day != null) {
@@ -335,6 +345,59 @@ public class QuickAddActivity extends AppCompatActivity {
             tokens.addView(t);
         }
         tokensScroll.setVisibility(tokens.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    private static final String[] TOOLS = { "date", "priority", "labels", "location", "attach" };
+
+    /** The icons' order: as last dragged (kept on this phone), new ones at the end. */
+    private List<String> toolOrder() {
+        List<String> out = new ArrayList<>();
+        String saved = getSharedPreferences("quick_add", MODE_PRIVATE).getString("toolOrder", "");
+        for (String id : saved.split(",")) if (java.util.Arrays.asList(TOOLS).contains(id) && !out.contains(id)) out.add(id);
+        for (String id : TOOLS) if (!out.contains(id)) out.add(id);
+        return out;
+    }
+
+    private boolean startToolDrag(View v) {
+        v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+        v.startDragAndDrop(null, new View.DragShadowBuilder(v), v, 0);
+        v.setAlpha(0.3f);
+        return true;
+    }
+
+    /** While an icon is dragged, it moves into the slot under the finger; dropped, the order is kept. */
+    private boolean onToolDrag(View row, android.view.DragEvent ev) {
+        Object state = ev.getLocalState();
+        if (!(state instanceof View) || ((View) state).getParent() != tools) return false;
+        View dragged = (View) state;
+        switch (ev.getAction()) {
+            case android.view.DragEvent.ACTION_DRAG_LOCATION: {
+                int x = (int) ev.getX();
+                for (int i = 0; i < tools.getChildCount(); i++) {
+                    View c = tools.getChildAt(i);
+                    if (c != dragged && x >= c.getLeft() && x < c.getRight()) {
+                        tools.removeView(dragged);
+                        tools.addView(dragged, i);
+                        break;
+                    }
+                }
+                return true;
+            }
+            case android.view.DragEvent.ACTION_DRAG_ENDED: {
+                dragged.setAlpha(1f);
+                List<String> order = new ArrayList<>();
+                for (int i = 0; i < tools.getChildCount(); i++) {
+                    Object tag = tools.getChildAt(i).getTag();
+                    if (tag != null) order.add(tag.toString());
+                }
+                for (String id : toolOrder()) if (!order.contains(id)) order.add(id);
+                getSharedPreferences("quick_add", MODE_PRIVATE).edit()
+                        .putString("toolOrder", android.text.TextUtils.join(",", order)).apply();
+                return true;
+            }
+            default:
+                return true;
+        }
     }
 
     private void setWhere(String label, Integer icon, int colorRes) {
@@ -1196,9 +1259,9 @@ public class QuickAddActivity extends AppCompatActivity {
         if (heard == null || heard.isEmpty()) return;
         String said = heard.get(0).trim();
         if (said.isEmpty()) return;
-        // Added straight away when you stop talking, no need to press send:
-        // on the shopping list as its items, otherwise as a task (with
-        // anything already typed in front). The card stays for the next one.
+        // On the shopping list what's said is added straight away as its
+        // items. A task only goes into the field (after anything already
+        // typed), to check and send.
         if (shopping) {
             addShopLines(ShoppingLogic.splitSpoken(store.getSnapshot(), said));
             return;
@@ -1206,7 +1269,7 @@ public class QuickAddActivity extends AppCompatActivity {
         String now = text.getText().toString().trim();
         text.setText(now.isEmpty() ? said : now + " " + said);
         text.setSelection(text.getText().length());
-        submit();
+        text.requestFocus();
     }
 
     private int dp(int value) {

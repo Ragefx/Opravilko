@@ -6795,3 +6795,23 @@ button.sidebar-link {
   color: var(--color-text-muted);
   transition: color 0.3s ease 0.12s;
 }
+/* Reordering the card's icons: hold one, then slide it. */
+.qab-slot {
+  display: flex;
+  flex-shrink: 0;
+}
+.qab-tools {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.qab-tools.is-sorting {
+  touch-action: none;
+}
+.qab-slot.is-dragging .qab-tool {
+  transform: scale(1.18);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  color: var(--color-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transition: transform 0.12s ease;
+}

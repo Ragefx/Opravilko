@@ -17,7 +17,12 @@ Update card (from build 30).
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Voice in Add task (app and widget) only fills in the name; it no longer
+  adds the task by itself (the shopping list still adds spoken items)
+- Add task card (app and widget): hold an icon, then slide it left or right
+  to reorder them; the order is remembered on the phone
+- Widget: the Today widget's header opens Now (Upcoming opens the
+  Calendar), not the old Today page
 
 ## Known gaps
 

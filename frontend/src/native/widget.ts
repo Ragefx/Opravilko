@@ -154,10 +154,13 @@ export function parseWidgetLink(url: string): { route: string } | { quickAdd: Qu
   }
   // Arriving at a shop: the list, showing that shop's items.
   if (view === "shopping" && q.get("shop")) return { route: `/app/shopping?shop=${encodeURIComponent(q.get("shop")!)}` };
-  if (["today", "upcoming", "inbox", "calendar", "shopping"].includes(view)) return { route: `/app/${view}` };
+  // The widget's Today and Upcoming open their places in today's app: Now and the Calendar.
+  if (view === "today") return { route: "/app/home" };
+  if (view === "upcoming") return { route: "/app/calendar" };
+  if (["inbox", "calendar", "shopping"].includes(view)) return { route: `/app/${view}` };
   if (view.startsWith("project:")) {
     const id = view.slice("project:".length);
     return { route: id === "inbox" ? "/app/inbox" : `/app/project/${encodeURIComponent(id)}` };
   }
-  return { route: "/app/today" };
+  return { route: "/app/home" };
 }

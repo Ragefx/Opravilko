@@ -13,6 +13,7 @@ import {
   sameItem,
   scaled,
   splitItems,
+  parseLine,
   splitSpokenItems,
   SHOPPING_ADD_EVENT,
   takeShoppingAdd,
@@ -320,7 +321,7 @@ export default function ShoppingView({
       const shared = takeShoppingAdd(projectId);
       const parts = shared ? splitItems(shared) : [];
       if (!parts.length) return;
-      void addItems(parts.map(parseItem)).then((undo) =>
+      void addItems(parts.map((l) => parseLine(l, stores))).then((undo) =>
         showToast({ message: `Added ${parts.length} to the list`, actionLabel: "Undo", onAction: undo })
       );
     }
@@ -334,7 +335,8 @@ export default function ShoppingView({
     const parts = splitItems(text);
     if (!parts.length) return;
     setText("");
-    await addItems(parts.map(parseItem));
+    // "hrenovke 2 @spar": that item for that shop.
+    await addItems(parts.map((l) => parseLine(l, stores)));
   }
 
   function toggle(t: Task) {

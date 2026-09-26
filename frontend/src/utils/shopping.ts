@@ -122,6 +122,33 @@ export function splitItems(text: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * "hrenovke 2 @spar": the line without the shop, and the shop -- one of
+ * yours in its own spelling ("SPAR"), or the typed name if it's new.
+ */
+export function takeStore(line: string, known: string[]): { text: string; store?: string } {
+  const m = /(?:^|\s)@/.exec(line);
+  if (!m) return { text: line };
+  const at = m.index + m[0].length - 1;
+  const rest = line.slice(at + 1).trimStart();
+  const lower = rest.toLocaleLowerCase("sl");
+  const hit = [...known]
+    .sort((a, b) => b.length - a.length)
+    .find((k) => lower.startsWith(k.toLocaleLowerCase("sl")) && !/[\p{L}\p{N}]/u.test(rest.charAt(k.length)));
+  const typed = hit ? rest.slice(0, hit.length) : /^[^\s,@]+/.exec(rest)?.[0];
+  if (!typed) return { text: line };
+  const text = `${line.slice(0, at)} ${rest.slice(typed.length)}`.replace(/\s+/g, " ").trim();
+  const store = hit ?? (typed === typed.toLocaleLowerCase("sl") ? typed.charAt(0).toLocaleUpperCase("sl") + typed.slice(1) : typed);
+  return { text, store };
+}
+
+/** A typed line as an item, with its "@shop" when it has one. */
+export function parseLine(line: string, known: string[]): Item {
+  const { text, store } = takeStore(line, known);
+  const item = parseItem(text);
+  return store ? { ...item, store } : item;
+}
+
 // ---------- meals ----------
 
 export interface Ingredient {

@@ -433,6 +433,39 @@ final class ShoppingLogic {
         return out;
     }
 
+    private static final Pattern AT_SHOP = Pattern.compile("(?:^|\\s)@");
+
+    /**
+     * "hrenovke 2 @spar": {the line without the shop, the shop} -- one of the
+     * known shops in its own spelling ("SPAR"), or the typed name if it's new;
+     * the shop is null when the line names none (shopping.ts: takeStore).
+     */
+    static String[] takeStore(String line, List<String> known) {
+        Matcher m = AT_SHOP.matcher(line);
+        if (!m.find()) return new String[] { line, null };
+        int at = m.end() - 1;
+        String rest = line.substring(at + 1).replaceAll("^\\s+", "");
+        String lower = rest.toLowerCase(Locale.ROOT);
+        String hit = null;
+        for (String k : known) {
+            String kl = k.toLowerCase(Locale.ROOT);
+            boolean ends = rest.length() == k.length() || !Character.isLetterOrDigit(rest.charAt(Math.min(k.length(), rest.length() - 1)));
+            if (lower.startsWith(kl) && ends && (hit == null || k.length() > hit.length())) hit = k;
+        }
+        String typed;
+        if (hit != null) {
+            typed = rest.substring(0, hit.length());
+        } else {
+            Matcher w = Pattern.compile("^[^\\s,@]+").matcher(rest);
+            if (!w.find()) return new String[] { line, null };
+            typed = w.group();
+        }
+        String text = (line.substring(0, at) + " " + rest.substring(typed.length())).replaceAll("\\s+", " ").trim();
+        String shop = hit != null ? hit
+                : typed.equals(typed.toLowerCase(Locale.ROOT)) ? typed.substring(0, 1).toUpperCase(Locale.ROOT) + typed.substring(1) : typed;
+        return new String[] { text, shop };
+    }
+
     /** The shop an item is for ("trg: SPAR" in its notes), or null. */
     static String storeOf(String description) {
         if (description == null) return null;

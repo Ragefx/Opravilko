@@ -17,6 +17,9 @@ cards with opening animations, and one-Back closing of the Add task card.
 
 - Add task card (bottom bar style): the project list above the card was cut
   off in a curve (the grow animation's clip stayed on)
+- Shopping: "@shop" in a typed item marks it for that shop ("hrenovke 2
+  @spar" → Hrenovke 2× at SPAR), in the app's add box and the widget's
+  shopping card (its preview shows the shop too)
 
 ## Known gaps
 

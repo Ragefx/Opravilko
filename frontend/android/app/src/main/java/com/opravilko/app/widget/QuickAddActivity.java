@@ -222,7 +222,10 @@ public class QuickAddActivity extends AppCompatActivity {
             return;
         }
         StringBuilder b = new StringBuilder();
-        for (String line : ShoppingLogic.splitItems(typed)) {
+        List<String> known = ShoppingLogic.stores(data, projectId);
+        for (String typedLine : ShoppingLogic.splitItems(typed)) {
+            String[] split = ShoppingLogic.takeStore(typedLine, known);
+            String line = split[0];
             String before = null;
             String id = "preview-" + b.length();
             ShoppingLogic.Item item = ShoppingLogic.parseItem(guide, line);
@@ -245,6 +248,7 @@ public class QuickAddActivity extends AppCompatActivity {
             b.append(ShoppingLogic.emoji(data, result.optString("description", ""), name)).append("  ")
                     .append(result.optString("content"));
             if (before != null && !id.equals(result.optString("id"))) b.append("   (onto ").append(before).append(")");
+            if (split[1] != null) b.append("   \uD83C\uDFEA ").append(split[1]);
         }
         preview.setText(b);
         preview.setVisibility(b.length() > 0 ? View.VISIBLE : View.GONE);
@@ -1134,11 +1138,15 @@ public class QuickAddActivity extends AppCompatActivity {
         try {
             String at = TaskLogic.nowIso();
             List<String> names = new ArrayList<>();
-            for (String line : lines) {
+            List<String> known = ShoppingLogic.stores(data, projectId);
+            for (String typed : lines) {
+                // "hrenovke 2 @spar": that item for that shop (else the Shop chip's).
+                String[] split = ShoppingLogic.takeStore(typed, known);
+                String line = split[0];
                 String id = TaskLogic.newId();
                 queue(data, new JSONObject().put("id", "shop@" + id).put("op", WidgetStore.OP_SHOP)
                         .put("projectId", projectId).put("line", line).put("newId", id).put("at", at)
-                        .putOpt("store", shopStore));
+                        .putOpt("store", split[1] != null ? split[1] : shopStore));
                 names.add(ShoppingLogic.parseItem(data.optJSONObject("shoppingGuide"), line).name);
             }
             confirm("✓ " + android.text.TextUtils.join(", ", names));

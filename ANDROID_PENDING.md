@@ -15,7 +15,8 @@ cards with opening animations, and one-Back closing of the Add task card.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Add task card (bottom bar style): the project list above the card was cut
+  off in a curve (the grow animation's clip stayed on)
 
 ## Known gaps
 

@@ -6754,9 +6754,11 @@ button.sidebar-link {
     transform: translateY(110%);
   }
 }
-/* ...or, from the bottom bar's +, a teal circle that grows into the card. */
+/* ...or, from the bottom bar's +, a teal circle that grows into the card.
+   Not kept afterwards: the circle's clip would cut off the project list
+   that opens above the card. */
 .qas-card.qab-anim-grow {
-  animation: qabGrow 0.42s cubic-bezier(0.45, 0, 0.25, 1) both;
+  animation: qabGrow 0.42s cubic-bezier(0.45, 0, 0.25, 1) backwards;
 }
 .qas-card.qab-anim-grow > * {
   animation: qabFade 0.2s 0.26s both;

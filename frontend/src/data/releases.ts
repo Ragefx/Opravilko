@@ -11,6 +11,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 30,
+    date: "2026-09-26",
+    items: [
+      "Updates from inside the app: a \"Build N is ready\" card when a newer build is out (Update, then Android's Install; the first time Android asks to allow installing apps), and Check for updates in Settings > About.",
+      "New Add task card (app and widget) and widget shopping card: what's set as small tokens (tap to change, × to clear), then where it goes, one row of same-size icons and a round send.",
+      "The Add task card opens with an animation: it rises from the bottom, or grows out of the + with the bottom bar style.",
+      "Add task card: one Back closes the keyboard and the card together.",
+      "Shopping list: the bottom add button comes back after Back closes the keyboard.",
+    ],
+  },
+  {
     build: 29,
     date: "2026-09-25",
     items: [

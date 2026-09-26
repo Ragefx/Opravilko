@@ -5,6 +5,7 @@ import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
 import com.opravilko.app.places.PlacesPlugin;
 import com.opravilko.app.share.SharePlugin;
+import com.opravilko.app.update.UpdatePlugin;
 import com.opravilko.app.voice.VoicePlugin;
 import com.opravilko.app.widget.WidgetBridgePlugin;
 
@@ -15,6 +16,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(PlacesPlugin.class);
         registerPlugin(VoicePlugin.class);
         registerPlugin(SharePlugin.class);
+        registerPlugin(UpdatePlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

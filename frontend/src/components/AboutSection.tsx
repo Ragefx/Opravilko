@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import { App } from "@capacitor/app";
 import { isNativeApp } from "../dropbox/auth";
 import { RELEASES } from "../data/releases";
+import { installUpdate, latestBuild, type AppUpdate } from "../native/update";
 
 const RELEASE_URL = "https://github.com/Ragefx/Opravilko/releases/tag/android-build-";
 
@@ -17,6 +18,30 @@ export default function AboutSection() {
       .catch(() => setInstalled(null));
   }, []);
   const latest = RELEASES[0];
+  // "Check for updates" (app only).
+  const [check, setCheck] = useState<
+    { state: "idle" | "checking" | "current" | "offline" | "permission" | "failed" } | { state: "found" | "downloading"; update: AppUpdate; percent?: number }
+  >({ state: "idle" });
+  async function checkNow() {
+    setCheck({ state: "checking" });
+    try {
+      const found = await latestBuild();
+      if (!found) setCheck({ state: "offline" });
+      else if (installed && found.build > installed) setCheck({ state: "found", update: found });
+      else setCheck({ state: "current" });
+    } catch {
+      setCheck({ state: "offline" });
+    }
+  }
+  async function updateNow(update: AppUpdate) {
+    setCheck({ state: "downloading", update, percent: 0 });
+    try {
+      const result = await installUpdate(update, (percent) => setCheck({ state: "downloading", update, percent }));
+      setCheck(result === "permission" ? { state: "permission" } : { state: "found", update });
+    } catch {
+      setCheck({ state: "failed" });
+    }
+  }
   const built = (() => {
     try {
       return format(parseISO(__BUILD_TIME__), "d MMM yyyy, HH:mm");
@@ -44,6 +69,27 @@ export default function AboutSection() {
           </span>
         </div>
       </div>
+      {isNativeApp && (
+        <div className="about-update">
+          {check.state === "found" ? (
+            <button className="btn btn-primary" onClick={() => void updateNow(check.update)}>
+              Update to build {check.update.build}
+            </button>
+          ) : (
+            <button className="btn btn-secondary" disabled={check.state === "checking" || check.state === "downloading"} onClick={() => void checkNow()}>
+              {check.state === "checking" ? "Checking…" : "Check for updates"}
+            </button>
+          )}
+          <span>
+            {check.state === "current" && "You have the newest build."}
+            {check.state === "offline" && "Couldn't reach GitHub. Try again later."}
+            {check.state === "found" && "Tap it, then Install."}
+            {check.state === "downloading" && `Downloading… ${check.percent ?? 0}%`}
+            {check.state === "permission" && "Allow Opravilko to install apps, then check again."}
+            {check.state === "failed" && "The download didn't work. Try again?"}
+          </span>
+        </div>
+      )}
       {!isNativeApp && (
         <p className="settings-note">
           The website updates by itself. The Android app:{" "}

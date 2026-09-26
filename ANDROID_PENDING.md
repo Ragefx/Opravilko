@@ -14,11 +14,14 @@ Build 29 adds Settings > About (version and every build's changes).
 
 ## In the code, not in the app yet
 
-- Builds also make Opravilko.aab (for Google Play) next to the APK
 - Shopping list: the bottom add button comes back after Back closes the
   keyboard (it stayed hidden until you changed page)
 - Add task card: one Back closes the keyboard and the card together (it took
   two); tapping a chip, the mic or a picker still keeps the card open
+- Updates from inside the app: a "Build N is ready" card when GitHub has a
+  newer build (Update → Android's Install; the first time Android asks to
+  allow installing apps), and Check for updates in Settings > About. New
+  native plugin UpdatePlugin + REQUEST_INSTALL_PACKAGES permission
 
 ## Known gaps
 

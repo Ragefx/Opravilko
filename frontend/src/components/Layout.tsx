@@ -26,6 +26,7 @@ import CommandPalette from "./CommandPalette";
 import SettingsModal from "./SettingsModal";
 import SocaTopBar from "./SocaTopBar";
 import AddDock from "./AddDock";
+import UpdateBanner from "./UpdateBanner";
 import { useNarrowScreen } from "./MobileCalendar";
 import { useAddStyle } from "../utils/addStyle";
 import { useLook } from "../utils/look";
@@ -316,6 +317,7 @@ export default function Layout() {
             listenOnOpen={quickAddPreset?.voice}
           />
         )}
+        <UpdateBanner />
         <ShareSheet />
         {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
       </div>

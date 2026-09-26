@@ -15,7 +15,8 @@ reorderable Add task icons, the Today widget opening Now.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Now: the focus task can be switched off (Settings > Appearance > Now page >
+  Focus task); off, it's listed with the rest of today
 
 ## Known gaps
 

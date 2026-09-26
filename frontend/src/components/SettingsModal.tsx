@@ -5,6 +5,7 @@ import type { AppData } from "../api/types";
 import { useBootstrap } from "../api/hooks";
 import { setLook, useLook, type Look } from "../utils/look";
 import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
+import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { clearTheme, getStoredTheme, setTheme, type ThemeChoice } from "../utils/theme";
 import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import {
@@ -87,6 +88,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const look = useLook();
   const addStyle = useAddStyle();
+  const focusOn = useFocusCard();
   const user = currentUser();
   const me = firebase
     ? { name: user?.displayName || user?.email || "", detail: user?.email ? `Google · ${user.email}` : "Signed in with Google" }
@@ -99,6 +101,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
       LOOKS.find((l) => l.id === look)?.name,
       theme === "dark" ? "Dark" : theme === "light" ? "Light" : "Match device",
       `${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""} add button`,
+      ...(focusOn ? [] : ["no focus task"]),
     ].join(" · "),
     sharing: partnerName ? `With ${partnerName}` : "Connect with your partner",
     calendars: feeds ? `${feeds} subscribed` : "Holidays, birthdays, TV…",
@@ -250,6 +253,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 function Appearance() {
   const look = useLook();
   const addStyle = useAddStyle();
+  const focusCard = useFocusCard();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
 
@@ -304,6 +308,15 @@ function Appearance() {
           </button>
         ))}
       </div>
+
+      <h4>Now page</h4>
+      <label className="settings-switch">
+        <input type="checkbox" checked={focusCard} onChange={(e) => setFocusCard(e.target.checked)} />
+        <span>
+          <b>Focus task</b>
+          <span>Now opens with today's most important task, big, with Tomorrow, Done and Start focus. Off: it's listed with the rest.</span>
+        </span>
+      </label>
 
       <h4>Theme</h4>
       <div className="segmented" role="radiogroup" aria-label="Theme">

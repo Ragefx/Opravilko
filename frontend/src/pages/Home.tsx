@@ -5,6 +5,7 @@ import type { CalendarEvent, Due, Task } from "../api/types";
 import TaskRow from "../components/TaskRow";
 import TaskDetail from "../components/TaskDetail";
 import FocusMode from "../components/FocusMode";
+import { useFocusCard } from "../utils/focusCard";
 import PriorityMark from "../components/PriorityMark";
 import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
@@ -85,13 +86,16 @@ export default function Home() {
     return () => window.clearInterval(id);
   }, []);
 
+  // The focus task can be switched off (Settings > Appearance): then it's
+  // just one of today's tasks in the lists below.
+  const focusOn = useFocusCard();
   const view = useMemo(() => {
     if (!data) return null;
     const today = todayISO();
     const weekEnd = format(addDays(new Date(), 7), "yyyy-MM-dd");
     const open = data.tasks.filter((t) => !t.completed && t.due);
     const nowTasks = open.filter((t) => isDueToday(t.due) || isOverdue(t.due)).sort(focusRank);
-    const focus = nowTasks[0] || null;
+    const focus = focusOn ? nowTasks[0] || null : null;
     const rest = nowTasks.filter((t) => t !== focus);
 
     const eventsByDate = groupEventsByDate(data.calendarEvents, data.calendarFeeds);
@@ -127,7 +131,7 @@ export default function Home() {
     const lateCount = nowTasks.filter((t) => isOverdue(t.due)).length;
     const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));
     return { nowTasks, focus, clock, allDay, anytime, nextDays, later, lateCount, projectNameById };
-  }, [data]);
+  }, [data, focusOn]);
 
   if (isLoading || !data || !view) return null;
 
@@ -222,7 +226,7 @@ export default function Home() {
             </span>
           </div>
         </div>
-      ) : (
+      ) : view.nowTasks.length > 0 ? null : (
         <div className="home-clear">
           <b>Nothing due today.</b>
           <span>Pick something from Next, or enjoy the free day.</span>

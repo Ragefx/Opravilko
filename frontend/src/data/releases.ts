@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 33,
+    date: "2026-09-26",
+    items: [
+      "Now: the focus task can be switched off (Settings > Appearance > Now page > Focus task); off, it's listed with the rest of today.",
+      "Weekly review can be switched off (Settings > Appearance > Now page > Weekly review); off, it's hidden from Now, the menu and search.",
+      "Weekly review: a task opened from it shows its date picker on top (it opened behind the task).",
+      "Priority: three levels (P1 red, P2 yellow, P3 green) plus No priority, which was shown as a blue Priority 4; also in the widget. Typing p4 no longer sets anything.",
+    ],
+  },
+  {
     build: 32,
     date: "2026-09-26",
     items: [

@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 32,
+    date: "2026-09-26",
+    items: [
+      "Settings on the phone is a proper settings page: you at the top, grouped rows showing what each is set to, a page per section, Sign out at the bottom. The sidebar's gear opens it straight away.",
+      "Voice in Add task only fills in the name (check it, then send); it no longer adds the task by itself.",
+      "Add task card (app and widget): hold an icon, then slide it to reorder them.",
+      "The Today widget opens Now (Upcoming opens the Calendar).",
+    ],
+  },
+  {
     build: 31,
     date: "2026-09-26",
     items: [

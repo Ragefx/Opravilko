@@ -7092,3 +7092,22 @@ button.sidebar-link {
     animation: none;
   }
 }
+
+/* A quiet spinner while the tasks load; it only appears if loading takes a moment. */
+.page-loading {
+  display: flex;
+  justify-content: center;
+  padding-top: 25vh;
+  animation: fadeIn 0.2s ease 0.4s both;
+}
+.page-loading span {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  animation: page-spin 0.8s linear infinite;
+}
+@keyframes page-spin {
+  to { transform: rotate(360deg); }
+}

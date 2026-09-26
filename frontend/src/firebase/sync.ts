@@ -378,20 +378,24 @@ export class FirestoreSync {
     void setDoc(doc(db, "users", this.uid), { ...profile, lastSeenAt: serverTimestamp() }, { merge: true });
     if (email) void setDoc(doc(db, "userEmails", email), { uid: this.uid, name: profile.name, photo: profile.photo });
     // Create the Inbox only if it's missing, so its settings aren't reset on every start.
+    // Checked in the background: asking the server can take seconds on a slow
+    // connection, and the tasks are shown from the phone's copy meanwhile.
     const inboxRef = doc(db, "projects", inboxId(this.uid));
-    const existing = await getDoc(inboxRef).catch(() => null);
-    if (existing && !existing.exists()) {
-      void setDoc(inboxRef, {
-        name: "Inbox",
-        color: "grey",
-        order: 0,
-        isFavorite: false,
-        isInboxProject: true,
-        parentId: null,
-        ownerId: this.uid,
-        members: [this.uid],
-      });
-    }
+    void getDoc(inboxRef)
+      .then((existing) => {
+        if (existing.exists()) return;
+        return setDoc(inboxRef, {
+          name: "Inbox",
+          color: "grey",
+          order: 0,
+          isFavorite: false,
+          isInboxProject: true,
+          parentId: null,
+          ownerId: this.uid,
+          members: [this.uid],
+        });
+      })
+      .catch(() => {});
   }
 
   // ---------- sharing ----------

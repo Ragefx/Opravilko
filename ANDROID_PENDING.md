@@ -18,6 +18,8 @@ tick animation on shopping items.
 
 - Widget: a refresh button at the top (next to the mic) fetches the latest
   list now; a spinner shows while it runs
+- Faster start: the app no longer waits for the server before showing the
+  tasks it already has; a small spinner shows if loading takes a moment
 
 ## Known gaps
 

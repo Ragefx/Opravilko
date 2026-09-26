@@ -282,6 +282,12 @@ export default function Layout() {
             </button>
           </div>
           {look !== "soca" && <SyncIndicator />}
+          {/* Until the tasks are in (from the phone's copy, or the server the first time). */}
+          {!appData && (
+            <div className="page-loading" role="status" aria-label="Loading">
+              <span />
+            </div>
+          )}
           <Outlet />
           {narrow && addStyle !== "top" && (
             <AddDock

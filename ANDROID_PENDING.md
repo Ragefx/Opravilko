@@ -23,6 +23,10 @@ Update card (from build 30).
   to reorder them; the order is remembered on the phone
 - Widget: the Today widget's header opens Now (Upcoming opens the
   Calendar), not the old Today page
+- Sidebar: a gear opens Settings straight away (was a ⋯ menu); Settings on
+  the phone is a settings page: you at the top, grouped rows with what each
+  is set to, a page per section with a back arrow (Back goes to the list),
+  Sign out at the bottom
 
 ## Known gaps
 

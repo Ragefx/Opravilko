@@ -14,7 +14,6 @@ import {
 } from "../api/hooks";
 import { colorHex } from "../utils/colors";
 import { isDueToday, isOverdue } from "../utils/date";
-import { disconnect } from "../dropbox/auth";
 import { currentEffectiveTheme, setTheme } from "../utils/theme";
 import {
   ChartIcon,
@@ -27,7 +26,6 @@ import {
   CartIcon,
   InboxIcon,
   LabelIcon,
-  LogOutIcon,
   MoonIcon,
   PinIcon,
   PlusIcon,
@@ -42,9 +40,6 @@ import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal
 import RowMenu from "./RowMenu";
 import ProjectMenu from "./ProjectMenu";
 import { useToast } from "./ToastProvider";
-import { clearWidget } from "../native/widget";
-import { endSession, usingFirebase } from "../data/store";
-import { signOut } from "../firebase/auth";
 import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "./WeeklyReview";
 
 function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
@@ -278,37 +273,10 @@ export default function Sidebar({
         >
           <PinIcon width={16} height={16} />
         </button>
-        <RowMenu
-          label="Account"
-          items={[
-            {
-              label: "Settings",
-              icon: <SettingsIcon width={14} height={14} />,
-              onClick: onOpenSettings,
-            },
-            usingFirebase()
-              ? {
-                  label: "Sign out",
-                  icon: <LogOutIcon width={14} height={14} />,
-                  danger: true,
-                  onClick: async () => {
-                    endSession();
-                    await signOut();
-                    navigate("/connect", { replace: true });
-                  },
-                }
-              : {
-                  label: "Disconnect Dropbox",
-                  icon: <LogOutIcon width={14} height={14} />,
-                  danger: true,
-                  onClick: () => {
-                    disconnect();
-                    clearWidget();
-                    navigate("/connect", { replace: true });
-                  },
-                },
-          ]}
-        />
+        {/* Settings, straight away (signing out is in there, under your account). */}
+        <button className="sidebar-icon-btn" onClick={onOpenSettings} aria-label="Settings" title="Settings">
+          <SettingsIcon width={17} height={17} />
+        </button>
       </div>
 
       <button className="sidebar-add-task" onClick={onQuickAdd}>

@@ -25,9 +25,12 @@ import PartnerConnect from "./PartnerConnect";
 import CalendarFeedsModal from "./CalendarFeedsModal";
 import ImportModal from "./ImportModal";
 import { useToast } from "./ToastProvider";
-import { BellIcon, CalendarIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
+import { BellIcon, CalendarIcon, ChevronIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
 import StorageSettings from "./StorageSettings";
 import AboutSection from "./AboutSection";
+import { RELEASES } from "../data/releases";
+import { useNarrowScreen } from "./MobileCalendar";
+import { appUi } from "../utils/appUi";
 
 type ThemeSetting = ThemeChoice | "system";
 type Section = "appearance" | "sharing" | "calendars" | "reminders" | "storage" | "data" | "account" | "about";
@@ -41,7 +44,7 @@ const LOOKS: { id: Look; name: string; blurb: string }[] = [
   {
     id: "classic",
     name: "Classic",
-    blurb: "Sidebar on the left, Today, Upcoming and projects as lists.",
+    blurb: "The sidebar on the left, projects as plain lists.",
   },
 ];
 
@@ -74,6 +77,54 @@ function downloadBackup(data: AppData) {
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const firebase = usingFirebase();
   const [section, setSection] = useState<Section>("appearance");
+  const phone = useNarrowScreen() || appUi;
+  const [pageOpen, setPageOpen] = useState(false);
+  const go = (id: Section) => {
+    setSection(id);
+    setPageOpen(true);
+  };
+  const { data } = useBootstrap();
+  const navigate = useNavigate();
+  const look = useLook();
+  const addStyle = useAddStyle();
+  const user = currentUser();
+  const me = firebase
+    ? { name: user?.displayName || user?.email || "", detail: user?.email ? `Google · ${user.email}` : "Signed in with Google" }
+    : { name: "Dropbox", detail: "Tasks stored in your Dropbox" };
+  const theme = getStoredTheme();
+  const partnerName = data?.partner?.name.split(" ")[0];
+  const feeds = data?.calendarFeeds?.length ?? 0;
+  const summaries: Partial<Record<Section, string>> = {
+    appearance: [
+      LOOKS.find((l) => l.id === look)?.name,
+      theme === "dark" ? "Dark" : theme === "light" ? "Light" : "Match device",
+      `${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""} add button`,
+    ].join(" · "),
+    sharing: partnerName ? `With ${partnerName}` : "Connect with your partner",
+    calendars: feeds ? `${feeds} subscribed` : "Holidays, birthdays, TV…",
+    reminders: "Defaults for new tasks",
+    storage: "Photos and files on tasks",
+    data: "Todoist import, backup file",
+    about: `Build ${RELEASES[0].build} · what's new`,
+  };
+  const groups = ([
+    { title: "Look & feel", ids: ["appearance"] },
+    { title: "Together", ids: ["sharing"] },
+    { title: "Tasks", ids: ["reminders", "calendars"] },
+    { title: "Data", ids: ["storage", "data"] },
+    { title: "App", ids: ["about"] },
+  ] as { title: string; ids: Section[] }[]).filter((g) => g.ids.some((id) => id !== "sharing" || firebase));
+  async function signOutHere() {
+    onClose();
+    if (firebase) {
+      endSession();
+      await signOut();
+    } else {
+      disconnect();
+      clearWidget();
+    }
+    navigate("/connect", { replace: true });
+  }
   const sections: { id: Section; label: string; icon: ReactNode }[] = [
     { id: "appearance", label: "Appearance", icon: <SettingsIcon width={16} height={16} /> },
     ...(firebase ? [{ id: "sharing" as const, label: "Sharing", icon: <ShareIcon width={16} height={16} /> }] : []),
@@ -84,6 +135,86 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     { id: "account", label: "Account", icon: <LogOutIcon width={16} height={16} /> },
     { id: "about", label: "About", icon: <InfoIcon width={16} height={16} /> },
   ];
+
+  const content = (id: Section) => (
+    <>
+      {id === "appearance" && <Appearance />}
+      {id === "sharing" && <Sharing />}
+      {id === "calendars" && (
+        <>
+          {!phone && <h4>Calendars</h4>}
+          <CalendarFeedsModal embedded onClose={onClose} />
+        </>
+      )}
+      {id === "reminders" && <Reminders />}
+      {id === "storage" && <StorageSettings />}
+      {id === "data" && <DataSection onClose={onClose} />}
+      {id === "account" && <Account onClose={onClose} />}
+      {id === "about" && <AboutSection />}
+    </>
+  );
+
+  // The app (and phone-sized windows): a settings page -- you at the top,
+  // grouped rows with what each is set to, Sign out at the bottom; a row
+  // opens its page, and Back (or the arrow) returns to the list.
+  if (phone) {
+    const open = pageOpen ? sections.find((x) => x.id === section) : undefined;
+    return (
+      <div className="modal-backdrop sp-backdrop" onClick={() => (open ? setPageOpen(false) : onClose())}>
+        <div className="sp" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Settings">
+          <div className="sp-head">
+            <button
+              className="sp-back"
+              onClick={() => (open ? setPageOpen(false) : onClose())}
+              aria-label={open ? "Back to Settings" : "Close settings"}
+            >
+              {open ? <ChevronIcon width={22} height={22} style={{ transform: "rotate(90deg)" }} /> : <XIcon width={22} height={22} />}
+            </button>
+            <h3>{open ? open.label : "Settings"}</h3>
+          </div>
+          {open ? (
+            <div className="sp-page settings-panel" key={open.id}>
+              {content(open.id)}
+            </div>
+          ) : (
+            <div className="sp-home">
+              <button className="sp-me" onClick={() => go("account")}>
+                <span className="sp-avatar">{(me.name || "O").charAt(0).toUpperCase()}</span>
+                <span className="sp-me-text">
+                  <b>{me.name || "Opravilko"}</b>
+                  <span>{me.detail}</span>
+                </span>
+                <ChevronIcon width={18} height={18} className="sp-chev" />
+              </button>
+              {groups.map((g) => (
+                <div key={g.title} className="sp-group">
+                  <div className="sp-group-title">{g.title}</div>
+                  <div className="sp-rows">
+                    {g.ids
+                      .map((id) => sections.find((x) => x.id === id))
+                      .filter((x): x is (typeof sections)[number] => Boolean(x))
+                      .map((x) => (
+                        <button key={x.id} className="sp-row" onClick={() => go(x.id)}>
+                          <span className={`sp-icon sp-icon-${x.id}`}>{x.icon}</span>
+                          <span className="sp-row-text">
+                            <b>{x.label}</b>
+                            {summaries[x.id] && <span>{summaries[x.id]}</span>}
+                          </span>
+                          <ChevronIcon width={18} height={18} className="sp-chev" />
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              ))}
+              <button className="sp-signout" onClick={() => void signOutHere()}>
+                <LogOutIcon width={18} height={18} /> {firebase ? "Sign out" : "Disconnect Dropbox"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -108,20 +239,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </nav>
-          <div className="settings-panel">
-            {section === "appearance" && <Appearance />}
-            {section === "sharing" && <Sharing />}
-            {section === "calendars" && (
-              <>
-                <h4>Calendars</h4>
-                <CalendarFeedsModal embedded onClose={onClose} />
-              </>
-            )}
-            {section === "reminders" && <Reminders />}
-            {section === "storage" && <StorageSettings />}
-            {section === "data" && <DataSection onClose={onClose} />}
-            {section === "account" && <Account onClose={onClose} />}
-            {section === "about" && <AboutSection />}
+          <div className="settings-panel">{content(section)}
           </div>
         </div>
       </div>
@@ -196,14 +314,15 @@ function Appearance() {
         ))}
       </div>
 
-      <h4>Sidebar</h4>
-      <label className="settings-switch">
+      {/* Pinning the sidebar is for wide screens; the phone always slides it in. */}
+      {!appUi && <h4>Sidebar</h4>}
+      {!appUi && <label className="settings-switch">
         <input type="checkbox" checked={pinned} onChange={(e) => setSidebarPinned(look, e.target.checked)} />
         <span>
           <b>Keep the sidebar open</b>
           <span>Or let it slide away and open it from the ☰ button. Same as the pin at the top of the sidebar.</span>
         </span>
-      </label>
+      </label>}
 
       <p className="settings-note">Appearance is saved on this device only, so your phone and computer can differ.</p>
     </>

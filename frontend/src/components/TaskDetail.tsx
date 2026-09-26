@@ -58,6 +58,7 @@ import {
 import { mapsUrl } from "../utils/places";
 import { useToast } from "./ToastProvider";
 import TaskCheckbox from "./TaskCheckbox";
+import { useCompleteAnimation } from "./useCompleteAnimation";
 import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
 import TaskAttachments from "./TaskAttachments";
@@ -92,6 +93,25 @@ export default function TaskDetail({
   const addComment = useAddComment();
   const deleteComment = useDeleteComment();
   const showToast = useToast();
+  // Ticking it off here plays the list's tick (circle pops, name strikes
+  // through), then the task closes, with Undo.
+  const tick = useCompleteAnimation();
+  function tickOff() {
+    const id = task.id;
+    const repeats = !!task.due?.isRecurring;
+    tick.play(
+      () => {
+        completeTask.mutate({ id, completed: true });
+        onClose();
+        showToast(
+          repeats
+            ? { message: `✓ ${task.content} · next time moved on` }
+            : { message: `✓ ${task.content}`, actionLabel: "Undo", onAction: () => completeTask.mutate({ id, completed: false }) }
+        );
+      },
+      { fold: false }
+    );
+  }
   const [content, setContent] = useState(task.content);
   const [description, setDescription] = useState(task.description);
   const [pickingLocation, setPickingLocation] = useState(false);
@@ -468,13 +488,13 @@ export default function TaskDetail({
             <div className="td-top">
             <div className="td-title-row">
               <TaskCheckbox
-                completed={task.completed}
+                completed={task.completed || tick.busy}
                 priorityColor={PRIORITY_META[task.priority].color}
-                recurring={!!task.due?.isRecurring}
-                onToggle={(next) => completeTask.mutate({ id: task.id, completed: next })}
+                popping={tick.busy}
+                onToggle={(next) => (next ? tickOff() : completeTask.mutate({ id: task.id, completed: false }))}
               />
               <textarea
-                className="td-title"
+                className={`td-title ${tick.busy ? "is-struck" : ""}`}
                 value={content}
                 rows={1}
                 ref={(el) => {

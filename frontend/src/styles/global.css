@@ -6185,7 +6185,7 @@ button.sidebar-link {
   position: fixed;
   right: 18px;
   bottom: calc(20px + var(--inset-bottom));
-  z-index: 60;
+  z-index: 45; /* under the task view (50) and every window */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6236,12 +6236,12 @@ button.sidebar-link {
 .add-menu-scrim {
   position: fixed;
   inset: 0;
-  z-index: 61;
+  z-index: 46;
   background: color-mix(in srgb, var(--color-bg) 70%, transparent);
 }
 .add-menu {
   position: fixed;
-  z-index: 62;
+  z-index: 47;
   right: 20px;
   bottom: calc(92px + var(--inset-bottom));
   display: flex;
@@ -6787,4 +6787,11 @@ button.sidebar-link {
   .qas-card.qab-anim-grow > * {
     animation: none;
   }
+}
+/* Ticked off in the task view: the name strikes through before it closes. */
+.td-title.is-struck {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  color: var(--color-text-muted);
+  transition: color 0.3s ease 0.12s;
 }

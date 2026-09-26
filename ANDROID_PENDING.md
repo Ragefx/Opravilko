@@ -20,6 +20,9 @@ cards with opening animations, and one-Back closing of the Add task card.
 - Shopping: "@shop" in a typed item marks it for that shop ("hrenovke 2
   @spar" → Hrenovke 2× at SPAR), in the app's add box and the widget's
   shopping card (its preview shows the shop too)
+- Ticking a task off in the task view plays the tick (pop, strike through),
+  closes the task and offers Undo; the bottom-right + no longer sits on top
+  of the task view
 
 ## Known gaps
 

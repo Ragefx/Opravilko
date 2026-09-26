@@ -21,6 +21,8 @@ review's date picker on top, three priority levels plus No priority.
   a blank page
 - Shared tasks and shopping items show who ticked them off ("✓ Maruša" in
   the basket, lists and Completed; "Ticked off by …" on the open task)
+- Shopping: ticking an item plays the tasks' tick (circle pops, name struck
+  through, row folds into the basket)
 
 ## Known gaps
 

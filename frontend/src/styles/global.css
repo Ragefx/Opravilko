@@ -7058,3 +7058,37 @@ button.sidebar-link {
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
+
+/* Ticking a shopping item off: the tasks' pop, strike and fold (useCompleteAnimation). */
+.shopping-row.is-ticking .shopping-check {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  animation: tick-pop 0.32s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.shopping-row.is-ticking .shopping-check svg {
+  animation: tick-draw 0.22s ease-out 0.06s both;
+}
+.shopping-name-text {
+  align-self: flex-start;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 0% 1.5px;
+}
+.shopping-row.is-ticking .shopping-name-text {
+  color: var(--color-text-muted);
+  background-size: 100% 1.5px;
+  transition: background-size 0.34s ease-in-out 0.16s, color 0.3s ease 0.16s;
+}
+.shopping-row.is-folding {
+  max-height: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.26s ease-in, opacity 0.2s ease-in;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shopping-row.is-ticking .shopping-check,
+  .shopping-row.is-ticking .shopping-check svg {
+    animation: none;
+  }
+}

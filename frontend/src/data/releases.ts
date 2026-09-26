@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 34,
+    date: "2026-09-26",
+    items: [
+      "Fixed: build 33 could open to a blank screen (the Now page crashed while tasks were loading).",
+      "If something goes wrong, a \"Something went wrong\" screen with Reload shows instead of a blank page.",
+      "Shared tasks and shopping items show who ticked them off: \"✓ Maruša\" in the basket, lists and Completed, and \"Ticked off by …\" on the open task.",
+      "Shopping: ticking an item plays the same tick as tasks (the circle pops, the name is struck through, the row folds into the basket).",
+    ],
+  },
+  {
     build: 33,
     date: "2026-09-26",
     items: [

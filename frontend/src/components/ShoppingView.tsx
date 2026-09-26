@@ -30,6 +30,7 @@ import { useToast } from "./ToastProvider";
 import MicButton from "./MicButton";
 import { CheckIcon, ChevronIcon, MapPinIcon, TrashIcon, XIcon } from "./icons";
 import { useSwipeActions } from "./useSwipeActions";
+import { useCompleteAnimation } from "./useCompleteAnimation";
 import PickSheet from "./PickSheet";
 import Select from "./Select";
 import ShopPlacesSheet from "./ShopPlacesSheet";
@@ -602,8 +603,15 @@ function ShoppingRow({
   const note = noteOf(task.description);
   // Swipe right ticks it off (or puts it back), left removes it, as with tasks.
   const swipe = useSwipeActions({ onRight: onToggle, onLeft: onDelete });
+  // Tapping the circle plays the tasks' tick (pop, strike, fold) before it drops into the basket.
+  const tick = useCompleteAnimation();
+  const tap = () => (task.completed ? onToggle() : tick.play(onToggle, { fold: true }));
   return (
-    <li className={`shopping-row ${task.completed ? "is-done" : ""}`} data-swipe={swipe.dir}>
+    <li
+      ref={tick.foldRef as unknown as React.Ref<HTMLLIElement>}
+      className={`shopping-row ${task.completed ? "is-done" : ""} ${tick.busy ? "is-ticking" : ""} ${tick.phase === "folding" ? "is-folding" : ""}`}
+      data-swipe={swipe.dir}
+    >
       {swipe.dir && (
         <div className={`task-swipe-bg ${swipe.armed ? "armed" : ""}`}>
           {swipe.dir === "right" ? (
@@ -626,17 +634,17 @@ function ShoppingRow({
         {/* The circle side ticks it off; the rest of the row opens it for editing. */}
         <button
           className="shopping-tick"
-          onClick={onToggle}
+          onClick={tap}
           aria-pressed={task.completed}
           aria-label={task.completed ? `Put ${item.name} back` : `Tick off ${item.name}`}
         >
           <span className="shopping-check" aria-hidden="true">
-            {task.completed && <CheckIcon width={14} height={14} />}
+            {(task.completed || tick.busy) && <CheckIcon width={14} height={14} />}
           </span>
         </button>
         <button className="shopping-row-main" onClick={onEdit} aria-label={`Edit ${item.name}`}>
           <span className="shopping-name">
-            {item.name}
+            <span className="shopping-name-text">{item.name}</span>
             {meals.length > 0 && <small>{meals.join(" · ")}</small>}
             {note && <small className="shopping-note">{note}</small>}
             {doneBy && <small className="shopping-done-by">✓ {doneBy}</small>}

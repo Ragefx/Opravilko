@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 31,
+    date: "2026-09-26",
+    items: [
+      "Ticking a task off in the task view plays the tick, closes the task and offers Undo.",
+      "Shopping: \"@shop\" in a typed item marks it for that shop (\"hrenovke 2 @spar\" → Hrenovke 2× at SPAR), in the app and the widget.",
+      "The bottom-right + no longer sits on top of the task view.",
+      "Add task card (bottom bar): the project list above it is no longer cut off.",
+    ],
+  },
+  {
     build: 30,
     date: "2026-09-26",
     items: [

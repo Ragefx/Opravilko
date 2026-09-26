@@ -14,7 +14,9 @@ Build 29 adds Settings > About (version and every build's changes).
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Builds also make Opravilko.aab (for Google Play) next to the APK
+- Shopping list: the bottom add button comes back after Back closes the
+  keyboard (it stayed hidden until you changed page)
 
 ## Known gaps
 

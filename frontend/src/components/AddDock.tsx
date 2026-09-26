@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Keyboard } from "@capacitor/keyboard";
 import { useBootstrap } from "../api/hooks";
+import { isNativeApp } from "../dropbox/auth";
 import type { AddStyle } from "../utils/addStyle";
 import { CalendarIcon, CartIcon, CheckIcon, FocusIcon, InboxIcon, MicIcon, PlusIcon, ShareIcon } from "./icons";
 
@@ -97,6 +99,19 @@ export default function AddDock({
   const onHome = /^\/app\/?(home)?$/.test(pathname);
   // Out of the way while typing (the keyboard would push it up over the page).
   const [typing, setTyping] = useState(false);
+  // In the app, only while the keyboard is up: Back closes the keyboard but
+  // leaves the box focused (the shopping list's add box), and the button
+  // should come back then.
+  const [keyboardUp, setKeyboardUp] = useState(!isNativeApp);
+  useEffect(() => {
+    if (!isNativeApp) return;
+    const show = Keyboard.addListener("keyboardWillShow", () => setKeyboardUp(true));
+    const hide = Keyboard.addListener("keyboardWillHide", () => setKeyboardUp(false));
+    return () => {
+      void show.then((l) => l.remove());
+      void hide.then((l) => l.remove());
+    };
+  }, []);
   useEffect(() => {
     const check = () => {
       const el = document.activeElement as HTMLElement | null;
@@ -125,7 +140,7 @@ export default function AddDock({
     left: style === "dot" ? () => run("shop") : undefined,
     up: style === "dot" ? () => run("voice") : undefined,
   });
-  if (typing) return null;
+  if (typing && keyboardUp) return null;
   const menuEl = menu && <AddMenu className={`add-menu-${style} ${onHome ? "is-raised" : ""}`} onPick={run} onClose={() => setMenu(false)} />;
 
   if (style === "tabs") {

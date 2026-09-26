@@ -41,6 +41,7 @@ import RowMenu from "./RowMenu";
 import ProjectMenu from "./ProjectMenu";
 import { useToast } from "./ToastProvider";
 import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "./WeeklyReview";
+import { useWeeklyReview } from "../utils/weeklyReview";
 
 function StarToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
@@ -131,7 +132,8 @@ export default function Sidebar({
   }
 
   // On the weekend, until done: how many tasks the weekly review has to sort.
-  const reviewCount = reviewDueToday(data);
+  const reviewOn = useWeeklyReview();
+  const reviewCount = reviewOn ? reviewDueToday(data) : 0;
   const counts = useMemo(() => {
     if (!data) return { today: 0, inbox: 0, midva: 0, calendar: 0, shopping: 0 };
     const active = data.tasks.filter((t) => !t.completed);
@@ -326,11 +328,13 @@ export default function Sidebar({
           <ChartIcon className="icon" />
           Productivity
         </NavLink>
-        <button className="sidebar-link" onClick={() => window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW))}>
-          <CalendarIcon className="icon" />
-          Weekly review
-          {reviewCount > 0 && <span className="badge">{reviewCount}</span>}
-        </button>
+        {reviewOn && (
+          <button className="sidebar-link" onClick={() => window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW))}>
+            <CalendarIcon className="icon" />
+            Weekly review
+            {reviewCount > 0 && <span className="badge">{reviewCount}</span>}
+          </button>
+        )}
       </nav>
 
       {hasFavorites && (

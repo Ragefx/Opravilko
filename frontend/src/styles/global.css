@@ -5896,6 +5896,10 @@ kbd {
 }
 
 /* ---------- Weekly review ---------- */
+/* A task opened from the review shows above it, with its pickers above that. */
+.modal-backdrop.review-under-task {
+  z-index: 49;
+}
 .review-modal {
   width: 440px;
   max-width: calc(100vw - 32px);

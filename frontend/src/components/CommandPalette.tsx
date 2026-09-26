@@ -24,6 +24,7 @@ import {
 } from "./icons";
 import { useToast } from "./ToastProvider";
 import { OPEN_WEEKLY_REVIEW } from "./WeeklyReview";
+import { useWeeklyReview } from "../utils/weeklyReview";
 
 interface Command {
   key: string;
@@ -50,6 +51,7 @@ export default function CommandPalette({
   const navigate = useNavigate();
   const createTask = useCreateTask();
   const showToast = useToast();
+  const reviewOn = useWeeklyReview();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -75,16 +77,20 @@ export default function CommandPalette({
       { key: "v-shopping", group: "Go to", label: "Shopping", icon: <CartIcon width={16} height={16} />, run: go("/app/shopping") },
       { key: "v-completed", group: "Go to", label: "Completed", icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
       { key: "v-stats", group: "Go to", label: "Productivity", icon: <ChartIcon width={16} height={16} />, run: go("/app/stats") },
-      {
-        key: "v-review",
-        group: "Go to",
-        label: "Weekly review",
-        icon: <CalendarIcon width={16} height={16} />,
-        run: () => {
-          onClose();
-          window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW));
-        },
-      },
+      ...(reviewOn
+        ? [
+            {
+              key: "v-review",
+              group: "Go to",
+              label: "Weekly review",
+              icon: <CalendarIcon width={16} height={16} />,
+              run: () => {
+                onClose();
+                window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW));
+              },
+            },
+          ]
+        : []),
       {
         key: "v-settings",
         group: "Go to",
@@ -185,7 +191,7 @@ export default function CommandPalette({
     // match; otherwise Enter adds what you typed as a task.
     const places = [...views, ...projects, ...labels, ...filters];
     return places.length ? [...places, ...add, ...tasks] : [...add, ...tasks];
-  }, [data, query, navigate, onClose, onOpenSettings, createTask, showToast]);
+  }, [data, query, navigate, onClose, onOpenSettings, createTask, showToast, reviewOn]);
 
   useEffect(() => setActive(0), [query]);
 

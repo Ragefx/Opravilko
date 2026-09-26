@@ -17,6 +17,10 @@ reorderable Add task icons, the Today widget opening Now.
 
 - Now: the focus task can be switched off (Settings > Appearance > Now page >
   Focus task); off, it's listed with the rest of today
+- Weekly review can be switched off (Settings > Appearance > Now page >
+  Weekly review); off, it's hidden from Now, the menu and search
+- Weekly review: a task opened from it now shows its date picker on top
+  (it opened behind the task)
 
 ## Known gaps
 

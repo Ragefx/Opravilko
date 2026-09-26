@@ -6,6 +6,7 @@ import TaskRow from "../components/TaskRow";
 import TaskDetail from "../components/TaskDetail";
 import FocusMode from "../components/FocusMode";
 import { useFocusCard } from "../utils/focusCard";
+import { useWeeklyReview } from "../utils/weeklyReview";
 import PriorityMark from "../components/PriorityMark";
 import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
@@ -162,7 +163,8 @@ export default function Home() {
   }
 
   const focus = view.focus;
-  const reviewCount = reviewDueToday(data);
+  const reviewOn = useWeeklyReview();
+  const reviewCount = reviewOn ? reviewDueToday(data) : 0;
   // The next trip (yours or a project's) in the coming two months, or the one under way.
   const nextTrip = (() => {
     const today = todayISO();

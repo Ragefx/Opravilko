@@ -103,107 +103,106 @@ export default function WeeklyReview({ onClose }: { onClose: () => void }) {
   const overdue = task ? isOverdue(task.due) : false;
 
   return createPortal(
-    <div className="modal-backdrop over-modal" onClick={onClose}>
-      <div className="modal review-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Weekly review">
-        <div className="settings-head">
-          <h3>Weekly review</h3>
-          <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
-            <XIcon width={18} height={18} />
-          </button>
-        </div>
+    <>
+      <div className={`modal-backdrop over-modal ${opened ? "review-under-task" : ""}`} onClick={onClose}>
+        <div className="modal review-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Weekly review">
+          <div className="settings-head">
+            <h3>Weekly review</h3>
+            <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
+              <XIcon width={18} height={18} />
+            </button>
+          </div>
 
-        {queue.length === 0 ? (
-          <div className="review-done">
-            <span aria-hidden="true">🎉</span>
-            <b>Nothing to sort</b>
-            <p>No overdue tasks and none without a date.</p>
-            <button className="btn btn-primary" onClick={onClose}>
-              Close
-            </button>
-          </div>
-        ) : finished ? (
-          <div className="review-done">
-            <span aria-hidden="true">✨</span>
-            <b>All sorted</b>
-            <p>
-              {sorted} {sorted === 1 ? "task" : "tasks"} gone through. See you next week.
-            </p>
-            <button className="btn btn-primary" onClick={onClose}>
-              Done
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="review-progress" aria-label={`${i + 1} of ${queue.length}`}>
-              <span style={{ width: `${(i / queue.length) * 100}%` }} />
-            </div>
-            <div className="review-count">
-              {i + 1} of {queue.length} · {overdue ? "overdue" : "no date"}
-            </div>
-            <button className="review-card" onClick={() => setOpened(task)}>
-              <b>{task.content}</b>
-              <span>
-                {project?.isInboxProject || task.projectId === "inbox" ? "Inbox" : `# ${project?.name ?? "Project"}`}
-                {overdue && task.due
-                  ? ` · was due ${format(parseISO(task.due.date), "d MMM")}`
-                  : ` · added ${formatDistanceToNowStrict(new Date(task.createdAt), { addSuffix: true })}`}
-              </span>
-            </button>
-            <div className="review-grid">
-              <button onClick={() => moveTo(today, "today")}>
-                <b>Today</b>
-                <span>{format(today, "EEE")}</span>
-              </button>
-              <button onClick={() => moveTo(addDays(today, 1), "tomorrow")}>
-                <b>Tomorrow</b>
-                <span>{format(addDays(today, 1), "EEE")}</span>
-              </button>
-              <button onClick={() => moveTo(weekend, "this weekend")}>
-                <b>Weekend</b>
-                <span>{format(weekend, "EEE d")}</span>
-              </button>
-              <button onClick={() => moveTo(monday, "next week")}>
-                <b>Next week</b>
-                <span>{format(monday, "EEE d")}</span>
+          {queue.length === 0 ? (
+            <div className="review-done">
+              <span aria-hidden="true">🎉</span>
+              <b>Nothing to sort</b>
+              <p>No overdue tasks and none without a date.</p>
+              <button className="btn btn-primary" onClick={onClose}>
+                Close
               </button>
             </div>
-            <div className="review-actions">
-              <button
-                className="btn btn-text meal-danger"
-                onClick={() =>
-                  deleteTask.mutate(task.id, {
-                    onSuccess: (removed) => {
-                      showToast({ message: `Deleted “${task.content}”`, actionLabel: "Undo", onAction: () => restoreTasks.mutate(removed) });
-                      next();
-                    },
-                  })
-                }
-              >
-                Delete
-              </button>
-              <button
-                className="btn btn-text"
-                onClick={() => {
-                  completeTask.mutate({ id: task.id, completed: true });
-                  next();
-                }}
-              >
-                ✓ Done
-              </button>
-              <span style={{ flex: 1 }} />
-              <button className="btn btn-secondary" onClick={next}>
-                {overdue ? "Leave it" : "Keep, no date"}
+          ) : finished ? (
+            <div className="review-done">
+              <span aria-hidden="true">✨</span>
+              <b>All sorted</b>
+              <p>
+                {sorted} {sorted === 1 ? "task" : "tasks"} gone through. See you next week.
+              </p>
+              <button className="btn btn-primary" onClick={onClose}>
+                Done
               </button>
             </div>
-          </>
-        )}
-      </div>
-      {opened && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <TaskDetail task={opened} onClose={() => setOpened(null)} onOpenTask={setOpened} />
+          ) : (
+            <>
+              <div className="review-progress" aria-label={`${i + 1} of ${queue.length}`}>
+                <span style={{ width: `${(i / queue.length) * 100}%` }} />
+              </div>
+              <div className="review-count">
+                {i + 1} of {queue.length} · {overdue ? "overdue" : "no date"}
+              </div>
+              <button className="review-card" onClick={() => setOpened(task)}>
+                <b>{task.content}</b>
+                <span>
+                  {project?.isInboxProject || task.projectId === "inbox" ? "Inbox" : `# ${project?.name ?? "Project"}`}
+                  {overdue && task.due
+                    ? ` · was due ${format(parseISO(task.due.date), "d MMM")}`
+                    : ` · added ${formatDistanceToNowStrict(new Date(task.createdAt), { addSuffix: true })}`}
+                </span>
+              </button>
+              <div className="review-grid">
+                <button onClick={() => moveTo(today, "today")}>
+                  <b>Today</b>
+                  <span>{format(today, "EEE")}</span>
+                </button>
+                <button onClick={() => moveTo(addDays(today, 1), "tomorrow")}>
+                  <b>Tomorrow</b>
+                  <span>{format(addDays(today, 1), "EEE")}</span>
+                </button>
+                <button onClick={() => moveTo(weekend, "this weekend")}>
+                  <b>Weekend</b>
+                  <span>{format(weekend, "EEE d")}</span>
+                </button>
+                <button onClick={() => moveTo(monday, "next week")}>
+                  <b>Next week</b>
+                  <span>{format(monday, "EEE d")}</span>
+                </button>
+              </div>
+              <div className="review-actions">
+                <button
+                  className="btn btn-text meal-danger"
+                  onClick={() =>
+                    deleteTask.mutate(task.id, {
+                      onSuccess: (removed) => {
+                        showToast({ message: `Deleted “${task.content}”`, actionLabel: "Undo", onAction: () => restoreTasks.mutate(removed) });
+                        next();
+                      },
+                    })
+                  }
+                >
+                  Delete
+                </button>
+                <button
+                  className="btn btn-text"
+                  onClick={() => {
+                    completeTask.mutate({ id: task.id, completed: true });
+                    next();
+                  }}
+                >
+                  ✓ Done
+                </button>
+                <span style={{ flex: 1 }} />
+                <button className="btn btn-secondary" onClick={next}>
+                  {overdue ? "Leave it" : "Keep, no date"}
+                </button>
+              </div>
+            </>
+          )}
         </div>
-      )}
-    </div>,
+      </div>
+      {/* Outside the review window, so the task's date and other pickers open above it */}
+      {opened && <TaskDetail task={opened} onClose={() => setOpened(null)} onOpenTask={setOpened} />}
+    </>,
     document.body
   );
 }

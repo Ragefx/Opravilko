@@ -11,6 +11,7 @@ import "@fontsource/jetbrains-mono/600.css";
 import "./styles/global.css";
 import "./styles/soca.css";
 import App from "./App";
+import CrashScreen from "./components/CrashScreen";
 import { initTheme } from "./utils/theme";
 import { initLook } from "./utils/look";
 import { initAddStyle } from "./utils/addStyle";
@@ -54,7 +55,9 @@ void initFirebaseAuth().finally(() =>
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <HashRouter>
-          <App />
+          <CrashScreen>
+            <App />
+          </CrashScreen>
         </HashRouter>
       </QueryClientProvider>
     </StrictMode>

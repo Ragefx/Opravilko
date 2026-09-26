@@ -15,7 +15,10 @@ review's date picker on top, three priority levels plus No priority.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Fixed: build 33 could open to a blank screen (the Now page crashed while
+  tasks were loading)
+- An error now shows a "Something went wrong" screen with Reload instead of
+  a blank page
 
 ## Known gaps
 

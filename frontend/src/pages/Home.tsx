@@ -90,6 +90,7 @@ export default function Home() {
   // The focus task can be switched off (Settings > Appearance): then it's
   // just one of today's tasks in the lists below.
   const focusOn = useFocusCard();
+  const reviewOn = useWeeklyReview();
   const view = useMemo(() => {
     if (!data) return null;
     const today = todayISO();
@@ -163,7 +164,6 @@ export default function Home() {
   }
 
   const focus = view.focus;
-  const reviewOn = useWeeklyReview();
   const reviewCount = reviewOn ? reviewDueToday(data) : 0;
   // The next trip (yours or a project's) in the coming two months, or the one under way.
   const nextTrip = (() => {

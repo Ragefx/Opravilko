@@ -7018,3 +7018,43 @@ button.sidebar-link {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Who ticked off a shared task or shopping item. */
+.task-done-by {
+  color: var(--color-text-muted);
+}
+.shopping-name small.shopping-done-by {
+  color: var(--color-text-muted);
+}
+.td-done-by {
+  margin: 2px 0 6px 30px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* Shown instead of a blank screen when a page throws. */
+.crash-screen {
+  min-height: 100vh;
+  padding: calc(24px + var(--inset-top, 0px)) 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.crash-screen b {
+  font-size: 18px;
+}
+.crash-screen p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+.crash-screen code {
+  max-width: 100%;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}

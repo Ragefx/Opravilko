@@ -16,7 +16,8 @@ tick animation on shopping items.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Widget: a refresh button at the top (next to the mic) fetches the latest
+  list now; a spinner shows while it runs
 
 ## Known gaps
 

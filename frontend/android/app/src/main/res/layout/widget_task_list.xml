@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The widget: a header band (mark, what it shows ▾, voice, add) over the list. -->
+<!-- The widget: a header band (mark, what it shows ▾, refresh, voice, add) over the list. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -52,6 +52,29 @@
                 android:paddingStart="4dp"
                 android:src="@drawable/ic_w_chevron" />
         </LinearLayout>
+
+        <!-- Refresh: the icon, or a spinner while it fetches. -->
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="48dp">
+
+            <ImageView
+                android:id="@+id/widget_refresh"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/widget_refresh"
+                android:padding="12dp"
+                android:src="@drawable/ic_w_refresh" />
+
+            <ProgressBar
+                android:id="@+id/widget_refreshing"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/widget_accent"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <ImageView
             android:id="@+id/widget_voice"

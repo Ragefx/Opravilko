@@ -31,6 +31,10 @@ public class TaskWidgetProvider extends AppWidgetProvider {
     /** A task tapped in the widget: opened over the home screen (TaskItemActivity). */
     static final String ACTION_EDIT_TASK = "editTask";
     static final String ACTION_RESCHEDULE = "reschedule";
+    /** The header's refresh button: fetch the list now. */
+    private static final String ACTION_REFRESH = "com.opravilko.app.widget.REFRESH";
+    /** While a refresh from the button runs, its icon shows as a spinner. */
+    private static volatile boolean refreshing;
 
     /** Refresh from Dropbox on the periodic update if the copy is older than this. */
     private static final long REFRESH_AFTER_MS = 15 * 60 * 1000;
@@ -44,6 +48,30 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         if (store.hasAuth() && System.currentTimeMillis() - store.getLastRefresh() > REFRESH_AFTER_MS) {
             WidgetSyncJob.schedule(context);
         }
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (!ACTION_REFRESH.equals(intent.getAction())) {
+            super.onReceive(context, intent);
+            return;
+        }
+        if (refreshing) return;
+        refreshing = true;
+        updateAll(context);
+        final PendingResult result = goAsync();
+        final Context app = context.getApplicationContext();
+        new Thread(() -> {
+            try {
+                WidgetSyncJob.sync(app);
+            } catch (Exception e) {
+                // Offline or signed out: the widget keeps what it had; the periodic sync tries again.
+            } finally {
+                refreshing = false;
+                updateAll(app);
+                result.finish();
+            }
+        }, "opravilko-widget-refresh").start();
     }
 
     @Override
@@ -102,6 +130,13 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         // + and the mic: the Add task sheet over the home screen (items on the shopping list).
         views.setOnClickPendingIntent(R.id.widget_add, quickAdd(context, appWidgetId, view, false));
         views.setOnClickPendingIntent(R.id.widget_voice, quickAdd(context, appWidgetId, view, true));
+
+        // Refresh: fetch the latest list now (a spinner while it runs).
+        views.setViewVisibility(R.id.widget_refresh, refreshing ? android.view.View.GONE : android.view.View.VISIBLE);
+        views.setViewVisibility(R.id.widget_refreshing, refreshing ? android.view.View.VISIBLE : android.view.View.GONE);
+        Intent refresh = new Intent(context, TaskWidgetProvider.class).setAction(ACTION_REFRESH);
+        views.setOnClickPendingIntent(R.id.widget_refresh, PendingIntent.getBroadcast(context, appWidgetId * 8 + 5, refresh,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
 
         // ▾ next to the title: choose what this widget shows.
         Intent pick = new Intent(context, WidgetConfigActivity.class);

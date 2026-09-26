@@ -7,26 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 29** (commit `0278cc5`, Sep 25 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-29
+Last build: **build 30** (commit `fbee596`, Sep 26 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-30
 
-Build 29 adds Settings > About (version and every build's changes).
+Build 30 adds updating from inside the app, the new Add task / shopping
+cards with opening animations, and one-Back closing of the Add task card.
 
 ## In the code, not in the app yet
 
-- Shopping list: the bottom add button comes back after Back closes the
-  keyboard (it stayed hidden until you changed page)
-- Add task card: one Back closes the keyboard and the card together (it took
-  two); tapping a chip, the mic or a picker still keeps the card open
-- Updates from inside the app: a "Build N is ready" card when GitHub has a
-  newer build (Update → Android's Install; the first time Android asks to
-  allow installing apps), and Check for updates in Settings > About. New
-  native plugin UpdatePlugin + REQUEST_INSTALL_PACKAGES permission
-- New Add task card (app and widget) and widget shopping card: name 18,
-  a description line, what's set as small tokens (tap to change, × to
-  clear), a line, then where it goes, one row of same-size icons and a round
-  send. Opens with an animation: rises from the bottom (grows out of the +
-  with the bottom bar style)
+(nothing yet)
 
 ## Known gaps
 

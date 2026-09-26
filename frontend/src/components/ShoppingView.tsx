@@ -34,6 +34,7 @@ import PickSheet from "./PickSheet";
 import Select from "./Select";
 import ShopPlacesSheet from "./ShopPlacesSheet";
 import { appUi } from "../utils/appUi";
+import { completedByName } from "../utils/completedBy";
 
 /**
  * An item's extras live in its description, one per line: "za: Palačinke,
@@ -594,6 +595,8 @@ function ShoppingRow({
   const item = parseItem(task.content);
   const amount = formatAmount(item.amount, item.unit);
   const meals = mealsOf(task);
+  const { data } = useBootstrap();
+  const doneBy = completedByName(task, data);
   const category = categoryOf(task, item.name);
   const store = storeOf(task);
   const note = noteOf(task.description);
@@ -636,6 +639,7 @@ function ShoppingRow({
             {item.name}
             {meals.length > 0 && <small>{meals.join(" · ")}</small>}
             {note && <small className="shopping-note">{note}</small>}
+            {doneBy && <small className="shopping-done-by">✓ {doneBy}</small>}
           </span>
           {amount && <span className="shopping-amount">{amount}</span>}
           {storeColumn && (

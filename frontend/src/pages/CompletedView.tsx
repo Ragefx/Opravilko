@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { useBootstrap, useCompleteTask } from "../api/hooks";
+import { completedByName } from "../utils/completedBy";
 import type { Task } from "../api/types";
 import TaskCheckbox from "../components/TaskCheckbox";
 import TaskDetail from "../components/TaskDetail";
@@ -131,7 +132,10 @@ export default function CompletedView() {
                   {t.content}
                 </div>
                 <div className="task-meta">
-                  <span>{format(parseISO(t.completedAt!), "HH:mm")}</span>
+                  <span>
+                    {format(parseISO(t.completedAt!), "HH:mm")}
+                    {completedByName(t, data) ? ` · ${completedByName(t, data)}` : ""}
+                  </span>
                   {projectNameById[t.projectId] && <span className="chip">{projectNameById[t.projectId]}</span>}
                 </div>
               </div>

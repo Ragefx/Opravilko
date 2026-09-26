@@ -19,6 +19,8 @@ review's date picker on top, three priority levels plus No priority.
   tasks were loading)
 - An error now shows a "Something went wrong" screen with Reload instead of
   a blank page
+- Shared tasks and shopping items show who ticked them off ("✓ Maruša" in
+  the basket, lists and Completed; "Ticked off by …" on the open task)
 
 ## Known gaps
 

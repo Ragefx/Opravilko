@@ -12,6 +12,7 @@ import { appUi } from "../utils/appUi";
 import PriorityMark from "./PriorityMark";
 import MidvaBadge from "./MidvaBadge";
 import { useToast } from "./ToastProvider";
+import { completedByName } from "../utils/completedBy";
 
 export default function TaskRow({
   task,
@@ -37,6 +38,7 @@ export default function TaskRow({
   const hasReminders = !task.completed && remindersOf(task).length > 0;
   const showToast = useToast();
   const { data } = useBootstrap();
+  const doneBy = completedByName(task, data);
   const priorityColor = PRIORITY_META[task.priority].color;
   const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
 
@@ -134,8 +136,9 @@ export default function TaskRow({
               </span>
             )}
           </div>
-          {(task.due || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
+          {(doneBy || task.due || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
             <div className="task-meta">
+              {doneBy && <span className="task-done-by">✓ {doneBy}</span>}
               {task.due && (
                 <span className={`due ${dueDateClass(task.due)}`}>
                   <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}

@@ -17,6 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { projectRoute } from "../utils/away";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
+import { completedByName } from "../utils/completedBy";
 import { makeDue, todayISO } from "../utils/date";
 import {
   type RecurrenceRule,
@@ -425,6 +426,7 @@ export default function TaskDetail({
     const priorityColor = task.priority !== 1 ? PRIORITY_META[task.priority].color : undefined;
     const first = data?.partner?.name.split(" ")[0] ?? "";
     const shared = Boolean(task.sharedWith?.length);
+    const doneBy = completedByName(task, data);
 
     function openDate() {
       const r = dateRow.current?.getBoundingClientRect();
@@ -507,6 +509,12 @@ export default function TaskDetail({
                 onBlur={saveContent}
               />
             </div>
+            {doneBy && (
+              <div className="td-done-by">
+                ✓ Ticked off by {doneBy === "You" ? "you" : doneBy}
+                {task.completedAt ? `, ${format(parseISO(task.completedAt), "EEE d MMM, HH:mm")}` : ""}
+              </div>
+            )}
             <div className="td-desc">
               <RichTextEditor html={description} onChange={setDescription} onBlur={saveDescription} />
             </div>

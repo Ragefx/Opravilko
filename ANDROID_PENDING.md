@@ -7,22 +7,16 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 33** (commit `9c46042`, Sep 26 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-33
+Last build: **build 34** (commit `4169cd8`, Sep 26 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-34
 
-Build 33: focus task and weekly review can be switched off, the weekly
-review's date picker on top, three priority levels plus No priority.
+Build 34: fixes build 33's blank screen (Now crashed while loading), an error
+screen instead of blank, who ticked off shared tasks and shopping items, the
+tick animation on shopping items.
 
 ## In the code, not in the app yet
 
-- Fixed: build 33 could open to a blank screen (the Now page crashed while
-  tasks were loading)
-- An error now shows a "Something went wrong" screen with Reload instead of
-  a blank page
-- Shared tasks and shopping items show who ticked them off ("✓ Maruša" in
-  the basket, lists and Completed; "Ticked off by …" on the open task)
-- Shopping: ticking an item plays the tasks' tick (circle pops, name struck
-  through, row folds into the basket)
+(nothing yet)
 
 ## Known gaps
 

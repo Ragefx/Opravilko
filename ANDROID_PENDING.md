@@ -7,19 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 34** (commit `4169cd8`, Sep 26 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-34
+Last build: **build 35** (commit `bbcb9b8`, Sep 27 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-35
 
-Build 34: fixes build 33's blank screen (Now crashed while loading), an error
-screen instead of blank, who ticked off shared tasks and shopping items, the
-tick animation on shopping items.
+Build 35: widget refresh button, faster start (no waiting on the server for
+the Inbox check) with a spinner while loading.
 
 ## In the code, not in the app yet
 
-- Widget: a refresh button at the top (next to the mic) fetches the latest
-  list now; a spinner shows while it runs
-- Faster start: the app no longer waits for the server before showing the
-  tasks it already has; a small spinner shows if loading takes a moment
+(nothing yet)
 
 ## Known gaps
 

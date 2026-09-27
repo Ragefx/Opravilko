@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 35,
+    date: "2026-09-27",
+    items: [
+      "Widget: a refresh button at the top (next to the mic) fetches the latest list right away; a spinner shows while it runs.",
+      "Faster start: the app shows the tasks it already has without waiting for the server; a small spinner shows if loading takes a moment.",
+    ],
+  },
+  {
     build: 34,
     date: "2026-09-26",
     items: [

@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 37,
+    date: "2026-09-28",
+    items: [
+      "Instant updates: removing an item now reaches the other phone too, and a phone no longer stops getting nudges after an error.",
+      "Settings > About > Instant updates: a log of the nudges this phone sent and received, to see where one got lost.",
+      "Settings: \"Import & backup\" is now \"Import, backup & Gmail\" (the Gmail key is there).",
+    ],
+  },
+  {
     build: 36,
     date: "2026-09-28",
     items: [

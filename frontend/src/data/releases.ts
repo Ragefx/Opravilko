@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 38,
+    date: "2026-09-28",
+    items: [
+      "New time picker: quick times (9:00, 12:00, 17:00, 20:00), an hour grid, then :00/:15/:30/:45, or type it (\"16:30\", \"930\"); ✕ removes the time.",
+      "Changes made on the website now reach your phone's widget within seconds.",
+    ],
+  },
+  {
     build: 37,
     date: "2026-09-28",
     items: [

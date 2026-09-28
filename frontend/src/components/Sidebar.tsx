@@ -236,7 +236,7 @@ export default function Sidebar({
           </span>
           <span className="sidebar-link-label">{p.name}</span>
           {(p.members?.length ?? 0) > 1 && (
-            <span className="sidebar-shared" title="Shared">
+            <span className={`sidebar-shared ${projectTaskCounts[p.id] > 0 ? "has-count" : ""}`} title="Shared">
               <ShareIcon width={13} height={13} />
             </span>
           )}

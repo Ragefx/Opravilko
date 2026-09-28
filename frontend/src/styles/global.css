@@ -7284,3 +7284,13 @@ button.sidebar-link {
   overflow: visible !important;
   max-height: none !important;
 }
+/* The task count sits at the row's right edge, over the row: keep the shared
+   icon clear of it, so the counts line up with the other projects'. */
+.sidebar-shared.has-count {
+  margin-right: 30px;
+}
+@media (hover: none) {
+  .sidebar-shared.has-count {
+    margin-right: 6px;
+  }
+}

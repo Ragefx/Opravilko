@@ -56,6 +56,28 @@ final class FirestoreClient {
         }
     }
 
+    /** A fresh sign-in token, for calling the helper as this user. */
+    String bearer() throws IOException {
+        return idToken();
+    }
+
+    /** Writes a whole document (made or replaced), e.g. users/{uid}/devices/{id}. */
+    void setDocument(String path, JSONObject data) throws IOException {
+        HttpURLConnection conn = open("https://firestore.googleapis.com/v1/projects/" + enc(store.getFirebaseProjectId())
+                + "/databases/(default)/documents/" + path, "PATCH");
+        conn.setRequestProperty("Authorization", "Bearer " + idToken());
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        try {
+            write(conn, new JSONObject().put("fields", toFields(data)).toString());
+        } catch (JSONException e) {
+            throw new IOException(e.getMessage());
+        }
+        int status = conn.getResponseCode();
+        if (status == 200) return;
+        if (status == 401) store.setFirebaseIdToken(null, 0);
+        throw new IOException("Saving " + path + " failed (HTTP " + status + ")");
+    }
+
     private String docUrl(String taskId) throws IOException {
         return "https://firestore.googleapis.com/v1/projects/" + enc(store.getFirebaseProjectId())
                 + "/databases/(default)/documents/tasks/" + enc(taskId);

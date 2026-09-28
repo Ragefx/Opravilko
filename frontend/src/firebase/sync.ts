@@ -20,6 +20,7 @@ import type { User } from "firebase/auth";
 import { nanoid } from "nanoid";
 import { firestore } from "./app";
 import { deleteAttachmentBlobs } from "./attachments";
+import { pingLater } from "../utils/helper";
 
 const newId = () => nanoid();
 import type {
@@ -603,7 +604,36 @@ export class FirestoreSync {
       this.storeEvents();
     }
     const ops = this.diff(prev, next);
-    if (ops.length) this.commit(ops);
+    if (ops.length) {
+      this.commit(ops);
+      this.pingSharers(ops, prev.tasks, next.tasks);
+    }
+  }
+
+  /**
+   * Shared tasks and shopping items that changed: wake the other person's
+   * phone, so their notification and widget follow within seconds.
+   */
+  private pingSharers(ops: Op[], prev: Task[], next: Task[]) {
+    const ids = ops.filter((op) => op.path[0] === "tasks").map((op) => op.path[1]);
+    if (ids.length === 0) return;
+    const byId = new Map([...prev, ...next].map((t) => [t.id, t]));
+    const to = new Set<string>();
+    let project: string | undefined;
+    for (const id of ids) {
+      const t = byId.get(id);
+      if (!t) continue;
+      const pid = this.toStoredProjectId(t.projectId);
+      const members = ((pid && this.projects.get(pid)?.members) as string[] | undefined) ?? [];
+      if (members.length > 1) {
+        members.forEach((m) => to.add(m));
+        project = pid ?? undefined;
+      }
+      t.sharedWith?.forEach((u) => to.add(u));
+      if (t.sharedBy?.uid) to.add(t.sharedBy.uid);
+    }
+    to.delete(this.uid);
+    pingLater([...to], project);
   }
 
   private diff(prev: AppData, next: AppData): Op[] {

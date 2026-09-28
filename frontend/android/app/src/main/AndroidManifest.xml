@@ -84,6 +84,15 @@
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
 
+        <!-- Nudges from the helper (worker/): your partner changed something shared. -->
+        <service
+            android:name=".widget.PushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <service
             android:name=".widget.WidgetSyncJob"
             android:permission="android.permission.BIND_JOB_SERVICE"

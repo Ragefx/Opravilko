@@ -1,0 +1,58 @@
+name: Cloudflare helper
+
+# Deploys worker/ (push notifications between your phones, recipe reading)
+# to Cloudflare Workers' free plan. Needs three repository secrets:
+#   CLOUDFLARE_API_TOKEN      Cloudflare > My Profile > API Tokens > "Edit Cloudflare Workers"
+#   CLOUDFLARE_ACCOUNT_ID     Cloudflare > Workers & Pages (right-hand side)
+#   FIREBASE_SERVICE_ACCOUNT  Firebase > Project settings > Service accounts > Generate new private key (the whole file)
+# Without them it does nothing, so pushes to main stay green.
+on:
+  push:
+    branches: [main]
+    paths: ["worker/**", ".github/workflows/worker.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check the secrets are there
+        id: ready
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Cloudflare or Firebase secrets not set yet; nothing deployed."
+          fi
+
+      - name: Deploy
+        if: steps.ready.outputs.ok == 'true'
+        working-directory: worker
+        run: npx --yes wrangler@4 deploy
+
+      - name: Give it the Firebase key
+        if: steps.ready.outputs.ok == 'true'
+        working-directory: worker
+        run: printf '%s' "$FIREBASE_SERVICE_ACCOUNT" | npx --yes wrangler@4 secret put FIREBASE_SERVICE_ACCOUNT
+
+      - name: Check it answers
+        if: steps.ready.outputs.ok == 'true'
+        working-directory: worker
+        run: |
+          SUB=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).result?.subdomain||""))')
+          echo "Worker address: https://opravilko.$SUB.workers.dev"
+          curl -s "https://opravilko.$SUB.workers.dev/" || true

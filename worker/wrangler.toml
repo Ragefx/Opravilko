@@ -1,0 +1,7 @@
+# Opravilko's helper on Cloudflare Workers (free plan): wakes your partner's
+# phone when a shared list changes (Firebase Cloud Messaging), and reads
+# recipes from web pages. Deployed by .github/workflows/worker.yml.
+name = "opravilko"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true

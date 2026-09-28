@@ -67,6 +67,8 @@ public class WidgetBridgePlugin extends Plugin {
         if (store.getPending().length() > 0 && store.hasAuth()) WidgetSyncJob.schedule(getContext());
         // And the widget keeps itself current from now on (every ~15 minutes).
         if (store.hasAuth()) WidgetSyncJob.schedulePeriodic(getContext());
+        // And this phone can be nudged when your partner changes something shared.
+        PushTokens.register(getContext());
         call.resolve();
     }
 

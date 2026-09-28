@@ -17,6 +17,11 @@ the Inbox check) with a spinner while loading.
 
 - Errors are kept (on the phone and in your account) and listed in Settings >
   About > Problems, with Copy all
+- Push: the phone registers for nudges (users/{uid}/devices) and, when your
+  partner changes something shared, syncs at once (widget + notification);
+  bursts of notifications for one list are merged. Needs the Cloudflare helper
+  deployed and HELPER_URL set (src/utils/helper.ts, widget/HelperClient.java).
+  Adds firebase-messaging (BoM 34.19.0) to the Android build.
 
 ## Known gaps
 

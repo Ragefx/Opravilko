@@ -242,7 +242,39 @@ public class WidgetSyncJob extends JobService {
             store.removePending(processed);
             TaskWidgetProvider.updateAll(context);
         }
+        pingSharers(store, pending, processed, snapshot, uid);
         refreshFirebase(context, store, firestore, uid);
+    }
+
+    /**
+     * Changes made in the widget to shared lists and tasks: wake the other
+     * person's phone (through the helper), as the app does for its own changes.
+     */
+    private static void pingSharers(WidgetStore store, JSONArray pending, Set<String> processed, JSONObject snapshot, String uid) {
+        if (uid == null || snapshot == null || processed.isEmpty()) return;
+        Set<String> to = new HashSet<>();
+        String project = null;
+        for (int i = 0; i < pending.length(); i++) {
+            JSONObject p = pending.optJSONObject(i);
+            if (p == null || !processed.contains(p.optString("id"))) continue;
+            JSONObject task = p.optJSONObject("task");
+            if (task == null && p.has("taskId") && snapshot.optJSONArray("tasks") != null)
+                task = TaskLogic.findTask(snapshot.optJSONArray("tasks"), p.optString("taskId"));
+            String projectId = task != null ? task.optString("projectId", null) : p.optString("projectId", null);
+            JSONObject proj = projectId != null ? TaskLogic.findProject(snapshot, projectId) : null;
+            JSONArray members = proj != null ? proj.optJSONArray("members") : null;
+            if (members != null && members.length() > 1) {
+                for (int k = 0; k < members.length(); k++) to.add(members.optString(k));
+                project = "inbox".equals(projectId) ? "inbox_" + uid : projectId;
+            }
+            JSONArray shared = task != null ? task.optJSONArray("sharedWith") : null;
+            if (shared != null) for (int k = 0; k < shared.length(); k++) to.add(shared.optString(k));
+            JSONObject sharedBy = task != null ? task.optJSONObject("sharedBy") : null;
+            if (sharedBy != null) to.add(sharedBy.optString("uid"));
+        }
+        to.remove(uid);
+        to.remove("");
+        HelperClient.ping(store, to, project);
     }
 
     /**

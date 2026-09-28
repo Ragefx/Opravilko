@@ -58,10 +58,28 @@ final class PartnerNotifier {
         String title;
         if (first.shopping) title = PartnerNews.ADDED.equals(first.kind) ? who + " added to " + list : who + " bought";
         else title = PartnerNews.ADDED.equals(first.kind) ? who + " added" : who + " finished";
+        // With push, changes arrive one by one (each item ticked in the shop):
+        // while the last notification for this list is still showing, it's
+        // updated with the new ones, quietly, instead of buzzing each time.
+        String key = first.kind + "|" + first.projectId;
+        int id = key.hashCode();
+        List<String> titles = new ArrayList<>();
+        android.content.SharedPreferences shown = context.getSharedPreferences("opravilko_partner_shown", Context.MODE_PRIVATE);
+        boolean stillShowing = isShowing(context, id);
+        if (stillShowing) {
+            try {
+                org.json.JSONArray was = new org.json.JSONArray(shown.getString(key, "[]"));
+                for (int i = 0; i < was.length(); i++) titles.add(was.optString(i));
+            } catch (org.json.JSONException ignored) {
+                // start afresh
+            }
+        }
+        for (PartnerNews.Event e : g) if (!titles.contains(e.title)) titles.add(e.title);
+        shown.edit().putString(key, new org.json.JSONArray(titles).toString()).apply();
         StringBuilder body = new StringBuilder();
-        for (PartnerNews.Event e : g) {
+        for (String t : titles) {
             if (body.length() > 0) body.append(", ");
-            body.append(e.title);
+            body.append(t);
         }
 
         // Tapping opens the list (shopping), the one task, or the project.
@@ -72,7 +90,6 @@ final class PartnerNotifier {
         else link = "opravilko://open?view=" + Uri.encode("project:" + first.projectId);
         Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(link), context, MainActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        int id = (first.kind + "|" + first.projectId + "|" + System.currentTimeMillis()).hashCode();
         PendingIntent tap = PendingIntent.getActivity(context, id, open,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
@@ -83,12 +100,23 @@ final class PartnerNotifier {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body.toString()))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
+                .setOnlyAlertOnce(stillShowing)
                 .setContentIntent(tap);
         try {
             NotificationManagerCompat.from(context).notify(id, builder.build());
         } catch (SecurityException ignored) {
             // Notifications not allowed.
         }
+    }
+
+    private static boolean isShowing(Context context, int id) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false;
+        NotificationManager nm = context.getSystemService(NotificationManager.class);
+        if (nm == null) return false;
+        for (android.service.notification.StatusBarNotification n : nm.getActiveNotifications()) {
+            if (n.getId() == id) return true;
+        }
+        return false;
     }
 
     private static void ensureChannel(Context context) {

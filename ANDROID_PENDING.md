@@ -7,28 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 35** (commit `bbcb9b8`, Sep 27 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-35
+Last build: **build 36** (commit `f47bb94`, Sep 28 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-36
 
-Build 35: widget refresh button, faster start (no waiting on the server for
-the Inbox check) with a spinner while loading.
+Build 36: push between phones (Cloudflare helper + Firebase Cloud Messaging),
+shop walking order, recipes from a link, deadlines, Gmail key, error log.
 
 ## In the code, not in the app yet
 
-- Errors are kept (on the phone and in your account) and listed in Settings >
-  About > Problems, with Copy all
-- Push: the phone registers for nudges (users/{uid}/devices) and, when your
-  partner changes something shared, syncs at once (widget + notification);
-  bursts of notifications for one list are merged. Needs the Cloudflare helper
-  deployed and HELPER_URL set (src/utils/helper.ts, widget/HelperClient.java).
-  Adds firebase-messaging (BoM 34.19.0) to the Android build.
-- Shopping: each shop's walking order is learned from the order things get
-  ticked there, and the list (and widget) sorts in it
-- Meals: New meal can read a recipe's ingredients from a web address (and a
-  recipe page shared to Opravilko opens it); needs the helper
-- Deadlines: a task can have a deadline apart from its date (Deadline row in
-  the task, ⏳ on the row, "{friday}" typed in Add task); not shown in the
-  widget yet
+(nothing yet)
 
 ## Known gaps
 

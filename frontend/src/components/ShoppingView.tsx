@@ -20,6 +20,8 @@ import {
   CATEGORIES,
   categoryById,
   storesOf,
+  shopCategoryOrder,
+  learnShopOrder,
   guessCategory,
   rememberCategory,
   type Category,
@@ -224,7 +226,10 @@ export default function ShoppingView({
     const i = stores.indexOf(store);
     return i < 0 ? stores.length : i;
   };
-  const categoryRank = (t: Task) => CATEGORIES.findIndex((c) => c.id === categoryOf(t, parseItem(t.content).name).id);
+  // Within a shop, categories follow that shop's walking order (learned from
+  // the order things get ticked there), else the usual one.
+  const categoryRank = (t: Task, shop = storeOf(t)) =>
+    shopCategoryOrder(project, shop).indexOf(categoryOf(t, parseItem(t.content).name).id);
   const open = items
     .filter((t) => !t.completed)
     .sort((a, b) => storeRank(a) - storeRank(b) || categoryRank(a) - categoryRank(b) || a.order - b.order);
@@ -261,9 +266,14 @@ export default function ShoppingView({
     ...[...new Set(open.map((t) => storeOf(t)).filter((s): s is string => !!s))].filter((s) => !stores.includes(s)),
   ].filter((s) => openCount(s) > 0 || s === shopFilter);
   const filtering = storeColumn && shopFilter !== "";
-  const shown = !filtering ? open : open.filter((t) => (storeOf(t) ?? ANY_SHOP) === shopFilter);
+  // In a shop, everything shown (its own items and "any shop" ones) goes in that shop's order.
+  const inShop = filtering && shopFilter !== ANY_SHOP ? shopFilter : null;
+  const byShopWalk = (list: Task[]) =>
+    inShop ? [...list].sort((a, b) => categoryRank(a, inShop) - categoryRank(b, inShop) || a.order - b.order) : list;
+  const shown = byShopWalk(!filtering ? open : open.filter((t) => (storeOf(t) ?? ANY_SHOP) === shopFilter));
+  const learnedHere = inShop ? Boolean(project?.shopOrder?.[inShop]?.length) : false;
   // In a shop, things that can be bought anywhere follow under their own heading.
-  const anywhere = filtering && shopFilter !== ANY_SHOP ? open.filter((t) => !storeOf(t)) : [];
+  const anywhere = byShopWalk(filtering && shopFilter !== ANY_SHOP ? open.filter((t) => !storeOf(t)) : []);
   // What you usually buy that isn't on the list yet: one tap puts it back.
   const onList = new Set(open.map((t) => parseItem(t.content).name.toLocaleLowerCase("sl")));
   const usual = Object.entries(project?.bought ?? {})
@@ -341,7 +351,28 @@ export default function ShoppingView({
     await addItems(parts.map((l) => parseLine(l, stores)));
   }
 
+  // This visit to each shop: the last category ticked there, and those done.
+  const walk = useRef(new Map<string, { last: string; seen: Set<string>; at: number }>());
+  /** Ticking something off in a shop teaches the list that shop's layout. */
+  function learnFromTick(t: Task) {
+    const shop = filtering && shopFilter !== ANY_SHOP ? shopFilter : storeOf(t);
+    if (!shop || !project) return;
+    const cat = categoryOf(t, parseItem(t.content).name).id;
+    const now = Date.now();
+    let visit = walk.current.get(shop);
+    // A new visit after 45 minutes without ticking anything there.
+    if (!visit || now - visit.at > 45 * 60_000) visit = { last: "", seen: new Set(), at: now };
+    // Going back for a forgotten thing (a category already done) teaches nothing.
+    if (visit.last && cat !== visit.last && !visit.seen.has(cat)) {
+      const next = learnShopOrder(shopCategoryOrder(project, shop), visit.last, cat);
+      if (next) updateProject.mutate({ id: projectId, shopOrder: { ...(project.shopOrder ?? {}), [shop]: next } });
+    }
+    visit.seen.add(cat);
+    walk.current.set(shop, { ...visit, last: cat, at: now });
+  }
+
   function toggle(t: Task) {
+    if (!t.completed) learnFromTick(t);
     updateTask.mutate({
       id: t.id,
       completed: !t.completed,
@@ -443,6 +474,10 @@ export default function ShoppingView({
               Any shop <b>{openCount(ANY_SHOP)}</b>
             </button>
           </div>
+        )}
+
+        {learnedHere && shown.length + anywhere.length > 1 && (
+          <p className="shopping-walk-note">In {inShop}'s order, learned from how you shop there</p>
         )}
 
         {filtering && shown.length === 0 && anywhere.length === 0 && open.length > 0 && (

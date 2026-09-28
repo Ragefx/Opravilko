@@ -109,8 +109,8 @@ public class TaskWidgetService extends RemoteViewsService {
             boolean anyStore = false;
             for (TaskLogic.Row r : sorted) {
                 String name = ShoppingLogic.parse(r.content)[0];
-                rank.put(r.id, ShoppingLogic.categoryRank(data, ShoppingLogic.categoryId(data, r.description, name)));
                 String store = ShoppingLogic.storeOf(r.description);
+                rank.put(r.id, ShoppingLogic.categoryRank(data, ShoppingLogic.categoryId(data, r.description, name), listId, store));
                 anyStore |= store != null;
                 int i = store == null ? -1 : stores.indexOf(store);
                 byStore.put(r.id, store == null ? stores.size() + 1 : i < 0 ? stores.size() : i);

@@ -25,6 +25,8 @@ export interface Project {
   bought?: Record<string, { name: string; n: number }>;
   /** Shopping lists: the shops items can be marked for (SPAR, Hofer, Lidl unless changed). */
   stores?: string[];
+  /** Shopping lists: each shop's walking order of categories, learned from the order things get ticked there. */
+  shopOrder?: Record<string, string[]>;
   /** A project that is a trip (Tromsø): its dates, shown across the calendar for everyone on it. */
   trip?: TripDates;
   /** Firebase only: who created it and who can see it (see firebase/sync.ts). */

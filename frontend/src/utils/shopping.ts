@@ -535,3 +535,36 @@ export function categoryGuide() {
     localMeals: customMeals(),
   };
 }
+
+/**
+ * A shop's walking order of categories: what was learned there (see
+ * learnShopOrder), else the usual order (fruit and veg first).
+ */
+export function shopCategoryOrder(project: Project | undefined, shop: string | null | undefined): string[] {
+  const all = CATEGORIES.map((c) => c.id);
+  const learnedOrder = shop ? project?.shopOrder?.[shop] : undefined;
+  if (!learnedOrder?.length) return all;
+  const known = learnedOrder.filter((id) => all.includes(id));
+  // Categories added since go where they'd be in the usual order, after their predecessor.
+  for (const id of all) {
+    if (known.includes(id)) continue;
+    const before = all.slice(0, all.indexOf(id)).reverse().find((b) => known.includes(b));
+    known.splice(before ? known.indexOf(before) + 1 : 0, 0, id);
+  }
+  return known;
+}
+
+/**
+ * Learns a shop's layout from one tick: in a shop, ticking something from
+ * category `cat` right after something from `prev` means `cat` comes after
+ * `prev` on the way round. If the order had it the other way, `cat` moves to
+ * just after `prev`. Returns the new order, or null if nothing changed.
+ */
+export function learnShopOrder(order: string[], prev: string, cat: string): string[] | null {
+  const i = order.indexOf(cat);
+  const j = order.indexOf(prev);
+  if (i < 0 || j < 0 || i > j) return null;
+  const next = order.filter((id) => id !== cat);
+  next.splice(next.indexOf(prev) + 1, 0, cat);
+  return next;
+}

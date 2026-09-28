@@ -52,6 +52,21 @@ final class ShoppingLogic {
         return id != null ? id : guess(guide, name);
     }
 
+    /**
+     * Where a category comes for items bought at this shop: the shop's walking
+     * order learned by the app (project.shopOrder, ShoppingView), else the usual one.
+     */
+    static int categoryRank(JSONObject data, String id, String listId, String store) {
+        JSONObject list = data != null && listId != null ? TaskLogic.findProject(data, listId) : null;
+        JSONObject orders = list != null ? list.optJSONObject("shopOrder") : null;
+        JSONArray learned = orders != null && store != null ? orders.optJSONArray(store) : null;
+        if (learned != null) {
+            for (int i = 0; i < learned.length(); i++) if (id.equals(learned.optString(i))) return i;
+            return learned.length() + categoryRank(data, id); // one added since: after the learned ones
+        }
+        return categoryRank(data, id);
+    }
+
     /** Where a category comes on the list (the shop-walk order); unknown ones last. */
     static int categoryRank(JSONObject data, String id) {
         JSONObject guide = data != null ? data.optJSONObject("shoppingGuide") : null;

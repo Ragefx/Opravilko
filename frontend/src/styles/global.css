@@ -7127,3 +7127,10 @@ button.sidebar-link {
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
+
+/* Shopping: the list follows a shop's learned walking order. */
+.shopping-walk-note {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}

@@ -169,7 +169,7 @@ public class WidgetSyncJob extends JobService {
                 if (WidgetStore.OP_EDIT.equals(p.optString("op"))) {
                     JSONObject fields = new JSONObject()
                             .put("content", p.optString("content")).put("description", p.optString("description"))
-                            .put("updatedAt", p.optString("at"));
+                            .put("updatedAt", TaskLogic.nowIso());
                     if (p.has("priority")) fields.put("priority", p.optInt("priority", 1));
                     if (p.optBoolean("dueSet")) fields.put("due", p.has("due") && !p.isNull("due") ? p.get("due") : JSONObject.NULL);
                     firestore.updateTask(p.optString("taskId"), fields);
@@ -195,7 +195,7 @@ public class WidgetSyncJob extends JobService {
                     // Reschedule: only the date moves (if it's still overdue).
                     JSONObject due = task.optJSONObject("due");
                     if (TaskLogic.dueToToday(due)) {
-                        firestore.updateTask(taskId, new JSONObject().put("due", due).put("updatedAt", at));
+                        firestore.updateTask(taskId, new JSONObject().put("due", due).put("updatedAt", TaskLogic.nowIso()));
                     }
                     processed.add(p.optString("id"));
                     continue;
@@ -218,7 +218,7 @@ public class WidgetSyncJob extends JobService {
                         JSONObject now = after.getJSONObject(k);
                         JSONObject prev = was.getJSONObject(k);
                         if (now.toString().equals(prev.toString())) continue;
-                        JSONObject fields = new JSONObject().put("updatedAt", now.optString("updatedAt", at));
+                        JSONObject fields = new JSONObject().put("updatedAt", TaskLogic.nowIso());
                         boolean ticked = now.optBoolean("completed") && !prev.optBoolean("completed");
                         if (ticked) {
                             fields.put("completed", true).put("completedAt", now.optString("completedAt", at));
@@ -241,8 +241,9 @@ public class WidgetSyncJob extends JobService {
         } finally {
             store.removePending(processed);
             TaskWidgetProvider.updateAll(context);
+            // What was saved before a failure still gets its nudge.
+            pingSharers(context, store, pending, processed, snapshot, uid);
         }
-        pingSharers(context, store, pending, processed, snapshot, uid);
         refreshFirebase(context, store, firestore, uid);
     }
 
@@ -348,6 +349,48 @@ public class WidgetSyncJob extends JobService {
     private static final long FULL_REFRESH_MS = 3 * 60 * 60 * 1000L;
 
     /**
+     * Reads one list's open tasks afresh and puts them in place of the
+     * widget's copy of that list (after a nudge about it), whatever time the
+     * changes carry. A list the widget doesn't know waits for the full read.
+     */
+    static void syncProject(Context context, String storedProjectId) throws IOException {
+        synchronized (LOCK) {
+            WidgetStore store = new WidgetStore(context);
+            String uid = store.getFirebaseUid();
+            JSONObject data = store.getSnapshot();
+            if (!store.hasAuth() || !store.isFirebase() || uid == null || data == null) return;
+            String myInbox = "inbox_" + uid;
+            String projectId = appProjectId(storedProjectId, myInbox);
+            if (TaskLogic.findProject(data, projectId) == null) return;
+            FirestoreClient firestore = new FirestoreClient(store);
+            JSONArray open = firestore.whereEquals("tasks", "projectId", storedProjectId, true);
+            try {
+                JSONObject before = new JSONObject(data.toString());
+                JSONArray old = data.optJSONArray("tasks");
+                JSONArray tasks = new JSONArray();
+                Set<String> seen = new HashSet<>();
+                // Tasks shared with you from someone else's list stay, as do other lists' tasks.
+                if (old != null) {
+                    for (int i = 0; i < old.length(); i++) {
+                        JSONObject t = old.getJSONObject(i);
+                        if (!projectId.equals(t.optString("projectId"))) {
+                            tasks.put(t);
+                            seen.add(t.optString("id"));
+                        }
+                    }
+                }
+                for (int k = 0; k < open.length(); k++) addTask(tasks, seen, open.getJSONObject(k), myInbox);
+                data.put("tasks", tasks);
+                store.saveSnapshot(data, true);
+                TaskWidgetProvider.updateAll(context);
+                PartnerNotifier.check(context, store, before, store.getSnapshot());
+            } catch (JSONException e) {
+                throw new IOException(e.getMessage());
+            }
+        }
+    }
+
+    /**
      * Reads only the tasks changed since the last sync and merges them into
      * the widget's copy. False (nothing saved) when a full read is needed:
      * a project was added or removed.
@@ -427,6 +470,9 @@ public class WidgetSyncJob extends JobService {
         JSONObject doc = new JSONObject(task.toString());
         if ("inbox".equals(doc.optString("projectId")) && uid != null) doc.put("projectId", "inbox_" + uid);
         doc.put("archived", false);
+        // Stamped when it's written, not when it was tapped (maybe offline, a
+        // while ago), so the other phone's "what changed since" finds it.
+        doc.put("updatedAt", TaskLogic.nowIso());
         if (uid != null) doc.put("createdBy", uid);
         return doc;
     }
@@ -452,7 +498,7 @@ public class WidgetSyncJob extends JobService {
             firestore.createTask(changed.getString("id"), storedTask(changed, uid));
         } else {
             firestore.updateTask(changed.getString("id"), new JSONObject().put("content", changed.getString("content"))
-                    .put("description", changed.optString("description", "")).put("updatedAt", at));
+                    .put("description", changed.optString("description", "")).put("updatedAt", TaskLogic.nowIso()));
         }
     }
 

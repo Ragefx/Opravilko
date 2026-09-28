@@ -22,8 +22,12 @@ public class PushService extends FirebaseMessagingService {
         PushLog.add(context, "Nudge received" + (full ? " (something deleted: full fetch)" : ""));
         // A deletion leaves nothing for the changes-only fetch to find: fetch everything.
         if (full) new WidgetStore(context).setFirebaseFull(0);
+        String project = message.getData().get("project");
         try {
             WidgetSyncJob.sync(context);
+            // That list read afresh too: a change saved late (a bad connection
+            // in the shop) can carry a time older than this phone's last check.
+            if (project != null && !project.isEmpty() && !full) WidgetSyncJob.syncProject(context, project);
             PushLog.add(context, "  … list fetched, widget updated");
         } catch (Exception e) {
             // Offline for a moment: let the job retry it.

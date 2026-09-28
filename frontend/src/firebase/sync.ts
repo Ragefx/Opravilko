@@ -606,8 +606,12 @@ export class FirestoreSync {
     }
     const ops = this.diff(prev, next);
     if (ops.length) {
-      this.commit(ops);
-      this.pingSharers(ops, prev.tasks, next.tasks);
+      // The other phone is nudged once the change has reached the database:
+      // nudged sooner (a slow connection in the shop), it would fetch before
+      // the new item was there, and not look again for a while.
+      void this.commit(ops).then((saved) => {
+        if (saved) this.pingSharers(ops, prev.tasks, next.tasks);
+      });
     }
   }
 
@@ -742,12 +746,14 @@ export class FirestoreSync {
     for (const id of before.keys()) if (!after.has(id)) ops.push({ kind: "delete", path: o.path(id) });
   }
 
-  private commit(ops: Op[]) {
+  /** Writes the ops; resolves once all of them are saved (true) or one failed (false). */
+  private commit(ops: Op[]): Promise<boolean> {
     const db = firestore();
     // Deletes of a project's tasks must not run after the project itself is
     // gone (the rules look the project up), so projects are deleted last.
     const order = (op: Op) => (op.kind === "delete" && op.path[0] === "projects" ? 1 : 0);
     const sorted = [...ops].sort((a, b) => order(a) - order(b));
+    const commits: Promise<boolean>[] = [];
     for (let i = 0; i < sorted.length; i += BATCH_LIMIT) {
       const batch = writeBatch(db);
       for (const op of sorted.slice(i, i + BATCH_LIMIT)) {
@@ -759,11 +765,12 @@ export class FirestoreSync {
       }
       this.pendingCommits++;
       this.updateSync();
-      batch
+      const committed = batch
         .commit()
         .then(() => {
           this.pendingCommits--;
           this.updateSync();
+          return true;
         })
         .catch((err) => {
           this.pendingCommits--;
@@ -776,8 +783,11 @@ export class FirestoreSync {
                 ? "That change isn't allowed (for example, only a project's owner can delete it)."
                 : err?.message || "Couldn't save",
           });
+          return false;
         });
+      commits.push(committed);
     }
+    return Promise.all(commits).then((all) => all.every(Boolean));
   }
 
   // ---------- attachments removed by an edit ----------

@@ -220,7 +220,14 @@ async function ping(env, caller, body) {
     .slice(0, 5);
   const project = typeof body.project === "string" ? body.project : "";
   // Something was deleted: the phone fetches everything (a deletion leaves nothing to find in "what changed").
-  const data = { kind: "sync", from: caller, ...(body.full === true ? { full: "1" } : {}) };
+  // With the list that changed: the phone reads that list afresh (a change saved late, after a
+  // bad connection, can carry a time older than the phone's last check).
+  const data = {
+    kind: "sync",
+    from: caller,
+    ...(body.full === true ? { full: "1" } : {}),
+    ...(/^[\w-]{1,100}$/.test(project) ? { project } : {}),
+  };
   let sent = 0;
   let devices = 0;
   const problems = [];

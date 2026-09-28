@@ -19,6 +19,9 @@ Build 39: sub-tasks show their date/time (and deadline) in the task view.
 - Pasted notes no longer carry their own scroll boxes
 - Colour themes (Settings > Appearance > Colours): Triglav, Paper, Pokljuka,
   Dusk, Midnight
+- Shopping items added on one phone show up on the other straight away: a
+  nudge makes the phone re-read that whole list, and widget changes are
+  stamped when saved (not when tapped, maybe offline)
 
 ## Known gaps
 

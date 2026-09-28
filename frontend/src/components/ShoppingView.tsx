@@ -37,6 +37,7 @@ import PickSheet from "./PickSheet";
 import Select from "./Select";
 import ShopPlacesSheet from "./ShopPlacesSheet";
 import { appUi } from "../utils/appUi";
+import { callHelper, helperReady } from "../utils/helper";
 import { completedByName } from "../utils/completedBy";
 
 /**
@@ -187,6 +188,8 @@ export default function ShoppingView({
   }
   const [text, setText] = useState("");
   const [mealsOpen, setMealsOpen] = useState(false);
+  // A recipe's web address shared to the list: opens a new meal read from it.
+  const [recipeLink, setRecipeLink] = useState<string | null>(null);
   // The shop what you add now is for ("" for any).
   const [addStore, setAddStore] = useState("");
   const [pickingShop, setPickingShop] = useState(false);
@@ -331,6 +334,13 @@ export default function ShoppingView({
   useEffect(() => {
     function take() {
       const shared = takeShoppingAdd(projectId);
+      // A web page (a recipe shared from the browser): read it into a new meal.
+      const link = shared?.match(/https?:\/\/\S+/)?.[0];
+      if (link && shared!.trim().split(/\s+/).length <= 12 && helperReady()) {
+        setRecipeLink(link);
+        setMealsOpen(true);
+        return;
+      }
       const parts = shared ? splitItems(shared) : [];
       if (!parts.length) return;
       void addItems(parts.map((l) => parseLine(l, stores))).then((undo) =>
@@ -595,10 +605,14 @@ export default function ShoppingView({
 
       {mealsOpen && (
         <MealPicker
+          recipeLink={recipeLink}
           stores={stores}
           saved={listMeals ?? customMeals()}
           onSave={saveMeals}
-          onClose={() => setMealsOpen(false)}
+          onClose={() => {
+            setMealsOpen(false);
+            setRecipeLink(null);
+          }}
           onAdd={async (meal, servings, have) => {
             setMealsOpen(false);
             const list = meal.ingredients.filter((_, n) => !have.has(n)).map((ing) => scaled(ing, servings));
@@ -928,12 +942,15 @@ const MEAL_EMOJI = [
 ];
 
 function MealPicker({
+  recipeLink,
   stores,
   saved,
   onSave,
   onClose,
   onAdd,
 }: {
+  /** A recipe's web address to start a new meal from (shared from the browser). */
+  recipeLink?: string | null;
   /** The list's shops, for marking where an ingredient is bought. */
   stores: string[];
   /** Your own meals, and built-in ones you've edited or hidden (same id as the original). */
@@ -948,7 +965,36 @@ function MealPicker({
   const [have, setHave] = useState<Set<number>>(new Set());
   const [picked, setPicked] = useState<Meal | null>(null);
   const [servings, setServings] = useState(2);
-  const [form, setForm] = useState<{ id?: string; emoji: string; name: string; servings: number; text: string } | null>(null);
+  const [form, setForm] = useState<{ id?: string; emoji: string; name: string; servings: number; text: string } | null>(() =>
+    recipeLink ? { name: "", emoji: "🍽️", servings: 2, text: "" } : null
+  );
+  // Reading a recipe from a web page (through the helper).
+  const [link, setLink] = useState(recipeLink ?? "");
+  const [reading, setReading] = useState<"idle" | "reading" | string>("idle");
+  async function readLink(address = link) {
+    if (!address.trim()) return;
+    setReading("reading");
+    try {
+      const res = await callHelper(`/recipe?url=${encodeURIComponent(address.trim())}`);
+      const body = (await res.json()) as { name?: string; ingredients?: string[]; servings?: string; error?: string };
+      if (!res.ok || !body.ingredients?.length) throw new Error(body.error || "No recipe found on that page");
+      const people = Number(/\d+/.exec(body.servings ?? "")?.[0]) || 0;
+      setForm((f) => ({
+        emoji: f?.emoji ?? "🍽️",
+        id: f?.id,
+        name: f?.name.trim() ? f.name : (body.name ?? ""),
+        servings: people > 0 && people < 50 ? people : (f?.servings ?? 2),
+        text: body.ingredients!.join("\n"),
+      }));
+      setReading("idle");
+    } catch (e) {
+      setReading(e instanceof Error ? e.message : "Couldn't read that page");
+    }
+  }
+  useEffect(() => {
+    if (recipeLink) void readLink(recipeLink);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [choosingIcon, setChoosingIcon] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
@@ -1087,6 +1133,22 @@ function MealPicker({
               />
             </div>
             {icons}
+            {helperReady() && !form.id && (
+              <div className="meal-link-row">
+                <input
+                  type="url"
+                  inputMode="url"
+                  placeholder="Or paste a recipe's web address"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && void readLink()}
+                />
+                <button className="btn btn-secondary" onClick={() => void readLink()} disabled={!link.trim() || reading === "reading"}>
+                  {reading === "reading" ? "Reading…" : "Read"}
+                </button>
+              </div>
+            )}
+            {reading !== "idle" && reading !== "reading" && <p className="settings-note meal-link-error">{reading}</p>}
             <label className="meal-servings-label">
               The recipe is for
               <input

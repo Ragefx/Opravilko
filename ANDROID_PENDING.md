@@ -24,6 +24,8 @@ the Inbox check) with a spinner while loading.
   Adds firebase-messaging (BoM 34.19.0) to the Android build.
 - Shopping: each shop's walking order is learned from the order things get
   ticked there, and the list (and widget) sorts in it
+- Meals: New meal can read a recipe's ingredients from a web address (and a
+  recipe page shared to Opravilko opens it); needs the helper
 
 ## Known gaps
 

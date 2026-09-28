@@ -7134,3 +7134,17 @@ button.sidebar-link {
   font-size: 12px;
   color: var(--color-text-muted);
 }
+
+/* New meal: read the ingredients from a recipe's web page. */
+.meal-link-row {
+  display: flex;
+  gap: 8px;
+}
+.meal-link-row input {
+  flex: 1;
+  min-width: 0;
+}
+.meal-link-error {
+  margin: 0;
+  color: var(--color-danger);
+}

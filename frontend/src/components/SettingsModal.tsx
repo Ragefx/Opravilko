@@ -111,7 +111,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     calendars: feeds ? `${feeds} subscribed` : "Holidays, birthdays, TV…",
     reminders: "Defaults for new tasks",
     storage: "Photos and files on tasks",
-    data: "Todoist import, backup file",
+    data: "Todoist import, backup file, Gmail add-on",
     about: `Build ${RELEASES[0].build} · what's new`,
   };
   const groups = ([
@@ -138,7 +138,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     { id: "calendars", label: "Calendars", icon: <CalendarIcon width={16} height={16} /> },
     { id: "reminders", label: "Reminders", icon: <BellIcon width={16} height={16} /> },
     ...(firebase ? [{ id: "storage" as const, label: "Storage", icon: <PaperclipIcon width={16} height={16} /> }] : []),
-    { id: "data", label: "Import & backup", icon: <ImportIcon width={16} height={16} /> },
+    { id: "data", label: "Import, backup & Gmail", icon: <ImportIcon width={16} height={16} /> },
     { id: "account", label: "Account", icon: <LogOutIcon width={16} height={16} /> },
     { id: "about", label: "About", icon: <InfoIcon width={16} height={16} /> },
   ];

@@ -7,7 +7,7 @@
  *   POST /addon/task    {content, …}           (Gmail add-on) add a task
  *
  * The Gmail add-on signs in with a personal key made in Opravilko (Settings >
- * Data > Gmail): only its SHA-256 is stored, as addonKeys/{hash} -> {uid}.
+ * Import, backup & Gmail): only its SHA-256 is stored, as addonKeys/{hash} -> {uid}.
  *
  * Every other request carries the caller's Firebase sign-in (Authorization: Bearer
  * <ID token>), checked against Google's keys. A ping only reaches someone who
@@ -335,7 +335,7 @@ async function sha256Hex(text) {
 }
 
 async function addonUser(env, key) {
-  if (!key || key.length < 20) throw fail(401, "No Opravilko key: make one in Opravilko, Settings > Data > Gmail");
+  if (!key || key.length < 20) throw fail(401, "No Opravilko key: make one in Opravilko, Settings > Import, backup & Gmail");
   const doc = await firestoreGet(env, `addonKeys/${await sha256Hex(key.trim())}`);
   const uid = doc?.fields?.uid?.stringValue;
   if (!uid) throw fail(401, "That key isn't valid any more: make a new one in Opravilko");

@@ -4,7 +4,7 @@
  * one of your lists, shared with your partner if you like.
  *
  * It talks to Opravilko's helper on Cloudflare (worker/ in the repo) with a
- * personal key made in Opravilko (Settings > Data > Gmail), pasted here once
+ * personal key made in Opravilko (Settings > Import, backup & Gmail), pasted here once
  * ("Opravilko key" in the panel's ⋮ menu). Setup: gmail-addon/README.md.
  */
 
@@ -105,7 +105,7 @@ function keyCard_(message) {
   var section = CardService.newCardSection()
     .addWidget(
       CardService.newTextParagraph().setText(
-        "Paste your Opravilko key. Make it in Opravilko: <b>Settings › Data › Gmail › Make a key</b>."
+        "Paste your Opravilko key. Make it in Opravilko: <b>Settings › Import, backup & Gmail › Make a key</b>."
       )
     )
     .addWidget(CardService.newTextInput().setFieldName("key").setTitle("Opravilko key").setHint("opk_…"))

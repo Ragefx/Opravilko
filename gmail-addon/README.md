@@ -11,7 +11,7 @@ be deployed first, and `HELPER_URL` at the top of `Code.gs` set to its address.
 
 ## Installing (each of you, once)
 
-1. Opravilko → Settings → Data → **Gmail** → **Make a key**, then Copy.
+1. Opravilko → Settings → **Import, backup & Gmail** → scroll to **Gmail** → **Make a key**, then Copy.
 2. Go to <https://script.google.com> → **New project**, and name it "Opravilko".
 3. Project settings (⚙) → tick **Show "appsscript.json" manifest file in editor**.
 4. Back in the editor, replace the contents of:

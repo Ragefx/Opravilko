@@ -5465,6 +5465,15 @@ kbd {
 .detail-panel .task-row.td-subtask {
   padding: 4px 0;
 }
+.td-subtask-main {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.td-subtask-meta {
+  margin-top: 2px;
+  font-size: 12px;
+}
 .td-app .task-row.td-subtask {
   align-items: center;
   gap: 14px;

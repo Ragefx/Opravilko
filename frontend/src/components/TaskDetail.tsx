@@ -19,7 +19,8 @@ import { projectRoute } from "../utils/away";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { completedByName } from "../utils/completedBy";
 import { deadlineInfo } from "../utils/deadline";
-import { makeDue, todayISO } from "../utils/date";
+import { parseQuickAddInput } from "../utils/quickAddParse";
+import { dueDateClass, formatDueLabel, makeDue, todayISO } from "../utils/date";
 import {
   type RecurrenceRule,
   type RepeatPreset,
@@ -239,11 +240,17 @@ export default function TaskDetail({
   function addSubtask() {
     const value = subtaskText.trim();
     if (!value) return;
+    // A date, priority or deadline typed in the name counts, as in Add task ("Foto jutri ob 10").
+    const parsed = parseQuickAddInput(value);
     createTask.mutate({
-      content: value,
+      content: parsed.content || value,
       projectId: task.projectId,
       sectionId: task.sectionId,
       parentId: task.id,
+      priority: parsed.priority,
+      due: parsed.due,
+      labels: parsed.labels,
+      ...(parsed.deadline ? { deadline: parsed.deadline } : {}),
     });
     setSubtaskText("");
     setAddingSubtask(false);
@@ -331,12 +338,26 @@ export default function TaskDetail({
             recurring={!!s.due?.isRecurring}
             onToggle={(next) => completeTask.mutate({ id: s.id, completed: next })}
           />
-          <div
-            className={`task-content ${s.completed ? "completed" : ""}`}
-            style={{ fontSize: 13 }}
-            onClick={() => onOpenTask?.(s)}
-          >
-            {s.content}
+          <div className="td-subtask-main" onClick={() => onOpenTask?.(s)}>
+            <div className={`task-content ${s.completed ? "completed" : ""}`} style={{ fontSize: 13 }}>
+              {s.content}
+            </div>
+            {/* Its date and time, and a deadline, as on the task lists. */}
+            {!s.completed && (s.due || s.deadline) && (
+              <div className="task-meta td-subtask-meta">
+                {s.due && (
+                  <span className={`due ${dueDateClass(s.due)}`}>
+                    <CalendarIcon width={11} height={11} style={{ verticalAlign: "-1px" }} /> {formatDueLabel(s.due)}
+                    {s.due.isRecurring && <RepeatIcon width={11} height={11} style={{ verticalAlign: "-1px", marginLeft: 2 }} />}
+                  </span>
+                )}
+                {deadlineInfo(s.deadline) && (
+                  <span className={`chip task-deadline is-${deadlineInfo(s.deadline)!.kind}`}>
+                    <HourglassIcon width={11} height={11} style={{ verticalAlign: "-1px" }} /> {deadlineInfo(s.deadline)!.label}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       ))}

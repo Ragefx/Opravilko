@@ -17,6 +17,8 @@ helper on errors, the Instant updates log, Settings "Import, backup & Gmail".
 
 - New time picker: quick times (9:00, 12:00, 17:00, 20:00), an hour grid,
   :00/:15/:30/:45, or type it ("16:30", "930"); a button removes the time
+- Task view: sub-tasks show their date/time (and deadline) under the name; a
+  date typed in a new sub-task ("Foto jutri ob 10") is read as its date
 
 ## Known gaps
 

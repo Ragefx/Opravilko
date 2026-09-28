@@ -107,7 +107,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   - /ping: wakes the partner's phones (Firebase Cloud Messaging data message
     "sync"); the phone then syncs and PartnerNotifier shows the notification.
   - /recipe: reads a recipe page's schema.org data.
-  - /addon/*: the Gmail add-on, signed in by a key (Settings > Data > Gmail;
+  - /addon/*: the Gmail add-on, signed in by a key (Settings > Import, backup & Gmail;
     stored as addonKeys/{sha256}).
 - The address is in `src/utils/helper.ts`, `widget/HelperClient.java` and
   `gmail-addon/Code.gs`.
@@ -126,10 +126,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   - Harmless for the two of them.
   - Should become a per-person limit before anyone else uses the app.
   - The owner hasn't decided yet.
-- **Shopping voice.** Voice on the shopping list still adds spoken items
-  straight away (voice in Add task now only fills in the text). Ask if they
-  want the shopping list to wait for send too.
-- **Widget icon dragging.** Reordering the widget card's icons (Android drag
-  and drop) has only been compile-checked. Ask how it works on the phone.
+- Settled (don't ask again): shopping-list voice keeps adding items straight
+  away; widget icon dragging works; the Gmail add-on works.
 - **Google Play.** Discussed and put on hold. The in-app updater covers
   updates for now.

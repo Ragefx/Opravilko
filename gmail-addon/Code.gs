@@ -238,6 +238,7 @@ function describe_(d, t) {
 
 // ---------- finding the date in an email ----------
 
+/**
  * Finds the date (and time) an email is about: "Nedelja, 11.10.2026",
  * "Čas 16:00", "11. oktobra 2026 ob 16h", "Oct 11, 2026 4:00 PM",
  * "2026-10-11". The first date from today on wins; a time is taken from

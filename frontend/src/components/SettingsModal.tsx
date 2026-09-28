@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { AppData } from "../api/types";
 import { useBootstrap } from "../api/hooks";
 import { setLook, useLook, type Look } from "../utils/look";
+import { PALETTES, setPalette, usePalette } from "../utils/palette";
 import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
@@ -97,11 +98,13 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     ? { name: user?.displayName || user?.email || "", detail: user?.email ? `Google · ${user.email}` : "Signed in with Google" }
     : { name: "Dropbox", detail: "Tasks stored in your Dropbox" };
   const theme = getStoredTheme();
+  const palette = usePalette();
   const partnerName = data?.partner?.name.split(" ")[0];
   const feeds = data?.calendarFeeds?.length ?? 0;
   const summaries: Partial<Record<Section, string>> = {
     appearance: [
       LOOKS.find((l) => l.id === look)?.name,
+      ...(palette === "soca" ? [] : [PALETTES.find((p) => p.id === palette)?.name]),
       theme === "dark" ? "Dark" : theme === "light" ? "Light" : "Match device",
       `${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""} add button`,
       ...(focusOn ? [] : ["no focus task"]),
@@ -256,6 +259,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 
 function Appearance() {
   const look = useLook();
+  const palette = usePalette();
   const addStyle = useAddStyle();
   const focusCard = useFocusCard();
   const weeklyReview = useWeeklyReview();
@@ -288,6 +292,29 @@ function Appearance() {
             <span className="look-option-text">
               <b>{l.name}</b>
               <span>{l.blurb}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <h4>Colours</h4>
+      <div className="palette-options" role="radiogroup" aria-label="Colours">
+        {PALETTES.map((p) => (
+          <button
+            key={p.id}
+            role="radio"
+            aria-checked={palette === p.id}
+            className={`palette-option ${palette === p.id ? "is-selected" : ""}`}
+            onClick={() => setPalette(p.id)}
+            title={p.blurb}
+          >
+            <span className="palette-swatch" style={{ background: p.swatch[0] }} aria-hidden="true">
+              <i style={{ background: p.swatch[1] }} />
+              <i style={{ background: p.swatch[2] }} />
+            </span>
+            <span className="palette-text">
+              <b>{p.name}</b>
+              <span>{p.blurb}</span>
             </span>
           </button>
         ))}

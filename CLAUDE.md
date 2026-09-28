@@ -65,6 +65,8 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   - Opening a page with `?app` once shows the Android app's layouts in the browser.
   - The look is `localStorage["opravilko.look"]` ("soca" by default).
   - The add button style is `localStorage["opravilko.addStyle"]`.
+  - The colours are `localStorage["opravilko.palette"]` (`utils/palette.ts`,
+    `styles/palettes.css`; unset = the look's own).
 - The Java code can't be run here. Compile-check it with `javac` against
   `android-all.jar` plus small stubs (Capacitor and R ids); ask for them to
   be re-created if needed.

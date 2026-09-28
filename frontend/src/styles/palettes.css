@@ -1,0 +1,382 @@
+/* =====================================================================
+   Colour palettes (Settings > Appearance > Colours), on top of either look.
+   Set as data-palette on <html> (utils/palette.ts); none means the look's own.
+   Each has a light side and a dark side that follows the Light/Dark choice;
+   Midnight is always dark.
+   ===================================================================== */
+
+/* ---------- Triglav ---------- */
+:root[data-palette="triglav"] {
+  --color-bg: #f2f5f9;
+  --color-surface: #f9fbfd;
+  --color-sidebar: #e9eef4;
+  --color-border: #dbe3ec;
+  --color-text: #121a24;
+  --color-text-secondary: #55627a;
+  --color-text-muted: #8f9bad;
+  --color-accent: #2563c9;
+  --color-accent-hover: #1d4fa3;
+  --color-on-accent: #ffffff;
+  --color-hover: #e4eaf2;
+  --color-selected: #dce7f8;
+  --color-chart-bar: #2563c9;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="triglav"]:not([data-theme="light"]) {
+    --color-bg: #0f141b;
+    --color-surface: #131a22;
+    --color-sidebar: #18202a;
+    --color-border: #263241;
+    --color-text: #e8eef5;
+    --color-text-secondary: #9fb0c3;
+    --color-text-muted: #66778b;
+    --color-accent: #7fb2ff;
+    --color-accent-hover: #a3c7ff;
+    --color-on-accent: #0a1a33;
+    --color-hover: #1c2633;
+    --color-selected: #1a2c47;
+    --color-chart-bar: #7fb2ff;
+    --color-danger: #ff8a6b;
+    --color-danger-hover: #ffa68d;
+    --color-success: #5fcf8f;
+    --color-warning: #f2c14e;
+    --color-due-later: #b3a1f5;
+    --prio-1: #ff8a6b;
+    --prio-2: #f2c14e;
+    --prio-3: #8fb8ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-palette="triglav"][data-theme="dark"] {
+  --color-bg: #0f141b;
+  --color-surface: #131a22;
+  --color-sidebar: #18202a;
+  --color-border: #263241;
+  --color-text: #e8eef5;
+  --color-text-secondary: #9fb0c3;
+  --color-text-muted: #66778b;
+  --color-accent: #7fb2ff;
+  --color-accent-hover: #a3c7ff;
+  --color-on-accent: #0a1a33;
+  --color-hover: #1c2633;
+  --color-selected: #1a2c47;
+  --color-chart-bar: #7fb2ff;
+  --color-danger: #ff8a6b;
+  --color-danger-hover: #ffa68d;
+  --color-success: #5fcf8f;
+  --color-warning: #f2c14e;
+  --color-due-later: #b3a1f5;
+  --prio-1: #ff8a6b;
+  --prio-2: #f2c14e;
+  --prio-3: #8fb8ff;
+  color-scheme: dark;
+}
+
+/* ---------- Paper ---------- */
+:root[data-palette="paper"] {
+  --color-bg: #f6f1e7;
+  --color-surface: #fbf7ef;
+  --color-sidebar: #efe8da;
+  --color-border: #e3d9c6;
+  --color-text: #231d16;
+  --color-text-secondary: #6b5f50;
+  --color-text-muted: #a39683;
+  --color-accent: #b8532e;
+  --color-accent-hover: #96421f;
+  --color-on-accent: #ffffff;
+  --color-hover: #ece4d4;
+  --color-selected: #f2dfd2;
+  --color-chart-bar: #b8532e;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="paper"]:not([data-theme="light"]) {
+    --color-bg: #1a1612;
+    --color-surface: #1f1a15;
+    --color-sidebar: #241e18;
+    --color-border: #3a3128;
+    --color-text: #efe6d8;
+    --color-text-secondary: #b5a893;
+    --color-text-muted: #7c705f;
+    --color-accent: #e98a5f;
+    --color-accent-hover: #f2a784;
+    --color-on-accent: #2a130a;
+    --color-hover: #2b241d;
+    --color-selected: #3a2519;
+    --color-chart-bar: #e98a5f;
+    --color-danger: #ff8a6b;
+    --color-danger-hover: #ffa68d;
+    --color-success: #5fcf8f;
+    --color-warning: #f2c14e;
+    --color-due-later: #b3a1f5;
+    --prio-1: #ff8a6b;
+    --prio-2: #f2c14e;
+    --prio-3: #8fb8ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-palette="paper"][data-theme="dark"] {
+  --color-bg: #1a1612;
+  --color-surface: #1f1a15;
+  --color-sidebar: #241e18;
+  --color-border: #3a3128;
+  --color-text: #efe6d8;
+  --color-text-secondary: #b5a893;
+  --color-text-muted: #7c705f;
+  --color-accent: #e98a5f;
+  --color-accent-hover: #f2a784;
+  --color-on-accent: #2a130a;
+  --color-hover: #2b241d;
+  --color-selected: #3a2519;
+  --color-chart-bar: #e98a5f;
+  --color-danger: #ff8a6b;
+  --color-danger-hover: #ffa68d;
+  --color-success: #5fcf8f;
+  --color-warning: #f2c14e;
+  --color-due-later: #b3a1f5;
+  --prio-1: #ff8a6b;
+  --prio-2: #f2c14e;
+  --prio-3: #8fb8ff;
+  color-scheme: dark;
+}
+
+/* ---------- Pokljuka ---------- */
+:root[data-palette="pokljuka"] {
+  --color-bg: #eff2ec;
+  --color-surface: #f6f8f3;
+  --color-sidebar: #e6ebe1;
+  --color-border: #d6ddcf;
+  --color-text: #172016;
+  --color-text-secondary: #56624f;
+  --color-text-muted: #8e9887;
+  --color-accent: #3f7d3a;
+  --color-accent-hover: #31642d;
+  --color-on-accent: #ffffff;
+  --color-hover: #e2e8dc;
+  --color-selected: #dbe9d6;
+  --color-chart-bar: #3f7d3a;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="pokljuka"]:not([data-theme="light"]) {
+    --color-bg: #111611;
+    --color-surface: #151b15;
+    --color-sidebar: #1a211a;
+    --color-border: #29332a;
+    --color-text: #e6ede2;
+    --color-text-secondary: #a3b09d;
+    --color-text-muted: #6b7867;
+    --color-accent: #8fd07f;
+    --color-accent-hover: #aee0a2;
+    --color-on-accent: #0f2a0b;
+    --color-hover: #1f281f;
+    --color-selected: #1f3320;
+    --color-chart-bar: #8fd07f;
+    --color-danger: #ff8a6b;
+    --color-danger-hover: #ffa68d;
+    --color-success: #5fcf8f;
+    --color-warning: #f2c14e;
+    --color-due-later: #b3a1f5;
+    --prio-1: #ff8a6b;
+    --prio-2: #f2c14e;
+    --prio-3: #8fb8ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-palette="pokljuka"][data-theme="dark"] {
+  --color-bg: #111611;
+  --color-surface: #151b15;
+  --color-sidebar: #1a211a;
+  --color-border: #29332a;
+  --color-text: #e6ede2;
+  --color-text-secondary: #a3b09d;
+  --color-text-muted: #6b7867;
+  --color-accent: #8fd07f;
+  --color-accent-hover: #aee0a2;
+  --color-on-accent: #0f2a0b;
+  --color-hover: #1f281f;
+  --color-selected: #1f3320;
+  --color-chart-bar: #8fd07f;
+  --color-danger: #ff8a6b;
+  --color-danger-hover: #ffa68d;
+  --color-success: #5fcf8f;
+  --color-warning: #f2c14e;
+  --color-due-later: #b3a1f5;
+  --prio-1: #ff8a6b;
+  --prio-2: #f2c14e;
+  --prio-3: #8fb8ff;
+  color-scheme: dark;
+}
+
+/* ---------- Dusk ---------- */
+:root[data-palette="dusk"] {
+  --color-bg: #f4f2f8;
+  --color-surface: #faf9fc;
+  --color-sidebar: #ece9f3;
+  --color-border: #dfdaea;
+  --color-text: #1c1726;
+  --color-text-secondary: #625a73;
+  --color-text-muted: #9a92aa;
+  --color-accent: #7a4fd1;
+  --color-accent-hover: #6340ad;
+  --color-on-accent: #ffffff;
+  --color-hover: #e8e4f0;
+  --color-selected: #e6ddf7;
+  --color-chart-bar: #7a4fd1;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="dusk"]:not([data-theme="light"]) {
+    --color-bg: #15121c;
+    --color-surface: #1a1622;
+    --color-sidebar: #1f1a29;
+    --color-border: #322b40;
+    --color-text: #ece7f5;
+    --color-text-secondary: #aba2bd;
+    --color-text-muted: #736a86;
+    --color-accent: #b9a0ff;
+    --color-accent-hover: #cfbdff;
+    --color-on-accent: #1e0f45;
+    --color-hover: #251f31;
+    --color-selected: #2c2247;
+    --color-chart-bar: #b9a0ff;
+    --color-danger: #ff8a6b;
+    --color-danger-hover: #ffa68d;
+    --color-success: #5fcf8f;
+    --color-warning: #f2c14e;
+    --color-due-later: #b3a1f5;
+    --prio-1: #ff8a6b;
+    --prio-2: #f2c14e;
+    --prio-3: #8fb8ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-palette="dusk"][data-theme="dark"] {
+  --color-bg: #15121c;
+  --color-surface: #1a1622;
+  --color-sidebar: #1f1a29;
+  --color-border: #322b40;
+  --color-text: #ece7f5;
+  --color-text-secondary: #aba2bd;
+  --color-text-muted: #736a86;
+  --color-accent: #b9a0ff;
+  --color-accent-hover: #cfbdff;
+  --color-on-accent: #1e0f45;
+  --color-hover: #251f31;
+  --color-selected: #2c2247;
+  --color-chart-bar: #b9a0ff;
+  --color-danger: #ff8a6b;
+  --color-danger-hover: #ffa68d;
+  --color-success: #5fcf8f;
+  --color-warning: #f2c14e;
+  --color-due-later: #b3a1f5;
+  --prio-1: #ff8a6b;
+  --prio-2: #f2c14e;
+  --prio-3: #8fb8ff;
+  color-scheme: dark;
+}
+
+/* ---------- Midnight (always dark) ---------- */
+:root[data-palette="midnight"],
+:root[data-palette="midnight"][data-theme] {
+  --color-bg: #000000;
+  --color-surface: #0b0b0c;
+  --color-sidebar: #0f0f11;
+  --color-border: #232327;
+  --color-text: #f1efe9;
+  --color-text-secondary: #a8a59d;
+  --color-text-muted: #6c6a64;
+  --color-accent: #f4b23e;
+  --color-accent-hover: #ffc868;
+  --color-on-accent: #2a1b00;
+  --color-hover: #18181b;
+  --color-selected: #2a2110;
+  --color-chart-bar: #f4b23e;
+  --color-danger: #ff8a6b;
+  --color-danger-hover: #ffa68d;
+  --color-success: #5fcf8f;
+  --color-warning: #f2c14e;
+  --color-due-later: #b3a1f5;
+  --prio-1: #ff8a6b;
+  --prio-2: #f2c14e;
+  --prio-3: #8fb8ff;
+  color-scheme: dark;
+}
+
+/* Paper: serif headings. */
+:root[data-palette="paper"] {
+  --font-heading: "Fraunces", Georgia, "Times New Roman", serif;
+}
+:root[data-palette="paper"] h1,
+:root[data-palette="paper"] h2,
+:root[data-palette="paper"] .td-title,
+:root[data-palette="paper"] .soca-wordmark {
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- The picker in Settings ---------- */
+.palette-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.palette-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.palette-option:hover {
+  border-color: var(--color-text-muted);
+}
+.palette-option.is-selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+.palette-swatch {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  padding-bottom: 9px;
+}
+.palette-swatch i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.palette-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.palette-text b {
+  font-size: 14px;
+}
+.palette-text span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}

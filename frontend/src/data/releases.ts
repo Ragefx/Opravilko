@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 39,
+    date: "2026-09-28",
+    items: [
+      "Task view: sub-tasks show their date and time (and deadline) under the name; a date typed in a new sub-task (\"Foto jutri ob 10\") is read as its date.",
+    ],
+  },
+  {
     build: 38,
     date: "2026-09-28",
     items: [

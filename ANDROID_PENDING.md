@@ -15,7 +15,11 @@ shop walking order, recipes from a link, deadlines, Gmail key, error log.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Instant updates: deletions now reach the other phone (the nudge asks for a
+  full fetch); a phone is forgotten by the helper only when its app is gone,
+  and phones register again twice a day
+- Settings > About > Instant updates: a log of the nudges sent and received
+- Settings: "Import & backup" is now "Import, backup & Gmail"
 
 ## Known gaps
 

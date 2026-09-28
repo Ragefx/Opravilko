@@ -7128,6 +7128,20 @@ button.sidebar-link {
   overflow-wrap: anywhere;
 }
 
+/* Settings > About > Instant updates. */
+.about-nudges {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--color-hover);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* Shopping: the list follows a shop's learned walking order. */
 .shopping-walk-note {
   margin: 0 0 4px;

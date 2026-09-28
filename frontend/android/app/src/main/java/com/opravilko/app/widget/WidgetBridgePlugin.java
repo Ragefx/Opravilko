@@ -84,6 +84,14 @@ public class WidgetBridgePlugin extends Plugin {
         PartnerNotifier.appInForeground = false;
     }
 
+    /** Settings > About > Instant updates: the nudges this phone sent and received. */
+    @PluginMethod
+    public void pushLog(PluginCall call) {
+        com.getcapacitor.JSObject result = new com.getcapacitor.JSObject();
+        result.put("lines", PushLog.read(getContext()));
+        call.resolve(result);
+    }
+
     /** Signed out: forget the data and credentials. */
     @PluginMethod
     public void clear(PluginCall call) {

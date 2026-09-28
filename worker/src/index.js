@@ -219,27 +219,41 @@ async function ping(env, caller, body) {
     .filter((u) => typeof u === "string" && u && (u !== caller || body.self === true))
     .slice(0, 5);
   const project = typeof body.project === "string" ? body.project : "";
+  // Something was deleted: the phone fetches everything (a deletion leaves nothing to find in "what changed").
+  const data = { kind: "sync", from: caller, ...(body.full === true ? { full: "1" } : {}) };
   let sent = 0;
+  let devices = 0;
+  const problems = [];
   for (const uid of to) {
-    if (uid !== caller && !(await mayPing(env, caller, uid, project))) continue;
+    if (uid !== caller && !(await mayPing(env, caller, uid, project))) {
+      problems.push("not allowed to nudge " + uid.slice(0, 6));
+      continue;
+    }
     const list = await firestoreGet(env, `users/${encodeURIComponent(uid)}/devices?pageSize=20`);
     for (const device of list?.documents || []) {
       const token = device.fields?.token?.stringValue;
       if (!token) continue;
+      devices++;
       const res = await fetch(`https://fcm.googleapis.com/v1/projects/${PROJECT}/messages:send`, {
         method: "POST",
         headers: { Authorization: `Bearer ${await accessToken(env)}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           message: {
             token,
-            data: { kind: "sync", from: caller },
-            android: { priority: "HIGH", ttl: "900s", collapse_key: "sync" },
+            data,
+            // Not collapsible: Google throttles collapsible messages to a phone.
+            android: { priority: "HIGH", ttl: "900s" },
           },
         }),
       });
-      if (res.ok) sent++;
-      // A phone that uninstalled the app (or a token that changed): forget it.
-      else if (res.status === 404 || res.status === 400) {
+      if (res.ok) {
+        sent++;
+        continue;
+      }
+      const detail = await res.text().catch(() => "");
+      problems.push(`${res.status} ${detail.slice(0, 120)}`);
+      // Only a phone whose app is gone (Google says UNREGISTERED) is forgotten.
+      if (res.status === 404 || /UNREGISTERED/.test(detail)) {
         await fetch(`https://firestore.googleapis.com/v1/${device.name}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${await accessToken(env)}` },
@@ -247,7 +261,7 @@ async function ping(env, caller, body) {
       }
     }
   }
-  return { sent };
+  return { sent, devices, ...(problems.length ? { problems } : {}) };
 }
 
 // ---------- recipes ----------

@@ -242,7 +242,7 @@ public class WidgetSyncJob extends JobService {
             store.removePending(processed);
             TaskWidgetProvider.updateAll(context);
         }
-        pingSharers(store, pending, processed, snapshot, uid);
+        pingSharers(context, store, pending, processed, snapshot, uid);
         refreshFirebase(context, store, firestore, uid);
     }
 
@@ -250,13 +250,16 @@ public class WidgetSyncJob extends JobService {
      * Changes made in the widget to shared lists and tasks: wake the other
      * person's phone (through the helper), as the app does for its own changes.
      */
-    private static void pingSharers(WidgetStore store, JSONArray pending, Set<String> processed, JSONObject snapshot, String uid) {
+    private static void pingSharers(Context context, WidgetStore store, JSONArray pending, Set<String> processed,
+            JSONObject snapshot, String uid) {
         if (uid == null || snapshot == null || processed.isEmpty()) return;
         Set<String> to = new HashSet<>();
         String project = null;
+        boolean deleted = false;
         for (int i = 0; i < pending.length(); i++) {
             JSONObject p = pending.optJSONObject(i);
             if (p == null || !processed.contains(p.optString("id"))) continue;
+            deleted |= WidgetStore.OP_DELETE.equals(p.optString("op"));
             JSONObject task = p.optJSONObject("task");
             if (task == null && p.has("taskId") && snapshot.optJSONArray("tasks") != null)
                 task = TaskLogic.findTask(snapshot.optJSONArray("tasks"), p.optString("taskId"));
@@ -274,7 +277,7 @@ public class WidgetSyncJob extends JobService {
         }
         to.remove(uid);
         to.remove("");
-        HelperClient.ping(store, to, project);
+        HelperClient.ping(context, store, to, project, deleted);
     }
 
     /**

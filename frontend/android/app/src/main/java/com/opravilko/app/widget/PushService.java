@@ -18,10 +18,16 @@ public class PushService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage message) {
         if (!"sync".equals(message.getData().get("kind"))) return;
         Context context = getApplicationContext();
+        boolean full = "1".equals(message.getData().get("full"));
+        PushLog.add(context, "Nudge received" + (full ? " (something deleted: full fetch)" : ""));
+        // A deletion leaves nothing for the changes-only fetch to find: fetch everything.
+        if (full) new WidgetStore(context).setFirebaseFull(0);
         try {
             WidgetSyncJob.sync(context);
+            PushLog.add(context, "  … list fetched, widget updated");
         } catch (Exception e) {
             // Offline for a moment: let the job retry it.
+            PushLog.add(context, "  … fetch failed (" + e.getMessage() + "), trying again shortly");
             WidgetSyncJob.schedule(context);
         }
     }

@@ -5,6 +5,8 @@ import { isNativeApp } from "../dropbox/auth";
 import { RELEASES } from "../data/releases";
 import { installUpdate, latestBuild, type AppUpdate } from "../native/update";
 import { clearErrors, loadErrors, type ErrorEntry } from "../utils/errorLog";
+import { nudgeLog } from "../utils/helper";
+import { nativePushLog } from "../native/widget";
 
 const RELEASE_URL = "https://github.com/Ragefx/Opravilko/releases/tag/android-build-";
 
@@ -102,6 +104,7 @@ export default function AboutSection() {
       )}
 
       <ErrorLog />
+      <NudgeLog />
 
       <h4>What's new, build by build</h4>
       <div className="about-releases">
@@ -119,6 +122,46 @@ export default function AboutSection() {
             </ul>
           </details>
         ))}
+      </div>
+    </>
+  );
+}
+
+/**
+ * Instant updates: the nudges this device sent (from the app and, on the
+ * phone, the widget) and received, newest first, to see where one got lost.
+ */
+function NudgeLog() {
+  const [lines, setLines] = useState<string[] | null>(null);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    void nativePushLog().then((native) => {
+      // Both logs start with "d.M. HH:mm:ss": merged, newest first.
+      const key = (l: string) => {
+        const m = /^(\d+)\.(\d+)\. (\d\d:\d\d:\d\d)/.exec(l);
+        return m ? `${m[2].padStart(2, "0")}${m[1].padStart(2, "0")}${m[3]}` : "";
+      };
+      setLines([...native, ...nudgeLog()].sort((a, b) => key(b).localeCompare(key(a))).slice(0, 40));
+    });
+  }, []);
+  if (!lines?.length) return null;
+  return (
+    <>
+      <h4>Instant updates</h4>
+      <p className="settings-note">What this {isNativeApp ? "phone" : "browser"} sent to and got from the other phone lately.</p>
+      <pre className="about-nudges">{lines.join("\n")}</pre>
+      <div className="about-update">
+        <button
+          className="btn btn-secondary"
+          onClick={() =>
+            void navigator.clipboard.writeText(lines.join("\n")).then(
+              () => setCopied(true),
+              () => setCopied(false)
+            )
+          }
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
       </div>
     </>
   );

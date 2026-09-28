@@ -20,13 +20,17 @@ final class HelperClient {
 
     private HelperClient() {}
 
-    /** Wakes these people's phones (they fetch what changed themselves). Best effort. */
-    static void ping(WidgetStore store, Collection<String> to, String project) {
+    /**
+     * Wakes these people's phones (they fetch what changed themselves). Best
+     * effort. `full`: something was deleted, which only a full fetch notices.
+     */
+    static void ping(android.content.Context context, WidgetStore store, Collection<String> to, String project, boolean full) {
         if (HELPER_URL.isEmpty() || to.isEmpty()) return;
         try {
             String token = new FirestoreClient(store).bearer();
             JSONObject body = new JSONObject().put("to", new JSONArray(to));
             if (project != null) body.put("project", project);
+            if (full) body.put("full", true);
             HttpURLConnection conn = (HttpURLConnection) new URL(HELPER_URL + "/ping").openConnection();
             conn.setConnectTimeout(10_000);
             conn.setReadTimeout(15_000);
@@ -37,10 +41,20 @@ final class HelperClient {
             try (OutputStream out = conn.getOutputStream()) {
                 out.write(body.toString().getBytes(StandardCharsets.UTF_8));
             }
-            conn.getResponseCode();
+            int status = conn.getResponseCode();
+            String answer = "";
+            try (java.io.InputStream in = status < 400 ? conn.getInputStream() : conn.getErrorStream()) {
+                if (in != null) {
+                    byte[] buf = new byte[400];
+                    int n = in.read(buf);
+                    if (n > 0) answer = new String(buf, 0, n, StandardCharsets.UTF_8);
+                }
+            }
             conn.disconnect();
+            PushLog.add(context, "Sent a nudge (widget change" + (full ? ", deleted" : "") + "): " + status + " " + answer);
         } catch (IOException | org.json.JSONException | RuntimeException e) {
             // Offline or not set up: the other phone's regular check catches up.
+            PushLog.add(context, "Couldn't send a nudge: " + e.getMessage());
         }
     }
 }

@@ -633,7 +633,8 @@ export class FirestoreSync {
       if (t.sharedBy?.uid) to.add(t.sharedBy.uid);
     }
     to.delete(this.uid);
-    pingLater([...to], project);
+    const deleted = ops.some((op) => op.path[0] === "tasks" && op.kind === "delete");
+    pingLater([...to], project, deleted);
   }
 
   private diff(prev: AppData, next: AppData): Op[] {

@@ -13,12 +13,13 @@ import java.util.UUID;
 
 /**
  * This phone's push address, kept in your account (users/{uid}/devices/{id})
- * so the helper knows where to send a nudge. Refreshed about once a week, or
+ * so the helper knows where to send a nudge. Refreshed twice a day, or
  * whenever it changes.
  */
 final class PushTokens {
     private static final String PREFS = "opravilko_push";
-    private static final long REFRESH_MS = 7L * 24 * 60 * 60 * 1000;
+    // Twice a day: a phone the helper had to forget is back within hours.
+    private static final long REFRESH_MS = 12L * 60 * 60 * 1000;
 
     private PushTokens() {}
 
@@ -61,8 +62,10 @@ final class PushTokens {
                 new FirestoreClient(store).setDocument("users/" + uid + "/devices/" + device, doc);
                 prefs.edit().putString("token", token).putString("uid", uid)
                         .putLong("at", System.currentTimeMillis()).apply();
+                PushLog.add(app, "This phone is registered for nudges");
             } catch (JSONException | java.io.IOException e) {
                 // Tried again on the next start.
+                PushLog.add(app, "Registering for nudges failed: " + e.getMessage());
             }
         }, "opravilko-push-token").start();
     }

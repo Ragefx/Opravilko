@@ -23,10 +23,22 @@ interface OpravilkoWidgetPlugin {
     partnerNews?: boolean;
   }): Promise<void>;
   clear(): Promise<void>;
+  /** The nudges this phone sent from the widget and received (a JSON array of lines). */
+  pushLog(): Promise<{ lines: string }>;
   addListener(event: "dataChanged", listener: () => void): Promise<PluginListenerHandle>;
 }
 
 const OpravilkoWidget = registerPlugin<OpravilkoWidgetPlugin>("OpravilkoWidget");
+
+/** Settings > About > Instant updates: what this phone's widget side sent and received. */
+export async function nativePushLog(): Promise<string[]> {
+  if (!isNativeApp) return [];
+  try {
+    return JSON.parse((await OpravilkoWidget.pushLog()).lines || "[]") as string[];
+  } catch {
+    return []; // an older app without it
+  }
+}
 
 /** Fired on window when a widget tap asks for quick add (see takeQuickAddRequest). */
 export const WIDGET_QUICK_ADD = "opravilko:widget-quick-add";

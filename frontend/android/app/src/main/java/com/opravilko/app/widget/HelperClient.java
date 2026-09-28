@@ -16,7 +16,7 @@ import java.util.Collection;
  * the widget changed something shared. Empty URL: not set up, nothing sent.
  */
 final class HelperClient {
-    static final String HELPER_URL = "";
+    static final String HELPER_URL = "https://opravilko.cloudsan-29b.workers.dev";
 
     private HelperClient() {}
 

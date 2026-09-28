@@ -3,9 +3,10 @@ import { currentUser } from "../firebase/auth";
 /**
  * Opravilko's helper on Cloudflare (worker/ in the repo): wakes your
  * partner's phone when something shared changes, and reads recipes from web
- * pages. Empty until it's deployed; everything here then quietly does nothing.
+ * pages. On the owner's Cloudflare account (cloudsan-29b, as the calendar
+ * relay), deployed by .github/workflows/worker.yml.
  */
-export const HELPER_URL = "";
+export const HELPER_URL = "https://opravilko.cloudsan-29b.workers.dev";
 
 export const helperReady = () => HELPER_URL !== "" && currentUser() !== null;
 

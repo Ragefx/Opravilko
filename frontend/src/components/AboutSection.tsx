@@ -144,7 +144,20 @@ function NudgeLog() {
       setLines([...native, ...nudgeLog()].sort((a, b) => key(b).localeCompare(key(a))).slice(0, 40));
     });
   }, []);
-  if (!lines?.length) return null;
+  if (!lines) return null;
+  // On the phone it's always shown: an empty log says something too.
+  if (!lines.length && !isNativeApp) return null;
+  if (!lines.length) {
+    return (
+      <>
+        <h4>Instant updates</h4>
+        <p className="settings-note">
+          Nothing yet: this phone hasn't registered for nudges, sent one or got one. Opening the app with the
+          internet on registers it; if this stays empty, check that Google Play services are up to date.
+        </p>
+      </>
+    );
+  }
   return (
     <>
       <h4>Instant updates</h4>

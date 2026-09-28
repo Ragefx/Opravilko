@@ -28,10 +28,22 @@ final class PushTokens {
         WidgetStore store = new WidgetStore(context);
         if (!store.isFirebase() || store.getFirebaseUid() == null) return;
         try {
-            FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token -> save(context, token, false));
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnSuccessListener(token -> save(context, token, false))
+                    .addOnFailureListener(e -> failed(context, e.getMessage()));
         } catch (RuntimeException e) {
             // Firebase messaging not available on this phone (no Google services).
+            failed(context, e.getMessage());
         }
+    }
+
+    /** Written to the log (Settings > About), at most once an hour, so it can be seen why. */
+    private static void failed(Context context, String why) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        if (now - prefs.getLong("failedAt", 0) < 60 * 60 * 1000L) return;
+        prefs.edit().putLong("failedAt", now).apply();
+        PushLog.add(context, "This phone couldn't get its nudge address from Google: " + why);
     }
 
     private static String nowIso() {

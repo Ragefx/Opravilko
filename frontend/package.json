@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "oxlint && tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "build:android": "tsc -b && vite build && cap sync android"
+    "build:android": "oxlint && tsc -b && vite build && cap sync android"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.5.2",

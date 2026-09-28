@@ -12,6 +12,7 @@ import "./styles/global.css";
 import "./styles/soca.css";
 import App from "./App";
 import CrashScreen from "./components/CrashScreen";
+import { installErrorLog } from "./utils/errorLog";
 import { initTheme } from "./utils/theme";
 import { initLook } from "./utils/look";
 import { initAddStyle } from "./utils/addStyle";
@@ -21,6 +22,7 @@ import { isNativeApp } from "./dropbox/auth";
 import { appUi } from "./utils/appUi";
 import { installBackButton } from "./native/android";
 
+installErrorLog();
 initTheme();
 initLook();
 initAddStyle();

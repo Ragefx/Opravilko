@@ -4,6 +4,7 @@ import { App } from "@capacitor/app";
 import { isNativeApp } from "../dropbox/auth";
 import { RELEASES } from "../data/releases";
 import { installUpdate, latestBuild, type AppUpdate } from "../native/update";
+import { clearErrors, loadErrors, type ErrorEntry } from "../utils/errorLog";
 
 const RELEASE_URL = "https://github.com/Ragefx/Opravilko/releases/tag/android-build-";
 
@@ -100,6 +101,8 @@ export default function AboutSection() {
         </p>
       )}
 
+      <ErrorLog />
+
       <h4>What's new, build by build</h4>
       <div className="about-releases">
         {RELEASES.map((r, i) => (
@@ -116,6 +119,57 @@ export default function AboutSection() {
             </ul>
           </details>
         ))}
+      </div>
+    </>
+  );
+}
+
+/** Errors the app hit lately (on any of your devices), to copy and send when something went wrong. */
+function ErrorLog() {
+  const [entries, setEntries] = useState<ErrorEntry[] | null>(null);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    void loadErrors().then(setEntries);
+  }, []);
+  if (!entries?.length) return null;
+  const text = entries
+    .map((e) => `${e.at} · ${e.device} · ${e.kind} · ${e.version} · ${e.page}\n${e.message}\n${e.stack}`)
+    .join("\n\n");
+  return (
+    <>
+      <h4>Problems</h4>
+      <p className="settings-note">
+        Errors the app ran into lately. If something went wrong, copy these and send them along; they say where it happened.
+      </p>
+      <ul className="about-errors">
+        {entries.slice(0, 5).map((e) => (
+          <li key={e.id}>
+            <b>{e.kind === "crash" ? "Crash" : "Error"}</b> · {format(parseISO(e.at), "d MMM, HH:mm")} · {e.device === "android" ? "phone" : "website"}
+            <span>{e.message}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="about-update">
+        <button
+          className="btn btn-secondary"
+          onClick={() =>
+            void navigator.clipboard.writeText(text).then(
+              () => setCopied(true),
+              () => setCopied(false)
+            )
+          }
+        >
+          {copied ? "Copied" : `Copy all (${entries.length})`}
+        </button>
+        <button
+          className="btn btn-text"
+          onClick={() => {
+            void clearErrors(entries);
+            setEntries([]);
+          }}
+        >
+          Clear
+        </button>
       </div>
     </>
   );

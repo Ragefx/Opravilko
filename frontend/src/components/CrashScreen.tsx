@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { logError } from "../utils/errorLog";
 
 /**
  * If something on a page throws, show what happened and a way back, instead
@@ -9,6 +10,11 @@ export default class CrashScreen extends Component<{ children: ReactNode }, { er
 
   static getDerivedStateFromError(error: Error) {
     return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    // Kept for Settings > About, so it can be looked at afterwards.
+    logError(error, "crash");
   }
 
   render() {

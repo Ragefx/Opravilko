@@ -15,7 +15,8 @@ the Inbox check) with a spinner while loading.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Errors are kept (on the phone and in your account) and listed in Settings >
+  About > Problems, with Copy all
 
 ## Known gaps
 

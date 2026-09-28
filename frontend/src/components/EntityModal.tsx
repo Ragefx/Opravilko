@@ -8,7 +8,7 @@ import {
   useUpdateLabel,
   useUpdateProject,
 } from "../api/hooks";
-import { COLOR_NAMES, colorHex } from "../utils/colors";
+import { COLOR_NAMES, colorHex, pickLabelColor } from "../utils/colors";
 import Select from "./Select";
 
 export type EntityKind = "project" | "label" | "filter";
@@ -43,7 +43,9 @@ export default function EntityModal({
   const { data } = useBootstrap();
   const [name, setName] = useState(existing?.name ?? "");
   const [query, setQuery] = useState(existing?.query ?? "");
-  const [color, setColor] = useState(existing?.color ?? "charcoal");
+  const [color, setColor] = useState(
+    existing?.color ?? (kind === "label" ? pickLabelColor((data?.labels || []).map((l) => l.color)) : "charcoal")
+  );
   const [parentId, setParentId] = useState<string | null>(existing?.parentId ?? defaultParentId ?? null);
 
   // A project can't be nested under itself or anything already beneath it.

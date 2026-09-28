@@ -14,6 +14,7 @@ import MidvaBadge from "./MidvaBadge";
 import { useToast } from "./ToastProvider";
 import { completedByName } from "../utils/completedBy";
 import { deadlineInfo } from "../utils/deadline";
+import LabelChip from "./LabelChip";
 
 export default function TaskRow({
   task,
@@ -161,9 +162,7 @@ export default function TaskRow({
                 </span>
               )}
               {task.labels.map((l) => (
-                <span key={l} className="chip">
-                  @{l}
-                </span>
+                <LabelChip key={l} name={l} />
               ))}
               {projectLabel && <span className="chip">{projectLabel}</span>}
               {task.sharedWith?.length ? <MidvaBadge task={task} /> : null}

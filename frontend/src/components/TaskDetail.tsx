@@ -69,6 +69,7 @@ import TaskAttachments from "./TaskAttachments";
 import Select from "./Select";
 import ReminderSheet from "./ReminderSheet";
 import { describeReminder, remindersOf } from "../utils/reminders";
+import { labelTint, useLabelColor } from "./LabelChip";
 
 export default function TaskDetail({
   task: initialTask,
@@ -236,6 +237,7 @@ export default function TaskDetail({
     .sort((a, b) => a.order - b.order);
   const project = data?.projects.find((p) => p.id === task.projectId);
   const existingLabelNames = (data?.labels || []).map((l) => l.name).filter((n) => !task.labels.includes(n));
+  const labelColor = useLabelColor();
 
   function addSubtask() {
     const value = subtaskText.trim();
@@ -702,7 +704,7 @@ export default function TaskDetail({
                   <span className="td-row-caption">Labels</span>
                   <div className="td-label-chips">
                     {task.labels.map((l) => (
-                      <span key={l} className="td-label-chip">
+                      <span key={l} className="td-label-chip label-tint" style={labelTint(labelColor(l))}>
                         @{l}
                         <button onClick={() => removeLabel(l)} aria-label={`Remove label ${l}`}>
                           <XIcon width={12} height={12} />

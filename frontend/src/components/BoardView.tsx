@@ -30,6 +30,7 @@ import { dueDateClass, formatDueLabel } from "../utils/date";
 import { CalendarIcon, RepeatIcon } from "./icons";
 import { stripHtml } from "../utils/html";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, sortTasks, type DisplayOptions } from "../utils/displayOptions";
+import LabelChip from "./LabelChip";
 
 const UNSECTIONED = "__none__";
 
@@ -426,9 +427,7 @@ function BoardCard({
                   </span>
                 )}
                 {task.labels.map((l) => (
-                  <span key={l} className="chip">
-                    @{l}
-                  </span>
+                  <LabelChip key={l} name={l} />
                 ))}
               </div>
             )}

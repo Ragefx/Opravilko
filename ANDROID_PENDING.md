@@ -14,7 +14,8 @@ Build 39: sub-tasks show their date/time (and deadline) in the task view.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Labels each have their own colour (existing grey ones get one once), shown
+  on tasks and in the task view
 
 ## Known gaps
 

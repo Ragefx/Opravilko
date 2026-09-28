@@ -11,6 +11,7 @@ import SharedToggle from "./SharedToggle";
 import DueButton from "./DueButton";
 import MicButton from "./MicButton";
 import type { Due } from "../api/types";
+import LabelChip from "./LabelChip";
 
 export default function QuickAdd({
   projectId,
@@ -129,9 +130,7 @@ export default function QuickAdd({
             </span>
           )}
           {preview.labels.map((l) => (
-            <span key={l} className="chip">
-              @{l}
-            </span>
+            <LabelChip key={l} name={l} />
           ))}
         </div>
       )}

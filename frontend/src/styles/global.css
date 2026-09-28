@@ -7261,3 +7261,21 @@ button.sidebar-link {
   overflow-wrap: anywhere;
   user-select: all;
 }
+
+/* ---------- Labels in their own colour ---------- */
+.label-tint {
+  --label-ink: color-mix(in srgb, var(--label-color) 72%, var(--color-text));
+  color: var(--label-ink);
+  background: color-mix(in srgb, var(--label-color) 16%, transparent);
+}
+.chip.label-chip,
+:root[data-look] .chip.label-chip {
+  color: var(--label-ink);
+  background: color-mix(in srgb, var(--label-color) 16%, transparent);
+  padding: 0 7px;
+  border-radius: 999px;
+}
+.td-label-chip.label-tint {
+  color: var(--label-ink);
+  background: color-mix(in srgb, var(--label-color) 16%, transparent);
+}

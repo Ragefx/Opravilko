@@ -5,6 +5,7 @@ import { fetchAppData, scheduleSave } from "../data/store";
 import { nextOccurrence, parseRecurrenceString } from "../utils/recurrence";
 import { todayISO } from "../utils/date";
 import { defaultReminders } from "../utils/reminders";
+import { PLAIN_LABEL_COLORS, pickLabelColor } from "../utils/colors";
 import { fetchIcsText, NoConnectionError } from "../utils/calendarSync";
 import { parseIcs } from "../utils/ics";
 import type {
@@ -44,7 +45,8 @@ function ensureLabels(data: AppData, names: string[]): string[] {
   return names.map((name) => {
     const existing = data.labels.find((l) => l.name.toLowerCase() === name.toLowerCase());
     if (existing) return existing.name;
-    data.labels.push({ id: nanoid(), name, color: "grey", order: nextOrder(data.labels), isFavorite: false });
+    const color = pickLabelColor(data.labels.map((l) => l.color));
+    data.labels.push({ id: nanoid(), name, color, order: nextOrder(data.labels), isFavorite: false });
     return name;
   });
 }
@@ -616,10 +618,23 @@ export function useMoveSection() {
 // ---- labels ----
 export function useCreateLabel() {
   return useLocalMutation<Partial<Label> & { name: string }, Label>((data, input) => {
-    const { name, color = "grey" } = input;
+    const { name, color = pickLabelColor(data.labels.map((l) => l.color)) } = input;
     const label: Label = { id: nanoid(), name, color, order: nextOrder(data.labels), isFavorite: false };
     data.labels.push(label);
     return label;
+  });
+}
+
+/** Gives the labels still in the old default grey a colour each (done once). */
+export function useRecolorPlainLabels() {
+  return useLocalMutation<void, number>((data) => {
+    let changed = 0;
+    for (const label of [...data.labels].sort((a, b) => a.order - b.order)) {
+      if (!PLAIN_LABEL_COLORS.includes(label.color)) continue;
+      label.color = pickLabelColor(data.labels.filter((l) => !PLAIN_LABEL_COLORS.includes(l.color)).map((l) => l.color));
+      changed++;
+    }
+    return changed;
   });
 }
 

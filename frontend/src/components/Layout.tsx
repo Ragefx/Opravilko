@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { syncArrivalPlaces } from "../native/places";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { isNativeApp } from "../dropbox/auth";
-import { useBootstrap, useSyncAllCalendarFeeds } from "../api/hooks";
+import { useBootstrap, useRecolorPlainLabels, useSyncAllCalendarFeeds } from "../api/hooks";
 import { REMINDERS_CHANGED, checkDueReminders, clearOldAppReminders } from "../utils/notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { hasPendingWrite, isSignedIn, needsSetup } from "../data/store";
@@ -82,6 +82,21 @@ export default function Layout() {
   const appData = useBootstrap().data;
   const tasks = appData?.tasks;
   const syncAllCalendarFeeds = useSyncAllCalendarFeeds();
+
+  // Labels all used to start out grey: give each its own colour, once.
+  const recolorLabels = useRecolorPlainLabels();
+  const hasLabels = Boolean(appData?.labels.length);
+  useEffect(() => {
+    if (!hasLabels) return;
+    try {
+      if (localStorage.getItem("opravilko.labelColors") === "1") return;
+      localStorage.setItem("opravilko.labelColors", "1");
+    } catch {
+      return;
+    }
+    recolorLabels.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasLabels]);
   // Tracks the "g" prefix of two-key navigation chords (g t, g u, g i).
   const goChord = useRef(false);
 

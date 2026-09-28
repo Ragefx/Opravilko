@@ -11,6 +11,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 40,
+    date: "2026-09-28",
+    items: [
+      "Labels each have their own colour, shown on tasks and in the task view.",
+      "Colour themes (Settings > Appearance > Colours): Triglav, Paper, Pokljuka, Dusk and Midnight.",
+      "Shopping items added on one phone show up on the other straight away: the nudge comes once the item is saved, and the other phone reads the whole list afresh.",
+      "Settings > About > Instant updates always shows on the phone, and says why if the phone couldn't register for nudges.",
+      "Pasted notes no longer catch the scrolling.",
+    ],
+  },
+  {
     build: 39,
     date: "2026-09-28",
     items: [

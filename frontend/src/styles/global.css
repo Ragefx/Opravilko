@@ -1263,39 +1263,106 @@ kbd {
   background: var(--color-hover);
 }
 
-/* ---------- Time picker popup ---------- */
+/* ---------- Time picker popup (TimePickerPopup: quick times, an hour grid, minutes) ---------- */
 .time-picker-panel {
-  width: 220px;
-  padding: 12px;
+  width: 290px;
+  padding: 14px;
 }
-.time-picker-row {
+.tp-typed {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 6px;
 }
-.time-picker-label {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-.time-picker-inputs {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.time-picker-inputs select {
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 4px 6px;
-  font-family: inherit;
-  font-size: 13px;
+.tp-typed input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--color-accent);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
   background: none;
   color: var(--color-text);
+}
+.tp-clear {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  padding: 6px;
+  border-radius: 8px;
+}
+.tp-clear:hover {
+  background: var(--color-hover);
+}
+.tp-label {
+  margin: 12px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.tp-quick {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tp-chip {
+  padding: 7px 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-hover);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+.tp-hours {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+.tp-minutes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+.tp-cell {
+  padding: 8px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.tp-cell:hover,
+.tp-chip:hover {
+  border-color: var(--color-accent);
+}
+.tp-cell.tp-more {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.tp-cell.is-on,
+.tp-chip.is-on {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 700;
+}
+.tp-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 .time-picker-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  margin-top: 14px;
 }
 
 @media (max-width: 720px) {

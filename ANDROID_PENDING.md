@@ -15,7 +15,8 @@ helper on errors, the Instant updates log, Settings "Import, backup & Gmail".
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- New time picker: quick times (9:00, 12:00, 17:00, 20:00), an hour grid,
+  :00/:15/:30/:45, or type it ("16:30", "930"); a button removes the time
 
 ## Known gaps
 

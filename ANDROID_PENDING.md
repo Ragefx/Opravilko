@@ -7,19 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 36** (commit `f47bb94`, Sep 28 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-36
+Last build: **build 37** (commit `bf63d3e`, Sep 28 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-37
 
-Build 36: push between phones (Cloudflare helper + Firebase Cloud Messaging),
-shop walking order, recipes from a link, deadlines, Gmail key, error log.
+Build 37: deletions reach the other phone, phones no longer dropped by the
+helper on errors, the Instant updates log, Settings "Import, backup & Gmail".
 
 ## In the code, not in the app yet
 
-- Instant updates: deletions now reach the other phone (the nudge asks for a
-  full fetch); a phone is forgotten by the helper only when its app is gone,
-  and phones register again twice a day
-- Settings > About > Instant updates: a log of the nudges sent and received
-- Settings: "Import & backup" is now "Import, backup & Gmail"
+(nothing yet)
 
 ## Known gaps
 

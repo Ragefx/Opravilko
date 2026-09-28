@@ -11,6 +11,18 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 36,
+    date: "2026-09-28",
+    items: [
+      "Instant updates between your phones: when one of you changes the shopping list or a shared task, the other phone updates (list, widget and notification) within seconds. Several ticks in a row make one notification that updates quietly.",
+      "Shopping: the list learns each shop's walking order from the order you tick things off there, and sorts in it (also in the widget).",
+      "Meals: New meal can read a recipe's ingredients from a web address; sharing a recipe page to Opravilko opens it.",
+      "Deadlines: a task can have a deadline apart from its date (the Deadline row, or {friday} typed in Add task); shown with ⏳ on the task.",
+      "Settings > Data > Gmail: a key for the Opravilko add-on in Gmail, which turns an email into a task.",
+      "Settings > About > Problems: errors the app ran into, to copy and send.",
+    ],
+  },
+  {
     build: 35,
     date: "2026-09-27",
     items: [

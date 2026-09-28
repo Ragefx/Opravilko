@@ -6,7 +6,7 @@ import { currentUser } from "../firebase/auth";
  * pages. On the owner's Cloudflare account (cloudsan-29b, as the calendar
  * relay), deployed by .github/workflows/worker.yml.
  */
-export const HELPER_URL = "https://opravilko.cloudsan-29b.workers.dev";
+export const HELPER_URL: string = "https://opravilko.cloudsan-29b.workers.dev";
 
 export const helperReady = () => HELPER_URL !== "" && currentUser() !== null;
 

@@ -14,6 +14,8 @@ const PRIORITY_FLAG_RE = /\bp([1-3])\b/i;
 const LABEL_RE = /(?<=^|\s)@([\p{L}\p{N}_-]+)/gu;
 const PROJECT_RE = /(?<=^|\s)#([\p{L}\p{N}_-]+)/gu;
 const SHARED_RE = /(?<=^|\s)\+(midva|shared)(?=\s|$)/giu;
+// "{friday}", "{30.9.}": the deadline, as Todoist writes it.
+const DEADLINE_RE = /\{([^{}]+)\}/u;
 
 export interface ParsedQuickAdd {
   content: string;
@@ -24,6 +26,8 @@ export interface ParsedQuickAdd {
   projectName: string | null;
   /** "+midva" or "+shared" typed: share it with your partner. */
   shared: boolean;
+  /** "{friday}" typed: the deadline ("yyyy-MM-dd"). */
+  deadline: string | null;
 }
 
 /**
@@ -33,6 +37,16 @@ export interface ParsedQuickAdd {
  */
 export function parseQuickAddInput(raw: string, defaultDue?: { date: string; string: string } | null): ParsedQuickAdd {
   let content = raw.trim();
+
+  let deadline: string | null = null;
+  const dm = content.match(DEADLINE_RE);
+  if (dm) {
+    const d = parseDateToken(dm[1]);
+    if (d) {
+      deadline = format(d.date, "yyyy-MM-dd");
+      content = content.replace(dm[0], "").trim();
+    }
+  }
 
   let priority: Priority = 1;
   const pm = content.match(PRIORITY_FLAG_RE);
@@ -92,6 +106,7 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
     due,
     projectName,
     shared,
+    deadline,
   };
 }
 

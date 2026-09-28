@@ -2,7 +2,7 @@ import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { dueDateClass, formatDueLabel } from "../utils/date";
-import { BellIcon, CalendarIcon, CheckIcon, ChevronIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BellIcon, CalendarIcon, CheckIcon, ChevronIcon, HourglassIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
 import { remindersOf } from "../utils/reminders";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
@@ -13,6 +13,7 @@ import PriorityMark from "./PriorityMark";
 import MidvaBadge from "./MidvaBadge";
 import { useToast } from "./ToastProvider";
 import { completedByName } from "../utils/completedBy";
+import { deadlineInfo } from "../utils/deadline";
 
 export default function TaskRow({
   task,
@@ -39,6 +40,7 @@ export default function TaskRow({
   const showToast = useToast();
   const { data } = useBootstrap();
   const doneBy = completedByName(task, data);
+  const deadline = task.completed ? null : deadlineInfo(task.deadline);
   const priorityColor = PRIORITY_META[task.priority].color;
   const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
 
@@ -136,7 +138,7 @@ export default function TaskRow({
               </span>
             )}
           </div>
-          {(doneBy || task.due || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
+          {(doneBy || deadline || task.due || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
             <div className="task-meta">
               {doneBy && <span className="task-done-by">✓ {doneBy}</span>}
               {task.due && (
@@ -146,6 +148,11 @@ export default function TaskRow({
                     <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
                   )}
                   {hasReminders && <BellIcon width={12} height={12} aria-label="Has reminders" style={{ verticalAlign: "-2px", marginLeft: 2 }} />}
+                </span>
+              )}
+              {deadline && (
+                <span className={`chip task-deadline is-${deadline.kind}`} title="Deadline">
+                  <HourglassIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {deadline.label}
                 </span>
               )}
               {!task.due && hasReminders && (

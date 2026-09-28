@@ -177,6 +177,7 @@ export default function CommandPalette({
                 priority: parsed.priority,
                 due: parsed.due,
                 labels: parsed.labels,
+                ...(parsed.deadline ? { deadline: parsed.deadline } : {}),
                 sharedWith: share ? [share.uid] : undefined,
               },
               { onSuccess: () => showToast({ message: `Added to ${project?.name || "Inbox"}` }) }

@@ -40,7 +40,10 @@ export default function DatePickerPopup({
   onPick,
   anchor,
   onClose,
+  dateOnly,
 }: {
+  /** Just a day, no time (e.g. a deadline). */
+  dateOnly?: boolean;
   taskId?: string;
   value?: Due | null;
   onPick?: (due: Due | null) => void;
@@ -238,9 +241,11 @@ export default function DatePickerPopup({
           </div>
         </div>
 
-        <button ref={timeBtnRef} className="date-picker-action-btn" onClick={() => setShowTime(true)}>
-          <ClockIcon width={14} height={14} /> {currentTimeStr() || "Time"}
-        </button>
+        {!dateOnly && (
+          <button ref={timeBtnRef} className="date-picker-action-btn" onClick={() => setShowTime(true)}>
+            <ClockIcon width={14} height={14} /> {currentTimeStr() || "Time"}
+          </button>
+        )}
 
         {!onPick && (
           <div

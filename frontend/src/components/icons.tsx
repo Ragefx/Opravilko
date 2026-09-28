@@ -112,6 +112,13 @@ export const FlagIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** A deadline (the hard cutoff, apart from the date). */
+export const HourglassIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M6 3h12M6 21h12M7 3v3a5 5 0 0 0 10 0V3M7 21v-3a5 5 0 0 1 10 0v3" />
+  </svg>
+);
+
 export const XIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M18 6 6 18M6 6l12 12" />

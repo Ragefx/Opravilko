@@ -6,6 +6,7 @@ import type { Due, Reminder, Task, TaskLocation } from "../api/types";
 import { highlightParts, parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
+import { deadlineInfo } from "../utils/deadline";
 import { type RepeatPreset, REPEAT_PRESETS, applyRecurrence } from "../utils/recurrence";
 import { addPlaces } from "../utils/addTargets";
 import { hasPendingWrite, usingFirebase } from "../data/store";
@@ -207,6 +208,7 @@ export default function QuickAddSheet({
       priority: effectivePriority,
       due: applyRecurrence(baseDue, repeat),
       labels: allLabels,
+      ...(preview.deadline ? { deadline: preview.deadline } : {}),
       ...(location ? { location } : {}),
       reminders,
       sharedWith: isShared && partner ? [partner.uid] : undefined,
@@ -250,6 +252,15 @@ export default function QuickAddSheet({
       color: baseDue.date < todayISO() ? "var(--color-danger)" : "var(--color-accent)",
       open: () => setPicking("date"),
       clear: () => setPicked(null),
+    });
+  const typedDeadline = deadlineInfo(preview?.deadline ?? undefined);
+  if (typedDeadline)
+    tokens.push({
+      key: "deadline",
+      label: `⏳ ${typedDeadline.label}`,
+      color: typedDeadline.kind === "later" ? undefined : "var(--color-danger)",
+      open: () => {},
+      clear: () => setText((t) => t.replace(/\{[^{}]+\}/u, "").replace(/\s+/g, " ")),
     });
   if (effectivePriority !== 1)
     tokens.push({
@@ -595,6 +606,11 @@ export default function QuickAddSheet({
                 <CalendarIcon width={20} height={20} />
                 {baseDue ? formatDueLabel(baseDue) : "Date"}
               </button>
+              {typedDeadline && (
+                <span className="qas-chip" style={typedDeadline.kind === "later" ? undefined : { color: "var(--color-danger)" }} title="Deadline (typed as {…})">
+                  ⏳ {typedDeadline.label}
+                </span>
+              )}
   
               {usingFirebase() && (
                 <button

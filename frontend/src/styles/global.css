@@ -7148,3 +7148,9 @@ button.sidebar-link {
   margin: 0;
   color: var(--color-danger);
 }
+
+/* A task's deadline (apart from its date). */
+.chip.task-deadline.is-soon,
+.chip.task-deadline.is-past {
+  color: var(--color-danger);
+}

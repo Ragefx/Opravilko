@@ -3,6 +3,7 @@ import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { formatDueLabel } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
+import { deadlineInfo } from "../utils/deadline";
 import { type RepeatPreset, applyRecurrence } from "../utils/recurrence";
 import RepeatSelect from "./RepeatSelect";
 import { RepeatIcon } from "./icons";
@@ -71,6 +72,7 @@ export default function QuickAdd({
       priority: parsed.priority,
       due: applyRecurrence(picked !== undefined ? picked : parsed.due, recurrence),
       labels: parsed.labels,
+      ...(parsed.deadline ? { deadline: parsed.deadline } : {}),
       sharedWith: partner && (shared || parsed.shared) ? [partner.uid] : undefined,
     });
     setText("");
@@ -106,8 +108,13 @@ export default function QuickAdd({
         />
         <MicButton onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)} />
       </div>
-      {preview && (previewDue || preview.labels.length > 0 || preview.priority !== 1) && (
+      {preview && (previewDue || preview.deadline || preview.labels.length > 0 || preview.priority !== 1) && (
         <div className="quick-add-preview">
+          {preview.deadline && (
+            <span className="chip" title="Deadline">
+              ⏳ {deadlineInfo(preview.deadline)?.label}
+            </span>
+          )}
           {previewDue && (
             <span className="chip">
               {formatDueLabel(previewDue)}

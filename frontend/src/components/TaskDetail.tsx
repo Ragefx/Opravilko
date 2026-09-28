@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { projectRoute } from "../utils/away";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { completedByName } from "../utils/completedBy";
+import { deadlineInfo } from "../utils/deadline";
 import { makeDue, todayISO } from "../utils/date";
 import {
   type RecurrenceRule,
@@ -36,6 +37,7 @@ import {
   ChevronIcon,
   CopyIcon,
   FlagIcon,
+  HourglassIcon,
   InboxIcon,
   MapPinIcon,
   RepeatIcon,
@@ -145,6 +147,8 @@ export default function TaskDetail({
   const [commentText, setCommentText] = useState("");
   const [labelInput, setLabelInput] = useState("");
   const [pickingDate, setPickingDate] = useState(false);
+  const [pickingDeadline, setPickingDeadline] = useState(false);
+  const deadlineRow = useRef<HTMLButtonElement>(null);
   const [pickingReminders, setPickingReminders] = useState(false);
   const taskReminders = remindersOf(task);
   const dateRow = useRef<HTMLButtonElement>(null);
@@ -428,6 +432,16 @@ export default function TaskDetail({
     const shared = Boolean(task.sharedWith?.length);
     const doneBy = completedByName(task, data);
 
+    const deadline = deadlineInfo(task.deadline);
+    function openDeadline() {
+      const r = deadlineRow.current?.getBoundingClientRect();
+      setDateAnchor({
+        top: Math.max(8, Math.min((r?.bottom ?? 200) + 4, window.innerHeight - 480)),
+        right: appUi ? 12 : Math.max(8, window.innerWidth - (r?.right ?? window.innerWidth - 12)),
+      });
+      setPickingDeadline(true);
+    }
+
     function openDate() {
       const r = dateRow.current?.getBoundingClientRect();
       setDateAnchor({
@@ -604,6 +618,30 @@ export default function TaskDetail({
               )}
 
               <PropRow
+                ref={deadlineRow}
+                icon={<HourglassIcon width={20} height={20} />}
+                caption="Deadline"
+                value={deadline ? `${deadline.label}${deadline.kind === "past" ? " · passed" : ""}` : "No deadline"}
+                muted={!deadline}
+                color={deadline ? (deadline.kind === "later" ? "var(--color-text)" : "var(--color-danger)") : undefined}
+                onClick={openDeadline}
+                trailing={
+                  deadline ? (
+                    <button
+                      className="td-clear"
+                      aria-label="Clear deadline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateTask.mutate({ id: task.id, deadline: undefined });
+                      }}
+                    >
+                      <XIcon width={16} height={16} />
+                    </button>
+                  ) : undefined
+                }
+              />
+
+              <PropRow
                 icon={<BellIcon width={20} height={20} />}
                 caption="Reminders"
                 value={taskReminders.length ? taskReminders.map(describeReminder).join(", ") : "No reminders"}
@@ -737,6 +775,20 @@ export default function TaskDetail({
           </div>
         </div>
 
+        {pickingDeadline && dateAnchor && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <DatePickerPopup
+              dateOnly
+              value={task.deadline ? { date: task.deadline, string: task.deadline, isRecurring: false } : null}
+              onPick={(d) => {
+                updateTask.mutate({ id: task.id, deadline: d?.date ?? undefined });
+                setPickingDeadline(false);
+              }}
+              anchor={dateAnchor}
+              onClose={() => setPickingDeadline(false)}
+            />
+          </div>
+        )}
         {pickingDate && dateAnchor && (
           <div onClick={(e) => e.stopPropagation()}>
             <DatePickerPopup taskId={task.id} anchor={dateAnchor} onClose={() => setPickingDate(false)} />

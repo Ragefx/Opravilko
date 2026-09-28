@@ -91,6 +91,8 @@ export interface Task {
   order: number;
   priority: Priority;
   due: Due | null;
+  /** The hard cutoff ("yyyy-MM-dd"), apart from the date you plan to do it (`due`), as in Todoist. */
+  deadline?: string;
   labels: string[];
   completed: boolean;
   completedAt: string | null;

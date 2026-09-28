@@ -26,6 +26,9 @@ the Inbox check) with a spinner while loading.
   ticked there, and the list (and widget) sorts in it
 - Meals: New meal can read a recipe's ingredients from a web address (and a
   recipe page shared to Opravilko opens it); needs the helper
+- Deadlines: a task can have a deadline apart from its date (Deadline row in
+  the task, ⏳ on the row, "{friday}" typed in Add task); not shown in the
+  widget yet
 
 ## Known gaps
 

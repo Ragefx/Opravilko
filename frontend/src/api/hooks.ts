@@ -144,6 +144,7 @@ export function useCreateTask() {
       updatedAt: now,
       ...(sharedWith ? { sharedWith } : {}),
       ...(input.location ? { location: input.location } : {}),
+      ...(input.deadline ? { deadline: input.deadline } : {}),
     };
     // Reminders as picked, else this device's defaults from Settings (none unless set).
     const reminders = input.reminders ?? defaultReminders(task.due, data.me);

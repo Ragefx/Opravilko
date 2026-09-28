@@ -7,15 +7,14 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 38** (commit `c2c74fe`, Sep 28 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-38
+Last build: **build 39** (commit `7e06a0a`, Sep 28 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-39
 
-Build 38: the new time picker (quick times, hour grid, quarter hours, typing).
+Build 39: sub-tasks show their date/time (and deadline) in the task view.
 
 ## In the code, not in the app yet
 
-- Task view: sub-tasks show their date/time (and deadline) under the name; a
-  date typed in a new sub-task ("Foto jutri ob 10") is read as its date
+(nothing yet)
 
 ## Known gaps
 

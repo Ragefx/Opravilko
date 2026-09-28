@@ -16,6 +16,7 @@ Build 39: sub-tasks show their date/time (and deadline) in the task view.
 
 - Labels each have their own colour (existing grey ones get one once), shown
   on tasks and in the task view
+- Pasted notes no longer carry their own scroll boxes
 
 ## Known gaps
 

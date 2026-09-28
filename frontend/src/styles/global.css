@@ -7279,3 +7279,8 @@ button.sidebar-link {
   color: var(--label-ink);
   background: color-mix(in srgb, var(--label-color) 16%, transparent);
 }
+/* Pasted notes keep no scroll boxes or height limits of their own. */
+.rich-text-body * {
+  overflow: visible !important;
+  max-height: none !important;
+}

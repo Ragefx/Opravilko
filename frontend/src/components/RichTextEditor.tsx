@@ -60,6 +60,27 @@ export default function RichTextEditor({
     return () => document.removeEventListener("selectionchange", onSelection);
   }, []);
 
+  // The mouse wheel over the notes scrolls the window they're in. Pasted
+  // notes can bring boxes of their own that caught the wheel, so the task
+  // only scrolled with the mouse outside the notes.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || appUi) return;
+    function onWheel(e: WheelEvent) {
+      if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // zoom, or sideways
+      let box = el!.parentElement;
+      while (box && !(/(auto|scroll)/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) {
+        box = box.parentElement;
+      }
+      if (!box) return;
+      e.preventDefault();
+      const step = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? box.clientHeight : 1;
+      box.scrollTop += e.deltaY * step;
+    }
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;

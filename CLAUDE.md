@@ -97,6 +97,27 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 - Sync with Firestore: `src/firebase/sync.ts`.
 - Rules: `firestore.rules`.
 
+## Helper on Cloudflare, push, Gmail
+
+- `worker/` is the helper at https://opravilko.cloudsan-29b.workers.dev (the
+  owner's Cloudflare account; the calendar relay in `cloudflare/` is there too).
+  Deployed by `.github/workflows/worker.yml` (secrets CLOUDFLARE_API_TOKEN,
+  CLOUDFLARE_ACCOUNT_ID, FIREBASE_SERVICE_ACCOUNT); start it with
+  `actions_run_trigger` (worker.yml, ref main) after changing `worker/`.
+  - /ping: wakes the partner's phones (Firebase Cloud Messaging data message
+    "sync"); the phone then syncs and PartnerNotifier shows the notification.
+  - /recipe: reads a recipe page's schema.org data.
+  - /addon/*: the Gmail add-on, signed in by a key (Settings > Data > Gmail;
+    stored as addonKeys/{sha256}).
+- The address is in `src/utils/helper.ts`, `widget/HelperClient.java` and
+  `gmail-addon/Code.gs`.
+- `gmail-addon/`: an Apps Script Gmail add-on, installed by hand (README).
+- Every build runs `oxlint` first (it catches hook-order mistakes like build 33's).
+- Java compile check: android-all.jar from Maven Central
+  (org.robolectric:android-all) plus hand-written stubs for Capacitor,
+  AndroidX, Play services location and Firebase messaging, and an R class
+  generated from res/.
+
 ## Open items
 
 - **Shared attachment storage.** The 700 MB attachment budget

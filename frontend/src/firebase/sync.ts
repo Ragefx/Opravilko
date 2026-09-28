@@ -21,6 +21,7 @@ import { nanoid } from "nanoid";
 import { firestore } from "./app";
 import { deleteAttachmentBlobs } from "./attachments";
 import { pingLater } from "../utils/helper";
+import { isNativeApp } from "../dropbox/auth";
 
 const newId = () => nanoid();
 import type {
@@ -634,7 +635,9 @@ export class FirestoreSync {
     }
     to.delete(this.uid);
     const deleted = ops.some((op) => op.path[0] === "tasks" && op.kind === "delete");
-    pingLater([...to], project, deleted);
+    // On the website, your own phone gets a nudge too (for any task), so its
+    // widget follows; the phone's app doesn't need one from itself.
+    pingLater([...to], project, deleted, !isNativeApp);
   }
 
   private diff(prev: AppData, next: AppData): Op[] {

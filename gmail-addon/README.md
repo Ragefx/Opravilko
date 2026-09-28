@@ -16,8 +16,7 @@ be deployed first, and `HELPER_URL` at the top of `Code.gs` set to its address.
 3. Project settings (⚙) → tick **Show "appsscript.json" manifest file in editor**.
 4. Back in the editor, replace the contents of:
    - `appsscript.json` with this folder's `appsscript.json`
-   - `Code.gs` with this folder's `Code.gs`
-   - then **+ → Script**, name it `DateFinder`, and paste this folder's `DateFinder.gs`.
+   - `Code.gs` with this folder's `Code.gs` (everything is in this one file)
 5. Save, then **Deploy → Test deployments → Application: Gmail → Install**.
 6. Open Gmail (a reload may be needed). The Opravilko icon is in the right-hand
    bar. Open it, allow access, and paste the key.

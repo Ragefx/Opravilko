@@ -7154,3 +7154,20 @@ button.sidebar-link {
 .chip.task-deadline.is-past {
   color: var(--color-danger);
 }
+
+/* Settings > Data > Gmail: the add-on's key, shown once. */
+.gmail-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.gmail-key code {
+  flex: 1 1 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-hover);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  user-select: all;
+}

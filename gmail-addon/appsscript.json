@@ -1,0 +1,23 @@
+{
+  "timeZone": "Europe/Ljubljana",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/gmail.addons.execute",
+    "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.locale"
+  ],
+  "addOns": {
+    "common": {
+      "name": "Opravilko",
+      "logoUrl": "https://ragefx.github.io/Opravilko/icon-192.png",
+      "layoutProperties": { "primaryColor": "#10897d", "secondaryColor": "#10897d" },
+      "homepageTrigger": { "runFunction": "onHomepage" },
+      "universalActions": [{ "label": "Opravilko key", "runFunction": "onSettings" }]
+    },
+    "gmail": {
+      "contextualTriggers": [{ "unconditional": {}, "onTriggerFunction": "onGmailMessage" }]
+    }
+  }
+}

@@ -47,6 +47,15 @@ service cloud.firestore {
       }
     }
 
+    // The Gmail add-on's keys: stored by their SHA-256, pointing at their
+    // owner. Only the Cloudflare helper reads them (with its own access).
+    match /addonKeys/{hash} {
+      allow create: if signedIn() && request.resource.data.uid == me()
+        && request.resource.data.keys().hasOnly(['uid', 'createdAt']);
+      allow delete: if signedIn() && resource.data.uid == me();
+      allow read, update: if false;
+    }
+
     match /userEmails/{email} {
       allow get: if signedIn();
       allow list: if false;

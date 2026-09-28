@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AppData } from "../api/types";
@@ -29,6 +29,7 @@ import ImportModal from "./ImportModal";
 import { useToast } from "./ToastProvider";
 import { BellIcon, CalendarIcon, ChevronIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
 import StorageSettings from "./StorageSettings";
+import { hasGmailKey, makeGmailKey } from "../utils/gmailKey";
 import AboutSection from "./AboutSection";
 import { RELEASES } from "../data/releases";
 import { useNarrowScreen } from "./MobileCalendar";
@@ -518,8 +519,58 @@ function DataSection({ onClose }: { onClose: () => void }) {
         {busy ? "Preparing…" : "Download backup"}
       </button>
 
+      {firebase && <GmailKey />}
+
       <h4>Import from Todoist</h4>
       <ImportModal embedded onClose={onClose} />
+    </>
+  );
+}
+
+/** The key for the Gmail add-on (gmail-addon/ in the repo): made here, pasted there once. */
+function GmailKey() {
+  const [has, setHas] = useState<boolean | null>(null);
+  const [key, setKey] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    void hasGmailKey().then(setHas);
+  }, []);
+  return (
+    <>
+      <h4>Gmail</h4>
+      <p className="settings-note top">
+        The Opravilko add-on in Gmail turns an email into a task. It needs a key from here, pasted into it once.
+        {has && !key ? " You have one; making a new one stops the old one working." : ""}
+      </p>
+      {key ? (
+        <div className="gmail-key">
+          <code>{key}</code>
+          <button
+            className="btn btn-secondary"
+            onClick={() => void navigator.clipboard.writeText(key).then(() => setCopied(true), () => setCopied(false))}
+          >
+            {copied ? "Copied" : "Copy"}
+          </button>
+          <span className="settings-note">Shown only now: paste it into the add-on (Settings in its panel).</span>
+        </div>
+      ) : (
+        <button
+          className="btn btn-secondary"
+          disabled={busy || has === null}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              setKey(await makeGmailKey());
+              setHas(true);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? "Making…" : has ? "Make a new key" : "Make a key"}
+        </button>
+      )}
     </>
   );
 }

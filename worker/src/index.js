@@ -3,8 +3,13 @@
  *
  *   POST /ping    {to: [uid], project?: id}   wake these people's phones
  *   GET  /recipe?url=…                         a recipe page's name and ingredients
+ *   GET  /addon/projects                       (Gmail add-on) your lists
+ *   POST /addon/task    {content, …}           (Gmail add-on) add a task
  *
- * Every request carries the caller's Firebase sign-in (Authorization: Bearer
+ * The Gmail add-on signs in with a personal key made in Opravilko (Settings >
+ * Data > Gmail): only its SHA-256 is stored, as addonKeys/{hash} -> {uid}.
+ *
+ * Every other request carries the caller's Firebase sign-in (Authorization: Bearer
  * <ID token>), checked against Google's keys. A ping only reaches someone who
  * named the caller as their partner, or shares the given project with them.
  * The message itself says nothing but "sync": the phone fetches the changes
@@ -29,7 +34,7 @@ export default {
     const origin = request.headers.get("Origin") || "";
     const cors = {
       "Access-Control-Allow-Origin": ORIGINS.includes(origin) ? origin : ORIGINS[0],
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
+      "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Opravilko-Key",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Max-Age": "86400",
       Vary: "Origin",
@@ -38,6 +43,15 @@ export default {
     const url = new URL(request.url);
     try {
       if (url.pathname === "/") return json({ ok: true, service: "opravilko" }, 200, cors);
+      if (url.pathname.startsWith("/addon/")) {
+        const uid = await addonUser(env, request.headers.get("X-Opravilko-Key"));
+        if (url.pathname === "/addon/projects") return json(await addonProjects(env, uid), 200, cors);
+        if (url.pathname === "/addon/task" && request.method === "POST") {
+          const body = await request.json().catch(() => ({}));
+          return json(await addonTask(env, uid, body), 200, cors);
+        }
+        return json({ error: "Not found" }, 404, cors);
+      }
       const caller = await verifyIdToken(request.headers.get("Authorization"));
       if (url.pathname === "/ping" && request.method === "POST") {
         const body = await request.json().catch(() => ({}));
@@ -201,11 +215,13 @@ async function mayPing(env, caller, to, project) {
 }
 
 async function ping(env, caller, body) {
-  const to = [...new Set(Array.isArray(body.to) ? body.to : [])].filter((u) => typeof u === "string" && u && u !== caller).slice(0, 5);
+  const to = [...new Set(Array.isArray(body.to) ? body.to : [])]
+    .filter((u) => typeof u === "string" && u && (u !== caller || body.self === true))
+    .slice(0, 5);
   const project = typeof body.project === "string" ? body.project : "";
   let sent = 0;
   for (const uid of to) {
-    if (!(await mayPing(env, caller, uid, project))) continue;
+    if (uid !== caller && !(await mayPing(env, caller, uid, project))) continue;
     const list = await firestoreGet(env, `users/${encodeURIComponent(uid)}/devices?pageSize=20`);
     for (const device of list?.documents || []) {
       const token = device.fields?.token?.stringValue;
@@ -309,4 +325,147 @@ function decode(s) {
     .replace(/&#39;|&apos;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
+}
+
+// ---------- the Gmail add-on ----------
+
+async function sha256Hex(text) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function addonUser(env, key) {
+  if (!key || key.length < 20) throw fail(401, "No Opravilko key: make one in Opravilko, Settings > Data > Gmail");
+  const doc = await firestoreGet(env, `addonKeys/${await sha256Hex(key.trim())}`);
+  const uid = doc?.fields?.uid?.stringValue;
+  if (!uid) throw fail(401, "That key isn't valid any more: make a new one in Opravilko");
+  return uid;
+}
+
+/** Firestore's typed values, from plain JSON. */
+export function toValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === "boolean") return { booleanValue: v };
+  if (typeof v === "number") return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (typeof v === "string") return { stringValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(toValue) } };
+  return { mapValue: { fields: Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined).map(([k, x]) => [k, toValue(x)])) } };
+}
+
+function fromValue(v) {
+  if (!v) return null;
+  if ("stringValue" in v) return v.stringValue;
+  if ("booleanValue" in v) return v.booleanValue;
+  if ("integerValue" in v) return Number(v.integerValue);
+  if ("doubleValue" in v) return v.doubleValue;
+  if ("arrayValue" in v) return (v.arrayValue.values || []).map(fromValue);
+  if ("mapValue" in v) return Object.fromEntries(Object.entries(v.mapValue.fields || {}).map(([k, x]) => [k, fromValue(x)]));
+  return null;
+}
+
+async function myProjects(env, uid) {
+  const res = await fetch(`${FIRESTORE}:runQuery`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${await accessToken(env)}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId: "projects" }],
+        where: { fieldFilter: { field: { fieldPath: "members" }, op: "ARRAY_CONTAINS", value: { stringValue: uid } } },
+      },
+    }),
+  });
+  if (!res.ok) throw fail(502, `Reading your lists failed (${res.status})`);
+  const rows = await res.json();
+  return rows
+    .filter((r) => r.document)
+    .map((r) => ({ id: r.document.name.split("/").pop(), ...fromValue({ mapValue: { fields: r.document.fields } }) }))
+    .filter((p) => !p.isInboxProject || p.id === `inbox_${uid}`);
+}
+
+/** Your lists for the add-on's picker: the Inbox first, then by the app's order. */
+async function addonProjects(env, uid) {
+  const projects = await myProjects(env, uid);
+  const profile = await firestoreGet(env, `users/${encodeURIComponent(uid)}`);
+  const partner = profile?.fields?.partner ? fromValue(profile.fields.partner) : null;
+  return {
+    projects: projects
+      .sort((a, b) => (b.isInboxProject ? 1 : 0) - (a.isInboxProject ? 1 : 0) || (a.order ?? 0) - (b.order ?? 0))
+      .map((p) => ({ id: p.id, name: p.isInboxProject ? "Inbox" : p.name || "List", shopping: p.viewStyle === "shopping" })),
+    partner: partner?.uid ? { uid: partner.uid, name: String(partner.name || "").split(" ")[0] } : null,
+  };
+}
+
+function newId() {
+  const abc = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-";
+  const bytes = crypto.getRandomValues(new Uint8Array(21));
+  return [...bytes].map((b) => abc[b & 63]).join("");
+}
+
+/**
+ * Adds a task as the app would (same fields), to one of your lists; shared
+ * with your partner if asked. Then both phones get a nudge to show it.
+ */
+export async function addonTask(env, uid, body, { write = firestoreCreate, nudge = ping } = {}) {
+  const content = String(body.content || "").trim().slice(0, 500);
+  if (!content) throw fail(400, "The task needs a name");
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(body.date || "") ? body.date : null;
+  const datetime = date && typeof body.datetime === "string" && !Number.isNaN(Date.parse(body.datetime)) ? body.datetime : null;
+  let projectId = typeof body.projectId === "string" && body.projectId ? body.projectId : `inbox_${uid}`;
+  let partner = null;
+  let members = [uid];
+  const projects = await myProjects(env, uid);
+  const project = projects.find((p) => p.id === projectId);
+  if (!project) projectId = `inbox_${uid}`;
+  else members = project.members || [uid];
+  if (body.shared) {
+    const profile = await firestoreGet(env, `users/${encodeURIComponent(uid)}`);
+    const p = profile?.fields?.partner ? fromValue(profile.fields.partner) : null;
+    if (p?.uid) partner = p;
+  }
+  const now = new Date().toISOString();
+  const id = newId();
+  const task = {
+    content,
+    description: String(body.description || "").slice(0, 5000),
+    projectId,
+    sectionId: null,
+    parentId: null,
+    order: Math.floor(Date.now() / 1000),
+    priority: 1,
+    due: date ? { date, string: String(body.dueLabel || date), isRecurring: false, ...(datetime ? { datetime } : {}) } : null,
+    labels: [],
+    completed: false,
+    completedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    archived: false,
+    createdBy: uid,
+    ...(/^\d{4}-\d{2}-\d{2}$/.test(body.deadline || "") ? { deadline: body.deadline } : {}),
+    ...(partner
+      ? {
+          sharedWith: [partner.uid],
+          sharedBy: await myPartnerProfile(env, uid),
+        }
+      : {}),
+  };
+  await write(env, `tasks?documentId=${id}`, task);
+  // Your phones and whoever shares it: show it now.
+  const to = [...new Set([uid, ...members, ...(partner ? [partner.uid] : [])])];
+  await nudge(env, uid, { to, project: projectId, self: true }).catch(() => {});
+  return { id, projectId, list: project?.isInboxProject || !project ? "Inbox" : project.name };
+}
+
+async function myPartnerProfile(env, uid) {
+  const me = await firestoreGet(env, `users/${encodeURIComponent(uid)}`);
+  const f = me?.fields ? fromValue({ mapValue: { fields: me.fields } }) : {};
+  return { uid, name: f.name || "", email: f.email || "", photo: f.photo ?? null };
+}
+
+async function firestoreCreate(env, path, data) {
+  const res = await fetch(`${FIRESTORE}/${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${await accessToken(env)}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: toValue(data).mapValue.fields }),
+  });
+  if (!res.ok) throw fail(502, `Saving the task failed (${res.status})`);
 }

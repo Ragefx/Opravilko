@@ -8,7 +8,7 @@
  * ("Opravilko key" in the panel's ⋮ menu). Setup: gmail-addon/README.md.
  */
 
-var HELPER_URL = ""; // the helper's address (worker/ in the repo), set once it's deployed
+var HELPER_URL = "https://opravilko.cloudsan-29b.workers.dev"; // the helper (worker/ in the repo)
 var ACCENT = "#10897d";
 
 // ---------- triggers ----------

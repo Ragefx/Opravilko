@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 42,
+    date: "2026-09-29",
+    items: [
+      "Widget changes (ticks, items added) are saved and sent to the other phone right away, every time, not only the first one.",
+    ],
+  },
+  {
     build: 41,
     date: "2026-09-29",
     items: [

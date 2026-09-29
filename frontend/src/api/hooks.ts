@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tansta
 import { nanoid } from "nanoid";
 import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } from "date-fns";
 import { fetchAppData, scheduleSave } from "../data/store";
-import { nextOccurrence, parseRecurrenceString } from "../utils/recurrence";
+import { keepRepeat, nextOccurrence, parseRecurrenceString } from "../utils/recurrence";
 import { todayISO } from "../utils/date";
 import { defaultReminders } from "../utils/reminders";
 import { PLAIN_LABEL_COLORS, pickLabelColor } from "../utils/colors";
@@ -199,6 +199,8 @@ export function useUpdateTask() {
     const task = data.tasks.find((t) => t.id === id);
     if (!task) return null;
     if (rest.labels) rest.labels = ensureLabels(data, rest.labels);
+    // A new date for a repeating task keeps the repeat.
+    if (rest.due !== undefined) rest.due = keepRepeat(task.due, rest.due);
     Object.assign(task, rest, { updatedAt: new Date().toISOString() });
     return task;
   });
@@ -339,7 +341,7 @@ export function useRescheduleTasks() {
     const now = new Date().toISOString();
     data.tasks.forEach((t) => {
       if (idSet.has(t.id)) {
-        t.due = due;
+        t.due = keepRepeat(t.due, due);
         t.updatedAt = now;
       }
     });

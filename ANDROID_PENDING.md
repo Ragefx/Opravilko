@@ -17,6 +17,8 @@ Build 41: pinned shops (Remind me at the shop) can be moved and renamed.
 - Widget changes (ticks, items added) are saved and sent to the other phone
   right away, not when Android gets round to its background job (which with
   the app closed let only the first change through in time)
+- A repeating task keeps its repeat when you change its date (the repeat
+  moves with it: every month on the 15th -> on the 20th)
 
 ## Known gaps
 

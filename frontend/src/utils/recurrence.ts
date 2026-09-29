@@ -267,3 +267,23 @@ export function parseNaturalRecurrence(text: string): { rule: RecurrenceRule; ma
 
   return null;
 }
+
+/**
+ * A new date picked for a repeating task keeps its repeat: the rule moves
+ * with it ("every month on the 15th" becomes the 20th's, "every Monday" the
+ * new weekday's; "every month after done" stays as it is). Only a due that
+ * says so itself (a repeat of its own, or rrule set, even to nothing, as
+ * "Doesn't repeat" does) replaces it.
+ */
+export function keepRepeat(prev: Due | null | undefined, next: Due | null): Due | null {
+  if (!next || next.isRecurring || "rrule" in next || !prev?.isRecurring) return next;
+  const rule = parseRecurrenceString(prev.rrule);
+  if (!rule) return next;
+  const d = parseISO(next.date);
+  const moved: RecurrenceRule = { ...rule };
+  if (!rule.afterDone) {
+    if (rule.freq === "weekly" && rule.byDay?.length === 1) moved.byDay = [getDay(d)];
+    if (rule.freq === "monthly" && rule.byMonthDay && rule.byMonthDay > 0) moved.byMonthDay = d.getDate();
+  }
+  return { ...next, string: describeRecurrence(moved), isRecurring: true, rrule: serializeRecurrence(moved) };
+}

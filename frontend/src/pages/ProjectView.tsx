@@ -7,6 +7,7 @@ import BoardView from "../components/BoardView";
 import CalendarView from "../components/CalendarView";
 import ShoppingView from "../components/ShoppingView";
 import ProjectMenu from "../components/ProjectMenu";
+import ProjectFilesButton from "../components/ProjectFilesButton";
 import DisplayMenu from "../components/DisplayMenu";
 import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
 import { ArchiveIcon, DisplayIcon } from "../components/icons";
@@ -126,6 +127,7 @@ export default function ProjectView() {
             )}
           </div>
         )}
+        <ProjectFilesButton project={project} />
         <div style={{ position: "relative" }}>
           <button
             className="display-icon-btn"

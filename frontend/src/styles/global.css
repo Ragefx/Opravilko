@@ -7546,3 +7546,33 @@ button.sidebar-link {
   font-weight: 600;
   color: var(--color-text-secondary);
 }
+
+/* ---------- A project's own files ---------- */
+.project-files-btn {
+  position: relative;
+}
+.project-files-count {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+.modal.project-files-modal {
+  width: 520px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+.project-files-modal .attachments {
+  margin-top: 4px;
+}

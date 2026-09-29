@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { Attachment, Task } from "../api/types";
-import { useAddAttachments, useRemoveAttachment } from "../api/hooks";
+import type { Attachment, Project, Task } from "../api/types";
+import { useAddAttachments, useAddProjectFiles, useRemoveAttachment, useRemoveProjectFile } from "../api/hooks";
 import {
   ATTACHMENT_BUDGET,
   AttachmentError,
@@ -10,7 +10,7 @@ import {
   uploadAttachment,
   watchStorageUsed,
 } from "../firebase/attachments";
-import { usingFirebase } from "../data/store";
+import { activeSession, usingFirebase } from "../data/store";
 import { FileIcon, PaperclipIcon, TrashIcon } from "./icons";
 import { isNativeApp } from "../dropbox/auth";
 import { openFileNatively } from "../native/share";
@@ -25,6 +25,56 @@ import { useToast } from "./ToastProvider";
 export default function TaskAttachments({ task }: { task: Task }) {
   const addAttachments = useAddAttachments();
   const removeAttachment = useRemoveAttachment();
+  return (
+    <AttachmentsPanel
+      holderKey={task.id}
+      holder={task.id}
+      items={task.attachments || []}
+      onAdd={(added) => addAttachments.mutate({ id: task.id, attachments: added })}
+      onRemove={(att) => removeAttachment.mutate({ taskId: task.id, attachmentId: att.id })}
+      dropSelector=".detail-panel, .task-detail"
+    />
+  );
+}
+
+/** A project's own files (Files in the project's header): shared with everyone on the project. */
+export function ProjectFiles({ project }: { project: Project }) {
+  const addFiles = useAddProjectFiles();
+  const removeFile = useRemoveProjectFile();
+  const stored = activeSession()?.toStoredProjectId(project.id) ?? project.id;
+  return (
+    <AttachmentsPanel
+      holderKey={project.id}
+      holder={{ projectId: stored }}
+      items={project.attachments || []}
+      onAdd={(added) => addFiles.mutate({ id: project.id, attachments: added })}
+      onRemove={(att) => removeFile.mutate({ projectId: project.id, attachmentId: att.id })}
+      dropSelector=".project-files-modal"
+      title="Files"
+      note="Photos, PDFs or documents up to 10 MB, kept with the project (everyone on it sees them). You can also drop files here."
+    />
+  );
+}
+
+function AttachmentsPanel({
+  holderKey,
+  holder,
+  items,
+  onAdd,
+  onRemove,
+  dropSelector,
+  title = "Attachments",
+  note = "Photos, PDFs or documents up to 10 MB. You can also drop files onto the task.",
+}: {
+  holderKey: string;
+  holder: string | { projectId: string };
+  items: Attachment[];
+  onAdd: (added: Attachment[]) => void;
+  onRemove: (att: Attachment) => void;
+  dropSelector: string;
+  title?: string;
+  note?: string;
+}) {
   const showToast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<{ name: string; share: number } | null>(null);
@@ -38,7 +88,7 @@ export default function TaskAttachments({ task }: { task: Task }) {
   // Dropping files anywhere on the open task attaches them.
   useEffect(() => {
     if (!usingFirebase()) return;
-    const panel = document.querySelector(".detail-panel, .task-detail");
+    const panel = document.querySelector(dropSelector);
     const target: HTMLElement | Document = (panel as HTMLElement) || document;
     const over = (e: Event) => {
       const de = e as DragEvent;
@@ -65,12 +115,12 @@ export default function TaskAttachments({ task }: { task: Task }) {
       target.removeEventListener("drop", drop);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task.id]);
+  }, [holderKey]);
 
   if (!usingFirebase()) {
     return (
       <div className="attachments">
-        <div className="attachments-title">Attachments</div>
+        <div className="attachments-title">{title}</div>
         <p className="attachments-note">Attachments need Google sign-in (Settings → Account).</p>
       </div>
     );
@@ -82,14 +132,14 @@ export default function TaskAttachments({ task }: { task: Task }) {
     for (const file of Array.from(files)) {
       setUploading({ name: file.name, share: 0 });
       try {
-        added.push(await uploadAttachment(task.id, file, (share) => setUploading({ name: file.name, share })));
+        added.push(await uploadAttachment(holder, file, (share) => setUploading({ name: file.name, share })));
       } catch (err) {
         setError(err instanceof AttachmentError ? err.message : `Couldn't attach “${file.name}”.`);
         break;
       }
     }
     setUploading(null);
-    if (added.length) addAttachments.mutate({ id: task.id, attachments: added });
+    if (added.length) onAdd(added);
   }
 
   async function open(att: Attachment) {
@@ -124,15 +174,15 @@ export default function TaskAttachments({ task }: { task: Task }) {
   }
 
   function remove(att: Attachment) {
-    removeAttachment.mutate({ taskId: task.id, attachmentId: att.id });
+    onRemove(att);
     showToast({
       message: `Removed “${att.name}”`,
       actionLabel: "Undo",
-      onAction: () => addAttachments.mutate({ id: task.id, attachments: [att] }),
+      onAction: () => onAdd([att]),
     });
   }
 
-  const atts = task.attachments || [];
+  const atts = items;
   const photos = atts.filter((a) => a.thumb);
   const files = atts.filter((a) => !a.thumb);
   const nearlyFull = used >= ATTACHMENT_BUDGET * WARN_AT;
@@ -140,7 +190,7 @@ export default function TaskAttachments({ task }: { task: Task }) {
   return (
     <div className={`attachments ${dragOver ? "is-drag-over" : ""}`}>
       <div className="attachments-title">
-        Attachments
+        {title}
         <button className="btn btn-text attachments-add" onClick={() => inputRef.current?.click()} disabled={Boolean(uploading)}>
           <PaperclipIcon width={14} height={14} /> Add file
         </button>
@@ -192,7 +242,7 @@ export default function TaskAttachments({ task }: { task: Task }) {
       )}
       {error && <div className="attachments-error">{error}</div>}
       {atts.length === 0 && !uploading && !error && (
-        <p className="attachments-note">Photos, PDFs or documents up to 10 MB. You can also drop files onto the task.</p>
+        <p className="attachments-note">{note}</p>
       )}
       {nearlyFull && (
         <p className="attachments-note warn">

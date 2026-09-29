@@ -78,7 +78,7 @@ service cloud.firestore {
         // The owner can change anything except who owns it.
         (me() == resource.data.ownerId && request.resource.data.ownerId == me() && me() in request.resource.data.members)
         // Other members edit the project but not its membership...
-        || (onlyChanges(['name', 'color', 'order', 'isFavorite', 'parentId', 'viewStyle', 'meals', 'bought', 'stores', 'shopOrder', 'trip']))
+        || (onlyChanges(['name', 'color', 'order', 'isFavorite', 'parentId', 'viewStyle', 'meals', 'bought', 'stores', 'shopOrder', 'trip', 'attachments']))
         // ...except to leave it.
         || (onlyChanges(['members', 'memberProfiles'])
             && request.resource.data.members == resource.data.members.removeAll([me()]))
@@ -122,24 +122,34 @@ service cloud.firestore {
       return !exists(/databases/$(database)/documents/tasks/$(tid));
     }
 
+    // A file belongs to a task (taskId) or to a project itself (projectId).
+    function canAccessFile(d) {
+      return (d.get('projectId', '') != '' && isMember(d.projectId))
+        || (d.get('projectId', '') == '' && canAccessTask(d.taskId));
+    }
+    function fileHolderGone(d) {
+      return (d.get('projectId', '') != '' && !exists(projectPath(d.projectId)))
+        || (d.get('projectId', '') == '' && taskGone(d.taskId));
+    }
+
     match /attachments/{aid} {
-      allow read: if signedIn() && canAccessTask(resource.data.taskId);
+      allow read: if signedIn() && canAccessFile(resource.data);
       allow create: if signedIn()
         && request.resource.data.ownerUid == me()
         && request.resource.data.size <= 10485760
-        && canAccessTask(request.resource.data.taskId);
+        && canAccessFile(request.resource.data);
       allow update: if signedIn() && resource.data.ownerUid == me() && onlyChanges(['status']);
       allow delete: if signedIn()
-        && (resource.data.ownerUid == me() || canAccessTask(resource.data.taskId) || taskGone(resource.data.taskId));
+        && (resource.data.ownerUid == me() || canAccessFile(resource.data) || fileHolderGone(resource.data));
 
       match /chunks/{cid} {
         function att() {
           return get(/databases/$(database)/documents/attachments/$(aid)).data;
         }
-        allow read: if signedIn() && canAccessTask(att().taskId);
+        allow read: if signedIn() && canAccessFile(att());
         allow create: if signedIn() && att().ownerUid == me() && request.resource.data.data.size() <= 950000;
         allow delete: if signedIn()
-          && (att().ownerUid == me() || canAccessTask(att().taskId) || taskGone(att().taskId));
+          && (att().ownerUid == me() || canAccessFile(att()) || fileHolderGone(att()));
       }
     }
 

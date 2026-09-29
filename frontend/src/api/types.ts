@@ -23,6 +23,8 @@ export interface Project {
   meals?: Meal[];
   /** Shopping lists: how often each thing was ticked off ("usual items"), by lower-case name. */
   bought?: Record<string, { name: string; n: number }>;
+  /** Firebase only: files kept on the project itself (the contents live in attachments/{id}). */
+  attachments?: Attachment[];
   /** Shopping lists: the shops items can be marked for (SPAR, Hofer, Lidl unless changed). */
   stores?: string[];
   /** Shopping lists: each shop's walking order of categories, learned from the order things get ticked there. */

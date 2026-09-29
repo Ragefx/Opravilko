@@ -535,7 +535,7 @@ export class FirestoreSync {
     return id === inboxId(this.uid) ? INBOX : id;
   }
 
-  private toStoredProjectId(id: string | null | undefined): string | null {
+  toStoredProjectId(id: string | null | undefined): string | null {
     if (!id) return null;
     return id === INBOX ? inboxId(this.uid) : id;
   }
@@ -816,11 +816,13 @@ export class FirestoreSync {
    * (Undo), or still attached elsewhere.
    */
   private scheduleAttachmentCleanup(prev: AppData, next: AppData) {
-    const kept = new Set(next.tasks.flatMap((t) => (t.attachments || []).map((a) => a.id)));
-    const removed = prev.tasks.flatMap((t) => t.attachments || []).filter((a) => !kept.has(a.id));
+    // Tasks' files and projects' own files.
+    const all = (d: AppData) => [...d.tasks, ...d.projects].flatMap((x) => x.attachments || []);
+    const kept = new Set(all(next).map((a) => a.id));
+    const removed = all(prev).filter((a) => !kept.has(a.id));
     if (!removed.length) return;
     window.setTimeout(() => {
-      const now = new Set((this.lastKnown?.tasks || []).flatMap((t) => (t.attachments || []).map((a) => a.id)));
+      const now = new Set(this.lastKnown ? all(this.lastKnown).map((a) => a.id) : []);
       const gone = removed.filter((a) => !now.has(a.id));
       if (gone.length) void deleteAttachmentBlobs(gone).catch((err) => console.warn("Couldn't delete attachments", err));
     }, 15_000);

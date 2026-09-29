@@ -177,6 +177,25 @@ export function useRemoveAttachment() {
   });
 }
 
+/** Files added to a project itself (not to one of its tasks). */
+export function useAddProjectFiles() {
+  return useLocalMutation<{ id: string; attachments: Attachment[] }, void>((data, { id, attachments }) => {
+    const project = data.projects.find((p) => p.id === id);
+    if (!project) return;
+    project.attachments = [...(project.attachments || []), ...attachments];
+  });
+}
+
+/** Takes a file off its project; the stored file is deleted shortly after. */
+export function useRemoveProjectFile() {
+  return useLocalMutation<{ projectId: string; attachmentId: string }, void>((data, { projectId, attachmentId }) => {
+    const project = data.projects.find((p) => p.id === projectId);
+    if (!project?.attachments) return;
+    project.attachments = project.attachments.filter((a) => a.id !== attachmentId);
+    if (project.attachments.length === 0) delete project.attachments;
+  });
+}
+
 /** Shares a task (and its sub-tasks) with your partner, or makes it private again. */
 export function useSetTaskShared() {
   return useLocalMutation<{ id: string; shared: boolean }, void>((data, { id, shared }) => {

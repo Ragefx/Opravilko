@@ -115,7 +115,12 @@ async function prepare(file: File): Promise<{ blob: Blob; name: string; type: st
  * Stores a file for a task and returns its description, to be added to the
  * task's `attachments`. Checks the size and the budget first.
  */
-export async function uploadAttachment(taskId: string, file: File, onProgress?: (share: number) => void): Promise<Attachment> {
+export async function uploadAttachment(
+  /** The task it's for, or { projectId } (the stored id) for a project's own files. */
+  holder: string | { projectId: string },
+  file: File,
+  onProgress?: (share: number) => void
+): Promise<Attachment> {
   const user = currentUser();
   if (!user) throw new AttachmentError("Attachments need Google sign-in.");
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
@@ -139,7 +144,7 @@ export async function uploadAttachment(taskId: string, file: File, onProgress?: 
   const chunkCount = Math.max(1, Math.ceil(bytes.length / CHUNK));
   const attRef = doc(db, "attachments", id);
   await setDoc(attRef, {
-    taskId,
+    ...(typeof holder === "string" ? { taskId: holder } : { projectId: holder.projectId }),
     ownerUid: user.uid,
     name: prepared.name,
     type: prepared.type,

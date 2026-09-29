@@ -7,16 +7,13 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 41** (commit `718f285`, Sep 29 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-41
+Last build: **build 42** (commit `1c7f5fe`, Sep 29 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-42
 
-Build 41: pinned shops (Remind me at the shop) can be moved and renamed.
+Build 42: widget changes are saved and sent to the other phone right away.
 
 ## In the code, not in the app yet
 
-- Widget changes (ticks, items added) are saved and sent to the other phone
-  right away, not when Android gets round to its background job (which with
-  the app closed let only the first change through in time)
 - A repeating task keeps its repeat when you change its date (the repeat
   moves with it: every month on the 15th -> on the 20th)
 

@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Background sync for the widget, run by Android's JobScheduler whenever
@@ -29,14 +30,48 @@ public class WidgetSyncJob extends JobService {
     private static final int PERIODIC_JOB_ID = 47_111;
     private static final Object LOCK = new Object();
 
+    /** A sync already waiting to start (it'll take everything queued by then). */
+    private static final AtomicBoolean NOW_QUEUED = new AtomicBoolean(false);
+
+    /**
+     * A change in the widget (a tick, an item added): saved and sent to the
+     * other phone right away, on a thread of its own. Android runs its jobs
+     * when it sees fit -- with the app closed that was often minutes later,
+     * so only the first of several changes reached the other phone in time.
+     * The job stays as the backup, for when this one fails (offline) or the
+     * app is closed before it's done.
+     */
     public static void schedule(Context context) {
+        Context app = context.getApplicationContext();
+        if (NOW_QUEUED.compareAndSet(false, true)) {
+            new Thread(() -> {
+                boolean done = false;
+                try {
+                    synchronized (LOCK) {
+                        NOW_QUEUED.set(false);
+                        sync(app);
+                    }
+                    done = true;
+                } catch (Exception e) {
+                    // Offline, or signed out: the job below tries again.
+                } finally {
+                    NOW_QUEUED.set(false);
+                }
+                if (!done) scheduleJob(app, 0);
+            }, "opravilko-widget-sync-now").start();
+        }
+        // The backup, a little later: by then usually with nothing left to send.
+        scheduleJob(app, 30_000);
+    }
+
+    private static void scheduleJob(Context context, long delayMs) {
         JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         if (scheduler == null) return;
-        JobInfo job = new JobInfo.Builder(JOB_ID, new ComponentName(context, WidgetSyncJob.class))
+        JobInfo.Builder job = new JobInfo.Builder(JOB_ID, new ComponentName(context, WidgetSyncJob.class))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                .setBackoffCriteria(30_000, JobInfo.BACKOFF_POLICY_EXPONENTIAL)
-                .build();
-        scheduler.schedule(job);
+                .setBackoffCriteria(30_000, JobInfo.BACKOFF_POLICY_EXPONENTIAL);
+        if (delayMs > 0) job.setMinimumLatency(delayMs);
+        scheduler.schedule(job.build());
     }
 
     /**

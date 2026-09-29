@@ -14,7 +14,9 @@ Build 41: pinned shops (Remind me at the shop) can be moved and renamed.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Widget changes (ticks, items added) are saved and sent to the other phone
+  right away, not when Android gets round to its background job (which with
+  the app closed let only the first change through in time)
 
 ## Known gaps
 

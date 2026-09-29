@@ -14,6 +14,8 @@ Build 43: Productivity for the two of you and shopping, project files and descri
 
 ## In the code, not in the app yet
 
+- Projects: no display menu; the Inbox is always a board, projects are lists,
+  and a Sort button (date, priority, name, date added, or your own order)
 - Shopping items are kept exactly as typed: no capital first letter (in the
   app, the widget, and from the keyboard)
 - Comments show who wrote them, by name and Google picture

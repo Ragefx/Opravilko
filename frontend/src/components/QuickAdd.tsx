@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
-import { formatDueLabel } from "../utils/date";
+import { formatDueLabel, todayISO } from "../utils/date";
 import { PRIORITY_META } from "../utils/priority";
 import { deadlineInfo } from "../utils/deadline";
 import { type RepeatPreset, applyRecurrence } from "../utils/recurrence";
@@ -12,6 +12,8 @@ import DueButton from "./DueButton";
 import MicButton from "./MicButton";
 import type { Due } from "../api/types";
 import LabelChip from "./LabelChip";
+import { appUi } from "../utils/appUi";
+import { requestQuickAdd } from "../native/widget";
 
 export default function QuickAdd({
   projectId,
@@ -85,7 +87,23 @@ export default function QuickAdd({
 
   if (!open) {
     return (
-      <button className="add-task-trigger" onClick={() => setOpen(true)}>
+      <button
+        className="add-task-trigger"
+        onClick={() => {
+          // The website: the same Add task window as the + Add button, set to this place and day.
+          if (!appUi) {
+            requestQuickAdd({
+              projectId,
+              sectionId,
+              today: defaultDue?.date === todayISO(),
+              date: defaultDue?.date === todayISO() ? undefined : defaultDue?.date,
+              shared: defaultShared && Boolean(partner),
+            });
+            return;
+          }
+          setOpen(true);
+        }}
+      >
         <span className="plus">+</span> Add task
       </button>
     );

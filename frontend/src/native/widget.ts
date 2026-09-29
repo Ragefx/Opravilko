@@ -49,6 +49,10 @@ export interface QuickAddRequest {
   date?: string;
   /** The widget's mic: start listening straight away. */
   voice?: boolean;
+  /** Into this section of the project (an "Add task" under a section). */
+  sectionId?: string | null;
+  /** Starts shared with your partner (Midva's "Add task"). */
+  shared?: boolean;
 }
 
 // Held until the app shell picks it up -- on a cold start it may not be mounted yet.

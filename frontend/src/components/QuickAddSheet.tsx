@@ -86,12 +86,18 @@ export default function QuickAddSheet({
   defaultProjectId = "inbox",
   defaultToday = false,
   defaultDate,
+  defaultSectionId = null,
+  defaultShared = false,
   listenOnOpen = false,
 }: {
   onClose: () => void;
   defaultProjectId?: string;
   defaultToday?: boolean;
   defaultDate?: string;
+  /** Opened from an "Add task" under a section: into that section. */
+  defaultSectionId?: string | null;
+  /** Opened from Midva: starts shared with your partner. */
+  defaultShared?: boolean;
   listenOnOpen?: boolean;
 }) {
   const { data } = useBootstrap();
@@ -106,7 +112,12 @@ export default function QuickAddSheet({
 
   const places = addPlaces(data);
   const [targetKey, setTargetKey] = useState(
-    () => (places.find((t) => t.projectId === defaultProjectId && !t.sectionId) ?? places[0]).key
+    () =>
+      (
+        places.find((t) => t.projectId === defaultProjectId && t.sectionId === defaultSectionId) ??
+        places.find((t) => t.projectId === defaultProjectId && !t.sectionId) ??
+        places[0]
+      ).key
   );
   const [text, setText] = useState("");
   // The website's window (the app has the card on the keyboard).
@@ -117,7 +128,7 @@ export default function QuickAddSheet({
   const [labels, setLabels] = useState<string[]>([]);
   const [location, setLocation] = useState<TaskLocation | null>(null);
   const [repeat, setRepeat] = useState<RepeatPreset | "none">("none");
-  const [shared, setShared] = useState(false);
+  const [shared, setShared] = useState(defaultShared);
   const [file, setFile] = useState<File | null>(null);
   const [added, setAdded] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);

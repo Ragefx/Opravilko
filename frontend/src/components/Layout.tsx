@@ -345,6 +345,8 @@ export default function Layout() {
             }
             defaultToday={quickAddPreset?.today}
             defaultDate={quickAddPreset?.date}
+            defaultSectionId={quickAddPreset?.sectionId ?? null}
+            defaultShared={quickAddPreset?.shared}
             listenOnOpen={quickAddPreset?.voice}
           />
         )}

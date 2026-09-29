@@ -1,6 +1,6 @@
 import { type ReactNode, forwardRef, useEffect, useRef, useState } from "react";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
-import type { Task } from "../api/types";
+import type { Partner, Project, Task } from "../api/types";
 import {
   useAddComment,
   useBootstrap,
@@ -767,7 +767,21 @@ export default function TaskDetail({
                 </label>
               )}
 
-              {project && data?.partner && (
+              {project && (project.members?.length ?? 0) > 1 ? (
+                // In a shared project every task is already everyone's: no switch.
+                <div className="td-row">
+                  <span className="td-row-icon">
+                    <ShareIcon width={20} height={20} />
+                  </span>
+                  <span className="td-row-body">
+                    <span className="td-row-caption">Shared</span>
+                    <span className="td-row-value">
+                      With {projectPeople(project, data?.me, data?.partner) || "everyone on the project"}, like all of “
+                      {project.name}”
+                    </span>
+                  </span>
+                </div>
+              ) : project && data?.partner && (
                 <label className="td-row td-row-switch">
                   <span className="td-row-icon">
                     <ShareIcon width={20} height={20} />
@@ -893,3 +907,13 @@ const PropRow = forwardRef<
     </div>
   );
 });
+
+/** The other people on a shared project, by first name ("Maruša", "Maruša and Luka"). */
+function projectPeople(project: Project, me: string | undefined, partner: Partner | null | undefined): string {
+  const names = (project.members ?? [])
+    .filter((uid) => uid !== me)
+    .map((uid) => (partner?.uid === uid ? partner.name : project.memberProfiles?.[uid]?.name) ?? "")
+    .map((n) => n.split(" ")[0])
+    .filter(Boolean);
+  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}

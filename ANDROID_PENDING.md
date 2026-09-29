@@ -17,6 +17,8 @@ Build 43: Productivity for the two of you and shopping, project files and descri
 - Shopping items are kept exactly as typed: no capital first letter (in the
   app, the widget, and from the keyboard)
 - Comments on shared tasks show who wrote them
+- A task in a shared project says it's shared with everyone on it (no
+  "Share with" switch there)
 
 ## Known gaps
 

@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 41,
+    date: "2026-09-29",
+    items: [
+      "Remind me at the shop: tap a pinned shop to move it on the map or give it a name of its own (\"SPAR Rudnik\"); new pins show their street.",
+    ],
+  },
+  {
     build: 40,
     date: "2026-09-28",
     items: [

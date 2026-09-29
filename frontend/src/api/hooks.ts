@@ -294,7 +294,7 @@ export function useAddComment() {
     const task = data.tasks.find((t) => t.id === taskId);
     if (!task) return null;
     if (!task.comments) task.comments = [];
-    task.comments.push({ id: nanoid(), text, createdAt: new Date().toISOString() });
+    task.comments.push({ id: nanoid(), text, createdAt: new Date().toISOString(), ...(data.me ? { by: data.me } : {}) });
     task.updatedAt = new Date().toISOString();
     return task;
   });

@@ -17,7 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { projectRoute } from "../utils/away";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
-import { completedByName } from "../utils/completedBy";
+import { completedByName, personName } from "../utils/completedBy";
 import { deadlineInfo } from "../utils/deadline";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { dueDateClass, formatDueLabel, makeDue, todayISO } from "../utils/date";
@@ -401,6 +401,7 @@ export default function TaskDetail({
         <div key={c.id} className="comment-row">
           <div className="comment-text">{c.text}</div>
           <div className="comment-meta">
+            {personName(c.by, task, data) && <b className="comment-by">{personName(c.by, task, data)}</b>}
             <span>{new Date(c.createdAt).toLocaleString()}</span>
             <button
               className="btn-text"

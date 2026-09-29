@@ -7612,3 +7612,8 @@ button.sidebar-link {
 .project-description-add:hover {
   color: var(--color-accent);
 }
+.comment-by {
+  margin-right: 6px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}

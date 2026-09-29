@@ -15,3 +15,21 @@ export function completedByName(task: Task, data: AppData | undefined): string |
   const name = data.partner?.uid === by ? data.partner.name : project?.memberProfiles?.[by]?.name;
   return name?.split(" ")[0] || null;
 }
+
+/**
+ * A person on a shared task, by their user id, as the task view names them:
+ * "You", or their first name (your partner, someone on the project, or the
+ * person who shared the task). Null on a task only you see.
+ */
+export function personName(by: string | undefined, task: Task, data: AppData | undefined): string | null {
+  if (!by || !data) return null;
+  const project = data.projects.find((p) => p.id === task.projectId);
+  const shared = (project?.members?.length ?? 0) > 1 || (task.sharedWith?.length ?? 0) > 0 || Boolean(task.sharedBy);
+  if (!shared) return null;
+  if (by === data.me) return "You";
+  const name =
+    data.partner?.uid === by
+      ? data.partner.name
+      : (project?.memberProfiles?.[by]?.name ?? (task.sharedBy?.uid === by ? task.sharedBy.name : undefined));
+  return name?.split(" ")[0] || null;
+}

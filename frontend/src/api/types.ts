@@ -83,6 +83,8 @@ export interface Comment {
   id: string;
   text: string;
   createdAt: string;
+  /** Who wrote it (their user id); comments from before this don't say. */
+  by?: string;
 }
 
 export interface Task {

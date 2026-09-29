@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { addShopPlace, removeShopPlace, SHOP_PLACES_CHANGED, shopPlaces, type ShopPlace } from "../utils/shopPlaces";
+import {
+  addShopPlace,
+  removeShopPlace,
+  SHOP_PLACES_CHANGED,
+  shopPlaces,
+  updateShopPlace,
+  type ShopPlace,
+} from "../utils/shopPlaces";
 import { openLocationSettings, requestArrivalAccess, resyncArrivalPlaces } from "../native/places";
 import LocationPicker from "./LocationPicker";
 import { useToast } from "./ToastProvider";
@@ -14,6 +21,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
   const showToast = useToast();
   const [places, setPlaces] = useState<ShopPlace[]>(shopPlaces);
   const [adding, setAdding] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ShopPlace | null>(null);
 
   useEffect(() => {
     const update = () => {
@@ -42,13 +50,30 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
   if (adding) {
     return (
       <LocationPicker
+        nameable
         onClose={() => setAdding(null)}
         onSave={(loc) => {
           if (loc) {
-            addShopPlace({ shop: adding, name: loc.name, lat: loc.lat, lng: loc.lng });
+            addShopPlace({ shop: adding, name: loc.name, address: loc.address, lat: loc.lat, lng: loc.lng });
             void askAccess();
           }
           setAdding(null);
+        }}
+      />
+    );
+  }
+  // A pinned shop, tapped: the map opens on it, to move the pin or rename it.
+  if (editing) {
+    return (
+      <LocationPicker
+        nameable
+        removeLabel="Remove this shop"
+        initial={{ name: editing.name, address: editing.address, lat: editing.lat, lng: editing.lng }}
+        onClose={() => setEditing(null)}
+        onSave={(loc) => {
+          if (loc) updateShopPlace(editing.id, { name: loc.name, address: loc.address, lat: loc.lat, lng: loc.lng });
+          else removeShopPlace(editing.id);
+          setEditing(null);
         }}
       />
     );
@@ -65,7 +90,10 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
       <div className="shop-picker shop-places" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Shops on the map">
         <div className="shop-picker-handle" aria-hidden="true" />
         <h3>Remind me at the shop</h3>
-        <p>Pin your shops (as many of each as you like). When you arrive at one, your phone shows what to buy there, even with the app closed.</p>
+        <p>
+          Pin your shops (as many of each as you like). When you arrive at one, your phone shows what to buy there,
+          even with the app closed. Tap a pinned shop to move it or give it a name of its own.
+        </p>
         <div className="shop-picker-list">
           {stores.map((store) => {
             const mine = places.filter((p) => p.shop === store);
@@ -74,10 +102,20 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
                 <div className="shop-places-name">{store}</div>
                 {mine.map((p) => (
                   <div key={p.id} className="shop-picker-row shop-places-place">
-                    <span className="shop-picker-icon" aria-hidden="true">
-                      <MapPinIcon width={18} height={18} />
-                    </span>
-                    <span className="shop-picker-name">{p.name}</span>
+                    <button
+                      type="button"
+                      className="shop-places-edit"
+                      onClick={() => setEditing(p)}
+                      aria-label={`Change ${p.name}: move it or rename it`}
+                    >
+                      <span className="shop-picker-icon" aria-hidden="true">
+                        <MapPinIcon width={18} height={18} />
+                      </span>
+                      <span className="shop-places-text">
+                        <span className="shop-picker-name">{p.name}</span>
+                        {p.address && <span className="shop-places-address">{p.address}</span>}
+                      </span>
+                    </button>
                     <button
                       type="button"
                       className="rem-remove"

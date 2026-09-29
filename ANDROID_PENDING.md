@@ -14,7 +14,8 @@ Build 40: label colours, colour themes, shopping items reach the other phone str
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Remind me at the shop: tap a pinned shop to move it on the map or give it
+  a name of its own ("SPAR Rudnik"); new pins show their street
 
 ## Known gaps
 

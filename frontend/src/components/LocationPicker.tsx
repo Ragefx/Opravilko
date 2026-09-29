@@ -35,12 +35,19 @@ export default function LocationPicker({
   initial,
   onSave,
   onClose,
+  nameable = false,
+  removeLabel = "Remove location",
 }: {
   initial?: TaskLocation;
   onSave: (loc: TaskLocation | null) => void;
   onClose: () => void;
+  /** The place's name can be typed over ("SPAR Rudnik"), kept when the pin moves. */
+  nameable?: boolean;
+  removeLabel?: string;
 }) {
   const [picked, setPicked] = useState<TaskLocation | null>(initial ?? null);
+  // A name typed over the place's own (null: the place's own name is used).
+  const [ownName, setOwnName] = useState<string | null>(nameable && initial ? initial.name : null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TaskLocation[]>([]);
   const [searching, setSearching] = useState(false);
@@ -143,7 +150,8 @@ export default function LocationPicker({
     } catch {
       /* ignore */
     }
-    onSave(picked);
+    const name = ownName?.trim();
+    onSave(name ? { ...picked, name } : picked);
   }
 
   // On top of the task panel (a portal), and clicks here don't reach it.
@@ -215,10 +223,24 @@ export default function LocationPicker({
           )}
         </div>
 
+        {nameable && picked && (
+          <label className="location-name">
+            <span>Name</span>
+            <input
+              value={ownName ?? (locating ? "" : picked.name)}
+              placeholder={locating ? "Finding the address…" : picked.name}
+              onChange={(e) => setOwnName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !locating) save();
+              }}
+            />
+          </label>
+        )}
+
         <div className="modal-actions">
           {initial && (
             <button className="btn btn-text location-remove" onClick={() => onSave(null)}>
-              Remove location
+              {removeLabel}
             </button>
           )}
           <button className="btn btn-text" onClick={onClose}>

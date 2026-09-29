@@ -9,8 +9,10 @@ export interface ShopPlace {
   id: string;
   /** The shop's name as on the list ("SPAR"). */
   shop: string;
-  /** The place picked ("SPAR Ljubljana Rudnik"). */
+  /** The place picked ("SPAR Ljubljana Rudnik"), or the name you gave it. */
   name: string;
+  /** Its street address, to tell same-named shops apart. */
+  address?: string;
   lat: number;
   lng: number;
 }
@@ -43,4 +45,8 @@ export function addShopPlace(place: Omit<ShopPlace, "id">): void {
 
 export function removeShopPlace(id: string): void {
   save(shopPlaces().filter((p) => p.id !== id));
+}
+
+export function updateShopPlace(id: string, changes: Partial<Omit<ShopPlace, "id" | "shop">>): void {
+  save(shopPlaces().map((p) => (p.id === id ? { ...p, ...changes } : p)));
 }

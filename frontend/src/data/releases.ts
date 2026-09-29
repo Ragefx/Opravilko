@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 44,
+    date: "2026-09-29",
+    items: [
+      "Shopping items are kept exactly as typed: no capital first letter (in the app, the widget, and from the keyboard).",
+      "Comments show who wrote them, by name and Google picture; links in them can be tapped, and your own comments can be edited.",
+      "A task in a shared project says it's shared with everyone on it (no \"Share with\" switch there).",
+    ],
+  },
+  {
     build: 43,
     date: "2026-09-29",
     items: [

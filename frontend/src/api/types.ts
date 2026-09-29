@@ -85,6 +85,8 @@ export interface Comment {
   createdAt: string;
   /** Who wrote it (their user id); comments from before this don't say. */
   by?: string;
+  /** When it was last changed, if it was. */
+  editedAt?: string;
 }
 
 export interface Task {

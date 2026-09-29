@@ -19,6 +19,7 @@ Build 43: Productivity for the two of you and shopping, project files and descri
 - Comments on shared tasks show who wrote them
 - A task in a shared project says it's shared with everyone on it (no
   "Share with" switch there)
+- Comments: links in them can be tapped, and your comments can be edited
 
 ## Known gaps
 

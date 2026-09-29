@@ -300,6 +300,17 @@ export function useAddComment() {
   });
 }
 
+export function useEditComment() {
+  return useLocalMutation<{ taskId: string; commentId: string; text: string }, void>((data, { taskId, commentId, text }) => {
+    const task = data.tasks.find((t) => t.id === taskId);
+    const comment = task?.comments?.find((c) => c.id === commentId);
+    if (!task || !comment) return;
+    comment.text = text;
+    comment.editedAt = new Date().toISOString();
+    task.updatedAt = new Date().toISOString();
+  });
+}
+
 export function useDeleteComment() {
   return useLocalMutation<{ taskId: string; commentId: string }, void>((data, { taskId, commentId }) => {
     const task = data.tasks.find((t) => t.id === taskId);

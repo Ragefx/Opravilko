@@ -8,6 +8,7 @@ import {
   useCreateProject,
   useCreateTask,
   useDeleteComment,
+  useEditComment,
   useDeleteTask,
   useRestoreTasks,
   useSetTaskShared,
@@ -18,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { projectRoute } from "../utils/away";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
 import { completedByName, personName } from "../utils/completedBy";
+import { linkParts } from "../utils/linkify";
 import { deadlineInfo } from "../utils/deadline";
 import { parseQuickAddInput } from "../utils/quickAddParse";
 import { dueDateClass, formatDueLabel, makeDue, todayISO } from "../utils/date";
@@ -97,6 +99,8 @@ export default function TaskDetail({
   const completeTask = useCompleteTask();
   const addComment = useAddComment();
   const deleteComment = useDeleteComment();
+  const editComment = useEditComment();
+  const [editingComment, setEditingComment] = useState<{ id: string; text: string } | null>(null);
   const showToast = useToast();
   // Ticking it off here plays the list's tick (circle pops, name strikes
   // through), then the task closes, with Undo.
@@ -258,6 +262,14 @@ export default function TaskDetail({
     setAddingSubtask(false);
   }
 
+  function saveCommentEdit() {
+    if (!editingComment) return;
+    const text = editingComment.text.trim();
+    const was = task.comments?.find((c) => c.id === editingComment.id)?.text;
+    if (text && text !== was) editComment.mutate({ taskId: task.id, commentId: editingComment.id, text });
+    setEditingComment(null);
+  }
+
   function submitComment() {
     const value = commentText.trim();
     if (!value) return;
@@ -399,10 +411,72 @@ export default function TaskDetail({
       </div>
       {(task.comments || []).map((c) => (
         <div key={c.id} className="comment-row">
-          <div className="comment-text">{c.text}</div>
+          {editingComment?.id === c.id ? (
+            <div className="comment-edit">
+              <textarea
+                value={editingComment.text}
+                autoFocus
+                rows={Math.min(8, editingComment.text.split("\n").length + 1)}
+                onChange={(e) => setEditingComment({ id: c.id, text: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    saveCommentEdit();
+                  }
+                  if (e.key === "Escape") {
+                    e.stopPropagation();
+                    setEditingComment(null);
+                  }
+                }}
+              />
+              <div className="comment-edit-actions">
+                <button className="btn btn-text" onClick={() => setEditingComment(null)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={saveCommentEdit} disabled={!editingComment.text.trim()}>
+                  Save
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="comment-text">
+              {linkParts(c.text).map((part, i) =>
+                part.href ? (
+                  <a
+                    key={i}
+                    href={part.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      // As in the notes: the browser, or the phone's own browser in the app.
+                      e.preventDefault();
+                      window.open(part.href, "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    {part.text}
+                  </a>
+                ) : (
+                  part.text
+                )
+              )}
+            </div>
+          )}
           <div className="comment-meta">
             {personName(c.by, task, data) && <b className="comment-by">{personName(c.by, task, data)}</b>}
-            <span>{new Date(c.createdAt).toLocaleString()}</span>
+            <span>
+              {new Date(c.createdAt).toLocaleString()}
+              {c.editedAt ? " · edited" : ""}
+            </span>
+            {/* Your own comments can be changed (and older ones, which don't say whose they are). */}
+            {(!c.by || c.by === data?.me) && editingComment?.id !== c.id && (
+              <button
+                className="btn-text"
+                style={{ padding: "0 0 0 8px", fontSize: 12 }}
+                onClick={() => setEditingComment({ id: c.id, text: c.text })}
+              >
+                Edit
+              </button>
+            )}
             <button
               className="btn-text"
               style={{ padding: "0 0 0 8px", fontSize: 12 }}

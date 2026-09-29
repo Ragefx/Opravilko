@@ -44,3 +44,18 @@ export function linkifyHtml(html: string): string {
 
   return root.innerHTML;
 }
+
+/** Plain text split into text and links ("see https://x.si" -> text, link), for showing comments. */
+export function linkParts(text: string): { text: string; href?: string }[] {
+  const parts: { text: string; href?: string }[] = [];
+  const re = new RegExp(URL_RE.source, "gi");
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push({ text: text.slice(last, m.index) });
+    parts.push({ text: m[0], href: m[0].startsWith("http") ? m[0] : `https://${m[0]}` });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push({ text: text.slice(last) });
+  return parts;
+}

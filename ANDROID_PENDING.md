@@ -16,6 +16,9 @@ Build 42: widget changes are saved and sent to the other phone right away.
 
 - A repeating task keeps its repeat when you change its date (the repeat
   moves with it: every month on the 15th -> on the 20th)
+- Productivity: the two of you side by side (who was most active this week,
+  today / 7 / 30 days, day by day) and shopping (items bought, trips, most
+  bought); each phone shares its numbers (no task names) on its profile
 
 ## Known gaps
 

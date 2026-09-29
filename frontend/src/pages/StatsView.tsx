@@ -2,7 +2,19 @@ import { useState } from "react";
 import { format, isToday } from "date-fns";
 import { useBootstrap } from "../api/hooks";
 import { colorHex } from "../utils/colors";
-import { allCompletions, countByDay, currentStreak, lastNDays, longestStreak, niceScale } from "../utils/stats";
+import type { AppData } from "../api/types";
+import {
+  activitySummary,
+  allCompletions,
+  countByDay,
+  currentStreak,
+  lastNDays,
+  longestStreak,
+  niceScale,
+  totalsOf,
+  type PersonTotals,
+} from "../utils/stats";
+import { shoppingListOf } from "../utils/shopping";
 
 const CHART_DAYS = 14;
 
@@ -71,6 +83,8 @@ export default function StatsView() {
           <div className="stat-value">{entries.length.toLocaleString()}</div>
         </div>
       </div>
+
+      {data.partner && <TwoOfUs data={data} />}
 
       <section className="stats-card">
         <div className="stats-card-header">
@@ -165,5 +179,190 @@ export default function StatsView() {
         )}
       </section>
     </div>
+  );
+}
+
+const PAIR_DAYS = 14;
+
+/** You and your partner side by side: who did most, day by day, and the shopping. */
+function TwoOfUs({ data }: { data: AppData }) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const partnerName = data.partner!.name.split(" ")[0] || "Partner";
+  const mine = totalsOf(activitySummary(data), PAIR_DAYS);
+  const theirs = data.partnerActivity ? totalsOf(data.partnerActivity, PAIR_DAYS) : null;
+  const people: { name: string; t: PersonTotals; cls: string }[] = [
+    { name: "You", t: mine, cls: "is-me" },
+    ...(theirs ? [{ name: partnerName, t: theirs, cls: "is-partner" }] : []),
+  ];
+
+  const leader = (pick: (t: PersonTotals) => number) => {
+    if (!theirs) return null;
+    const a = pick(mine);
+    const b = pick(theirs);
+    if (a === b) return a === 0 ? null : "tie";
+    return a > b ? "You" : partnerName;
+  };
+  const weekLeader = leader((t) => t.week);
+  const maxWeek = Math.max(1, ...people.map((p) => p.t.week));
+  const days = lastNDays(new Map(), PAIR_DAYS);
+  const { top } = niceScale(Math.max(...mine.perDay, ...(theirs?.perDay ?? [0])));
+
+  // The usual items on the shopping list, most bought first.
+  const list = shoppingListOf(data.projects);
+  const usual = Object.values(list?.bought ?? {})
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 6);
+  const maxUsual = Math.max(1, ...usual.map((u) => u.n));
+
+  return (
+    <>
+      <section className="stats-card us-card">
+        <div className="stats-card-header">
+          <h2>The two of you, last 7 days</h2>
+        </div>
+        {!theirs && (
+          <p className="stats-empty">
+            {partnerName}'s numbers show up here once their app has been opened after this update.
+          </p>
+        )}
+        {weekLeader && (
+          <p className="us-leader">
+            {weekLeader === "tie" ? (
+              <>Neck and neck this week 🤝</>
+            ) : (
+              <>
+                👑 <b>{weekLeader}</b> {weekLeader === "You" ? "were" : "was"} the most active this week
+              </>
+            )}
+          </p>
+        )}
+        <ul className="us-bars">
+          {people.map((p) => (
+            <li key={p.name} className={p.cls}>
+              <span className="us-name">{p.name}</span>
+              <span className="us-bar">
+                <i style={{ width: `${(p.t.week / maxWeek) * 100}%` }} />
+              </span>
+              <span className="us-count">{p.t.week}</span>
+            </li>
+          ))}
+        </ul>
+        <table className="us-table">
+          <thead>
+            <tr>
+              <th />
+              {people.map((p) => (
+                <th key={p.name} className={p.cls}>
+                  {p.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Today</td>
+              {people.map((p) => (
+                <td key={p.name}>{p.t.today}</td>
+              ))}
+            </tr>
+            <tr>
+              <td>Last 7 days</td>
+              {people.map((p) => (
+                <td key={p.name}>
+                  {p.t.week}
+                  <Change now={p.t.week} before={p.t.prevWeek} />
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td>Last 30 days</td>
+              {people.map((p) => (
+                <td key={p.name}>{p.t.month}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      {theirs && (
+        <section className="stats-card">
+          <div className="stats-card-header">
+            <h2>Day by day</h2>
+            <span className="us-legend">
+              <i className="is-me" /> You <i className="is-partner" /> {partnerName}
+            </span>
+          </div>
+          <div className="us-pairs" role="img" aria-label={`Completed per day over the last ${PAIR_DAYS} days, you and ${partnerName}`}>
+            {days.map((d, i) => (
+              <div
+                key={d.key}
+                className="us-pair"
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered(null)}
+                onClick={() => setHovered(hovered === i ? null : i)}
+              >
+                <div className="us-pair-bars">
+                  <i className="is-me" style={{ height: `${(mine.perDay[i] / top) * 100}%` }} />
+                  <i className="is-partner" style={{ height: `${(theirs.perDay[i] / top) * 100}%` }} />
+                </div>
+                <span className="us-pair-day">{isToday(d.date) ? "Today" : i % 2 === 1 ? format(d.date, "d") : ""}</span>
+                {hovered === i && (
+                  <div className={`col-chart-tooltip ${i > PAIR_DAYS - 4 ? "align-right" : ""}`}>
+                    <strong>{format(d.date, "EEE d MMM")}</strong>
+                    You {mine.perDay[i]} · {partnerName} {theirs.perDay[i]}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="stats-card">
+        <div className="stats-card-header">
+          <h2>Shopping, last 30 days</h2>
+        </div>
+        <div className="us-shop-tiles">
+          {people.map((p) => (
+            <div key={p.name} className={`us-shop-tile ${p.cls}`}>
+              <b>{p.name}</b>
+              <span>
+                <em>{p.t.bought}</em> {p.t.bought === 1 ? "item" : "items"} bought
+              </span>
+              <span>
+                <em>{p.t.trips}</em> {p.t.trips === 1 ? "trip" : "trips"} to the shop
+              </span>
+            </div>
+          ))}
+        </div>
+        {usual.length > 0 && (
+          <>
+            <h3 className="us-sub">Bought most often</h3>
+            <ul className="us-usual">
+              {usual.map((u) => (
+                <li key={u.name}>
+                  <span className="us-usual-name">{u.name}</span>
+                  <span className="us-bar">
+                    <i style={{ width: `${(u.n / maxUsual) * 100}%` }} />
+                  </span>
+                  <span className="us-count">{u.n}×</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+    </>
+  );
+}
+
+function Change({ now, before }: { now: number; before: number }) {
+  const d = now - before;
+  if (d === 0) return null;
+  return (
+    <span className={`us-change ${d > 0 ? "up" : "down"}`} title={`${before} the 7 days before`}>
+      {d > 0 ? "▲" : "▼"}
+      {Math.abs(d)}
+    </span>
   );
 }

@@ -5,7 +5,8 @@ import { isNativeApp } from "../dropbox/auth";
 import { useBootstrap, useRecolorPlainLabels, useSyncAllCalendarFeeds } from "../api/hooks";
 import { REMINDERS_CHANGED, checkDueReminders, clearOldAppReminders } from "../utils/notifications";
 import { useQueryClient } from "@tanstack/react-query";
-import { hasPendingWrite, isSignedIn, needsSetup } from "../data/store";
+import { activeSession, hasPendingWrite, isSignedIn, needsSetup } from "../data/store";
+import { activitySummary } from "../utils/stats";
 import { BACK_HOME, onAppResume } from "../native/android";
 import {
   WIDGET_QUICK_ADD,
@@ -82,6 +83,15 @@ export default function Layout() {
   const appData = useBootstrap().data;
   const tasks = appData?.tasks;
   const syncAllCalendarFeeds = useSyncAllCalendarFeeds();
+
+  // Your activity numbers onto your profile, for your partner's Productivity page.
+  const completionLog = appData?.completionLog;
+  useEffect(() => {
+    if (!appData) return;
+    const t = window.setTimeout(() => activeSession()?.publishActivity(activitySummary(appData)), 4000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completionLog, tasks]);
 
   // Labels all used to start out grey: give each its own colour, once.
   const recolorLabels = useRecolorPlainLabels();

@@ -172,6 +172,17 @@ export interface Attachment {
   thumb?: string;
 }
 
+/**
+ * What someone got done, as numbers only (no task names), kept on their
+ * profile so their partner's Productivity page can show it next to their own.
+ * days: "yyyy-MM-dd" -> [tasks and items done, shopping items bought, shop trips].
+ */
+export interface ActivitySummary {
+  at: string;
+  total: number;
+  days: Record<string, [number, number, number]>;
+}
+
 export interface CompletionEntry {
   taskId: string;
   projectId: string;
@@ -239,6 +250,8 @@ export interface AppData {
   away?: AwayPeriod[];
   /** Firebase only: your partner's trips (read from their profile; theirs to change). */
   partnerAway?: AwayPeriod[];
+  /** Firebase only: your partner's activity numbers (read from their profile). */
+  partnerActivity?: ActivitySummary | null;
   /** Firebase only: your id, and your partner for shared tasks. */
   me?: string;
   partner?: Partner | null;

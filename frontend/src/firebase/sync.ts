@@ -25,6 +25,7 @@ import { isNativeApp } from "../dropbox/auth";
 
 const newId = () => nanoid();
 import type {
+  ActivitySummary,
   AppData,
   CalendarEvent,
   CalendarFeed,
@@ -129,6 +130,9 @@ export class FirestoreSync {
   private profile: DocumentData | null = null;
   /** Your partner's trips, from their profile (the rules let partners read each other's). */
   private partnerAway: AwayPeriod[] = [];
+  private partnerActivity: ActivitySummary | null = null;
+  /** The activity numbers last written to your profile (to write only changes). */
+  private publishedActivity = "";
   private partnerWatch: { uid: string; stop: () => void } | null = null;
   /** Asking again after a refusal (your partner hasn't connected you back yet). */
   private partnerRetry: { timer: number; delay: number } | null = null;
@@ -444,11 +448,13 @@ export class FirestoreSync {
     const delay = retry?.delay ?? 30_000;
     this.partnerRetry = null;
     this.partnerAway = [];
+    this.partnerActivity = null;
     if (!uid) return;
     const stop = onSnapshot(
       doc(firestore(), "users", uid),
       (snap) => {
         this.partnerAway = (snap.data()?.away as AwayPeriod[] | undefined) ?? [];
+        this.partnerActivity = (snap.data()?.activity as ActivitySummary | undefined) ?? null;
         this.scheduleEmit();
       },
       () => {
@@ -472,6 +478,17 @@ export class FirestoreSync {
    * Adds someone to a project by their email. They need to have signed in to
    * Opravilko once, which is what registers the email.
    */
+  /** Your activity numbers onto your profile, for your partner's Productivity page (only when they changed). */
+  publishActivity(activity: ActivitySummary): void {
+    const { at: _at, ...compare } = activity;
+    const key = JSON.stringify(compare);
+    if (key === this.publishedActivity) return;
+    this.publishedActivity = key;
+    void setDoc(doc(firestore(), "users", this.uid), { activity }, { merge: true }).catch(() => {
+      this.publishedActivity = "";
+    });
+  }
+
   async shareProject(appProjectId: string, email: string): Promise<MemberProfile> {
     const pid = this.toStoredProjectId(appProjectId)!;
     if (pid === inboxId(this.uid)) throw new Error("The Inbox can't be shared.");
@@ -576,6 +593,7 @@ export class FirestoreSync {
       templates: (this.profile?.templates as TaskTemplate[] | undefined) ?? [],
       away: (this.profile?.away as AwayPeriod[] | undefined) ?? [],
       partnerAway: this.partnerAway,
+      partnerActivity: this.partnerActivity,
       me: this.uid,
       partner: (this.profile?.partner as Partner | undefined) ?? null,
     };

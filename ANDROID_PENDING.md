@@ -7,15 +7,14 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 44** (commit `6f6d21f`, Sep 29 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-44
+Last build: **build 45** (commit `562fa6f`, Sep 29 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-45
 
-Build 44: shopping items as typed, comments with names/pictures/links/edit, shared-project tasks say they're shared.
+Build 45: Sort button on projects; the Inbox always a board, projects lists.
 
 ## In the code, not in the app yet
 
-- Projects: no display menu; the Inbox is always a board, projects are lists,
-  and a Sort button (date, priority, name, date added, or your own order)
+(nothing yet)
 
 ## Known gaps
 

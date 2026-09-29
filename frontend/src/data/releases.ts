@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 43,
+    date: "2026-09-29",
+    items: [
+      "Productivity: the two of you side by side (who was most active this week, today / 7 / 30 days, day by day) and shopping (items bought, trips, most bought).",
+      "Projects can have files of their own (the paperclip in the project's header) and a description under the name.",
+      "A repeating task keeps its repeat when you change its date.",
+    ],
+  },
+  {
     build: 42,
     date: "2026-09-29",
     items: [

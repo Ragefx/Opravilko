@@ -8,6 +8,7 @@ import CalendarView from "../components/CalendarView";
 import ShoppingView from "../components/ShoppingView";
 import ProjectMenu from "../components/ProjectMenu";
 import ProjectFilesButton from "../components/ProjectFilesButton";
+import ProjectDescription from "../components/ProjectDescription";
 import DisplayMenu from "../components/DisplayMenu";
 import ArchivedSectionsMenu from "../components/ArchivedSectionsMenu";
 import { ArchiveIcon, DisplayIcon } from "../components/icons";
@@ -153,6 +154,7 @@ export default function ProjectView() {
           <ProjectMenu project={project} templatesOnly={project.isInboxProject} />
         </span>
       </div>
+      {!project.isInboxProject && <ProjectDescription key={project.id} project={project} />}
       {/* On its own line, so the buttons stay top right next to the name. */}
       {project.trip && (
         <div className="project-trip-line">

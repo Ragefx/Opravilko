@@ -21,6 +21,7 @@ Build 42: widget changes are saved and sent to the other phone right away.
   bought); each phone shares its numbers (no task names) on its profile
 - Files on a project itself (the paperclip in the project's header), shared
   with everyone on the project; listed in Settings > Storage
+- A description for each project, under its name
 
 ## Known gaps
 

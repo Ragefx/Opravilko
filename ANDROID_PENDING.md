@@ -7,21 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 43** (commit `65ddb97`, Sep 29 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-43
+Last build: **build 44** (commit `6f6d21f`, Sep 29 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-44
 
-Build 43: Productivity for the two of you and shopping, project files and descriptions, repeats kept when a date changes.
+Build 44: shopping items as typed, comments with names/pictures/links/edit, shared-project tasks say they're shared.
 
 ## In the code, not in the app yet
 
 - Projects: no display menu; the Inbox is always a board, projects are lists,
   and a Sort button (date, priority, name, date added, or your own order)
-- Shopping items are kept exactly as typed: no capital first letter (in the
-  app, the widget, and from the keyboard)
-- Comments show who wrote them, by name and Google picture
-- A task in a shared project says it's shared with everyone on it (no
-  "Share with" switch there)
-- Comments: links in them can be tapped, and your comments can be edited
 
 ## Known gaps
 

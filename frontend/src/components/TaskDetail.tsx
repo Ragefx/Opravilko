@@ -18,7 +18,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { projectRoute } from "../utils/away";
 import { PRIORITY_META, PRIORITY_ORDER } from "../utils/priority";
-import { completedByName, personName } from "../utils/completedBy";
+import { commentAuthor, completedByName } from "../utils/completedBy";
+import { currentUser } from "../firebase/auth";
 import { linkParts } from "../utils/linkify";
 import { deadlineInfo } from "../utils/deadline";
 import { parseQuickAddInput } from "../utils/quickAddParse";
@@ -101,6 +102,8 @@ export default function TaskDetail({
   const deleteComment = useDeleteComment();
   const editComment = useEditComment();
   const [editingComment, setEditingComment] = useState<{ id: string; text: string } | null>(null);
+  const user = currentUser();
+  const me = user ? { name: user.displayName, photo: user.photoURL } : null;
   const showToast = useToast();
   // Ticking it off here plays the list's tick (circle pops, name strikes
   // through), then the task closes, with Undo.
@@ -409,8 +412,18 @@ export default function TaskDetail({
       <div className="task-section-title" style={{ margin: "0 0 8px" }}>
         Comments{task.comments?.length ? ` (${task.comments.length})` : ""}
       </div>
-      {(task.comments || []).map((c) => (
+      {(task.comments || []).map((c) => {
+        const author = commentAuthor(c.by, task, data, me);
+        return (
         <div key={c.id} className="comment-row">
+          <span className="comment-avatar" aria-hidden="true">
+            {author?.photo ? (
+              <img src={author.photo} alt="" referrerPolicy="no-referrer" />
+            ) : (
+              (author?.name ?? "").charAt(0).toUpperCase()
+            )}
+          </span>
+          <div className="comment-body">
           {editingComment?.id === c.id ? (
             <div className="comment-edit">
               <textarea
@@ -462,7 +475,7 @@ export default function TaskDetail({
             </div>
           )}
           <div className="comment-meta">
-            {personName(c.by, task, data) && <b className="comment-by">{personName(c.by, task, data)}</b>}
+            {author && <b className="comment-by">{author.name}</b>}
             <span>
               {new Date(c.createdAt).toLocaleString()}
               {c.editedAt ? " · edited" : ""}
@@ -485,8 +498,10 @@ export default function TaskDetail({
               Delete
             </button>
           </div>
+          </div>
         </div>
-      ))}
+        );
+      })}
       <div className="quick-add" style={{ marginTop: 4 }}>
         <input
           placeholder="Add a comment"

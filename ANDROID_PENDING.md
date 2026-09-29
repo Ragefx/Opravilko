@@ -7,15 +7,14 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 40** (commit `1874d91`, Sep 28 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-40
+Last build: **build 41** (commit `718f285`, Sep 29 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-41
 
-Build 40: label colours, colour themes, shopping items reach the other phone straight away, Instant updates log always shown.
+Build 41: pinned shops (Remind me at the shop) can be moved and renamed.
 
 ## In the code, not in the app yet
 
-- Remind me at the shop: tap a pinned shop to move it on the map or give it
-  a name of its own ("SPAR Rudnik"); new pins show their street
+(nothing yet)
 
 ## Known gaps
 

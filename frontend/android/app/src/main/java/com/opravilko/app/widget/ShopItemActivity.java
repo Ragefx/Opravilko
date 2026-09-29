@@ -65,7 +65,7 @@ public class ShopItemActivity extends WidgetSheetActivity {
         // Name and amount side by side.
         LinearLayout names = new LinearLayout(this);
         names.setOrientation(LinearLayout.HORIZONTAL);
-        EditText name = field(parsed[0], "Item", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        EditText name = field(parsed[0], "Item", InputType.TYPE_CLASS_TEXT);
         name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
         names.addView(labelled("Item", name), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         EditText amount = field(parsed[1] != null ? parsed[1] : "", "1 l, 4, 500 g", InputType.TYPE_CLASS_TEXT);

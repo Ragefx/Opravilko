@@ -246,8 +246,9 @@ final class ShoppingLogic {
         return mapped != null ? mapped + name.substring(end) : name;
     }
 
+    /** Item names are kept exactly as typed (no capital letter added). */
     private static String capitalize(String s) {
-        return s.isEmpty() ? s : s.substring(0, 1).toUpperCase(SL) + s.substring(1);
+        return s;
     }
 
     private static String num(double n) {
@@ -375,7 +376,7 @@ final class ShoppingLogic {
     }
 
     /**
-     * An edited item's title, as the app saves it: the name (capitalised) and
+     * An edited item's title, as the app saves it: the name (as typed) and
      * the amount read the way typing it into the list reads it ("1,5 l", "4",
      * "500 g"); an amount it can't read is left out.
      */

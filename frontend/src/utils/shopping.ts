@@ -31,11 +31,11 @@ export function parseItem(text: string): Item {
     "iu"
   );
   const m = raw.match(re);
-  if (!m) return { name: capitalize(raw) };
+  if (!m) return { name: raw };
   const value = parseFloat((m[1] ?? m[4]).replace(",", "."));
   const unitWord = (m[2] ?? (m[3] ? "x" : "")).toLowerCase();
-  const name = capitalize(plainName(raw.replace(m[0], " ").replace(/\s+/g, " ").trim()));
-  if (!name) return { name: capitalize(raw) };
+  const name = plainName(raw.replace(m[0], " ").replace(/\s+/g, " ").trim());
+  if (!name) return { name: raw };
   const [amount, unit] = toBase(value, unitWord);
   return { name, amount, unit };
 }
@@ -75,10 +75,6 @@ const PLAIN_NAME: Record<string, string> = {
 
 function plainName(name: string): string {
   return name.replace(/^\p{L}+/u, (w) => PLAIN_NAME[w.toLocaleLowerCase("sl")] ?? w);
-}
-
-function capitalize(s: string): string {
-  return s ? s[0].toLocaleUpperCase("sl") + s.slice(1) : s;
 }
 
 function num(n: number): string {

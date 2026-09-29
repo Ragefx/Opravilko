@@ -14,7 +14,8 @@ Build 43: Productivity for the two of you and shopping, project files and descri
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Shopping items are kept exactly as typed: no capital first letter (in the
+  app, the widget, and from the keyboard)
 
 ## Known gaps
 

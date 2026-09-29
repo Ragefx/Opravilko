@@ -426,6 +426,8 @@ export default function ShoppingView({
             onKeyDown={(e) => e.key === "Enter" && void submit()}
             placeholder="Add: mleko 1 l, 2x jajca, kruh"
             aria-label="Add items"
+            // Kept exactly as typed: no capital letter from the keyboard either.
+            autoCapitalize="off"
             enterKeyHint="done"
           />
           <MicButton
@@ -813,7 +815,7 @@ function ItemEditor({
     const parsed = parseItem(`${name.trim()} ${amount.trim()}`.trim());
     const next = amount.trim() && parsed.amount !== undefined ? parsed : { name: name.trim() };
     onSave(
-      itemTitle({ ...next, name: name.trim().replace(/^./, (c) => c.toLocaleUpperCase("sl")) }),
+      itemTitle({ ...next, name: name.trim() }),
       categoryId,
       note,
       store
@@ -826,7 +828,13 @@ function ItemEditor({
         <div className="item-editor-fields">
           <label>
             Item
-            <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} autoFocus />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && save()}
+              autoCapitalize="off"
+              autoFocus
+            />
           </label>
           <label className="item-editor-amount">
             Amount

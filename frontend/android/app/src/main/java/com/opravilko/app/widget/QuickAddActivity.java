@@ -187,6 +187,9 @@ public class QuickAddActivity extends AppCompatActivity {
         resetExtras();
         text.setText("");
         text.setHint(shopping ? R.string.qa_shop_hint : R.string.qa_task_hint);
+        // Shopping items stay exactly as typed: no capital letter from the keyboard.
+        text.setInputType(shopping ? android.text.InputType.TYPE_CLASS_TEXT
+                : android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         added.setVisibility(View.GONE);
         buildChips();
         updateSendButton();

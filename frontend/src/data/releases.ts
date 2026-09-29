@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 45,
+    date: "2026-09-29",
+    items: [
+      "Projects: no display menu any more; the Inbox is always a board, projects are lists, and a Sort button (date, priority, name, date added, or your own order).",
+    ],
+  },
+  {
     build: 44,
     date: "2026-09-29",
     items: [

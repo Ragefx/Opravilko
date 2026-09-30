@@ -7,23 +7,14 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 46** (commit `aee6a78`, Sep 30 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-46
+Last build: **build 47** (commit `e011406`, Sep 30 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-47
 
-Build 46: the widget's Calendar (month) view; no Files button on the Inbox.
+Build 47: the widget's two calendar views (month; month + tasks), Slovenian holidays.
 
 ## In the code, not in the app yet
 
-- Widget month view: changing month no longer piles the new month's squares
-  under the old ones
-- Widget month view redone in the website's calendar style: a grid with thin
-  lines, tasks as blue chips (red when overdue), trip days striped with a band
-  and the trip's name, holidays in italics, ‹ Today ›
-- New widget view "Calendar: month + tasks": a small month (dots for tasks, a
-  band for trips, red days off) with the chosen day's and the next days' tasks
-  under it to tick off; tap a day to see its tasks
-- Slovenian holidays built in (Settings > Appearance, on by default): on the
-  calendars and in the widget's month view, days off in red
+(nothing yet)
 
 ## Known gaps
 

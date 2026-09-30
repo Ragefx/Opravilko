@@ -14,7 +14,7 @@ Build 48: completed tasks on the calendars, off work (🏖️) and trips togethe
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Calendar widget (month view): days on a trip or off work no longer have a coloured background; only the small trip band is coloured
 
 ## Known gaps
 

@@ -142,10 +142,6 @@ final class CalendarWidget {
                     cell.setInt(R.id.cal_day, "setBackgroundResource", R.drawable.widget_cal_today_flat);
                     cell.setInt(R.id.cal_day_num, "setBackgroundResource", R.drawable.widget_cal_today_bg);
                     cell.setTextColor(R.id.cal_day_num, context.getColor(R.color.widget_on_accent));
-                } else if (!away.isEmpty()) {
-                    Trip t = away.get(0);
-                    cell.setInt(R.id.cal_day, "setBackgroundResource", t.off ? R.drawable.widget_cal_away_off_stripes
-                            : t.partnerLook() ? R.drawable.widget_cal_away_partner_stripes : R.drawable.widget_cal_away_stripes);
                 } else if (!m.inMonth(c)) {
                     cell.setInt(R.id.cal_day, "setBackgroundResource", R.drawable.widget_cal_out_flat);
                 }

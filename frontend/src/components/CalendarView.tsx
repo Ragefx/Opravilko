@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
 import { eventTimeLabel, isEvent } from "../utils/events";
@@ -47,8 +47,14 @@ import TaskRow from "./TaskRow";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 3;
-/** The month beside its day panel shows this many lines a day, then "+ N more". */
+/**
+ * The month beside its day panel fills each day with as many lines as fit
+ * (at least this many), then "+ N more": a big screen shows more, not bigger boxes.
+ */
 const MONTH_LINES = 2;
+/** One line in a day (its height plus the gap), and the day number above them. */
+const LINE_PX = 20;
+const CELL_TOP_PX = 30;
 
 /** Wide enough for the month and the day panel side by side. */
 const PANEL_QUERY = "(min-width: 1000px)";
@@ -110,6 +116,9 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   // Month: the day shown in full in the panel on the right.
   const [selectedKey, setSelectedKey] = useState(() => format(dayFromParam(searchParams.get("day")), "yyyy-MM-dd"));
   const wide = useDayPanel();
+  // How tall a week row is, to fit that many lines in each day.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [rowPx, setRowPx] = useState(0);
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dragging, setDragging] = useState<Task | null>(null);
@@ -187,6 +196,17 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
 
   // The month with the chosen day in full beside it (wide windows).
   const panel = mode === "month" && wide;
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el || !panel) return;
+    const measure = () => setRowPx(el.clientHeight / Math.max(1, weekCount));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [panel, weekCount]);
+  // Room for the "+ N more" line is kept when a day has more than fits.
+  const monthLines = Math.max(MONTH_LINES, Math.floor((rowPx - CELL_TOP_PX) / LINE_PX) - 1);
 
   const title =
     mode === "month"
@@ -258,6 +278,7 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
         onDragEnd={handleDragEnd}
       >
         <div
+          ref={gridRef}
           className="calendar-days-grid"
           style={mode === "month" ? { gridTemplateRows: `repeat(${weekCount}, 1fr)` } : undefined}
         >
@@ -268,7 +289,7 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
             // The week view has room for everything; the month shows three lines a day.
             // Beside the day panel, two lines a day and the rest in the panel.
             const expanded = mode === "week" || (!panel && expandedDay === key);
-            const limit = expanded ? Infinity : panel ? MONTH_LINES : MAX_VISIBLE_PER_DAY;
+            const limit = expanded ? Infinity : panel ? monthLines : MAX_VISIBLE_PER_DAY;
             const shownEvents = dayEvents.slice(0, limit);
             const shownTasks = dayTasks.slice(0, Math.max(0, limit - shownEvents.length));
             const dayDone = key <= todayKey ? done.get(key) ?? [] : [];

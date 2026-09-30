@@ -170,7 +170,7 @@ export default function Home() {
     const today = todayISO();
     const soon = format(addDays(new Date(), 60), "yyyy-MM-dd");
     const trip = tripsOf(data)
-      .filter((t) => t.mine && t.period.end >= today && t.period.start <= soon)
+      .filter((t) => (t.mine || t.period.together) && t.period.end >= today && t.period.start <= soon)
       .sort((a, b) => a.period.start.localeCompare(b.period.start))[0];
     if (!trip) return null;
     const todo = trip.projectId ? data.tasks.filter((t) => t.projectId === trip.projectId && !t.completed).length : 0;
@@ -248,7 +248,9 @@ export default function Home() {
           <span aria-hidden="true">{tripIcon(nextTrip.trip.period)}</span>
           <span className="home-trip-text">
             <b>
-              {nextTrip.when === "now" ? "Away · " : "Next trip · "}
+              {nextTrip.trip.period.by === "off"
+                ? nextTrip.when === "now" ? "Off work · " : "Time off · "
+                : nextTrip.when === "now" ? "Away · " : "Next trip · "}
               {nextTrip.trip.period.title}
             </b>
             <span>

@@ -152,8 +152,10 @@ export interface AwayPeriod {
   endTime?: string;
   /** Anything else worth knowing: "JU 386, Terminal 1". */
   note?: string;
-  /** How you're getting there: shown as ✈️ or 🚗 (a plane unless set). */
-  by?: "plane" | "car";
+  /** How you're getting there, ✈️ or 🚗 (a plane unless set), or 🏖️ off work (a holiday at home). */
+  by?: "plane" | "car" | "off";
+  /** The two of you: shows as yours in both calendars (only whoever added it can change it). */
+  together?: boolean;
 }
 
 export interface TaskLocation {

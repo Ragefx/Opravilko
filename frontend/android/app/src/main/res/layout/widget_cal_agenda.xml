@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The widget as a small month with the tasks under it: the header, the month
-     with ‹ Today ›, weekday letters, the weeks (widget_ag_week, with dots for
+     with ‹ ›, weekday letters, the weeks (widget_ag_week, with dots for
      tasks and a band for trips), then the chosen day's and the next days' tasks. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -11,14 +11,14 @@
 
     <include layout="@layout/widget_header" />
 
-    <!-- The month on the left; ‹ Today › on the right. -->
+    <!-- The month on the left; ‹ › on the right. -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="34dp"
+        android:layout_height="42dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="12dp"
-        android:paddingEnd="4dp">
+        android:paddingEnd="8dp">
 
         <TextView
             android:id="@+id/cal_month"
@@ -32,37 +32,27 @@
             android:textSize="15sp"
             android:textStyle="bold" />
 
-        <TextView
+        <!-- Two big round buttons, 40dp wide, easy to hit. -->
+        <ImageView
             android:id="@+id/cal_prev"
-            android:layout_width="34dp"
-            android:layout_height="match_parent"
+            android:layout_width="40dp"
+            android:layout_height="34dp"
+            android:background="@drawable/widget_cal_nav_bg"
             android:contentDescription="@string/widget_cal_prev"
-            android:gravity="center"
-            android:text="‹"
-            android:textColor="@color/widget_text_secondary"
-            android:textSize="20sp" />
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_w_prev" />
 
-        <TextView
-            android:id="@+id/cal_today"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingStart="2dp"
-            android:paddingEnd="2dp"
-            android:text="@string/widget_cal_today"
-            android:textColor="@color/widget_text_secondary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
-        <TextView
+        <ImageView
             android:id="@+id/cal_next"
-            android:layout_width="34dp"
-            android:layout_height="match_parent"
+            android:layout_width="40dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/widget_cal_nav_bg"
             android:contentDescription="@string/widget_cal_next"
-            android:gravity="center"
-            android:text="›"
-            android:textColor="@color/widget_text_secondary"
-            android:textSize="20sp" />
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_w_next" />
     </LinearLayout>
 
     <LinearLayout

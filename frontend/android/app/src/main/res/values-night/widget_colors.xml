@@ -24,6 +24,10 @@
     <color name="widget_cal_away_text">#7FDDD0</color>
     <color name="widget_cal_away_partner">#3E2331</color>
     <color name="widget_cal_away_partner_text">#F28DB4</color>
+    <!-- Days off work (🏖️): sand, yours or your partner's. -->
+    <color name="widget_cal_off">#3A2E17</color>
+    <color name="widget_cal_off_text">#F2C46D</color>
+    <color name="widget_cal_band_off">#3A2E17</color>
     <color name="widget_cal_line">#2D3036</color>
     <color name="widget_cal_day_bg">#1B1D21</color>
     <color name="widget_cal_out_bg">#16181B</color>

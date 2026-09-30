@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Days off work across the small month's days. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/widget_cal_band_off" />
+    <corners android:topLeftRadius="0dp" android:bottomLeftRadius="0dp" android:topRightRadius="0dp" android:bottomRightRadius="0dp" />
+</shape>

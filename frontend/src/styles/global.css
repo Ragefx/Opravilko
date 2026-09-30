@@ -7778,3 +7778,59 @@ button.sidebar-link {
   background: var(--color-text-muted);
   opacity: 0.5;
 }
+
+/* Days off work (🏖️): the trip band in sand, yours or your partner's. */
+.calendar-cell.is-away-off {
+  background-color: color-mix(in srgb, #d08a1a 8%, transparent);
+  background-image: repeating-linear-gradient(135deg, color-mix(in srgb, #d08a1a 11%, transparent) 0 6px, transparent 6px 12px);
+}
+.calendar-away-label.is-off {
+  background: color-mix(in srgb, #d08a1a 20%, var(--color-surface));
+  color: #8a5a00;
+}
+.calendar-away-label.is-off.is-quiet {
+  background: color-mix(in srgb, #d08a1a 50%, transparent);
+}
+.mcal-day.is-away-off {
+  --away-band: color-mix(in srgb, #d08a1a 20%, var(--color-bg));
+}
+.mcal-away-banner.is-off {
+  background: color-mix(in srgb, #d08a1a 14%, var(--color-surface));
+}
+.mcal-away-banner.is-off b {
+  color: #8a5a00;
+}
+.mcal-away-banner.is-theirs {
+  cursor: default;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .calendar-away-label.is-off,
+  :root:not([data-theme="light"]) .mcal-away-banner.is-off b {
+    color: #f2c46d;
+  }
+}
+:root[data-theme="dark"] .calendar-away-label.is-off,
+:root[data-theme="dark"] .mcal-away-banner.is-off b {
+  color: #f2c46d;
+}
+.away-kind {
+  justify-self: start;
+  margin-bottom: 4px;
+}
+.away-kind button {
+  font-weight: 600;
+}
+.away-together {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.away-together span {
+  display: grid;
+  gap: 1px;
+}
+.away-together small {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}

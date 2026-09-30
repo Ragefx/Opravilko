@@ -1,9 +1,23 @@
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import type { AwayPeriod, Project, TripDates } from "../api/types";
 
-/** A trip's icon: 🚗 by car, ✈️ otherwise. */
-export function tripIcon(a?: { by?: "plane" | "car" }): string {
-  return a?.by === "car" ? "🚗" : "✈️";
+/** A trip's icon: 🚗 by car, 🏖️ off work, ✈️ otherwise. */
+export function tripIcon(a?: { by?: AwayPeriod["by"] }): string {
+  return a?.by === "car" ? "🚗" : a?.by === "off" ? "🏖️" : "✈️";
+}
+
+/** Days off work rather than a trip. */
+export function isOff(a?: { by?: AwayPeriod["by"] }): boolean {
+  return a?.by === "off";
+}
+
+/**
+ * How a trip looks: "off" (sand, days off work), "partner" (rose, just
+ * your partner's) or "mine" (your colour: yours, or the two of you together).
+ */
+export function tripLook(t: Trip): "off" | "partner" | "mine" {
+  if (isOff(t.period)) return "off";
+  return t.mine || t.period.together ? "mine" : "partner";
 }
 
 /** The away period covering this day ("yyyy-MM-dd"), if any. */
@@ -71,12 +85,15 @@ export function tripWhen(a: TripDates, today: string): string | null {
   return days === 1 ? "tomorrow" : `in ${days} days`;
 }
 
-/** The trips covering this day: yours first. */
+/** The trips covering this day: yours (and the two of you's) first. */
 export function tripsOn(trips: Trip[], day: string): Trip[] {
-  return trips.filter((t) => t.period.start <= day && day <= t.period.end);
+  return trips
+    .filter((t) => t.period.start <= day && day <= t.period.end)
+    .sort((a, b) => Number(tripLook(a) === "partner") - Number(tripLook(b) === "partner"));
 }
 
-/** "Athens", or "Maruša · Rome" for a partner's. */
+/** "Athens", "Maruša · Rome" for just your partner's, "Rome · together" for the two of you. */
 export function tripName(t: Trip): string {
+  if (t.period.together) return `${t.period.title} · together`;
   return t.mine ? t.period.title : `${t.who} · ${t.period.title}`;
 }

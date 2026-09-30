@@ -26,6 +26,10 @@
     <color name="widget_cal_away_text">#0A6A60</color>
     <color name="widget_cal_away_partner">#F7DFE9</color>
     <color name="widget_cal_away_partner_text">#B03A6C</color>
+    <!-- Days off work (🏖️): sand, yours or your partner's. -->
+    <color name="widget_cal_off">#FBEBCF</color>
+    <color name="widget_cal_off_text">#8A5A00</color>
+    <color name="widget_cal_band_off">#F6E1BA</color>
     <!-- The month view in the website's style: grid lines, bars with a coloured edge. -->
     <color name="widget_cal_line">#DFE2DF</color>
     <color name="widget_cal_day_bg">#F8F9F7</color>

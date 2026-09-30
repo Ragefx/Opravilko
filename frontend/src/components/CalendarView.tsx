@@ -34,7 +34,7 @@ import {
 import type { CalendarEvent, Due, Task } from "../api/types";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, awayTimeOn, projectRoute, tripName, tripsOf, tripsOn, tripIcon } from "../utils/away";
+import { awayRange, awayTimeOn, projectRoute, tripName, tripsOf, tripsOn, tripIcon, tripLook } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 import { PRIORITY_META } from "../utils/priority";
@@ -244,14 +244,15 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
             // A trip: a band across its days, named where it starts and at the start of each week.
             const dayTrips = tripsOn(trips, key);
             const trip = dayTrips[0]?.period;
-            const onlyPartner = dayTrips.length > 0 && dayTrips.every((t) => !t.mine);
+            const onlyPartner = dayTrips.length > 0 && dayTrips.every((t) => tripLook(t) === "partner");
+            const offWork = dayTrips.length > 0 && tripLook(dayTrips[0]) === "off";
             return (
               <DayCell
                 key={key}
                 dateKey={key}
                 className={`calendar-cell ${mode === "month" && !isSameMonth(day, cursor) ? "outside-month" : ""} ${
                   isToday(day) ? "is-today" : ""
-                } ${trip ? "is-away" : ""} ${onlyPartner ? "is-away-partner" : ""} ${trip && key === trip.start ? "is-away-start" : ""} ${
+                } ${trip ? "is-away" : ""} ${onlyPartner ? "is-away-partner" : ""} ${offWork ? "is-away-off" : ""} ${trip && key === trip.start ? "is-away-start" : ""} ${
                   trip && key === trip.end ? "is-away-end" : ""
                 }`}
                 onAdd={() => requestQuickAdd({ projectId, today: false, date: key })}
@@ -266,16 +267,20 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                   return (
                   <button
                     key={t.period.id}
-                    className={`calendar-away-label ${t.mine ? "" : "is-partner"}`}
+                    className={`calendar-away-label ${tripLook(t) === "mine" ? "" : `is-${tripLook(t)}`}`}
                     onClick={() =>
                       // A project's trip opens the project (its prep tasks); yours opens to change.
                       t.projectId
                         ? navigate(projectRoute(t.projectId))
                         : t.mine
                           ? setAwayEdit({ period: t.period })
-                          : showToast({ message: `${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}` })
+                          : showToast({
+                              message: `${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}${
+                                t.period.together ? ` · added by ${t.who}, who can change it` : ""
+                              }`,
+                            })
                     }
-                    title={`Away: ${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}`}
+                    title={`${t.period.by === "off" ? "Off work" : "Away"}: ${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}`}
                   >
                     {tripIcon(t.period)} {tripName(t)}
                     {time && <span className="calendar-away-time">{time}</span>}

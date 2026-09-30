@@ -29,7 +29,7 @@ import java.util.Set;
  *   holiday and tasks (blue chips, by their first word or two).
  * - Month + tasks: a small month (dots for tasks, a band for trips) with the
  *   chosen day's and the next days' tasks under it, to tick off.
- * ‹ › change the month and Today comes back; repeating tasks show on each of
+ * ‹ › change the month, and tapping its name comes back to this one; repeating tasks show on each of
  * their days, trips and the Slovenian holidays as in the app.
  */
 final class CalendarWidget {
@@ -38,7 +38,7 @@ final class CalendarWidget {
     static final String EXTRA_DELTA = "com.opravilko.app.widget.CAL_DELTA";
     static final String EXTRA_DAY = "com.opravilko.app.widget.CAL_DAY";
 
-    private static final int HEADER_DP = 52 + 34 + 20 + 10;
+    private static final int HEADER_DP = 52 + 42 + 20 + 10;
     private static final int DAY_NUMBER_DP = 17;
     private static final int CHIP_DP = 16;
 
@@ -100,7 +100,7 @@ final class CalendarWidget {
         List<Trip> tripsOn(String key) {
             List<Trip> on = new ArrayList<>();
             for (Trip t : trips) if (t.start.compareTo(key) <= 0 && key.compareTo(t.end) <= 0) on.add(t);
-            on.sort((a, b) -> Boolean.compare(!a.mine, !b.mine));
+            on.sort((a, b) -> Boolean.compare(a.partnerLook(), b.partnerLook()));
             return on;
         }
     }
@@ -112,8 +112,10 @@ final class CalendarWidget {
         views.setTextViewText(R.id.cal_month, new SimpleDateFormat("LLLL yyyy", Locale.ENGLISH).format(m.month.getTime()));
         views.setOnClickPendingIntent(R.id.cal_prev, monthIntent(context, appWidgetId, -1));
         views.setOnClickPendingIntent(R.id.cal_next, monthIntent(context, appWidgetId, 1));
-        views.setOnClickPendingIntent(R.id.cal_today, monthIntent(context, appWidgetId, 0));
+        // Tapping the month's name brings back this month; away from it, the name shows in the accent colour.
         views.setOnClickPendingIntent(R.id.cal_month, monthIntent(context, appWidgetId, 0));
+        boolean elsewhere = new WidgetStore(context).getCalendarMonth(appWidgetId) != 0;
+        views.setTextColor(R.id.cal_month, context.getColor(elsewhere ? R.color.widget_accent : R.color.widget_text));
         if (withTasks) buildSmallMonth(context, appWidgetId, views, m);
         else buildGrid(context, appWidgetId, views, m);
         return views;
@@ -141,8 +143,9 @@ final class CalendarWidget {
                     cell.setInt(R.id.cal_day_num, "setBackgroundResource", R.drawable.widget_cal_today_bg);
                     cell.setTextColor(R.id.cal_day_num, context.getColor(R.color.widget_on_accent));
                 } else if (!away.isEmpty()) {
-                    cell.setInt(R.id.cal_day, "setBackgroundResource", away.get(0).mine
-                            ? R.drawable.widget_cal_away_stripes : R.drawable.widget_cal_away_partner_stripes);
+                    Trip t = away.get(0);
+                    cell.setInt(R.id.cal_day, "setBackgroundResource", t.off ? R.drawable.widget_cal_away_off_stripes
+                            : t.partnerLook() ? R.drawable.widget_cal_away_partner_stripes : R.drawable.widget_cal_away_stripes);
                 } else if (!m.inMonth(c)) {
                     cell.setInt(R.id.cal_day, "setBackgroundResource", R.drawable.widget_cal_out_flat);
                 }
@@ -154,7 +157,10 @@ final class CalendarWidget {
                     Trip trip = away.get(0);
                     RemoteViews band = new RemoteViews(context.getPackageName(), R.layout.widget_cal_trip);
                     band.setTextViewText(R.id.cal_trip, key.equals(trip.start) || d == 0 ? trip.label() : " ");
-                    if (!trip.mine) {
+                    if (trip.off) {
+                        band.setInt(R.id.cal_trip, "setBackgroundResource", R.drawable.widget_cal_band_off_bg);
+                        band.setTextColor(R.id.cal_trip, context.getColor(R.color.widget_cal_off_text));
+                    } else if (trip.partnerLook()) {
                         band.setInt(R.id.cal_trip, "setBackgroundResource", R.drawable.widget_cal_band_partner_bg);
                         band.setTextColor(R.id.cal_trip, context.getColor(R.color.widget_cal_away_partner_text));
                     }
@@ -251,10 +257,12 @@ final class CalendarWidget {
                     Trip t = away.get(0);
                     boolean starts = key.equals(t.start) || d == 0;
                     boolean ends = key.equals(t.end) || d == 6;
-                    int band = starts && ends ? (t.mine ? R.drawable.widget_ag_band : R.drawable.widget_ag_band_partner)
-                            : starts ? (t.mine ? R.drawable.widget_ag_band_start : R.drawable.widget_ag_band_start_partner)
-                            : ends ? (t.mine ? R.drawable.widget_ag_band_end : R.drawable.widget_ag_band_end_partner)
-                            : (t.mine ? R.drawable.widget_ag_band_mid : R.drawable.widget_ag_band_mid_partner);
+                    int[] set = t.off
+                            ? new int[] {R.drawable.widget_ag_band_off, R.drawable.widget_ag_band_start_off, R.drawable.widget_ag_band_end_off, R.drawable.widget_ag_band_mid_off}
+                            : t.partnerLook()
+                            ? new int[] {R.drawable.widget_ag_band_partner, R.drawable.widget_ag_band_start_partner, R.drawable.widget_ag_band_end_partner, R.drawable.widget_ag_band_mid_partner}
+                            : new int[] {R.drawable.widget_ag_band, R.drawable.widget_ag_band_start, R.drawable.widget_ag_band_end, R.drawable.widget_ag_band_mid};
+                    int band = starts && ends ? set[0] : starts ? set[1] : ends ? set[2] : set[3];
                     cell.setInt(R.id.ag_day, "setBackgroundResource", band);
                 }
                 List<Item> items = m.byDay.get(key);
@@ -307,7 +315,8 @@ final class CalendarWidget {
                 if (!t.start.equals(d) && !(first && budget > 0)) continue;
                 RemoteViews note = new RemoteViews(context.getPackageName(), R.layout.widget_ag_note);
                 note.setTextViewText(R.id.ag_note, t.label() + (t.start.equals(t.end) ? "" : " · " + shortRange(t)));
-                note.setTextColor(R.id.ag_note, context.getColor(t.mine ? R.color.widget_cal_away_text : R.color.widget_cal_away_partner_text));
+                note.setTextColor(R.id.ag_note, context.getColor(t.off ? R.color.widget_cal_off_text
+                        : t.partnerLook() ? R.color.widget_cal_away_partner_text : R.color.widget_cal_away_text));
                 views.addView(R.id.ag_list, note);
                 budget -= 20;
                 break;
@@ -451,7 +460,7 @@ final class CalendarWidget {
     private static int listSpace(Context context, int appWidgetId, int weeks) {
         int height = widgetHeight(context, appWidgetId);
         if (height <= 0) height = 420;
-        return Math.max(60, height - 52 - 34 - 16 - weeks * 32 - 24);
+        return Math.max(60, height - 52 - 42 - 16 - weeks * 32 - 24);
     }
 
     // ---- data ----
@@ -461,6 +470,10 @@ final class CalendarWidget {
         final String end;
         final String title;
         final boolean car;
+        /** Off work (🏖️) rather than travelling: sand-coloured. */
+        final boolean off;
+        /** Both of you (either can have added it): in your colour, not the partner's. */
+        final boolean together;
         final boolean mine;
 
         Trip(JSONObject period, String title, boolean mine) {
@@ -468,11 +481,17 @@ final class CalendarWidget {
             this.end = period.optString("end", start);
             this.title = title;
             this.car = "car".equals(period.optString("by"));
+            this.off = "off".equals(period.optString("by"));
+            this.together = period.optBoolean("together");
             this.mine = mine;
         }
 
+        boolean partnerLook() {
+            return !mine && !together;
+        }
+
         String label() {
-            return (car ? "\uD83D\uDE97 " : "\u2708\uFE0F ") + title;
+            return (off ? "\uD83C\uDFD6\uFE0F " : car ? "\uD83D\uDE97 " : "\u2708\uFE0F ") + title;
         }
     }
 
@@ -500,7 +519,10 @@ final class CalendarWidget {
             String who = partner != null ? partner.optString("name").split(" ")[0] : "";
             for (int i = 0; i < partnerAway.length(); i++) {
                 JSONObject a = partnerAway.optJSONObject(i);
-                if (a != null) trips.add(new Trip(a, who.isEmpty() ? a.optString("title") : who + " · " + a.optString("title"), false));
+                if (a == null) continue;
+                // A trip together shows as the two of yours; one of just theirs carries their name.
+                String title = a.optBoolean("together") || who.isEmpty() ? a.optString("title") : who + " · " + a.optString("title");
+                trips.add(new Trip(a, title, false));
             }
         }
         trips.removeIf(t -> t.start.length() < 10);

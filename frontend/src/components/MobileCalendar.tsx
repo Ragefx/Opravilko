@@ -26,7 +26,7 @@ import TaskListView from "./TaskListView";
 import RescheduleButton from "./RescheduleButton";
 import { ChevronIcon } from "./icons";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, projectRoute, tripName, tripsOf, tripsOn, tripIcon } from "../utils/away";
+import { awayRange, projectRoute, tripName, tripsOf, tripsOn, tripIcon, tripLook } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 
@@ -190,7 +190,8 @@ export default function MobileCalendar({
                   isToday(d) ? "is-today" : "",
                   monthOpen && !isSameMonth(d, cursor) ? "is-outside" : "",
                   trip ? "is-away" : "",
-                  dayTrips.length > 0 && dayTrips.every((t) => !t.mine) ? "is-away-partner" : "",
+                  dayTrips.length > 0 && dayTrips.every((t) => tripLook(t) === "partner") ? "is-away-partner" : "",
+                  dayTrips.length > 0 && tripLook(dayTrips[0]) === "off" ? "is-away-off" : "",
                   trip && k === trip.start ? "is-away-start" : "",
                   trip && k === trip.end ? "is-away-end" : "",
                 ]
@@ -228,15 +229,18 @@ export default function MobileCalendar({
             {selectedTrips.map((t) => (
               <button
                 key={t.period.id}
-                className={`mcal-away-banner ${t.mine ? "" : "is-partner"}`}
+                className={`mcal-away-banner ${tripLook(t) === "mine" ? "" : `is-${tripLook(t)}`} ${t.mine ? "" : "is-theirs"}`}
                 onClick={() => (t.projectId ? navigate(projectRoute(t.projectId)) : t.mine && setAwayEdit({ period: t.period }))}
               >
                 {tripIcon(t.period)}
                 <span className="mcal-away-text">
-                  <b>Away · {tripName(t)}</b>
+                  <b>
+                    {t.period.by === "off" ? "Off work" : "Away"} · {tripName(t)}
+                  </b>
                   <span>
                     {awayRange(t.period)}
                     {t.period.note ? ` · ${t.period.note}` : ""}
+                    {!t.mine && t.period.together ? ` · added by ${t.who}` : ""}
                   </span>
                 </span>
               </button>

@@ -15,6 +15,8 @@ Build 47: the widget's two calendar views (month; month + tasks), Slovenian holi
 ## In the code, not in the app yet
 
 - Completed tasks on the calendars (Settings > Appearance): greyed ✓ on the day they were done, in the website, app and widget calendar views
+- Calendar widget: the month's Today button is gone; ‹ › are now two big rounded buttons (tap the month's name to come back to this month)
+- Off work (🏖️, sand colour) and trips together, in the widget's calendar views too
 
 ## Known gaps
 

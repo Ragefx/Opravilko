@@ -1,3 +1,4 @@
+import { HOLIDAYS_FEED_ID, holidayEvents, holidaysOn } from "./holidays";
 /**
  * Browsers block cross-origin fetches unless the server opts in (CORS), and
  * most .ics feeds (Google Calendar, TV listing sites, ...) don't. So the
@@ -92,8 +93,17 @@ export function groupEventsByDate(
     if (!map.has(e.date)) map.set(e.date, []);
     map.get(e.date)!.push(e);
   }
+  // The built-in Slovenian holidays (Settings > Appearance), first on their day.
+  if (holidaysOn()) {
+    for (const e of holidayEvents()) {
+      if (!map.has(e.date)) map.set(e.date, []);
+      map.get(e.date)!.push(e);
+    }
+  }
   for (const list of map.values()) {
-    list.sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+    list.sort((a, b) =>
+      a.feedId === HOLIDAYS_FEED_ID ? -1 : b.feedId === HOLIDAYS_FEED_ID ? 1 : (a.start || "").localeCompare(b.start || "")
+    );
   }
   return map;
 }

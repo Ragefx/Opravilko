@@ -1,3 +1,4 @@
+import { holidaysOn } from "../utils/holidays";
 import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import { getWidgetAuth, isNativeApp } from "../dropbox/auth";
 import { DATA_PATH } from "../dropbox/store";
@@ -104,7 +105,8 @@ export function pushWidgetData(data: AppData): void {
   // The widget only lists tasks; calendar events and history are dead weight.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { calendarEvents: _e, calendarFeeds: _f, completionLog: _l, ...rest } = data;
-  const widgetData = { ...rest, shoppingGuide: categoryGuide() };
+  // holidays: the month view shows the Slovenian holidays too (worked out on the phone).
+  const widgetData = { ...rest, shoppingGuide: categoryGuide(), holidays: holidaysOn() };
   const { appKey, refreshToken } = getWidgetAuth();
   const firebase = firebaseWidgetAuth();
   void OpravilkoWidget.update({

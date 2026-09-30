@@ -18,6 +18,8 @@ Build 46: the widget's Calendar (month) view; no Files button on the Inbox.
   under the old ones
 - Widget month view: trip days tinted (yours green, your partner's pink), with
   the trip's name on its first day and each Monday
+- Slovenian holidays built in (Settings > Appearance, on by default): on the
+  calendars and in the widget's month view, days off in red
 
 ## Known gaps
 

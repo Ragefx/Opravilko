@@ -8,6 +8,7 @@ import { PALETTES, setPalette, usePalette } from "../utils/palette";
 import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
+import { setHolidaysOn, useHolidays } from "../utils/holidays";
 import { clearTheme, getStoredTheme, setTheme, type ThemeChoice } from "../utils/theme";
 import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import {
@@ -263,6 +264,8 @@ function Appearance() {
   const addStyle = useAddStyle();
   const focusCard = useFocusCard();
   const weeklyReview = useWeeklyReview();
+  const holidays = useHolidays();
+  const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
 
@@ -354,6 +357,22 @@ function Appearance() {
         <span>
           <b>Weekly review</b>
           <span>Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.</span>
+        </span>
+      </label>
+
+      <label className="settings-switch">
+        <input
+          type="checkbox"
+          checked={holidays}
+          onChange={(e) => {
+            setHolidaysOn(e.target.checked);
+            // The calendars (and the phone's widget) redraw with or without them.
+            queryClient.setQueryData<AppData>(["bootstrap"], (d) => (d ? { ...d } : d));
+          }}
+        />
+        <span>
+          <b>Slovenian holidays</b>
+          <span>Prazniki in dela prosti dnevi on the calendars (days off in red), worked out for every year.</span>
         </span>
       </label>
 

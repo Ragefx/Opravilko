@@ -65,6 +65,14 @@ final class CalendarWidget {
 
         Map<String, List<Item>> byDay = itemsByDay(data, from, to);
         List<Trip> trips = trips(data);
+        // The Slovenian holidays, when switched on in the app (Settings > Appearance).
+        Map<String, Holidays.Holiday> holidays = new HashMap<>();
+        if (data != null && data.optBoolean("holidays", true)) {
+            int y = month.get(Calendar.YEAR);
+            for (int year = y - 1; year <= y + 1; year++) {
+                for (Holidays.Holiday h : Holidays.of(year)) holidays.put(h.date, h);
+            }
+        }
         int perDay = chipsThatFit(context, appWidgetId, weeks);
         String today = TaskLogic.todayStr();
         int thisMonth = month.get(Calendar.MONTH);
@@ -105,6 +113,17 @@ final class CalendarWidget {
                         if (!trip.mine) label.setTextColor(R.id.cal_trip, context.getColor(R.color.widget_cal_away_partner_text));
                         cell.addView(R.id.cal_day_items, label);
                         room = Math.max(1, room - 1);
+                    }
+                }
+                Holidays.Holiday holiday = holidays.get(key);
+                if (holiday != null) {
+                    RemoteViews label = new RemoteViews(context.getPackageName(), R.layout.widget_cal_trip);
+                    label.setTextViewText(R.id.cal_trip, holiday.name);
+                    label.setTextColor(R.id.cal_trip, context.getColor(holiday.free ? R.color.widget_due_overdue : R.color.widget_text_secondary));
+                    cell.addView(R.id.cal_day_items, label);
+                    room = Math.max(1, room - 1);
+                    if (holiday.free && !key.equals(today)) {
+                        cell.setTextColor(R.id.cal_day_num, context.getColor(R.color.widget_due_overdue));
                     }
                 }
                 List<Item> items = byDay.get(key);

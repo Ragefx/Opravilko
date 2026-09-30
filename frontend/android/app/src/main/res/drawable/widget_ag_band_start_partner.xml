@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A trip across the small month's days. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/widget_cal_band_partner" />
+    <corners android:topLeftRadius="14dp" android:bottomLeftRadius="14dp" android:topRightRadius="0dp" android:bottomRightRadius="0dp" />
+</shape>

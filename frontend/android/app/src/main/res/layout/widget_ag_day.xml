@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A day of the small month: its date (circled today, ringed when chosen) and a dot per task. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ag_day"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_marginTop="1dp"
+    android:layout_marginBottom="1dp"
+    android:layout_weight="1"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/ag_num"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:gravity="center"
+        android:textColor="@color/widget_text"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/ag_dots"
+        android:layout_width="wrap_content"
+        android:layout_height="6dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="7sp" />
+</LinearLayout>

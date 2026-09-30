@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A day square on a trip. -->
+<!-- A task in the month grid: a blue chip. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/widget_cal_away" />
-    <corners android:radius="8dp" />
+    <solid android:color="@color/widget_cal_task" />
+    <corners android:radius="4dp" />
 </shape>

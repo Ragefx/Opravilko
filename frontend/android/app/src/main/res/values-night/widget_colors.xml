@@ -24,4 +24,19 @@
     <color name="widget_cal_away_text">#7FDDD0</color>
     <color name="widget_cal_away_partner">#3E2331</color>
     <color name="widget_cal_away_partner_text">#F28DB4</color>
+    <color name="widget_cal_line">#2D3036</color>
+    <color name="widget_cal_day_bg">#1B1D21</color>
+    <color name="widget_cal_out_bg">#16181B</color>
+    <color name="widget_cal_today_bg">#1A3431</color>
+    <color name="widget_cal_bar">#2A2E32</color>
+    <color name="widget_cal_bar_edge">#5A6066</color>
+    <color name="widget_cal_edge_p1">#FF8A6B</color>
+    <color name="widget_cal_edge_p2">#F2C14E</color>
+    <color name="widget_cal_edge_p3">#8FB8FF</color>
+    <color name="widget_cal_band">#1C3834</color>
+    <color name="widget_cal_band_partner">#3E2331</color>
+    <color name="widget_cal_head_bg">#23262B</color>
+    <color name="widget_cal_card">#23262B</color>
+    <color name="widget_cal_task">#1E2E4A</color>
+    <color name="widget_cal_task_text">#A9C6FF</color>
 </resources>

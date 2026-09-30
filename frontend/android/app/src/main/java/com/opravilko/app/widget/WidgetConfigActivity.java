@@ -72,7 +72,8 @@ public class WidgetConfigActivity extends Activity {
         List<Option> projectOptions = new ArrayList<>();
         views.add(new Option(WidgetStore.VIEW_TODAY, "Today", R.drawable.ic_w_calendar));
         views.add(new Option(WidgetStore.VIEW_UPCOMING, "Upcoming", R.drawable.ic_w_calendar));
-        views.add(new Option(WidgetStore.VIEW_CALENDAR, "Calendar (month)", R.drawable.ic_w_calendar));
+        views.add(new Option(WidgetStore.VIEW_CALENDAR, "Calendar: month", R.drawable.ic_w_calendar));
+        views.add(new Option(WidgetStore.VIEW_CALENDAR_TASKS, "Calendar: month + tasks", R.drawable.ic_w_calendar));
         views.add(new Option(WidgetStore.VIEW_INBOX, "Inbox", R.drawable.ic_w_inbox));
 
         JSONObject data = store.getSnapshot();

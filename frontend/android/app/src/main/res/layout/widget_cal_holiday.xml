@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The trip band in a day: its name ("✈️ Tromsø") on the first day and each Monday, blank between. -->
+<!-- A holiday in a day: in italics, with a red edge for a day off. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/cal_trip"
+    android:id="@+id/cal_holiday"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="1.5dp"
-    android:background="@drawable/widget_cal_band_bg"
+    android:background="@drawable/widget_cal_hol_free_bg"
     android:ellipsize="end"
     android:maxLines="1"
-    android:paddingStart="3dp"
+    android:paddingStart="5dp"
     android:paddingTop="1dp"
     android:paddingBottom="1dp"
-    android:textColor="@color/widget_cal_away_text"
-    android:textSize="9sp"
-    android:textStyle="bold" />
+    android:textColor="@color/widget_text_secondary"
+    android:textSize="9.5sp"
+    android:textStyle="italic" />

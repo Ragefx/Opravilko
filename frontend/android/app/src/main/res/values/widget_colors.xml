@@ -26,4 +26,21 @@
     <color name="widget_cal_away_text">#0A6A60</color>
     <color name="widget_cal_away_partner">#F7DFE9</color>
     <color name="widget_cal_away_partner_text">#B03A6C</color>
+    <!-- The month view in the website's style: grid lines, bars with a coloured edge. -->
+    <color name="widget_cal_line">#DFE2DF</color>
+    <color name="widget_cal_day_bg">#F8F9F7</color>
+    <color name="widget_cal_out_bg">#ECEEEB</color>
+    <color name="widget_cal_today_bg">#D9EDE9</color>
+    <color name="widget_cal_bar">#E6E8E5</color>
+    <color name="widget_cal_bar_edge">#B8BDBB</color>
+    <color name="widget_cal_edge_p1">#C9432A</color>
+    <color name="widget_cal_edge_p2">#A87400</color>
+    <color name="widget_cal_edge_p3">#3A6FD8</color>
+    <color name="widget_cal_band">#CFE8E4</color>
+    <color name="widget_cal_band_partner">#F4D9E4</color>
+    <color name="widget_cal_head_bg">#ECEEEB</color>
+    <color name="widget_cal_card">#F8F9F7</color>
+    <!-- Tasks in the month grid: blue chips. -->
+    <color name="widget_cal_task">#D6E3F8</color>
+    <color name="widget_cal_task_text">#1D4690</color>
 </resources>

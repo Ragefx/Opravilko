@@ -40,13 +40,28 @@
         <item name="colorControlActivated">@color/widget_accent</item>
     </style>
 
-    <!-- The weekday names over the widget's month view. -->
+    <!-- The weekday row over the widget's month grid. -->
     <style name="WidgetCalWeekday">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">0.5dp</item>
+        <item name="android:background">@color/widget_cal_head_bg</item>
+        <item name="android:paddingStart">3dp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textColor">@color/widget_text_secondary</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- The weekday letters over the small month. -->
+    <style name="WidgetAgWeekday">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/widget_text_secondary</item>
-        <item name="android:textSize">11sp</item>
+        <item name="android:textSize">10sp</item>
     </style>
 </resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A day's heading in the list under the small month ("Today · Thu 8 Oct"). -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ag_heading"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:paddingTop="5dp"
+    android:paddingBottom="1dp"
+    android:textColor="@color/widget_text_secondary"
+    android:textSize="11sp"
+    android:textStyle="bold" />

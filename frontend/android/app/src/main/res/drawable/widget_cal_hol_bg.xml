@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A holiday that is not a day off. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape android:shape="rectangle"><solid android:color="@color/widget_cal_bar_edge" /><corners android:radius="2dp" /></shape></item>
+    <item android:left="2.5dp"><shape android:shape="rectangle"><solid android:color="@android:color/transparent" /><corners android:topRightRadius="2dp" android:bottomRightRadius="2dp" /></shape></item>
+</layer-list>

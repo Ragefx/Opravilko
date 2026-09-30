@@ -292,7 +292,7 @@ public final class TaskLogic {
         if (WidgetStore.VIEW_TODAY.equals(view)) return "Today";
         if (WidgetStore.VIEW_UPCOMING.equals(view)) return "Upcoming";
         if (WidgetStore.VIEW_INBOX.equals(view)) return "Inbox";
-        if (WidgetStore.VIEW_CALENDAR.equals(view)) return "Calendar";
+        if (WidgetStore.VIEW_CALENDAR.equals(view) || WidgetStore.VIEW_CALENDAR_TASKS.equals(view)) return "Calendar";
         if (view.startsWith(WidgetStore.PROJECT_PREFIX) && data != null) {
             JSONObject p = findProject(data, view.substring(WidgetStore.PROJECT_PREFIX.length()));
             if (p != null) return p.optString("name");

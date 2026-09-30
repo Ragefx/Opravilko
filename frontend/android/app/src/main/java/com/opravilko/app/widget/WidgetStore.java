@@ -41,6 +41,8 @@ public final class WidgetStore {
     public static final String VIEW_INBOX = "inbox";
     /** The month, with each day's tasks in its square. */
     public static final String VIEW_CALENDAR = "calendar";
+    /** A small month with the chosen day's and the next days' tasks under it. */
+    public static final String VIEW_CALENDAR_TASKS = "calendarTasks";
     public static final String PROJECT_PREFIX = "project:";
 
     private final SharedPreferences prefs;
@@ -320,7 +322,7 @@ public final class WidgetStore {
     }
 
     public void removeView(int appWidgetId) {
-        prefs.edit().remove("view_" + appWidgetId).remove("calMonth_" + appWidgetId).apply();
+        prefs.edit().remove("view_" + appWidgetId).remove("calMonth_" + appWidgetId).remove("calDay_" + appWidgetId).apply();
     }
 
     /** The month view's month, as months from this one (‹ and › move it; 0 is now). */
@@ -330,6 +332,16 @@ public final class WidgetStore {
 
     public void setCalendarMonth(int appWidgetId, int offset) {
         prefs.edit().putInt("calMonth_" + appWidgetId, offset).apply();
+    }
+
+    /** The day tapped in the small month ("yyyy-MM-dd"), or null for today. */
+    public String getCalendarDay(int appWidgetId) {
+        return prefs.getString("calDay_" + appWidgetId, null);
+    }
+
+    public void setCalendarDay(int appWidgetId, String day) {
+        if (day == null) prefs.edit().remove("calDay_" + appWidgetId).apply();
+        else prefs.edit().putString("calDay_" + appWidgetId, day).apply();
     }
 
     static String optStringOrNull(JSONObject o, String key) {

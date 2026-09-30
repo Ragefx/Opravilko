@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The widget as a month, in the website's calendar style: the header, the month
-     with ‹ Today ›, the weekday row, then the weeks in a grid with thin lines
-     (added by CalendarWidget, one widget_cal_week per week). -->
+<!-- The widget as a small month with the tasks under it: the header, the month
+     with ‹ Today ›, weekday letters, the weeks (widget_ag_week, with dots for
+     tasks and a band for trips), then the chosen day's and the next days' tasks. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -67,32 +67,38 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginStart="6dp"
-        android:layout_marginEnd="6dp"
-        android:layout_marginBottom="8dp"
-        android:background="@color/widget_cal_line"
-        android:orientation="vertical"
-        android:padding="0.5dp">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView style="@style/WidgetCalWeekday" android:text="Mon" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Tue" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Wed" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Thu" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Fri" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Sat" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Sun" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cal_grid"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical" />
+        <TextView style="@style/WidgetAgWeekday" android:text="M" />
+        <TextView style="@style/WidgetAgWeekday" android:text="T" />
+        <TextView style="@style/WidgetAgWeekday" android:text="W" />
+        <TextView style="@style/WidgetAgWeekday" android:text="T" />
+        <TextView style="@style/WidgetAgWeekday" android:text="F" />
+        <TextView style="@style/WidgetAgWeekday" android:text="S" />
+        <TextView style="@style/WidgetAgWeekday" android:text="S" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ag_grid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp" />
+
+    <LinearLayout
+        android:id="@+id/ag_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_cal_card_bg"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="4dp" />
 </LinearLayout>

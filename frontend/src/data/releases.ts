@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 46,
+    date: "2026-09-30",
+    items: [
+      "Widget: a Calendar (month) view (pick it with ▾): day squares with each day's tasks by their first word or two; ‹ › for months, a day opens the calendar on it, a task opens its card.",
+      "The Inbox has no Files (paperclip) button; files are for projects and tasks.",
+    ],
+  },
+  {
     build: 45,
     date: "2026-09-29",
     items: [

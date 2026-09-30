@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
 import { eventTimeLabel, isEvent } from "../utils/events";
 import { doneByDay, useCalendarDone, type DoneEntry } from "../utils/calendarDone";
@@ -116,6 +116,15 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   // Month: the day shown in full in the panel on the right.
   const [selectedKey, setSelectedKey] = useState(() => format(dayFromParam(searchParams.get("day")), "yyyy-MM-dd"));
   const wide = useDayPanel();
+  // A day asked for while the calendar is already open (a widget tap): go to it.
+  const location = useLocation();
+  const dayParam = searchParams.get("day");
+  useEffect(() => {
+    if (!dayParam) return;
+    const d = dayFromParam(dayParam);
+    setCursor(d);
+    setSelectedKey(format(d, "yyyy-MM-dd"));
+  }, [dayParam, location.key]);
   // How tall a week row is, to fit that many lines in each day.
   const gridRef = useRef<HTMLDivElement>(null);
   const [rowPx, setRowPx] = useState(0);

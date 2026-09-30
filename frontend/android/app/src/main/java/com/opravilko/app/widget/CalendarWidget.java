@@ -268,7 +268,10 @@ final class CalendarWidget {
                 List<Item> items = m.byDay.get(key);
                 int n = items != null ? Math.min(3, items.size()) : 0;
                 cell.setTextViewText(R.id.ag_dots, n == 0 ? (m.doneOn(key).isEmpty() ? "" : "✓") : n == 1 ? "●" : n == 2 ? "● ●" : "● ● ●");
-                cell.setOnClickPendingIntent(R.id.ag_day, selectIntent(context, appWidgetId, key));
+                // A tap picks the day (its list shows below); a tap on the day already picked opens the app on it.
+                cell.setOnClickPendingIntent(R.id.ag_day, key.equals(selected)
+                        ? TaskWidgetProvider.openApp(context, appWidgetId * 64 + 60, "opravilko://open?view=calendar&day=" + key)
+                        : selectIntent(context, appWidgetId, key));
                 week.addView(R.id.ag_week, cell);
                 c.add(Calendar.DAY_OF_MONTH, 1);
             }

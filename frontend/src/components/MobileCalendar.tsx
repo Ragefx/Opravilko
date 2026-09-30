@@ -1,5 +1,5 @@
-import { useRef, useState, useSyncExternalStore } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
 import {
   doneByDay,
@@ -90,6 +90,15 @@ export default function MobileCalendar({
   const [cursor, setCursor] = useState(() =>
     dayFromParam(searchParams.get("day")),
   );
+  // A day tapped in the widget while the calendar is already open: go to it.
+  const location = useLocation();
+  const dayParam = searchParams.get("day");
+  useEffect(() => {
+    if (!dayParam) return;
+    const d = dayFromParam(dayParam);
+    setSelected(d);
+    setCursor(d);
+  }, [dayParam, location.key]);
   const [monthOpen, setMonthOpenState] = useState(storedOpen);
   const touch = useRef<{ x: number; y: number } | null>(null);
 

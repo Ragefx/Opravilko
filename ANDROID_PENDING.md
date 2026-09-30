@@ -17,6 +17,7 @@ Build 51: the add card's task/event switch as a small icon in the corner, an eve
 
 - Calendar on wide screens (tablets): the month with the chosen day in full on the right
 - Add card: switching task/event keeps the keyboard up
+- Widget calendar: a tapped day opens the app on that day even when the calendar is already open; in "Month + tasks", tapping the picked day again opens it in the app
 
 ## Known gaps
 

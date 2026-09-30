@@ -7,17 +7,14 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 45** (commit `562fa6f`, Sep 29 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-45
+Last build: **build 46** (commit `aee6a78`, Sep 30 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-46
 
-Build 45: Sort button on projects; the Inbox always a board, projects lists.
+Build 46: the widget's Calendar (month) view; no Files button on the Inbox.
 
 ## In the code, not in the app yet
 
-- The Inbox has no Files (paperclip) button; files are for projects and tasks
-- Widget: a "Calendar (month)" view (pick it with ▾): day squares with each
-  day's tasks by their first word or two, ‹ › for months, a day opens the
-  app's calendar on it, a task opens its card
+(nothing yet)
 
 ## Known gaps
 

@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 53,
+    date: "2026-09-30",
+    items: [
+      "Calendar: the + at the bottom adds on the day picked there (e.g. one opened from the widget).",
+    ],
+  },
+  {
     build: 52,
     date: "2026-09-30",
     items: [

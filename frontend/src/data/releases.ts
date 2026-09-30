@@ -11,6 +11,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 52,
+    date: "2026-09-30",
+    items: [
+      "Date picker: \"No time\" beside the time takes it off in one tap, and a removed time no longer comes back.",
+      "Completed: repeating tasks (Duolingo) are listed each time you tick them off.",
+      "Widget calendar (both views): tapping a day opens the app's calendar with that day picked.",
+      "Add card: switching between task and event keeps the keyboard up; the \"Until\" chip is gone.",
+      "Calendar on wide screens (tablets): the month with the chosen day in full on the right.",
+    ],
+  },
+  {
     build: 51,
     date: "2026-09-30",
     items: [

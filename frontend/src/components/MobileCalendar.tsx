@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
+import { setCalendarDay } from "../utils/calendarDay";
 import {
   doneByDay,
   useCalendarDone,
@@ -173,6 +174,11 @@ export default function MobileCalendar({
   }
 
   const key = format(selected, "yyyy-MM-dd");
+  // The + at the bottom adds on the day picked here.
+  useEffect(() => {
+    setCalendarDay(key);
+    return () => setCalendarDay(null);
+  }, [key]);
   const selectedTrips = tripsOn(trips, key);
   // What got done that day (Settings > Appearance), under its trips.
   const showDone = useCalendarDone();

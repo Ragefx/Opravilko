@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
+import { setCalendarDay } from "../utils/calendarDay";
 import { eventTimeLabel, isEvent } from "../utils/events";
 import { doneByDay, useCalendarDone, type DoneEntry } from "../utils/calendarDone";
 import { isNativeApp } from "../dropbox/auth";
@@ -214,6 +215,12 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
     ro.observe(el);
     return () => ro.disconnect();
   }, [panel, weekCount]);
+  // The add button adds on the day picked in the panel.
+  useEffect(() => {
+    if (!panel) return;
+    setCalendarDay(selectedKey);
+    return () => setCalendarDay(null);
+  }, [panel, selectedKey]);
   // Room for the "+ N more" line is kept when a day has more than fits.
   const monthLines = Math.max(MONTH_LINES, Math.floor((rowPx - CELL_TOP_PX) / LINE_PX) - 1);
 

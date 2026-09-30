@@ -15,7 +15,7 @@ Build 52: No time in the date picker (and removed times stay removed), repeating
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Calendar: the + at the bottom adds on the day picked there (e.g. one opened from the widget)
 
 ## Known gaps
 

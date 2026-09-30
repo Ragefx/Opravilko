@@ -28,6 +28,7 @@ import CommandPalette from "./CommandPalette";
 import SettingsModal from "./SettingsModal";
 import SocaTopBar from "./SocaTopBar";
 import AddDock from "./AddDock";
+import { calendarDay } from "../utils/calendarDay";
 import UpdateBanner from "./UpdateBanner";
 import { useNarrowScreen } from "./MobileCalendar";
 import { useAddStyle } from "../utils/addStyle";
@@ -360,7 +361,8 @@ export default function Layout() {
               quickAddPreset?.projectId ?? location.pathname.match(/^\/app\/project\/([^/]+)/)?.[1] ?? "inbox"
             }
             defaultToday={quickAddPreset?.today}
-            defaultDate={quickAddPreset?.date}
+            // On the calendar, a plain + adds on the day picked there.
+            defaultDate={quickAddPreset?.date ?? (quickAddPreset?.today ? undefined : calendarDay() ?? undefined)}
             defaultSectionId={quickAddPreset?.sectionId ?? null}
             defaultShared={quickAddPreset?.shared}
             listenOnOpen={quickAddPreset?.voice}

@@ -16,7 +16,7 @@ import DatePickerPopup from "./DatePickerPopup";
 import LocationPicker from "./LocationPicker";
 import MicButton from "./MicButton";
 import { useToast } from "./ToastProvider";
-import { BellIcon, CalendarIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
+import { BellIcon, CalendarIcon, CheckIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
 import ReminderSheet from "./ReminderSheet";
 import { shortReminder } from "../utils/reminders";
 import Select from "./Select";
@@ -487,6 +487,17 @@ export default function QuickAddSheet({
               }}
             />
           </div>
+          {/* Task or event: a quiet switch in the corner. */}
+          <button
+            type="button"
+            className={`qas-kind-btn ${event ? "is-event" : ""}`}
+            onClick={() => setKind(event ? "task" : "event")}
+            aria-pressed={event}
+            aria-label={event ? "Event (tap for a task)" : "Task (tap for an event)"}
+            title={event ? "Event · tap to make it a task" : "Task · tap to make it an event"}
+          >
+            {event ? <CalendarIcon width={18} height={18} /> : <CheckIcon width={18} height={18} />}
+          </button>
           {/* The website's window: the mic up here, standing out as in the app. */}
           {dialog && (
             <MicButton
@@ -496,22 +507,15 @@ export default function QuickAddSheet({
             />
           )}
         </div>
-        <div className="qas-kind">
-          <div className="segmented" role="radiogroup" aria-label="Task or event">
-            {(["task", "event"] as const).map((k) => (
-              <button key={k} type="button" role="radio" aria-checked={kind === k} className={kind === k ? "active" : ""} onClick={() => setKind(k)}>
-                {k === "task" ? "✓ Task" : "📅 Event"}
-              </button>
-            ))}
-          </div>
-          {event && baseDue?.datetime && (
+        {/* An event with a time: when it ends. */}
+        {event && baseDue?.datetime && (
+          <div className="qas-kind">
             <label className="qas-kind-end">
-              <span>until</span>
+              <span>Until</span>
               <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} aria-label="Ends at" />
             </label>
-          )}
-          {event && !baseDue?.datetime && <span className="qas-kind-hint">{baseDue ? "All day · add a time for from–to" : "Pick a day (today if not)"}</span>}
-        </div>
+          </div>
+        )}
         {description !== null && (
           <textarea
             className="qas-desc"

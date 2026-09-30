@@ -7881,33 +7881,39 @@ button.sidebar-link {
 .qas-kind {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 2px 16px 6px;
-}
-.qas-kind .segmented button {
-  font-size: 12.5px;
-  padding: 4px 10px;
-}
-.qas-kind .segmented button[aria-checked="true"]:last-child {
-  color: var(--color-event);
+  padding: 0 16px 6px;
 }
 .qas-kind-end {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--color-event);
 }
 .qas-kind-end input {
   font: inherit;
-  padding: 3px 6px;
+  padding: 2px 6px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
   color: var(--color-text);
 }
-.qas-kind-hint {
-  font-size: 12px;
-  color: var(--color-text-secondary);
+/* Task or event: a small icon at the card's top right. */
+.qas-kind-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.qas-kind-btn.is-event {
+  color: var(--color-event);
+  background: color-mix(in srgb, var(--color-event) 12%, transparent);
 }

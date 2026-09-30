@@ -226,9 +226,8 @@ final class CalendarWidget {
     // ---- the small month with the tasks under it ----
 
     private static void buildSmallMonth(Context context, int appWidgetId, RemoteViews views, Month m) {
-        WidgetStore store = new WidgetStore(context);
-        String selected = store.getCalendarDay(appWidgetId);
-        if (selected == null) selected = m.today;
+        // Days open the app now, so the list always starts from today.
+        String selected = m.today;
         SimpleDateFormat day = TaskLogic.dayFormat();
 
         views.removeAllViews(R.id.ag_grid);
@@ -268,10 +267,9 @@ final class CalendarWidget {
                 List<Item> items = m.byDay.get(key);
                 int n = items != null ? Math.min(3, items.size()) : 0;
                 cell.setTextViewText(R.id.ag_dots, n == 0 ? (m.doneOn(key).isEmpty() ? "" : "✓") : n == 1 ? "●" : n == 2 ? "● ●" : "● ● ●");
-                // A tap picks the day (its list shows below); a tap on the day already picked opens the app on it.
-                cell.setOnClickPendingIntent(R.id.ag_day, key.equals(selected)
-                        ? TaskWidgetProvider.openApp(context, appWidgetId * 64 + 60, "opravilko://open?view=calendar&day=" + key)
-                        : selectIntent(context, appWidgetId, key));
+                // A tap opens the app's calendar on that day.
+                cell.setOnClickPendingIntent(R.id.ag_day, TaskWidgetProvider.openApp(context, appWidgetId * 64 + w * 7 + d,
+                        "opravilko://open?view=calendar&day=" + key));
                 week.addView(R.id.ag_week, cell);
                 c.add(Calendar.DAY_OF_MONTH, 1);
             }
@@ -417,15 +415,6 @@ final class CalendarWidget {
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         intent.putExtra(EXTRA_DELTA, delta);
         intent.setData(Uri.parse("opravilko-widget://month/" + appWidgetId + "/" + delta));
-        return PendingIntent.getBroadcast(context, appWidgetId * 8 + 6, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-    }
-
-    private static PendingIntent selectIntent(Context context, int appWidgetId, String day) {
-        Intent intent = new Intent(context, TaskWidgetProvider.class).setAction(ACTION_SELECT);
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        intent.putExtra(EXTRA_DAY, day);
-        intent.setData(Uri.parse("opravilko-widget://select/" + appWidgetId + "/" + day));
         return PendingIntent.getBroadcast(context, appWidgetId * 8 + 6, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }

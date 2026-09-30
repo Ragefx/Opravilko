@@ -7,20 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 51** (commit `ed21c89`, Sep 30 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-51
+Last build: **build 52** (commit `29f0027`, Sep 30 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-52
 (Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 51: the add card's task/event switch as a small icon in the corner, an event's end time as a chip next to the date.
+Build 52: No time in the date picker (and removed times stay removed), repeating tasks in Completed, widget days open the app's calendar, add card keeps the keyboard, month + day panel on wide screens.
 
 ## In the code, not in the app yet
 
-- Calendar on wide screens (tablets): the month with the chosen day in full on the right
-- Add card: switching task/event keeps the keyboard up
-- Widget calendar (both views): tapping a day opens the app's calendar with that day picked, even when the calendar is already open
-- Date picker: "No time" beside the time takes it off in one tap; a removed time no longer comes back (it stayed saved inside the date)
-- Add card: the "Until" chip is gone
-- Completed: repeating tasks (Duolingo) are listed each time you tick them off
+(nothing yet)
 
 ## Known gaps
 

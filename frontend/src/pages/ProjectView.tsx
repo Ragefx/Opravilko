@@ -119,7 +119,8 @@ export default function ProjectView() {
             )}
           </div>
         )}
-        <ProjectFilesButton project={project} />
+        {/* Files belong to projects and tasks; the Inbox is only a place for new tasks. */}
+        {!project.isInboxProject && <ProjectFilesButton project={project} />}
         <SortMenu
           value={display}
           onChange={(next) => {

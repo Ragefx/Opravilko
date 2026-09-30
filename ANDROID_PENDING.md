@@ -14,7 +14,7 @@ Build 45: Sort button on projects; the Inbox always a board, projects lists.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- The Inbox has no Files (paperclip) button; files are for projects and tasks
 
 ## Known gaps
 

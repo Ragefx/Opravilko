@@ -7,17 +7,14 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 48** (commit `51cedf5`, Sep 30 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-48
+Last build: **build 49** (commit `9b215fa`, Sep 30 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-49
 
-Build 48: completed tasks on the calendars, off work (🏖️) and trips together, bigger month buttons on the calendar widget.
+Build 49: events, swiping tasks off by default, only the trip band coloured in the widget month, refused changes named.
 
 ## In the code, not in the app yet
 
-- Calendar widget (month view): days on a trip or off work no longer have a coloured background; only the small trip band is coloured
-- Swiping tasks (right to complete, left to delete) is off unless switched on in Settings > Appearance > Tasks
-- Events (📅, violet): a task you go to rather than tick off; no tick in the widget lists, violet in the widget calendars (greyed once over), never overdue
-- A change the database refuses no longer stops the others from saving; the message names it
+(nothing yet)
 
 ## Known gaps
 

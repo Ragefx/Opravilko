@@ -64,6 +64,7 @@ final class CalendarWidget {
         int weeks = (TaskLogic.daysBetween(from, to) + 1) / 7;
 
         Map<String, List<Item>> byDay = itemsByDay(data, from, to);
+        List<Trip> trips = trips(data);
         int perDay = chipsThatFit(context, appWidgetId, weeks);
         String today = TaskLogic.todayStr();
         int thisMonth = month.get(Calendar.MONTH);
@@ -84,9 +85,31 @@ final class CalendarWidget {
                 } else if (c.get(Calendar.MONTH) != thisMonth) {
                     cell.setTextColor(R.id.cal_day_num, context.getColor(R.color.widget_text_muted));
                 }
+                // Away that day: the square tinted (yours, else your partner's), and the
+                // trip's name on its first day and at the start of each week.
+                int room = perDay;
+                Trip trip = null;
+                boolean partnerOnly = true;
+                for (Trip t : trips) {
+                    if (t.start.compareTo(key) <= 0 && key.compareTo(t.end) <= 0) {
+                        if (trip == null) trip = t;
+                        if (t.mine) partnerOnly = false;
+                    }
+                }
+                if (trip != null) {
+                    cell.setInt(R.id.cal_day, "setBackgroundResource",
+                            partnerOnly ? R.drawable.widget_cal_cell_away_partner_bg : R.drawable.widget_cal_cell_away_bg);
+                    if (key.equals(trip.start) || d == 0) {
+                        RemoteViews label = new RemoteViews(context.getPackageName(), R.layout.widget_cal_trip);
+                        label.setTextViewText(R.id.cal_trip, trip.label());
+                        if (!trip.mine) label.setTextColor(R.id.cal_trip, context.getColor(R.color.widget_cal_away_partner_text));
+                        cell.addView(R.id.cal_day_items, label);
+                        room = Math.max(1, room - 1);
+                    }
+                }
                 List<Item> items = byDay.get(key);
                 if (items != null) {
-                    int shown = items.size() > perDay ? Math.max(0, perDay - 1) : items.size();
+                    int shown = items.size() > room ? Math.max(0, room - 1) : items.size();
                     for (int i = 0; i < shown; i++) {
                         Item item = items.get(i);
                         RemoteViews chip = new RemoteViews(context.getPackageName(), R.layout.widget_cal_chip);
@@ -156,6 +179,58 @@ final class CalendarWidget {
         if (height <= 0) return 2;
         int perWeek = (height - HEADER_DP) / Math.max(1, weeks);
         return Math.max(1, Math.min(5, (perWeek - DAY_NUMBER_DP) / CHIP_DP));
+    }
+
+    /** Days away: your own, a project that is a trip, and your partner's (src/utils/away.ts: tripsOf). */
+    static final class Trip {
+        final String start;
+        final String end;
+        final String title;
+        final boolean car;
+        final boolean mine;
+
+        Trip(JSONObject period, String title, boolean mine) {
+            this.start = period.optString("start");
+            this.end = period.optString("end", start);
+            this.title = title;
+            this.car = "car".equals(period.optString("by"));
+            this.mine = mine;
+        }
+
+        String label() {
+            return (car ? "\uD83D\uDE97 " : "\u2708\uFE0F ") + title;
+        }
+    }
+
+    static List<Trip> trips(JSONObject data) {
+        List<Trip> trips = new ArrayList<>();
+        if (data == null) return trips;
+        JSONArray away = data.optJSONArray("away");
+        if (away != null) {
+            for (int i = 0; i < away.length(); i++) {
+                JSONObject a = away.optJSONObject(i);
+                if (a != null) trips.add(new Trip(a, a.optString("title"), true));
+            }
+        }
+        JSONArray projects = data.optJSONArray("projects");
+        if (projects != null) {
+            for (int i = 0; i < projects.length(); i++) {
+                JSONObject p = projects.optJSONObject(i);
+                JSONObject trip = p != null ? p.optJSONObject("trip") : null;
+                if (trip != null) trips.add(new Trip(trip, p.optString("name"), true));
+            }
+        }
+        JSONArray partnerAway = data.optJSONArray("partnerAway");
+        if (partnerAway != null) {
+            JSONObject partner = data.optJSONObject("partner");
+            String who = partner != null ? partner.optString("name").split(" ")[0] : "";
+            for (int i = 0; i < partnerAway.length(); i++) {
+                JSONObject a = partnerAway.optJSONObject(i);
+                if (a != null) trips.add(new Trip(a, who.isEmpty() ? a.optString("title") : who + " · " + a.optString("title"), false));
+            }
+        }
+        trips.removeIf(t -> t.start.length() < 10);
+        return trips;
     }
 
     static final class Item {

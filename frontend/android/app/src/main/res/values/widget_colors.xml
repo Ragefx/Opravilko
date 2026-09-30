@@ -21,4 +21,9 @@
     <color name="widget_cal_chip_text">#0B4F48</color>
     <color name="widget_cal_chip_overdue">#F8DAD6</color>
     <color name="widget_cal_chip_overdue_text">#8E2119</color>
+    <!-- Days away (trips) in the month view: yours, and your partner's. -->
+    <color name="widget_cal_away">#D8EEEA</color>
+    <color name="widget_cal_away_text">#0A6A60</color>
+    <color name="widget_cal_away_partner">#F7DFE9</color>
+    <color name="widget_cal_away_partner_text">#B03A6C</color>
 </resources>

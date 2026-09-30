@@ -16,6 +16,8 @@ Build 46: the widget's Calendar (month) view; no Files button on the Inbox.
 
 - Widget month view: changing month no longer piles the new month's squares
   under the old ones
+- Widget month view: trip days tinted (yours green, your partner's pink), with
+  the trip's name on its first day and each Monday
 
 ## Known gaps
 

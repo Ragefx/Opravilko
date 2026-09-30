@@ -20,4 +20,8 @@
     <color name="widget_cal_chip_text">#A6EDE3</color>
     <color name="widget_cal_chip_overdue">#4A2622</color>
     <color name="widget_cal_chip_overdue_text">#FFB4AC</color>
+    <color name="widget_cal_away">#1C3834</color>
+    <color name="widget_cal_away_text">#7FDDD0</color>
+    <color name="widget_cal_away_partner">#3E2331</color>
+    <color name="widget_cal_away_partner_text">#F28DB4</color>
 </resources>

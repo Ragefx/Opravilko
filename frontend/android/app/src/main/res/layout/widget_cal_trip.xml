@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A trip's name in a day square ("✈️ Tromsø"), on its first day and each Monday. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cal_trip"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:paddingStart="1dp"
+    android:textColor="@color/widget_cal_away_text"
+    android:textSize="9sp"
+    android:textStyle="bold" />

@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 47,
+    date: "2026-09-30",
+    items: [
+      "Widget: two calendar views to pick with ▾. \"Month\" in the website's style (blue tasks, striped trip days, holidays), and \"Month + tasks\": a small month with the chosen day's and the next days' tasks to tick off.",
+      "Slovenian holidays built in (Settings > Appearance): on the calendars and in the widget, days off in red.",
+      "Widget month: changing months no longer piles the squares up.",
+    ],
+  },
+  {
     build: 46,
     date: "2026-09-30",
     items: [

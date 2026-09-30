@@ -7914,3 +7914,100 @@ button.sidebar-link {
   padding: 0 10px;
   cursor: pointer;
 }
+
+/* ---------- Month with the chosen day beside it (wide windows) ---------- */
+.calendar-month-layout,
+.calendar-plain-layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 16px;
+}
+.calendar-month-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* A click on a day picks it (the panel shows it); adding is in the panel. */
+.calendar-month-layout .calendar-cell::after {
+  display: none;
+}
+.calendar-month-layout .calendar-cell {
+  overflow: hidden;
+}
+.calendar-month-layout .calendar-cell.is-selected {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+/* Lines, not chips: a coloured dot, the time, the name. */
+.calendar-month-layout .calendar-task-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border-left: none;
+  padding: 1px 2px;
+  font-size: 12px;
+}
+.calendar-month-layout .calendar-task-chip::before {
+  content: "";
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot, var(--color-text-muted));
+}
+.calendar-month-layout .calendar-task-chip.is-event {
+  --dot: var(--color-event);
+  color: color-mix(in srgb, var(--color-event) 75%, var(--color-text));
+}
+.calendar-month-layout .calendar-task-chip .calendar-chip-time {
+  font-size: 11px;
+}
+.calendar-day-panel {
+  width: 340px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  padding: 16px 16px 20px;
+}
+.calendar-day-panel h2 {
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+.calendar-day-sub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 2px 0 8px;
+}
+.calendar-day-head {
+  margin: 16px 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.calendar-day-panel .task-row {
+  padding-left: 0;
+  padding-right: 0;
+}
+.calendar-day-panel .calendar-day-feed {
+  margin: 4px 0;
+}
+.calendar-day-add {
+  margin-top: 10px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.calendar-day-panel .mcal-done {
+  margin: 4px 0 0;
+}

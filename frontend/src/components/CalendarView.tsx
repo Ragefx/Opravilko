@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
 import { eventTimeLabel, isEvent } from "../utils/events";
@@ -35,7 +35,7 @@ import {
 import type { CalendarEvent, Due, Task } from "../api/types";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import type { AwayPeriod } from "../api/types";
-import { awayRange, awayTimeOn, projectRoute, tripName, tripsOf, tripsOn, tripIcon, tripLook } from "../utils/away";
+import { awayRange, awayTimeOn, projectRoute, tripName, tripsOf, tripsOn, tripIcon, tripLook, type Trip } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 import AwaySheet from "./AwaySheet";
 import { PRIORITY_META } from "../utils/priority";
@@ -43,9 +43,25 @@ import TaskDetail from "./TaskDetail";
 import { useToast } from "./ToastProvider";
 import { requestQuickAdd } from "../native/widget";
 import MobileCalendar, { useNarrowScreen } from "./MobileCalendar";
+import TaskRow from "./TaskRow";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 3;
+/** The month beside its day panel shows this many lines a day, then "+ N more". */
+const MONTH_LINES = 2;
+
+/** Wide enough for the month and the day panel side by side. */
+const PANEL_QUERY = "(min-width: 1000px)";
+function useDayPanel(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(PANEL_QUERY);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(PANEL_QUERY).matches
+  );
+}
 const WEEK_OPTS = { weekStartsOn: 1 as const };
 const MODE_KEY = "opravilko.calendarMode";
 
@@ -91,6 +107,9 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   const [mode, setModeState] = useState<Mode>(storedMode);
   const [searchParams] = useSearchParams();
   const [cursor, setCursor] = useState(() => dayFromParam(searchParams.get("day")));
+  // Month: the day shown in full in the panel on the right.
+  const [selectedKey, setSelectedKey] = useState(() => format(dayFromParam(searchParams.get("day")), "yyyy-MM-dd"));
+  const wide = useDayPanel();
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dragging, setDragging] = useState<Task | null>(null);
@@ -166,6 +185,9 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
     });
   }
 
+  // The month with the chosen day in full beside it (wide windows).
+  const panel = mode === "month" && wide;
+
   const title =
     mode === "month"
       ? format(cursor, "MMMM yyyy")
@@ -199,7 +221,14 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
             >
               ‹
             </button>
-            <button onClick={() => setCursor(new Date())}>Today</button>
+            <button
+              onClick={() => {
+                setCursor(new Date());
+                setSelectedKey(todayKey);
+              }}
+            >
+              Today
+            </button>
             <button
               onClick={() => setCursor((c) => (mode === "month" ? addMonths(c, 1) : addWeeks(c, 1)))}
               aria-label={mode === "month" ? "Next month" : "Next week"}
@@ -210,6 +239,8 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
         </div>
       </div>
 
+      <div className={panel ? "calendar-month-layout" : "calendar-plain-layout"}>
+      <div className="calendar-month-main">
       {mode === "month" && (
         <div className="calendar-weekdays-row">
           {WEEKDAY_LABELS.map((w) => (
@@ -235,8 +266,9 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
             const dayTasks = sortDay(tasksByDate.get(key) || []);
             const dayEvents = eventsByDate?.get(key) || [];
             // The week view has room for everything; the month shows three lines a day.
-            const expanded = mode === "week" || expandedDay === key;
-            const limit = expanded ? Infinity : MAX_VISIBLE_PER_DAY;
+            // Beside the day panel, two lines a day and the rest in the panel.
+            const expanded = mode === "week" || (!panel && expandedDay === key);
+            const limit = expanded ? Infinity : panel ? MONTH_LINES : MAX_VISIBLE_PER_DAY;
             const shownEvents = dayEvents.slice(0, limit);
             const shownTasks = dayTasks.slice(0, Math.max(0, limit - shownEvents.length));
             const dayDone = key <= todayKey ? done.get(key) ?? [] : [];
@@ -256,8 +288,8 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                   isToday(day) ? "is-today" : ""
                 } ${trip ? "is-away" : ""} ${onlyPartner ? "is-away-partner" : ""} ${offWork ? "is-away-off" : ""} ${trip && key === trip.start ? "is-away-start" : ""} ${
                   trip && key === trip.end ? "is-away-end" : ""
-                }`}
-                onAdd={() => requestQuickAdd({ projectId, today: false, date: key })}
+                } ${panel && key === selectedKey ? "is-selected" : ""}`}
+                onAdd={() => (panel ? setSelectedKey(key) : requestQuickAdd({ projectId, today: false, date: key }))}
               >
                 <div className="calendar-cell-header">
                   <span>{format(day, "d")}</span>
@@ -296,7 +328,7 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                   </div>
                 ))}
                 {shownTasks.map((t) => (
-                  <TaskChip key={t.id} task={t} onOpen={() => setOpenTask(t)} />
+                  <TaskChip key={t.id} task={t} onOpen={() => setOpenTask(t)} short={panel} />
                 ))}
                 {shownDone.map((d) => {
                   const task = data?.tasks.find((t) => t.id === d.taskId);
@@ -312,11 +344,11 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                   );
                 })}
                 {hidden > 0 && (
-                  <button className="calendar-more" onClick={() => setExpandedDay(key)}>
+                  <button className="calendar-more" onClick={() => (panel ? setSelectedKey(key) : setExpandedDay(key))}>
                     +{hidden} more
                   </button>
                 )}
-                {mode === "month" && expandedDay === key && dayEvents.length + dayTasks.length + dayDone.length > MAX_VISIBLE_PER_DAY && (
+                {mode === "month" && !panel && expandedDay === key && dayEvents.length + dayTasks.length + dayDone.length > MAX_VISIBLE_PER_DAY && (
                   <button className="calendar-more" onClick={() => setExpandedDay(null)}>
                     Show less
                   </button>
@@ -337,10 +369,126 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
           ) : null}
         </DragOverlay>
       </DndContext>
+      </div>
+      {panel && (
+        <DayPanel
+          dayKey={selectedKey}
+          todayKey={todayKey}
+          tasks={tasks}
+          events={eventsByDate?.get(selectedKey) ?? []}
+          dayTrips={tripsOn(trips, selectedKey)}
+          done={selectedKey <= todayKey ? done.get(selectedKey) ?? [] : []}
+          projectNames={Object.fromEntries((data?.projects ?? []).map((p) => [p.id, p.name]))}
+          onOpenTask={(t) => setOpenTask(t)}
+          onTrip={(t) =>
+            t.projectId ? navigate(projectRoute(t.projectId)) : t.mine ? setAwayEdit({ period: t.period }) : undefined
+          }
+          onAdd={() => requestQuickAdd({ projectId, today: false, date: selectedKey })}
+        />
+      )}
+      </div>
 
       {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} onOpenTask={setOpenTask} />}
       {awayEdit && <AwaySheet period={awayEdit.period} startDay={awayEdit.startDay} onClose={() => setAwayEdit(null)} />}
     </div>
+  );
+}
+
+/**
+ * The month's chosen day in full: its trips and holidays, events, what's to
+ * do (today also what's late), adding to it, and what got done.
+ */
+function DayPanel({
+  dayKey,
+  todayKey,
+  tasks,
+  events,
+  dayTrips,
+  done,
+  projectNames,
+  onOpenTask,
+  onTrip,
+  onAdd,
+}: {
+  dayKey: string;
+  todayKey: string;
+  tasks: Task[];
+  events: CalendarEvent[];
+  dayTrips: Trip[];
+  done: DoneEntry[];
+  projectNames: Record<string, string>;
+  onOpenTask: (t: Task) => void;
+  onTrip: (t: Trip) => void;
+  onAdd: () => void;
+}) {
+  const isTodayKey = dayKey === todayKey;
+  const onDay = tasks.filter((t) => t.due?.date === dayKey);
+  const byTime = (a: Task, b: Task) =>
+    (a.due?.datetime ?? "~").localeCompare(b.due?.datetime ?? "~") || b.priority - a.priority;
+  const ownEvents = onDay.filter(isEvent).sort(byTime);
+  const late = isTodayKey ? tasks.filter((t) => !t.completed && !isEvent(t) && t.due && t.due.date < todayKey) : [];
+  const todo = [...late, ...onDay.filter((t) => !isEvent(t) && !t.completed).sort(byTime)];
+  const label = (t: Task) => (t.projectId === "inbox" ? undefined : projectNames[t.projectId]);
+  const counts = [
+    ownEvents.length + events.length ? `${ownEvents.length + events.length} ${ownEvents.length + events.length === 1 ? "event" : "events"}` : "",
+    todo.length ? `${todo.length} ${todo.length === 1 ? "task" : "tasks"}` : "",
+  ].filter(Boolean);
+  const empty = !ownEvents.length && !events.length && !todo.length && !done.length && !dayTrips.length;
+  return (
+    <aside className="calendar-day-panel" aria-label={`${format(parseISO(dayKey), "EEEE d MMMM")}`}>
+      <h2>{format(parseISO(dayKey), "EEEE d MMMM")}</h2>
+      <div className="calendar-day-sub">
+        {[isTodayKey ? "Today" : "", ...counts].filter(Boolean).join(" · ") || (empty ? "Nothing planned" : "")}
+      </div>
+      {dayTrips.map((t) => (
+        <button
+          key={t.period.id}
+          className={`mcal-away-banner ${tripLook(t) === "mine" ? "" : `is-${tripLook(t)}`} ${t.mine || t.projectId ? "" : "is-theirs"}`}
+          onClick={() => onTrip(t)}
+        >
+          {tripIcon(t.period)}
+          <span className="mcal-away-text">
+            <b>
+              {t.period.by === "off" ? "Off work" : "Away"} · {tripName(t)}
+            </b>
+            <span>
+              {awayRange(t.period)}
+              {t.period.note ? ` · ${t.period.note}` : ""}
+            </span>
+          </span>
+        </button>
+      ))}
+      {(ownEvents.length > 0 || events.length > 0) && <div className="calendar-day-head">Events</div>}
+      {events.map((e) => (
+        <div key={e.id} className="calendar-event-chip calendar-day-feed" style={{ borderLeftColor: e.color }} title={e.title}>
+          {e.start && !e.allDay && <span className="calendar-chip-time">{format(new Date(e.start), "HH:mm")}</span>}
+          {e.title}
+        </div>
+      ))}
+      {ownEvents.map((t) => (
+        <TaskRow key={t.id} task={t} onOpen={onOpenTask} projectLabel={label(t)} />
+      ))}
+      {todo.length > 0 && <div className="calendar-day-head">To do</div>}
+      {todo.map((t) => (
+        <TaskRow key={t.id} task={t} onOpen={onOpenTask} projectLabel={label(t)} />
+      ))}
+      <button className="calendar-day-add" onClick={onAdd}>
+        + Add task or event
+      </button>
+      {done.length > 0 && (
+        <>
+          <div className="calendar-day-head">Done</div>
+          <div className="mcal-done">
+            {done.map((d) => (
+              <span key={`${d.taskId}@${d.at}`} className="mcal-done-row">
+                <s>✓ {d.content}</s>
+                <i>{format(new Date(d.at), "HH:mm")}</i>
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+    </aside>
   );
 }
 
@@ -371,7 +519,8 @@ function DayCell({
   );
 }
 
-function TaskChip({ task, onOpen }: { task: Task; onOpen: () => void }) {
+/** `short`: just the start time (the month beside its day panel, where room is tight). */
+function TaskChip({ task, onOpen, short }: { task: Task; onOpen: () => void; short?: boolean }) {
   const { setNodeRef, listeners, attributes, isDragging } = useDraggable({ id: task.id });
   const time = timeOf(task);
   return (
@@ -380,11 +529,15 @@ function TaskChip({ task, onOpen }: { task: Task; onOpen: () => void }) {
       {...listeners}
       {...attributes}
       className={`calendar-task-chip ${isEvent(task) ? "is-event" : ""} ${task.completed ? "is-past" : ""} ${isDragging ? "is-dragging" : ""}`}
-      style={isEvent(task) ? undefined : { borderLeftColor: PRIORITY_META[task.priority].color }}
+      style={
+        isEvent(task)
+          ? undefined
+          : ({ borderLeftColor: PRIORITY_META[task.priority].color, "--dot": PRIORITY_META[task.priority].color } as React.CSSProperties)
+      }
       onClick={onOpen}
       title={isEvent(task) ? `${task.content} · ${eventTimeLabel(task)}` : task.content}
     >
-      {time && <span className="calendar-chip-time">{isEvent(task) && task.endTime ? `${time}–${task.endTime}` : time}</span>}
+      {time && <span className="calendar-chip-time">{isEvent(task) && task.endTime && !short ? `${time}–${task.endTime}` : time}</span>}
       {task.content}
     </button>
   );

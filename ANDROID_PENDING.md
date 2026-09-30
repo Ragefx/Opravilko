@@ -15,7 +15,7 @@ Build 51: the add card's task/event switch as a small icon in the corner, an eve
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Calendar on wide screens (tablets): the month with the chosen day in full on the right
 
 ## Known gaps
 

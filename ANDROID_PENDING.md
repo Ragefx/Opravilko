@@ -15,7 +15,7 @@ Build 53: the calendar's + adds on the day picked there.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Calendar: no "Add task" line under the day (the + at the bottom adds on that day)
 
 ## Known gaps
 

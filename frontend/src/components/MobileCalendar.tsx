@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
 import { setCalendarDay } from "../utils/calendarDay";
+import { appUi } from "../utils/appUi";
 import {
   doneByDay,
   useCalendarDone,
@@ -359,7 +360,8 @@ export default function MobileCalendar({
         }
         title={dayLabel}
         tasks={[...overdue, ...dayTasks]}
-        quickAddProjectId={projectId}
+        // The app adds with the + at the bottom (on the day picked here), so no "Add task" line.
+        quickAddProjectId={appUi ? undefined : projectId}
         quickAddDue={{ date: key, string: format(parseISO(key), "MMM d") }}
         groupLabel={(t) =>
           showOverdue && isOverdue(t.due) ? "Overdue" : dayLabel

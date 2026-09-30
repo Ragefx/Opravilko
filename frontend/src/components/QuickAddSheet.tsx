@@ -511,6 +511,9 @@ export default function QuickAddSheet({
           <button
             type="button"
             className={`qas-kind-btn ${event ? "is-event" : ""}`}
+            // Keep the name field focused, so the phone's keyboard stays up.
+            onPointerDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setKind(event ? "task" : "event")}
             aria-pressed={event}
             aria-label={event ? "Event (tap for a task)" : "Task (tap for an event)"}

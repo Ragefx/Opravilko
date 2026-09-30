@@ -18,6 +18,8 @@ Build 51: the add card's task/event switch as a small icon in the corner, an eve
 - Calendar on wide screens (tablets): the month with the chosen day in full on the right
 - Add card: switching task/event keeps the keyboard up
 - Widget calendar (both views): tapping a day opens the app's calendar with that day picked, even when the calendar is already open
+- Date picker: "No time" beside the time takes it off in one tap; a removed time no longer comes back (it stayed saved inside the date)
+- Add card: the "Until" chip is gone
 
 ## Known gaps
 

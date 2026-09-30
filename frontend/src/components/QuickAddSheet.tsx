@@ -16,7 +16,7 @@ import DatePickerPopup from "./DatePickerPopup";
 import LocationPicker from "./LocationPicker";
 import MicButton from "./MicButton";
 import { useToast } from "./ToastProvider";
-import { BellIcon, CalendarIcon, CheckIcon, ClockIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
+import { BellIcon, CalendarIcon, CheckIcon, FlagIcon, InboxIcon, MapPinIcon, PlusIcon, RepeatIcon, ShareIcon, TagIcon } from "./icons";
 import ReminderSheet from "./ReminderSheet";
 import { shortReminder } from "../utils/reminders";
 import Select from "./Select";
@@ -158,7 +158,6 @@ export default function QuickAddSheet({
   const [reminders, setReminders] = useState<Reminder[] | undefined>(undefined);
   // A task, or an event (a date night): no tick, an end time, see utils/events.ts.
   const [kind, setKind] = useState<"task" | "event">("task");
-  const [endTime, setEndTime] = useState("");
   const event = kind === "event";
   const dateChip = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -224,7 +223,6 @@ export default function QuickAddSheet({
       // An event always has a day: today unless one was picked.
       due: applyRecurrence(baseDue ?? (event ? { date: todayISO(), string: "today", isRecurring: false } : null), repeat),
       ...(event ? { kind: "event" as const } : {}),
-      ...(event && endTime && baseDue?.datetime ? { endTime } : {}),
       labels: allLabels,
       ...(preview.deadline ? { deadline: preview.deadline } : {}),
       ...(location ? { location } : {}),
@@ -247,7 +245,6 @@ export default function QuickAddSheet({
     setLocation(null);
     setReminders(undefined);
     setRepeat("none");
-    setEndTime("");
     title.current?.focus();
     if (file) {
       const f = file;
@@ -453,26 +450,6 @@ export default function QuickAddSheet({
     return { top: Math.max(8, (r?.top ?? 400) - 450), right: Math.max(8, window.innerWidth - (r?.right ?? 300)) };
   };
 
-  // An event with a time: when it ends. The chip is the look; the clock picker under it takes the tap.
-  const untilEl = (className: string) =>
-    event && baseDue?.datetime ? (
-      <label
-        className={className}
-        // Set: in the date's colour, as the date chip / token beside it.
-        style={
-          endTime
-            ? className === "qas-chip"
-              ? { color: "var(--color-accent)" }
-              : { color: "var(--color-accent)", background: "color-mix(in srgb, var(--color-accent) 13%, transparent)" }
-            : undefined
-        }
-      >
-        <ClockIcon width={className === "qas-chip" ? 20 : 15} height={className === "qas-chip" ? 20 : 15} />
-        <span>{endTime ? `Until ${endTime}` : "Until"}</span>
-        <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} aria-label="Ends at" />
-      </label>
-    ) : null;
-
   return createPortal(
     <div className={`qas-scrim ${dialog ? "qas-dialog-scrim" : ""}`} onClick={onClose}>
       <div className={`qas-card ${dialog ? "qas-dialog" : `qab ${addStyle === "tabs" ? "qab-anim-grow" : "qab-anim-rise"}`}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label={event ? "Add event" : "Add task"}>
@@ -561,8 +538,6 @@ export default function QuickAddSheet({
                 </button>
               </span>
             ))}
-            {/* An event with a time: when it ends, as one more token. */}
-            {untilEl("qab-token qab-token-until")}
           </div>
         )}
         {!dialog && (
@@ -661,7 +636,6 @@ export default function QuickAddSheet({
                 <CalendarIcon width={20} height={20} />
                 {baseDue ? formatDueLabel(baseDue) : "Date"}
               </button>
-              {untilEl("qas-chip")}
               {typedDeadline && (
                 <span className="qas-chip" style={typedDeadline.kind === "later" ? undefined : { color: "var(--color-danger)" }} title="Deadline (typed as {…})">
                   ⏳ {typedDeadline.label}

@@ -778,7 +778,9 @@ export class FirestoreSync {
         const ref = doc(db, op.path[0], ...op.path.slice(1));
         if (op.kind === "delete") batch.delete(ref);
         // "update" as a merge-set, so a document removed meanwhile is simply recreated.
-        else if (op.kind === "update") batch.set(ref, op.data!, { merge: true });
+        // Only the changed fields, each written whole: a plain merge would keep
+        // what's gone from inside one (a date's old time, say) and bring it back.
+        else if (op.kind === "update") batch.set(ref, op.data!, { mergeFields: Object.keys(op.data!) });
         else batch.set(ref, op.data!, { merge: op.path[0] === "users" });
       }
       return batch.commit();

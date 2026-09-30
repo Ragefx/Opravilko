@@ -242,9 +242,17 @@ export default function DatePickerPopup({
         </div>
 
         {!dateOnly && (
-          <button ref={timeBtnRef} className="date-picker-action-btn" onClick={() => setShowTime(true)}>
-            <ClockIcon width={14} height={14} /> {currentTimeStr() || "Time"}
-          </button>
+          <div className="date-picker-time-row">
+            <button ref={timeBtnRef} className="date-picker-action-btn" onClick={() => setShowTime(true)}>
+              <ClockIcon width={14} height={14} /> {currentTimeStr() || "Time"}
+            </button>
+            {/* A set time comes off in one tap; the day (and any repeat) stays. */}
+            {currentTimeStr() && (
+              <button className="date-picker-time-clear" onClick={() => saveTime("")} aria-label="Remove the time" title="Remove the time">
+                <XIcon width={14} height={14} /> No time
+              </button>
+            )}
+          </div>
         )}
 
         {!onPick && (

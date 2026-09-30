@@ -400,7 +400,7 @@ function Appearance() {
         <input type="checkbox" checked={swipeTasks} onChange={(e) => setSwipeTasks(e.target.checked)} />
         <span>
           <b>Swipe tasks</b>
-          <span>On a phone, swipe a task right to complete it or left to delete it. Off: only the circle and the menu do.</span>
+          <span>On a phone, swipe a task or a shopping item right to tick it off or left to delete it. Off: only the circle and the menu do.</span>
         </span>
       </label>
 

@@ -16,6 +16,7 @@ Build 53: the calendar's + adds on the day picked there.
 ## In the code, not in the app yet
 
 - Calendar: no "Add task" line under the day (the + at the bottom adds on that day)
+- Shopping list: no swiping unless "Swipe tasks" is on in Settings > Appearance
 
 ## Known gaps
 

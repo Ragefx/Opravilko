@@ -32,6 +32,7 @@ import { useToast } from "./ToastProvider";
 import MicButton from "./MicButton";
 import { CheckIcon, ChevronIcon, MapPinIcon, TrashIcon, XIcon } from "./icons";
 import { useSwipeActions } from "./useSwipeActions";
+import { useSwipeTasks } from "../utils/swipeTasks";
 import { useCompleteAnimation } from "./useCompleteAnimation";
 import PickSheet from "./PickSheet";
 import Select from "./Select";
@@ -652,8 +653,10 @@ function ShoppingRow({
   const category = categoryOf(task, item.name);
   const store = storeOf(task);
   const note = noteOf(task.description);
-  // Swipe right ticks it off (or puts it back), left removes it, as with tasks.
-  const swipe = useSwipeActions({ onRight: onToggle, onLeft: onDelete });
+  // Swipe right ticks it off (or puts it back), left removes it, as with
+  // tasks -- only when swiping is switched on in Settings.
+  const swipeOn = useSwipeTasks();
+  const swipe = useSwipeActions({ onRight: onToggle, onLeft: onDelete, disabled: !swipeOn });
   // Tapping the circle plays the tasks' tick (pop, strike, fold) before it drops into the basket.
   const tick = useCompleteAnimation();
   const tap = () => (task.completed ? onToggle() : tick.play(onToggle, { fold: true }));

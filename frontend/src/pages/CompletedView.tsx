@@ -7,9 +7,12 @@ import TaskCheckbox from "../components/TaskCheckbox";
 import TaskDetail from "../components/TaskDetail";
 import { PRIORITY_META } from "../utils/priority";
 import { useToast } from "../components/ToastProvider";
-import { CheckCircleIcon, SearchIcon } from "../components/icons";
+import { CheckCircleIcon, RepeatIcon, SearchIcon } from "../components/icons";
 import { activeSession, usingFirebase } from "../data/store";
 import Select from "../components/Select";
+
+/** One line: a done task, or one round of a repeating task (from your completion history). */
+type Done = { key: string; task?: Task; content: string; projectId: string; at: string; repeat: boolean };
 
 function groupLabel(iso: string): string {
   const d = parseISO(iso);
@@ -28,24 +31,38 @@ export default function CompletedView() {
   // With Firebase, tasks finished more than a few days ago load on request.
   const [olderState, setOlderState] = useState<"idle" | "loading" | "done">("idle");
 
-  const completed = useMemo(() => {
+  // Done tasks, and each time you ticked off a repeating one (Duolingo): those
+  // move on to their next date rather than staying done, so they come from
+  // your completion history.
+  const completed = useMemo((): Done[] => {
     if (!data) return [];
-    return data.tasks
+    const byId = new Map(data.tasks.map((t) => [t.id, t]));
+    const rows: Done[] = data.tasks
       .filter((t) => t.completed && t.completedAt && t.kind !== "event")
-      .filter((t) => projectId === "all" || t.projectId === projectId)
-      .filter((t) => !query.trim() || t.content.toLowerCase().includes(query.trim().toLowerCase()))
-      .sort((a, b) => (b.completedAt || "").localeCompare(a.completedAt || ""));
+      .map((t) => ({ key: t.id, task: t, content: t.content, projectId: t.projectId, at: t.completedAt!, repeat: false }));
+    const seen = new Set(rows.map((r) => `${r.key}@${r.at}`));
+    for (const e of data.completionLog ?? []) {
+      if (seen.has(`${e.taskId}@${e.at}`)) continue;
+      const task = byId.get(e.taskId);
+      // A task that's done now is listed above; a log entry for it is an earlier round.
+      rows.push({ key: `${e.taskId}@${e.at}`, task, content: task?.content ?? e.content, projectId: task?.projectId ?? e.projectId, at: e.at, repeat: true });
+    }
+    const q = query.trim().toLowerCase();
+    return rows
+      .filter((r) => projectId === "all" || r.projectId === projectId)
+      .filter((r) => !q || r.content.toLowerCase().includes(q))
+      .sort((a, b) => b.at.localeCompare(a.at));
   }, [data, projectId, query]);
 
   if (isLoading || !data) return null;
 
   const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));
 
-  const groups = new Map<string, Task[]>();
-  for (const t of completed) {
-    const key = groupLabel(t.completedAt!);
+  const groups = new Map<string, Done[]>();
+  for (const r of completed) {
+    const key = groupLabel(r.at);
     if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(t);
+    groups.get(key)!.push(r);
   }
 
   function restore(t: Task) {
@@ -119,28 +136,39 @@ export default function CompletedView() {
       {[...groups.entries()].map(([label, items]) => (
         <div key={label}>
           <div className="task-section-title">{label}</div>
-          {items.map((t) => (
-            <div key={t.id} className="task-row">
-              <TaskCheckbox
-                completed
-                priorityColor={PRIORITY_META[t.priority].color}
-                onToggle={() => restore(t)}
-                ariaLabel="Restore task"
-              />
-              <div className="task-main">
-                <div className="task-content completed" onClick={() => setOpenTask(t)}>
-                  {t.content}
-                </div>
-                <div className="task-meta">
-                  <span>
-                    {format(parseISO(t.completedAt!), "HH:mm")}
-                    {completedByName(t, data) ? ` · ${completedByName(t, data)}` : ""}
+          {items.map((r) => {
+            const t = r.task;
+            return (
+              <div key={r.key} className="task-row">
+                {r.repeat ? (
+                  // A repeating task's round: it has already moved on, so nothing to restore.
+                  <span className="completed-repeat-mark" title="A repeating task, ticked off" aria-label="Repeating task, done">
+                    <RepeatIcon width={12} height={12} />
                   </span>
-                  {projectNameById[t.projectId] && <span className="chip">{projectNameById[t.projectId]}</span>}
+                ) : (
+                  <TaskCheckbox
+                    completed
+                    priorityColor={PRIORITY_META[t!.priority].color}
+                    onToggle={() => restore(t!)}
+                    ariaLabel="Restore task"
+                  />
+                )}
+                <div className="task-main">
+                  <div className="task-content completed" onClick={() => t && setOpenTask(t)}>
+                    {r.content}
+                  </div>
+                  <div className="task-meta">
+                    <span>
+                      {format(parseISO(r.at), "HH:mm")}
+                      {!r.repeat && t && completedByName(t, data) ? ` · ${completedByName(t, data)}` : ""}
+                      {r.repeat ? " · repeats" : ""}
+                    </span>
+                    {projectNameById[r.projectId] && <span className="chip">{projectNameById[r.projectId]}</span>}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ))}
 

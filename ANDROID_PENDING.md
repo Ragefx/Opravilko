@@ -20,6 +20,7 @@ Build 51: the add card's task/event switch as a small icon in the corner, an eve
 - Widget calendar (both views): tapping a day opens the app's calendar with that day picked, even when the calendar is already open
 - Date picker: "No time" beside the time takes it off in one tap; a removed time no longer comes back (it stayed saved inside the date)
 - Add card: the "Until" chip is gone
+- Completed: repeating tasks (Duolingo) are listed each time you tick them off
 
 ## Known gaps
 

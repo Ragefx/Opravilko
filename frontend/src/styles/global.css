@@ -8034,3 +8034,17 @@ button.sidebar-link {
 .calendar-day-panel .mcal-done {
   margin: 4px 0 0;
 }
+
+/* Completed: a round of a repeating task (it has moved on to its next date). */
+.completed-repeat-mark {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-hover);
+  color: var(--color-text-secondary);
+}

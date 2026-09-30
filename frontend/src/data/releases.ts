@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 49,
+    date: "2026-09-30",
+    items: [
+      "Events (📅, violet): something you go to rather than tick off, with from–to times. Never overdue; once over they leave the lists and stay greyed on the calendars. In the widget too.",
+      "Swiping tasks (right to complete, left to delete) is off unless switched on in Settings > Appearance > Tasks.",
+      "Calendar widget (month): only the small trip band is coloured, not the whole day.",
+      "A change the database refuses no longer stops the others from saving, and the message names it.",
+    ],
+  },
+  {
     build: 48,
     date: "2026-09-30",
     items: [

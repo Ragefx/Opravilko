@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 48,
+    date: "2026-09-30",
+    items: [
+      "Completed tasks on the calendars (Settings > Appearance): greyed ✓ on the day they were done, in the website, app and widget calendar views.",
+      "Off work (🏖️): days off in a sand colour, like trips; and trips or time off together, shown as both of yours.",
+      "Calendar widget: no Today button; ‹ › are two big rounded buttons (tap the month's name to come back to this month).",
+    ],
+  },
+  {
     build: 47,
     date: "2026-09-30",
     items: [

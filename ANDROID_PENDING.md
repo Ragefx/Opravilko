@@ -14,7 +14,7 @@ Build 49: events, swiping tasks off by default, only the trip band coloured in t
 
 ## In the code, not in the app yet
 
-- Add card: the task/event switch is a small icon in the top right corner (✓ task, violet calendar for an event)
+- Add card: the task/event switch is a small icon in the top right corner (theme colour); an event's end time is a chip/token next to the date
 
 ## Known gaps
 

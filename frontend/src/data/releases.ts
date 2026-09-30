@@ -14,7 +14,8 @@ export const RELEASES: Release[] = [
     build: 50,
     date: "2026-09-30",
     items: [
-      "Add card: the task/event switch is a small icon in the top right corner (✓ for a task, a violet calendar for an event).",
+      "Add card: the task/event switch is a small icon in the top right corner, in the theme's colour.",
+      "An event's end time is one more chip next to the date (\"Until 23:00\"), with the normal clock picker.",
     ],
   },
   {

@@ -15,6 +15,9 @@ Build 45: Sort button on projects; the Inbox always a board, projects lists.
 ## In the code, not in the app yet
 
 - The Inbox has no Files (paperclip) button; files are for projects and tasks
+- Widget: a "Calendar (month)" view (pick it with ▾): day squares with each
+  day's tasks by their first word or two, ‹ › for months, a day opens the
+  app's calendar on it, a task opens its card
 
 ## Known gaps
 

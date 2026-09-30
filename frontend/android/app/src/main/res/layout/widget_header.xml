@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's header band (mark, what it shows ▾, refresh, voice, add), shared by the list and the month. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_header"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:background="@drawable/widget_header_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingEnd="6dp">
+
+    <ImageView
+        android:id="@+id/widget_logo"
+        android:layout_width="36dp"
+        android:layout_height="44dp"
+        android:contentDescription="@string/app_name"
+        android:paddingEnd="10dp"
+        android:src="@drawable/ic_w_logo" />
+
+    <!-- Tap: pick what the widget shows. -->
+    <LinearLayout
+        android:id="@+id/widget_switch"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/widget_default_title"
+            android:textColor="@color/widget_accent"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="20dp"
+            android:contentDescription="@string/widget_switch_view"
+            android:paddingStart="4dp"
+            android:src="@drawable/ic_w_chevron" />
+    </LinearLayout>
+
+    <!-- Refresh: the icon, or a spinner while it fetches. -->
+    <FrameLayout
+        android:layout_width="44dp"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:id="@+id/widget_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/widget_refresh"
+            android:padding="12dp"
+            android:src="@drawable/ic_w_refresh" />
+
+        <ProgressBar
+            android:id="@+id/widget_refreshing"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/widget_accent"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/widget_voice"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/widget_add_by_voice"
+        android:padding="12dp"
+        android:src="@drawable/ic_w_mic" />
+
+    <ImageView
+        android:id="@+id/widget_add"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/widget_add_task"
+        android:padding="8dp"
+        android:src="@drawable/ic_widget_add" />
+</LinearLayout>

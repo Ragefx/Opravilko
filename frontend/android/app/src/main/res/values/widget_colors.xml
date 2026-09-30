@@ -15,4 +15,10 @@
     <color name="widget_due_later">#7A4FD1</color>
     <color name="widget_due_far">#676E7A</color>
     <color name="widget_check_none">#B3B8BF</color>
+    <!-- The month view: day squares and the task chips in them. -->
+    <color name="widget_cal_cell">#F6F4F1</color>
+    <color name="widget_cal_chip">#D3ECE8</color>
+    <color name="widget_cal_chip_text">#0B4F48</color>
+    <color name="widget_cal_chip_overdue">#F8DAD6</color>
+    <color name="widget_cal_chip_overdue_text">#8E2119</color>
 </resources>

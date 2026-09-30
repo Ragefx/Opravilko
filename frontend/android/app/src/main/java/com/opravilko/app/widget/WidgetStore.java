@@ -39,6 +39,8 @@ public final class WidgetStore {
     public static final String VIEW_TODAY = "today";
     public static final String VIEW_UPCOMING = "upcoming";
     public static final String VIEW_INBOX = "inbox";
+    /** The month, with each day's tasks in its square. */
+    public static final String VIEW_CALENDAR = "calendar";
     public static final String PROJECT_PREFIX = "project:";
 
     private final SharedPreferences prefs;
@@ -318,7 +320,16 @@ public final class WidgetStore {
     }
 
     public void removeView(int appWidgetId) {
-        prefs.edit().remove("view_" + appWidgetId).apply();
+        prefs.edit().remove("view_" + appWidgetId).remove("calMonth_" + appWidgetId).apply();
+    }
+
+    /** The month view's month, as months from this one (‹ and › move it; 0 is now). */
+    public int getCalendarMonth(int appWidgetId) {
+        return prefs.getInt("calMonth_" + appWidgetId, 0);
+    }
+
+    public void setCalendarMonth(int appWidgetId, int offset) {
+        prefs.edit().putInt("calMonth_" + appWidgetId, offset).apply();
     }
 
     static String optStringOrNull(JSONObject o, String key) {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A task in a day square: its first word or two. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cal_chip"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="1.5dp"
+    android:background="@drawable/widget_cal_chip_bg"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:paddingStart="3dp"
+    android:paddingTop="1dp"
+    android:paddingEnd="2dp"
+    android:paddingBottom="1dp"
+    android:textColor="@color/widget_cal_chip_text"
+    android:textSize="10sp" />

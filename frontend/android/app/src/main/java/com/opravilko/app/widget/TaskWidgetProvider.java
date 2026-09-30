@@ -52,6 +52,10 @@ public class TaskWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (CalendarWidget.ACTION_MONTH.equals(intent.getAction())) {
+            CalendarWidget.onMonth(context, intent);
+            return;
+        }
         if (!ACTION_REFRESH.equals(intent.getAction())) {
             super.onReceive(context, intent);
             return;
@@ -101,11 +105,28 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         WidgetStore store = new WidgetStore(context);
         String view = store.getView(appWidgetId);
         JSONObject data = store.getSnapshot();
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_task_list);
+        boolean calendar = WidgetStore.VIEW_CALENDAR.equals(view);
+        RemoteViews views = calendar
+                ? CalendarWidget.build(context, appWidgetId, data)
+                : new RemoteViews(context.getPackageName(), R.layout.widget_task_list);
 
         boolean shopping = ShoppingLogic.isShoppingView(data, view);
         views.setTextViewText(R.id.widget_title, shopping ? "Shopping" : TaskLogic.viewTitle(data, view));
         views.setImageViewResource(R.id.widget_logo, shopping ? R.drawable.ic_w_cart : R.drawable.ic_w_logo);
+        if (!calendar) setUpList(context, views, appWidgetId, data, shopping);
+        setUpHeader(context, views, appWidgetId, view, shopping);
+        return views;
+    }
+
+    /** A resize changes how many tasks fit in the month's day squares. */
+    @Override
+    public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int appWidgetId, android.os.Bundle newOptions) {
+        if (WidgetStore.VIEW_CALENDAR.equals(new WidgetStore(context).getView(appWidgetId))) {
+            manager.updateAppWidget(appWidgetId, buildViews(context, appWidgetId));
+        }
+    }
+
+    private static void setUpList(Context context, RemoteViews views, int appWidgetId, JSONObject data, boolean shopping) {
         views.setTextViewText(R.id.widget_empty, data == null
                 ? context.getString(R.string.widget_empty_signed_out)
                 : context.getString(shopping ? R.string.widget_shopping_empty : R.string.widget_empty));
@@ -124,7 +145,9 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         PendingIntent templatePi = PendingIntent.getActivity(context, appWidgetId, template,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
         views.setPendingIntentTemplate(R.id.widget_list, templatePi);
+    }
 
+    private static void setUpHeader(Context context, RemoteViews views, int appWidgetId, String view, boolean shopping) {
         views.setOnClickPendingIntent(R.id.widget_logo, openApp(context, appWidgetId * 8 + 1,
                 shopping ? "opravilko://open?view=shopping" : "opravilko://open?view=" + Uri.encode(view)));
         // + and the mic: the Add task sheet over the home screen (items on the shopping list).
@@ -145,7 +168,6 @@ public class TaskWidgetProvider extends AppWidgetProvider {
         pick.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         views.setOnClickPendingIntent(R.id.widget_switch, PendingIntent.getActivity(context, appWidgetId * 8 + 4, pick,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-        return views;
     }
 
     private static PendingIntent quickAdd(Context context, int appWidgetId, String view, boolean voice) {

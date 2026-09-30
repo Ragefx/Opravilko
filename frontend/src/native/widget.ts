@@ -173,6 +173,9 @@ export function parseWidgetLink(url: string): { route: string } | { quickAdd: Qu
   // The widget's Today and Upcoming open their places in today's app: Now and the Calendar.
   if (view === "today") return { route: "/app/home" };
   if (view === "upcoming") return { route: "/app/calendar" };
+  // A day tapped in the widget's month: the calendar on that day.
+  const day = q.get("day");
+  if (view === "calendar" && day && /^\d{4}-\d{2}-\d{2}$/.test(day)) return { route: `/app/calendar?day=${day}` };
   if (["inbox", "calendar", "shopping"].includes(view)) return { route: `/app/${view}` };
   if (view.startsWith("project:")) {
     const id = view.slice("project:".length);

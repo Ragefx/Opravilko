@@ -39,4 +39,14 @@
         <item name="colorAccent">@color/widget_accent</item>
         <item name="colorControlActivated">@color/widget_accent</item>
     </style>
+
+    <!-- The weekday names over the widget's month view. -->
+    <style name="WidgetCalWeekday">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/widget_text_secondary</item>
+        <item name="android:textSize">11sp</item>
+    </style>
 </resources>

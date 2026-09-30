@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "+2" under a day's chips when more tasks don't fit. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cal_more"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:maxLines="1"
+    android:textColor="@color/widget_text_secondary"
+    android:textSize="9sp" />

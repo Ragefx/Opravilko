@@ -14,7 +14,8 @@ Build 46: the widget's Calendar (month) view; no Files button on the Inbox.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Widget month view: changing month no longer piles the new month's squares
+  under the old ones
 
 ## Known gaps
 

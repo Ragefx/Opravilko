@@ -68,6 +68,9 @@ final class CalendarWidget {
         String today = TaskLogic.todayStr();
         int thisMonth = month.get(Calendar.MONTH);
 
+        // Android redraws onto the widget as it is, so an update's weeks would be
+        // added under the last month's: clear them first.
+        views.removeAllViews(R.id.cal_grid);
         Calendar c = (Calendar) first.clone();
         for (int w = 0; w < weeks; w++) {
             RemoteViews week = new RemoteViews(context.getPackageName(), R.layout.widget_cal_week);

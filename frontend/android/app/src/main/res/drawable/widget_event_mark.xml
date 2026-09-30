@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An event in a widget list, where a task has its tick circle: a violet calendar. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:width="21dp" android:height="21dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/widget_event_bg" />
+            <corners android:radius="6dp" />
+        </shape>
+    </item>
+    <item android:width="21dp" android:height="21dp" android:drawable="@drawable/ic_w_event" />
+</layer-list>

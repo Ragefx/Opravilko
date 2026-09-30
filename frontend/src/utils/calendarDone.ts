@@ -63,7 +63,8 @@ export function doneByDay(data: AppData | undefined, since?: string): Map<string
     map.get(day)!.push({ taskId, content, at, day });
   };
   for (const e of data.completionLog ?? []) add(e.taskId, e.content, e.at);
-  for (const t of data.tasks) if (t.completed && t.completedAt) add(t.id, t.content, t.completedAt);
+  // Events that are over show as themselves (greyed), not as done.
+  for (const t of data.tasks) if (t.completed && t.completedAt && t.kind !== "event") add(t.id, t.content, t.completedAt);
   for (const list of map.values()) list.sort((a, b) => b.at.localeCompare(a.at));
   return map;
 }

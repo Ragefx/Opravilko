@@ -73,6 +73,7 @@ import Select from "./Select";
 import ReminderSheet from "./ReminderSheet";
 import { describeReminder, remindersOf } from "../utils/reminders";
 import { labelTint, useLabelColor } from "./LabelChip";
+import { isEvent } from "../utils/events";
 
 export default function TaskDetail({
   task: initialTask,
@@ -350,6 +351,7 @@ export default function TaskDetail({
       {subtasks.map((s) => (
         <div key={s.id} className="task-row td-subtask">
           <TaskCheckbox
+            event={s.kind === "event"}
             completed={s.completed}
             priorityColor={PRIORITY_META[s.priority].color}
             recurring={!!s.due?.isRecurring}
@@ -617,6 +619,7 @@ export default function TaskDetail({
             <div className="td-top">
             <div className="td-title-row">
               <TaskCheckbox
+                event={task.kind === "event"}
                 completed={task.completed || tick.busy}
                 priorityColor={PRIORITY_META[task.priority].color}
                 popping={tick.busy}
@@ -680,7 +683,7 @@ export default function TaskDetail({
                 caption="Date"
                 value={dueText || "No date"}
                 muted={!due}
-                color={due ? (overdue ? "var(--color-danger)" : "var(--color-accent)") : undefined}
+                color={due ? (isEvent(task) ? "var(--color-event)" : overdue ? "var(--color-danger)" : "var(--color-accent)") : undefined}
                 onClick={openDate}
                 trailing={
                   due ? (
@@ -698,6 +701,47 @@ export default function TaskDetail({
                 }
               />
 
+              {/* A task to tick off, or an event to go to (no tick, from–to). */}
+              <label className="td-row td-row-switch td-event-row">
+                <span className="td-row-icon">📅</span>
+                <span className="td-row-body">
+                  <span className="td-row-caption">Event</span>
+                  <span className="td-row-value">{isEvent(task) ? "Something happening: no tick, never late" : "A task to tick off"}</span>
+                </span>
+                <input
+                  type="checkbox"
+                  className="td-switch"
+                  checked={isEvent(task)}
+                  onChange={(e) =>
+                    updateTask.mutate(
+                      e.target.checked
+                        ? {
+                            id: task.id,
+                            kind: "event",
+                            // An event needs a day: today unless it has one.
+                            ...(task.due ? {} : { due: { date: todayISO(), string: "today", isRecurring: false } }),
+                          }
+                        : { id: task.id, kind: undefined, endTime: undefined }
+                    )
+                  }
+                />
+              </label>
+              {isEvent(task) && task.due?.datetime && (
+                <label className="td-row">
+                  <span className="td-row-icon" />
+                  <span className="td-row-body">
+                    <span className="td-row-caption">Until</span>
+                    <input
+                      type="time"
+                      className="td-time-input"
+                      value={task.endTime ?? ""}
+                      onChange={(e) => updateTask.mutate({ id: task.id, endTime: e.target.value || undefined })}
+                      aria-label="Ends at"
+                    />
+                  </span>
+                </label>
+              )}
+
               {due && (
                 <PropRow
                   icon={<RepeatIcon width={20} height={20} />}
@@ -711,7 +755,7 @@ export default function TaskDetail({
                   </span>
                 </PropRow>
               )}
-              {currentRule && (
+              {currentRule && !isEvent(task) && (
                 <label className="td-row td-row-switch">
                   <span className="td-row-icon" />
                   <span className="td-row-body">

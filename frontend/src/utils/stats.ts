@@ -11,7 +11,8 @@ export function allCompletions(data: AppData): CompletionEntry[] {
   const seen = new Set(log.map((e) => `${e.taskId}@${e.at}`));
   // Only your own: a shared task your partner ticked off is theirs.
   const legacy = data.tasks
-    .filter((t) => t.completed && t.completedAt && !seen.has(`${t.id}@${t.completedAt}`))
+    // Events that are over aren't work done.
+    .filter((t) => t.completed && t.completedAt && t.kind !== "event" && !seen.has(`${t.id}@${t.completedAt}`))
     .filter((t) => !t.completedBy || !data.me || t.completedBy === data.me)
     .map((t) => ({ taskId: t.id, projectId: t.projectId, content: t.content, at: t.completedAt! }));
   return [...log, ...legacy];

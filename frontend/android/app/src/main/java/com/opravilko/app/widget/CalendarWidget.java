@@ -179,7 +179,11 @@ final class CalendarWidget {
                         Item item = items.get(i);
                         RemoteViews chip = new RemoteViews(context.getPackageName(), R.layout.widget_cal_chip);
                         chip.setTextViewText(R.id.cal_chip, item.label);
-                        if (item.overdue) {
+                        if (item.event) {
+                            chip.setInt(R.id.cal_chip, "setBackgroundResource", R.drawable.widget_cal_event_bg);
+                            chip.setTextColor(R.id.cal_chip, context.getColor(R.color.widget_event_text));
+                            if (item.past) chip.setFloat(R.id.cal_chip, "setAlpha", 0.5f);
+                        } else if (item.overdue) {
                             chip.setInt(R.id.cal_chip, "setBackgroundResource", R.drawable.widget_cal_chip_overdue_bg);
                             chip.setTextColor(R.id.cal_chip, context.getColor(R.color.widget_cal_chip_overdue_text));
                         }
@@ -282,7 +286,7 @@ final class CalendarWidget {
             if (d.equals(m.today)) {
                 for (Map.Entry<String, List<Item>> e : m.byDay.entrySet()) {
                     if (e.getKey().compareTo(m.today) < 0) {
-                        for (Item it : e.getValue()) if (it.dueDate.equals(e.getKey())) items.add(0, it);
+                        for (Item it : e.getValue()) if (it.dueDate.equals(e.getKey()) && !it.event) items.add(0, it);
                     }
                 }
             }
@@ -327,10 +331,19 @@ final class CalendarWidget {
                 if (budget < 26) break;
                 RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_ag_row);
                 row.setTextViewText(R.id.ag_title, it.content);
-                row.setTextViewText(R.id.ag_time, it.time != null ? it.time : it.overdue ? shortDate(it.dueDate) : "");
+                row.setTextViewText(R.id.ag_time, it.time != null ? (it.endTime != null ? it.time + "–" + it.endTime : it.time)
+                        : it.overdue ? shortDate(it.dueDate) : "");
                 if (it.overdue) row.setTextColor(R.id.ag_time, context.getColor(R.color.widget_due_overdue));
-                row.setImageViewResource(R.id.ag_check, checkFor(it.priority));
-                row.setOnClickPendingIntent(R.id.ag_check, completeTask(context, appWidgetId, it));
+                if (it.event) {
+                    // Nothing to tick: the mark opens it; greyed once it's over.
+                    row.setImageViewResource(R.id.ag_check, R.drawable.widget_event_mark);
+                    row.setTextColor(R.id.ag_time, context.getColor(R.color.widget_event));
+                    row.setOnClickPendingIntent(R.id.ag_check, openTask(context, appWidgetId, it.taskId));
+                    if (it.past) row.setFloat(R.id.ag_row, "setAlpha", 0.5f);
+                } else {
+                    row.setImageViewResource(R.id.ag_check, checkFor(it.priority));
+                    row.setOnClickPendingIntent(R.id.ag_check, completeTask(context, appWidgetId, it));
+                }
                 row.setOnClickPendingIntent(R.id.ag_row, openTask(context, appWidgetId, it.taskId));
                 views.addView(R.id.ag_list, row);
                 budget -= 26;
@@ -534,6 +547,10 @@ final class CalendarWidget {
         final int priority;
         /** The task's own due date (what ticking it off expects). */
         final String dueDate;
+        /** An event (violet, no tick); `past` once it's over (greyed); `endTime` "HH:mm" or null. */
+        boolean event;
+        boolean past;
+        String endTime;
 
         Item(String taskId, String label, String content, String time, boolean overdue, int priority, String dueDate) {
             this.taskId = taskId;
@@ -566,7 +583,12 @@ final class CalendarWidget {
         String today = TaskLogic.todayStr();
         for (int i = 0; i < tasks.length(); i++) {
             JSONObject t = tasks.optJSONObject(i);
-            if (t == null || t.optBoolean("completed") || shoppingLists.contains(t.optString("projectId"))) continue;
+            if (t == null || shoppingLists.contains(t.optString("projectId"))) continue;
+            // Events stay on their day once they're over, greyed; done tasks go.
+            boolean event = TaskLogic.isEvent(t);
+            if (t.optBoolean("completed") && !event) continue;
+            boolean past = event && (t.optBoolean("completed") || TaskLogic.eventOver(t));
+            String endTime = event && t.has("endTime") && !t.isNull("endTime") ? t.optString("endTime") : null;
             JSONObject due = t.optJSONObject("due");
             String date = due != null ? WidgetStore.optStringOrNull(due, "date") : null;
             if (date == null || date.length() < 10) continue;
@@ -594,8 +616,12 @@ final class CalendarWidget {
                 if (d.compareTo(from) >= 0) {
                     List<Item> list = byDay.get(d);
                     if (list == null) byDay.put(d, list = new ArrayList<>());
-                    list.add(new Item(id, label, t.optString("content"), time, d.compareTo(today) < 0,
-                            t.optInt("priority", 1), date));
+                    Item item = new Item(id, label, t.optString("content"), time, !event && d.compareTo(today) < 0,
+                            t.optInt("priority", 1), date);
+                    item.event = event;
+                    item.past = past && d.equals(date);
+                    item.endTime = endTime;
+                    list.add(item);
                 }
                 if (rule == null) break;
                 String next = TaskLogic.advanceDate(d, rule);
@@ -660,7 +686,7 @@ final class CalendarWidget {
         if (tasks != null) {
             for (int i = 0; i < tasks.length(); i++) {
                 JSONObject t = tasks.optJSONObject(i);
-                if (t != null && t.optBoolean("completed") && !t.optString("completedAt").isEmpty()) {
+                if (t != null && t.optBoolean("completed") && !t.optString("completedAt").isEmpty() && !TaskLogic.isEvent(t)) {
                     all.add(new String[] {t.optString("id"), t.optString("content"), t.optString("completedAt")});
                 }
             }

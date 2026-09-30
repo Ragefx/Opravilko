@@ -31,7 +31,7 @@ export default function CompletedView() {
   const completed = useMemo(() => {
     if (!data) return [];
     return data.tasks
-      .filter((t) => t.completed && t.completedAt)
+      .filter((t) => t.completed && t.completedAt && t.kind !== "event")
       .filter((t) => projectId === "all" || t.projectId === projectId)
       .filter((t) => !query.trim() || t.content.toLowerCase().includes(query.trim().toLowerCase()))
       .sort((a, b) => (b.completedAt || "").localeCompare(a.completedAt || ""));

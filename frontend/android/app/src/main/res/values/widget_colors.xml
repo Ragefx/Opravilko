@@ -47,4 +47,8 @@
     <!-- Tasks in the month grid: blue chips. -->
     <color name="widget_cal_task">#D6E3F8</color>
     <color name="widget_cal_task_text">#1D4690</color>
+    <!-- Events (a date night): violet. -->
+    <color name="widget_event">#7B4FD6</color>
+    <color name="widget_event_bg">#EAE1FB</color>
+    <color name="widget_event_text">#4B2A99</color>
 </resources>

@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
+import { eventTimeLabel, isEvent } from "../utils/events";
 import { doneByDay, useCalendarDone, type DoneEntry } from "../utils/calendarDone";
 import { isNativeApp } from "../dropbox/auth";
 import {
@@ -134,7 +135,8 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   const tasksByDate = new Map<string, Task[]>();
   for (const t of tasks) {
     // Sub-tasks with their own date show too (as in Now and Upcoming).
-    if (t.completed || !t.due) continue;
+    // Events stay on their day once they're over, greyed.
+    if ((t.completed && t.kind !== "event") || !t.due) continue;
     const key = t.due.date;
     if (!tasksByDate.has(key)) tasksByDate.set(key, []);
     tasksByDate.get(key)!.push(t);
@@ -377,12 +379,12 @@ function TaskChip({ task, onOpen }: { task: Task; onOpen: () => void }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={`calendar-task-chip ${isDragging ? "is-dragging" : ""}`}
-      style={{ borderLeftColor: PRIORITY_META[task.priority].color }}
+      className={`calendar-task-chip ${isEvent(task) ? "is-event" : ""} ${task.completed ? "is-past" : ""} ${isDragging ? "is-dragging" : ""}`}
+      style={isEvent(task) ? undefined : { borderLeftColor: PRIORITY_META[task.priority].color }}
       onClick={onOpen}
-      title={task.content}
+      title={isEvent(task) ? `${task.content} · ${eventTimeLabel(task)}` : task.content}
     >
-      {time && <span className="calendar-chip-time">{time}</span>}
+      {time && <span className="calendar-chip-time">{isEvent(task) && task.endTime ? `${time}–${task.endTime}` : time}</span>}
       {task.content}
     </button>
   );

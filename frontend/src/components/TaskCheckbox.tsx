@@ -1,4 +1,4 @@
-import { CheckIcon } from "./icons";
+import { CalendarIcon, CheckIcon } from "./icons";
 
 /**
  * Shared completion circle used in list rows, board cards and the sub-task list.
@@ -11,6 +11,7 @@ export default function TaskCheckbox({
   popping,
   onToggle,
   ariaLabel,
+  event,
 }: {
   completed: boolean;
   priorityColor: string;
@@ -19,7 +20,16 @@ export default function TaskCheckbox({
   recurring?: boolean;
   onToggle: (next: boolean) => void;
   ariaLabel?: string;
+  /** An event: a calendar mark instead of the circle (nothing to tick; greyed once it's over). */
+  event?: boolean;
 }) {
+  if (event) {
+    return (
+      <span className={`task-event-mark ${completed ? "is-past" : ""}`} aria-label={completed ? "Past event" : "Event"} role="img">
+        <CalendarIcon />
+      </span>
+    );
+  }
   return (
     <button
       className={`task-checkbox ${completed ? "checked" : ""} ${popping ? "is-popping" : ""}`}

@@ -26,7 +26,7 @@ import TaskMenu from "./TaskMenu";
 import { appUi } from "../utils/appUi";
 import PriorityMark from "./PriorityMark";
 import { PRIORITY_META } from "../utils/priority";
-import { dueDateClass, formatDueLabel } from "../utils/date";
+import { taskDueClass, taskDueLabel } from "../utils/events";
 import { CalendarIcon, RepeatIcon } from "./icons";
 import { stripHtml } from "../utils/html";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, sortTasks, type DisplayOptions } from "../utils/displayOptions";
@@ -397,6 +397,7 @@ function BoardCard({
       >
         <div className="board-card-top">
           <TaskCheckbox
+            event={task.kind === "event"}
             completed={task.completed || tick.busy}
             priorityColor={priorityColor}
             popping={tick.busy}
@@ -418,9 +419,9 @@ function BoardCard({
             {(task.due || task.labels.length > 0) && (
               <div className="task-meta">
                 {task.due && (
-                  <span className={`due ${dueDateClass(task.due)}`}>
+                  <span className={`due ${taskDueClass(task)}`}>
                     <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
-                    {formatDueLabel(task.due)}
+                    {taskDueLabel(task)}
                     {task.due.isRecurring && (
                       <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
                     )}

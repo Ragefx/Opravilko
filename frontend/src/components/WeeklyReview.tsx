@@ -40,7 +40,7 @@ function markReviewDone(): void {
  */
 export function reviewTasks(data: AppData): Task[] {
   const shopping = new Set(data.projects.filter((p) => p.viewStyle === "shopping").map((p) => p.id));
-  const open = data.tasks.filter((t) => !t.completed && !shopping.has(t.projectId));
+  const open = data.tasks.filter((t) => !t.completed && !shopping.has(t.projectId) && t.kind !== "event");
   const overdue = open.filter((t) => isOverdue(t.due)).sort((a, b) => a.due!.date.localeCompare(b.due!.date));
   const undated = open.filter((t) => !t.due && !t.parentId).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   return [...overdue, ...undated];

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { syncArrivalPlaces } from "../native/places";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { isNativeApp } from "../dropbox/auth";
-import { useBootstrap, useRecolorPlainLabels, useSyncAllCalendarFeeds } from "../api/hooks";
+import { useBootstrap, useFinishEvents, useRecolorPlainLabels, useSyncAllCalendarFeeds } from "../api/hooks";
+import { eventOver } from "../utils/events";
 import { REMINDERS_CHANGED, checkDueReminders, clearOldAppReminders } from "../utils/notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { activeSession, hasPendingWrite, isSignedIn, needsSetup } from "../data/store";
@@ -92,6 +93,21 @@ export default function Layout() {
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completionLog, tasks]);
+
+  // Events that are over leave the lists (checked now and each minute).
+  const finishEvents = useFinishEvents();
+  useEffect(() => {
+    if (!tasks) return;
+    const check = () => {
+      const now = new Date();
+      const over = tasks.filter((t) => eventOver(t, now)).map((t) => t.id);
+      if (over.length) finishEvents.mutate(over);
+    };
+    check();
+    const id = window.setInterval(check, 60_000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks]);
 
   // Labels all used to start out grey: give each its own colour, once.
   const recolorLabels = useRecolorPlainLabels();

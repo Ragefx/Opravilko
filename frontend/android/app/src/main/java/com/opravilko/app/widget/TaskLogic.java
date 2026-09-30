@@ -201,6 +201,8 @@ public final class TaskLogic {
             if (tasks == null || taskId == null) return false;
             JSONObject task = findTask(tasks, taskId);
             if (task == null || task.optBoolean("completed")) return false;
+            // An event has no tick: it leaves the lists once it's over.
+            if (isEvent(task)) return false;
 
             JSONObject due = task.optJSONObject("due");
             if (due != null && due.optBoolean("isRecurring") && due.has("rrule")) {
@@ -255,6 +257,44 @@ public final class TaskLogic {
     // ---- views ----
 
     /** A task row as the widget shows it. */
+    // ---- events (src/utils/events.ts) ----
+
+    static boolean isEvent(JSONObject t) {
+        return t != null && "event".equals(t.optString("kind"));
+    }
+
+    /** When an event is over (ms): its end time, an hour after it starts, or the end of its day. */
+    static long eventEndMillis(JSONObject t) {
+        JSONObject due = t.optJSONObject("due");
+        if (due == null) return Long.MAX_VALUE;
+        String dt = due.has("datetime") && !due.isNull("datetime") ? due.optString("datetime") : null;
+        java.util.Date start = dt != null ? ReminderLogic.parseIso(dt) : null;
+        if (start == null) {
+            Calendar c = calendarFor(due.optString("date"));
+            if (c == null) return Long.MAX_VALUE;
+            c.add(Calendar.DAY_OF_MONTH, 1);
+            return c.getTimeInMillis();
+        }
+        String end = t.has("endTime") && !t.isNull("endTime") ? t.optString("endTime") : null;
+        if (end != null && end.matches("\\d{1,2}:\\d{2}")) {
+            Calendar c = Calendar.getInstance();
+            c.setTime(start);
+            String[] hm = end.split(":");
+            c.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hm[0]));
+            c.set(Calendar.MINUTE, Integer.parseInt(hm[1]));
+            c.set(Calendar.SECOND, 0);
+            c.set(Calendar.MILLISECOND, 0);
+            if (c.getTimeInMillis() <= start.getTime()) c.add(Calendar.DAY_OF_MONTH, 1);
+            return c.getTimeInMillis();
+        }
+        return start.getTime() + 60 * 60_000L;
+    }
+
+    /** An open event whose time has passed. */
+    static boolean eventOver(JSONObject t) {
+        return isEvent(t) && !t.optBoolean("completed") && eventEndMillis(t) <= System.currentTimeMillis();
+    }
+
     public static final class Row {
         public final String id;
         public final String projectId;
@@ -268,6 +308,9 @@ public final class TaskLogic {
         public final String sectionId;
         public final boolean hasDescription;
         public final String description;
+        /** An event (src/utils/events.ts): no tick, never late; `endTime` "HH:mm" or null. */
+        public final boolean event;
+        public final String endTime;
         final double order;
 
         Row(JSONObject t, String projectName) {
@@ -285,6 +328,8 @@ public final class TaskLogic {
             sectionId = t.isNull("sectionId") ? null : t.optString("sectionId", null);
             description = t.optString("description", "");
             hasDescription = !description.trim().isEmpty();
+            event = isEvent(t);
+            endTime = event && t.has("endTime") && !t.isNull("endTime") ? t.optString("endTime") : null;
         }
     }
 
@@ -331,6 +376,8 @@ public final class TaskLogic {
         for (int i = 0; i < tasks.length(); i++) {
             JSONObject t = tasks.optJSONObject(i);
             if (t == null || t.optBoolean("completed")) continue;
+            // Events that are over go (the app marks them so when it next runs).
+            if (eventOver(t)) continue;
             JSONObject due = t.optJSONObject("due");
             String date = due != null ? due.optString("date", null) : null;
             boolean include;
@@ -398,6 +445,7 @@ public final class TaskLogic {
             label = new SimpleDateFormat(thisYear ? "d MMM" : "d MMM yyyy", Locale.ENGLISH).format(c.getTime());
         }
         String time = dueTime(row);
+        if (time != null && row.endTime != null) time += "–" + row.endTime;
         return time != null ? label + " " + time : label;
     }
 

@@ -43,4 +43,8 @@
     <color name="widget_cal_card">#23262B</color>
     <color name="widget_cal_task">#1E2E4A</color>
     <color name="widget_cal_task_text">#A9C6FF</color>
+    <!-- Events (a date night): violet. -->
+    <color name="widget_event">#B69BFF</color>
+    <color name="widget_event_bg">#2E2448</color>
+    <color name="widget_event_text">#D2C2FF</color>
 </resources>

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { Task } from "../api/types";
 import { useCompleteTask } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
-import { dueDateClass, formatDueLabel } from "../utils/date";
+import { taskDueClass, taskDueLabel } from "../utils/events";
 import { CalendarIcon, RepeatIcon } from "./icons";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
@@ -97,6 +97,7 @@ function DateBoardCard({
       <div className="board-card" style={{ cursor: "pointer" }} onClick={() => onOpen(task)}>
         <div className="board-card-top">
           <TaskCheckbox
+            event={task.kind === "event"}
             completed={task.completed || tick.busy}
             priorityColor={priorityColor}
             popping={tick.busy}
@@ -109,9 +110,9 @@ function DateBoardCard({
             {(task.due || projectLabel) && (
               <div className="task-meta">
                 {task.due && (
-                  <span className={`due ${dueDateClass(task.due)}`}>
+                  <span className={`due ${taskDueClass(task)}`}>
                     <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />{" "}
-                    {formatDueLabel(task.due)}
+                    {taskDueLabel(task)}
                     {task.due.isRecurring && (
                       <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
                     )}

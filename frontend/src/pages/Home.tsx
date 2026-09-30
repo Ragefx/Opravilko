@@ -11,6 +11,7 @@ import PriorityMark from "../components/PriorityMark";
 import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
 import { isDueToday, isOverdue, todayISO } from "../utils/date";
+import { EVENT_COLOR, eventEnd, isEvent } from "../utils/events";
 import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "../components/WeeklyReview";
 import { awayRange, projectRoute, tripsOf, tripWhen, tripIcon } from "../utils/away";
 import { useNavigate } from "react-router-dom";
@@ -96,7 +97,9 @@ export default function Home() {
     const today = todayISO();
     const weekEnd = format(addDays(new Date(), 7), "yyyy-MM-dd");
     const open = data.tasks.filter((t) => !t.completed && t.due);
-    const nowTasks = open.filter((t) => isDueToday(t.due) || isOverdue(t.due)).sort(focusRank);
+    // Events aren't things to do: never the focus task, never late.
+    const nowTasks = open.filter((t) => !isEvent(t) && (isDueToday(t.due) || isOverdue(t.due))).sort(focusRank);
+    const todaysOwnEvents = open.filter((t) => isEvent(t) && isDueToday(t.due));
     const focus = focusOn ? nowTasks[0] || null : null;
     const rest = nowTasks.filter((t) => t !== focus);
 
@@ -108,14 +111,16 @@ export default function Home() {
     // events not over yet -- finished ones are only clutter.
     const nowMs = Date.now();
     const clock: ClockEntry[] = [
-      ...rest.filter((t) => isDueToday(t.due) && t.due?.datetime).map((t) => ({ kind: "task" as const, at: t.due!.datetime!, task: t })),
+      ...[...rest, ...todaysOwnEvents]
+        .filter((t) => isDueToday(t.due) && t.due?.datetime)
+        .map((t) => ({ kind: "task" as const, at: t.due!.datetime!, task: t })),
       ...todaysEvents
         .filter((e) => !e.allDay && e.start && new Date(e.end || e.start).getTime() > nowMs)
         .map((e) => ({ kind: "event" as const, at: e.start!, event: e })),
     ];
     clock.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 
-    const anytime = rest.filter((t) => !(isDueToday(t.due) && t.due?.datetime));
+    const anytime = [...todaysOwnEvents.filter((t) => !t.due?.datetime), ...rest.filter((t) => !(isDueToday(t.due) && t.due?.datetime))];
 
     const nextDays: { date: string; tasks: Task[]; events: CalendarEvent[] }[] = [];
     for (let i = 1; i <= 7; i++) {
@@ -283,17 +288,26 @@ export default function Home() {
           </div>
           {(agendaOpen ? view.clock : view.clock.slice(0, AGENDA_ROWS)).map((c) => {
             const start = new Date(c.at).getTime();
-            const end = c.kind === "event" && c.event.end ? new Date(c.event.end).getTime() : start;
+            const own = c.kind === "task" && isEvent(c.task);
+            const end =
+              c.kind === "event" && c.event.end
+                ? new Date(c.event.end).getTime()
+                : own
+                  ? (eventEnd(c.task)?.getTime() ?? start)
+                  : start;
             const now = Date.now();
             const state = start > now ? "ahead" : end > now ? "on" : "late";
             const title = c.kind === "event" ? c.event.title : c.task.content;
             const rel = state === "ahead" ? untilText(c.at) : state === "on" ? "now" : "late";
             const body = (
               <>
-                <span className="home-agenda-time">{timeOf(c.at)}</span>
+                <span className="home-agenda-time">
+                  {timeOf(c.at)}
+                  {own && c.task.endTime ? `–${c.task.endTime}` : ""}
+                </span>
                 <span
-                  className={`home-agenda-kind ${c.kind === "event" ? "is-event" : ""}`}
-                  style={c.kind === "event" && c.event.color ? { background: c.event.color } : undefined}
+                  className={`home-agenda-kind ${c.kind === "event" || own ? "is-event" : ""}`}
+                  style={c.kind === "event" && c.event.color ? { background: c.event.color } : own ? { background: EVENT_COLOR } : undefined}
                   aria-hidden="true"
                 />
                 <span className="home-agenda-title">{title}</span>

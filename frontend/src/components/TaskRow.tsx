@@ -1,7 +1,7 @@
 import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
-import { dueDateClass, formatDueLabel } from "../utils/date";
+import { taskDueClass, taskDueLabel } from "../utils/events";
 import { BellIcon, CalendarIcon, CheckIcon, ChevronIcon, HourglassIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
 import { remindersOf } from "../utils/reminders";
 import TaskCheckbox from "./TaskCheckbox";
@@ -75,7 +75,7 @@ export default function TaskRow({
     });
   }
 
-  const swipe = useSwipeActions({ onRight: completeWithUndo, onLeft: deleteWithUndo, disabled: task.completed || !swipeOn });
+  const swipe = useSwipeActions({ onRight: completeWithUndo, onLeft: deleteWithUndo, disabled: task.completed || !swipeOn || task.kind === "event" });
   const dx = swipe.dx;
   const swipeDir = swipe.dir;
 
@@ -120,6 +120,7 @@ export default function TaskRow({
           <span className="task-collapse-spacer" />
         )}
         <TaskCheckbox
+            event={task.kind === "event"}
           completed={task.completed || tick.busy}
           priorityColor={priorityColor}
           popping={tick.busy}
@@ -145,8 +146,8 @@ export default function TaskRow({
             <div className="task-meta">
               {doneBy && <span className="task-done-by">✓ {doneBy}</span>}
               {task.due && (
-                <span className={`due ${dueDateClass(task.due)}`}>
-                  <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {formatDueLabel(task.due)}
+                <span className={`due ${taskDueClass(task)}`}>
+                  <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {taskDueLabel(task)}
                   {task.due.isRecurring && (
                     <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
                   )}

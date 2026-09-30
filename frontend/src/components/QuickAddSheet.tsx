@@ -156,6 +156,10 @@ export default function QuickAddSheet({
   }, []);
   // Picked here; left untouched, this device's defaults from Settings apply (none unless set).
   const [reminders, setReminders] = useState<Reminder[] | undefined>(undefined);
+  // A task, or an event (a date night): no tick, an end time, see utils/events.ts.
+  const [kind, setKind] = useState<"task" | "event">("task");
+  const [endTime, setEndTime] = useState("");
+  const event = kind === "event";
   const dateChip = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const title = useRef<HTMLInputElement>(null);
@@ -217,7 +221,10 @@ export default function QuickAddSheet({
       projectId: target.projectId,
       sectionId: target.sectionId,
       priority: effectivePriority,
-      due: applyRecurrence(baseDue, repeat),
+      // An event always has a day: today unless one was picked.
+      due: applyRecurrence(baseDue ?? (event ? { date: todayISO(), string: "today", isRecurring: false } : null), repeat),
+      ...(event ? { kind: "event" as const } : {}),
+      ...(event && endTime && baseDue?.datetime ? { endTime } : {}),
       labels: allLabels,
       ...(preview.deadline ? { deadline: preview.deadline } : {}),
       ...(location ? { location } : {}),
@@ -240,6 +247,7 @@ export default function QuickAddSheet({
     setLocation(null);
     setReminders(undefined);
     setRepeat("none");
+    setEndTime("");
     title.current?.focus();
     if (file) {
       const f = file;
@@ -447,7 +455,7 @@ export default function QuickAddSheet({
 
   return createPortal(
     <div className={`qas-scrim ${dialog ? "qas-dialog-scrim" : ""}`} onClick={onClose}>
-      <div className={`qas-card ${dialog ? "qas-dialog" : `qab ${addStyle === "tabs" ? "qab-anim-grow" : "qab-anim-rise"}`}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label="Add task">
+      <div className={`qas-card ${dialog ? "qas-dialog" : `qab ${addStyle === "tabs" ? "qab-anim-grow" : "qab-anim-rise"}`}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label={event ? "Add event" : "Add task"}>
         {added && <div className="qas-added">{added}</div>}
         {/* What was read as a date, time, p1, #project... shows highlighted: the
             text is drawn by the copy behind the (see-through) field. */}
@@ -469,7 +477,7 @@ export default function QuickAddSheet({
                 if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
               }}
               autoFocus
-              placeholder="Task name"
+              placeholder={event ? "Event name" : "Task name"}
               value={text}
               enterKeyHint="send"
               onChange={(e) => setText(e.target.value)}
@@ -487,6 +495,22 @@ export default function QuickAddSheet({
               onText={(said) => setText((t) => (t.trim() ? t.trim() + " " : "") + said)}
             />
           )}
+        </div>
+        <div className="qas-kind">
+          <div className="segmented" role="radiogroup" aria-label="Task or event">
+            {(["task", "event"] as const).map((k) => (
+              <button key={k} type="button" role="radio" aria-checked={kind === k} className={kind === k ? "active" : ""} onClick={() => setKind(k)}>
+                {k === "task" ? "✓ Task" : "📅 Event"}
+              </button>
+            ))}
+          </div>
+          {event && baseDue?.datetime && (
+            <label className="qas-kind-end">
+              <span>until</span>
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} aria-label="Ends at" />
+            </label>
+          )}
+          {event && !baseDue?.datetime && <span className="qas-kind-hint">{baseDue ? "All day · add a time for from–to" : "Pick a day (today if not)"}</span>}
         </div>
         {description !== null && (
           <textarea
@@ -754,7 +778,7 @@ export default function QuickAddSheet({
                 Cancel
               </button>
               <button type="button" className="btn btn-primary" onClick={() => void submit()} disabled={!preview?.content}>
-                Add task
+                {event ? "Add event" : "Add task"}
               </button>
             </div>
           </div>

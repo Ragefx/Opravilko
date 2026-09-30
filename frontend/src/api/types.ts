@@ -122,6 +122,10 @@ export interface Task {
   attachments?: Attachment[];
   /** Where it happens: a place picked from search or a pin on the map. */
   location?: TaskLocation;
+  /** An event (a date night) rather than something to do: no tick, see utils/events.ts. */
+  kind?: "event";
+  /** Events: when it ends ("HH:mm"), on its day (or the next, when earlier than the start). */
+  endTime?: string;
 }
 
 /**

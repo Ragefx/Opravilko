@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } from "date-fns";
 import { fetchAppData, scheduleSave } from "../data/store";
 import { keepRepeat, nextOccurrence, parseRecurrenceString } from "../utils/recurrence";
+import { eventEnd, eventOver } from "../utils/events";
 import { todayISO } from "../utils/date";
 import { defaultReminders } from "../utils/reminders";
 import { PLAIN_LABEL_COLORS, pickLabelColor } from "../utils/colors";
@@ -147,6 +148,8 @@ export function useCreateTask() {
       ...(sharedWith ? { sharedWith } : {}),
       ...(input.location ? { location: input.location } : {}),
       ...(input.deadline ? { deadline: input.deadline } : {}),
+      ...(input.kind === "event" ? { kind: "event" as const } : {}),
+      ...(input.kind === "event" && input.endTime ? { endTime: input.endTime } : {}),
     };
     // Reminders as picked, else this device's defaults from Settings (none unless set).
     const reminders = input.reminders ?? defaultReminders(task.due, data.me);
@@ -240,6 +243,33 @@ function advanceRecurringDue(due: Due): Due | null {
     datetime = addDays(new Date(datetime), dayShift).toISOString();
   }
   return { ...due, date: next, datetime };
+}
+
+/**
+ * Events that are over leave the lists by themselves: a repeating one moves
+ * on to its next date, any other is marked done at the time it ended (so it
+ * stays on the calendar, greyed). Nothing goes into the completion history
+ * and its sub-tasks stay open: an event isn't work done.
+ */
+export function useFinishEvents() {
+  return useLocalMutation<string[], void>((data, ids) => {
+    const now = new Date();
+    for (const task of data.tasks) {
+      if (!ids.includes(task.id) || !eventOver(task, now)) continue;
+      const stamp = now.toISOString();
+      if (task.due?.isRecurring && task.due.rrule) {
+        const next = advanceRecurringDue(task.due);
+        if (next) {
+          task.due = next;
+          task.updatedAt = stamp;
+          continue;
+        }
+      }
+      task.completed = true;
+      task.completedAt = (eventEnd(task) ?? now).toISOString();
+      task.updatedAt = stamp;
+    }
+  });
 }
 
 export function useCompleteTask() {

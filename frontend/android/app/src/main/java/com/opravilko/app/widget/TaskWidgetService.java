@@ -238,7 +238,8 @@ public class TaskWidgetService extends RemoteViewsService {
             // Being ticked off: the filled circle and a line through the name, then faded.
             int phase = CompleteAnimation.phase(row.id);
             rv.setImageViewResource(R.id.row_check,
-                    phase != CompleteAnimation.NONE ? CompleteAnimation.doneDrawable(row.priority) : checkDrawable(row.priority));
+                    row.event ? R.drawable.widget_event_mark
+                    : phase != CompleteAnimation.NONE ? CompleteAnimation.doneDrawable(row.priority) : checkDrawable(row.priority));
             rv.setTextViewText(R.id.row_title, phase != CompleteAnimation.NONE ? CompleteAnimation.struck(row.content) : row.content);
             rv.setTextColor(R.id.row_title, context.getColor(phase != CompleteAnimation.NONE ? R.color.widget_text_muted : R.color.widget_text));
             rv.setFloat(R.id.row_root, "setAlpha", phase == CompleteAnimation.FADING ? CompleteAnimation.FADED_ALPHA : 1f);
@@ -275,7 +276,8 @@ public class TaskWidgetService extends RemoteViewsService {
             complete.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
             // A repeating task is only advanced if it's still on the date shown.
             if (row.recurring) complete.putExtra(TaskWidgetProvider.EXTRA_DUE_DATE, row.dueDate);
-            rv.setOnClickFillInIntent(R.id.row_check, complete);
+            // An event has nothing to tick: its mark opens it like the rest of the row.
+            if (!row.event) rv.setOnClickFillInIntent(R.id.row_check, complete);
 
             // Tapping the task opens its card right over the home screen (name,
             // notes, date, priority), without the app; the card can open the app.
@@ -283,6 +285,7 @@ public class TaskWidgetService extends RemoteViewsService {
             open.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_EDIT_TASK);
             open.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
             rv.setOnClickFillInIntent(R.id.row_root, open);
+            if (row.event) rv.setOnClickFillInIntent(R.id.row_check, open);
             return rv;
         }
 
@@ -306,6 +309,7 @@ public class TaskWidgetService extends RemoteViewsService {
         }
 
         private static int dueColor(TaskLogic.Row row) {
+            if (row.event) return R.color.widget_event;
             switch (TaskLogic.dueKind(row.dueDate)) {
                 case OVERDUE: return R.color.widget_due_overdue;
                 case TODAY: return R.color.widget_due_today;

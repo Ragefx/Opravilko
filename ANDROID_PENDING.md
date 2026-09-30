@@ -7,14 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 49** (commit `9b215fa`, Sep 30 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-49
+Last build: **build 51** (commit `ed21c89`, Sep 30 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-51
+(Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 49: events, swiping tasks off by default, only the trip band coloured in the widget month, refused changes named.
+Build 51: the add card's task/event switch as a small icon in the corner, an event's end time as a chip next to the date.
 
 ## In the code, not in the app yet
 
-- Add card: the task/event switch is a small icon in the top right corner (theme colour); an event's end time is a chip/token next to the date
+(nothing yet)
 
 ## Known gaps
 

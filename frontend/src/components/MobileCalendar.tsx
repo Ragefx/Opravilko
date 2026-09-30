@@ -1,6 +1,7 @@
 import { useRef, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
+import { doneByDay, useCalendarDone, type DoneEntry } from "../utils/calendarDone";
 import {
   addDays,
   addMonths,
@@ -130,6 +131,10 @@ export default function MobileCalendar({
 
   const key = format(selected, "yyyy-MM-dd");
   const selectedTrips = tripsOn(trips, key);
+  // What got done that day (Settings > Appearance), under its trips.
+  const showDone = useCalendarDone();
+  const doneMap = showDone ? doneByDay(data) : new Map<string, DoneEntry[]>();
+  const dayDone = key <= format(new Date(), "yyyy-MM-dd") ? doneMap.get(key) ?? [] : [];
   const showOverdue = isToday(selected);
   const overdue = showOverdue ? open.filter((t) => isOverdue(t.due)) : [];
   const dayTasks = byDate.get(key) ?? [];
@@ -200,6 +205,9 @@ export default function MobileCalendar({
                     <i key={i} style={{ background: c }} />
                   ))}
                   {events.length > 0 && <i className="is-event" />}
+                  {list.length === 0 && (doneMap.get(k)?.length ?? 0) > 0 && k <= format(new Date(), "yyyy-MM-dd") && (
+                    <i className="is-done" />
+                  )}
                   {more > 0 && <b>+{more}</b>}
                 </span>
               </button>
@@ -244,6 +252,19 @@ export default function MobileCalendar({
         projectNameById={projectNameById}
         groupExtra={(label, items) => (label === "Overdue" && items.length > 0 ? <RescheduleButton tasks={items} /> : undefined)}
         eventsByDate={eventsByDate}
+        footer={
+          dayDone.length > 0 && (
+            <div className="mcal-done">
+              <b>Done</b>
+              {dayDone.map((d) => (
+                <span key={`${d.taskId}@${d.at}`} className="mcal-done-row">
+                  <s>✓ {d.content}</s>
+                  <i>{format(new Date(d.at), "HH:mm")}</i>
+                </span>
+              ))}
+            </div>
+          )
+        }
         dateGroups={[
           ...(overdue.length ? [{ label: "Overdue", date: null }] : []),
           { label: dayLabel, date: key, keepEmpty: true },

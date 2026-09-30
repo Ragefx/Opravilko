@@ -7725,3 +7725,56 @@ button.sidebar-link {
   color: var(--color-accent);
   font-weight: 600;
 }
+
+/* ---------- Completed tasks on the calendars (Settings > Appearance) ---------- */
+.calendar-done-chip {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  padding: 1px 6px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--color-text-muted) 60%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.mcal-done {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 12px 0 16px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.mcal-done b {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mcal-done-row {
+  display: flex;
+  gap: 8px;
+}
+.mcal-done-row s {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mcal-done-row i {
+  margin-left: auto;
+  font-style: normal;
+  text-decoration: none;
+  font-size: 11px;
+}
+.mcal-dots i.is-done {
+  background: var(--color-text-muted);
+  opacity: 0.5;
+}

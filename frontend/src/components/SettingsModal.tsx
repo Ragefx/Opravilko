@@ -9,6 +9,7 @@ import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
 import { setHolidaysOn, useHolidays } from "../utils/holidays";
+import { setCalendarDoneOn, useCalendarDone } from "../utils/calendarDone";
 import { clearTheme, getStoredTheme, setTheme, type ThemeChoice } from "../utils/theme";
 import { setSidebarPinned, useSidebarPinned } from "../utils/sidebarPin";
 import {
@@ -265,6 +266,7 @@ function Appearance() {
   const focusCard = useFocusCard();
   const weeklyReview = useWeeklyReview();
   const holidays = useHolidays();
+  const calendarDone = useCalendarDone();
   const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
@@ -373,6 +375,21 @@ function Appearance() {
         <span>
           <b>Slovenian holidays</b>
           <span>Prazniki in dela prosti dnevi on the calendars (days off in red), worked out for every year.</span>
+        </span>
+      </label>
+
+      <label className="settings-switch">
+        <input
+          type="checkbox"
+          checked={calendarDone}
+          onChange={(e) => {
+            setCalendarDoneOn(e.target.checked);
+            queryClient.setQueryData<AppData>(["bootstrap"], (d) => (d ? { ...d } : d));
+          }}
+        />
+        <span>
+          <b>Completed tasks on the calendar</b>
+          <span>What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).</span>
         </span>
       </label>
 

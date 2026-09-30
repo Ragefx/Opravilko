@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
+import { doneByDay, useCalendarDone, type DoneEntry } from "../utils/calendarDone";
 import { isNativeApp } from "../dropbox/auth";
 import {
   addDays,
@@ -94,7 +95,12 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
   const [dragging, setDragging] = useState<Task | null>(null);
   const updateTask = useUpdateTask();
   const showToast = useToast();
-  const trips = tripsOf(useBootstrap().data);
+  const data = useBootstrap().data;
+  const trips = tripsOf(data);
+  // Completed tasks, on the day they were done (Settings > Appearance).
+  const showDone = useCalendarDone();
+  const done = showDone ? doneByDay(data) : new Map<string, DoneEntry[]>();
+  const todayKey = format(new Date(), "yyyy-MM-dd");
   const navigate = useNavigate();
   const [awayEdit, setAwayEdit] = useState<{ period?: AwayPeriod; startDay?: string } | null>(null);
 
@@ -231,7 +237,10 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
             const limit = expanded ? Infinity : MAX_VISIBLE_PER_DAY;
             const shownEvents = dayEvents.slice(0, limit);
             const shownTasks = dayTasks.slice(0, Math.max(0, limit - shownEvents.length));
-            const hidden = dayEvents.length + dayTasks.length - shownEvents.length - shownTasks.length;
+            const dayDone = key <= todayKey ? done.get(key) ?? [] : [];
+            const shownDone = dayDone.slice(0, Math.max(0, limit - shownEvents.length - shownTasks.length));
+            const hidden =
+              dayEvents.length + dayTasks.length + dayDone.length - shownEvents.length - shownTasks.length - shownDone.length;
             // A trip: a band across its days, named where it starts and at the start of each week.
             const dayTrips = tripsOn(trips, key);
             const trip = dayTrips[0]?.period;
@@ -282,12 +291,25 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                 {shownTasks.map((t) => (
                   <TaskChip key={t.id} task={t} onOpen={() => setOpenTask(t)} />
                 ))}
+                {shownDone.map((d) => {
+                  const task = data?.tasks.find((t) => t.id === d.taskId);
+                  return (
+                    <button
+                      key={`${d.taskId}@${d.at}`}
+                      className="calendar-done-chip"
+                      title={`Done: ${d.content} · ${format(new Date(d.at), "HH:mm")}`}
+                      onClick={() => task && setOpenTask(task)}
+                    >
+                      ✓ {d.content}
+                    </button>
+                  );
+                })}
                 {hidden > 0 && (
                   <button className="calendar-more" onClick={() => setExpandedDay(key)}>
                     +{hidden} more
                   </button>
                 )}
-                {mode === "month" && expandedDay === key && dayEvents.length + dayTasks.length > MAX_VISIBLE_PER_DAY && (
+                {mode === "month" && expandedDay === key && dayEvents.length + dayTasks.length + dayDone.length > MAX_VISIBLE_PER_DAY && (
                   <button className="calendar-more" onClick={() => setExpandedDay(null)}>
                     Show less
                   </button>

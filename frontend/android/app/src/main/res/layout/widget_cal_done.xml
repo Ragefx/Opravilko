@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A task done that day: greyed with a tick, no chip. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cal_done"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="1.5dp"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:paddingStart="3dp"
+    android:paddingTop="1dp"
+    android:paddingEnd="2dp"
+    android:paddingBottom="1dp"
+    android:textColor="@color/widget_text_muted"
+    android:textSize="10sp" />

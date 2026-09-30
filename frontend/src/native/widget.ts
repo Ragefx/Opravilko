@@ -1,3 +1,5 @@
+import { format, subDays } from "date-fns";
+import { calendarDoneOn, doneByDay } from "../utils/calendarDone";
 import { holidaysOn } from "../utils/holidays";
 import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import { getWidgetAuth, isNativeApp } from "../dropbox/auth";
@@ -106,7 +108,18 @@ export function pushWidgetData(data: AppData): void {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { calendarEvents: _e, calendarFeeds: _f, completionLog: _l, ...rest } = data;
   // holidays: the month view shows the Slovenian holidays too (worked out on the phone).
-  const widgetData = { ...rest, shoppingGuide: categoryGuide(), holidays: holidaysOn() };
+  // done: what got done in the last ~10 weeks, for its calendar views (when switched on).
+  const since = format(subDays(new Date(), 70), "yyyy-MM-dd");
+  const done = calendarDoneOn()
+    ? [...doneByDay(data, since).values()].flat().map((d) => ({ id: d.taskId, c: d.content, at: d.at, d: d.day }))
+    : [];
+  const widgetData = {
+    ...rest,
+    shoppingGuide: categoryGuide(),
+    holidays: holidaysOn(),
+    calendarDone: calendarDoneOn(),
+    done,
+  };
   const { appKey, refreshToken } = getWidgetAuth();
   const firebase = firebaseWidgetAuth();
   void OpravilkoWidget.update({

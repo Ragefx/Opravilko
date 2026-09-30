@@ -53,6 +53,8 @@ final class CalendarWidget {
         Map<String, List<Item>> byDay;
         List<Trip> trips;
         Map<String, Holidays.Holiday> holidays;
+        /** What got done each day up to today (Settings > Appearance), newest first. */
+        Map<String, List<Done>> done;
 
         Month(Context context, int appWidgetId, JSONObject data) {
             WidgetStore store = new WidgetStore(context);
@@ -82,6 +84,12 @@ final class CalendarWidget {
                     for (Holidays.Holiday h : Holidays.of(year)) holidays.put(h.date, h);
                 }
             }
+            done = data != null && data.optBoolean("calendarDone", true) ? doneByDay(data, today) : new HashMap<>();
+        }
+
+        List<Done> doneOn(String key) {
+            List<Done> list = done.get(key);
+            return list != null ? list : new ArrayList<>();
         }
 
         boolean inMonth(Calendar c) {
@@ -181,6 +189,24 @@ final class CalendarWidget {
                         more.setTextViewText(R.id.cal_more, "+" + (items.size() - shown));
                         cell.addView(R.id.cal_day_items, more);
                     }
+                    room -= items.size() > room ? room : items.size();
+                }
+                // What got done that day, greyed with a tick, in the room that's left.
+                List<Done> done = m.doneOn(key);
+                if (!done.isEmpty() && room > 0) {
+                    int shown = done.size() > room ? Math.max(0, room - 1) : done.size();
+                    for (int i = 0; i < shown; i++) {
+                        Done item = done.get(i);
+                        RemoteViews chip = new RemoteViews(context.getPackageName(), R.layout.widget_cal_done);
+                        chip.setTextViewText(R.id.cal_done, "✓ " + item.label);
+                        chip.setOnClickPendingIntent(R.id.cal_done, openTask(context, appWidgetId, item.taskId));
+                        cell.addView(R.id.cal_day_items, chip);
+                    }
+                    if (shown < done.size()) {
+                        RemoteViews more = new RemoteViews(context.getPackageName(), R.layout.widget_cal_more);
+                        more.setTextViewText(R.id.cal_more, "✓" + (done.size() - shown));
+                        cell.addView(R.id.cal_day_items, more);
+                    }
                 }
                 cell.setOnClickPendingIntent(R.id.cal_day, TaskWidgetProvider.openApp(context, appWidgetId * 64 + w * 7 + d,
                         "opravilko://open?view=calendar&day=" + key));
@@ -233,7 +259,7 @@ final class CalendarWidget {
                 }
                 List<Item> items = m.byDay.get(key);
                 int n = items != null ? Math.min(3, items.size()) : 0;
-                cell.setTextViewText(R.id.ag_dots, n == 0 ? "" : n == 1 ? "●" : n == 2 ? "● ●" : "● ● ●");
+                cell.setTextViewText(R.id.ag_dots, n == 0 ? (m.doneOn(key).isEmpty() ? "" : "✓") : n == 1 ? "●" : n == 2 ? "● ●" : "● ● ●");
                 cell.setOnClickPendingIntent(R.id.ag_day, selectIntent(context, appWidgetId, key));
                 week.addView(R.id.ag_week, cell);
                 c.add(Calendar.DAY_OF_MONTH, 1);
@@ -261,7 +287,8 @@ final class CalendarWidget {
             boolean startsTrip = false;
             for (Trip t : away) if (t.start.equals(d)) startsTrip = true;
             boolean first = d.equals(selected);
-            if (!first && items.isEmpty() && holiday == null && !startsTrip) continue;
+            List<Done> done = m.doneOn(d);
+            if (!first && items.isEmpty() && holiday == null && !startsTrip && done.isEmpty()) continue;
 
             RemoteViews heading = new RemoteViews(context.getPackageName(), R.layout.widget_ag_heading);
             heading.setTextViewText(R.id.ag_heading, dayHeading(d, m.today));
@@ -285,7 +312,7 @@ final class CalendarWidget {
                 budget -= 20;
                 break;
             }
-            if (items.isEmpty() && first) {
+            if (items.isEmpty() && first && done.isEmpty()) {
                 RemoteViews note = new RemoteViews(context.getPackageName(), R.layout.widget_ag_note);
                 note.setTextViewText(R.id.ag_note, "Nothing due");
                 views.addView(R.id.ag_list, note);
@@ -302,6 +329,15 @@ final class CalendarWidget {
                 row.setOnClickPendingIntent(R.id.ag_row, openTask(context, appWidgetId, it.taskId));
                 views.addView(R.id.ag_list, row);
                 budget -= 26;
+            }
+            // Then what got done that day, greyed with a tick.
+            for (Done it : done) {
+                if (budget < 20) break;
+                RemoteViews note = new RemoteViews(context.getPackageName(), R.layout.widget_ag_note);
+                note.setTextViewText(R.id.ag_note, "✓ " + it.content + (it.time.isEmpty() ? "" : "  " + it.time));
+                note.setOnClickPendingIntent(R.id.ag_note, openTask(context, appWidgetId, it.taskId));
+                views.addView(R.id.ag_list, note);
+                budget -= 20;
             }
         }
     }
@@ -557,6 +593,71 @@ final class CalendarWidget {
                 return 0;
             });
         }
+        return byDay;
+    }
+
+    /** A task that got done, on the day it was ticked off. */
+    static final class Done {
+        final String taskId;
+        final String content;
+        final String label;
+        final String at;
+        final String time;
+
+        Done(String taskId, String content, String at, String time) {
+            this.taskId = taskId;
+            this.content = content;
+            this.label = shortLabel(content);
+            this.at = at;
+            this.time = time;
+        }
+    }
+
+    /**
+     * What got done by day, up to `today`: the app's list (`done`, sent with
+     * the snapshot) plus what was ticked off in the widget since
+     * (`completionLog`) and completed tasks still in the snapshot.
+     */
+    static Map<String, List<Done>> doneByDay(JSONObject data, String today) {
+        Map<String, List<Done>> byDay = new HashMap<>();
+        Set<String> seen = new HashSet<>();
+        SimpleDateFormat dayFmt = TaskLogic.dayFormat();
+        SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.US);
+        List<String[]> all = new ArrayList<>();
+        JSONArray sent = data.optJSONArray("done");
+        if (sent != null) {
+            for (int i = 0; i < sent.length(); i++) {
+                JSONObject e = sent.optJSONObject(i);
+                if (e != null) all.add(new String[] {e.optString("id"), e.optString("c"), e.optString("at")});
+            }
+        }
+        JSONArray log = data.optJSONArray("completionLog");
+        if (log != null) {
+            for (int i = 0; i < log.length(); i++) {
+                JSONObject e = log.optJSONObject(i);
+                if (e != null) all.add(new String[] {e.optString("taskId"), e.optString("content"), e.optString("at")});
+            }
+        }
+        JSONArray tasks = data.optJSONArray("tasks");
+        if (tasks != null) {
+            for (int i = 0; i < tasks.length(); i++) {
+                JSONObject t = tasks.optJSONObject(i);
+                if (t != null && t.optBoolean("completed") && !t.optString("completedAt").isEmpty()) {
+                    all.add(new String[] {t.optString("id"), t.optString("content"), t.optString("completedAt")});
+                }
+            }
+        }
+        for (String[] e : all) {
+            if (e[0].isEmpty() || e[2].isEmpty() || !seen.add(e[0] + "@" + e[2])) continue;
+            java.util.Date at = ReminderLogic.parseIso(e[2]);
+            if (at == null) continue;
+            String day = dayFmt.format(at);
+            if (day.compareTo(today) > 0) continue;
+            List<Done> list = byDay.get(day);
+            if (list == null) byDay.put(day, list = new ArrayList<>());
+            list.add(new Done(e[0], e[1], e[2], timeFmt.format(at)));
+        }
+        for (List<Done> list : byDay.values()) list.sort((a, b) -> b.at.compareTo(a.at));
         return byDay;
     }
 

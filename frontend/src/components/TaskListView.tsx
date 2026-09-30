@@ -38,6 +38,7 @@ export default function TaskListView({
   preserveOrder,
   eventsByDate,
   dateGroups,
+  footer,
 }: {
   title: string;
   /** Secondary line under the title, e.g. the date and task count. */
@@ -66,6 +67,8 @@ export default function TaskListView({
    * days in date order regardless of the tasks' manual order.
    */
   dateGroups?: DateGroup[];
+  /** Shown after the tasks, e.g. the calendar day's done list. */
+  footer?: ReactNode;
 }) {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -228,6 +231,8 @@ export default function TaskListView({
           ))}
         </>
       )}
+
+      {footer}
 
       {openTask && <TaskDetail task={openTask} onClose={() => setOpenTask(null)} onOpenTask={setOpenTask} />}
     </div>

@@ -14,7 +14,7 @@ Build 47: the widget's two calendar views (month; month + tasks), Slovenian holi
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Completed tasks on the calendars (Settings > Appearance): greyed ✓ on the day they were done, in the website, app and widget calendar views
 
 ## Known gaps
 

@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 50,
+    date: "2026-09-30",
+    items: [
+      "Add card: the task/event switch is a small icon in the top right corner (✓ for a task, a violet calendar for an event).",
+    ],
+  },
+  {
     build: 49,
     date: "2026-09-30",
     items: [

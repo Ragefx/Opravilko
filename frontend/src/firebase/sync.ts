@@ -772,40 +772,68 @@ export class FirestoreSync {
     const order = (op: Op) => (op.kind === "delete" && op.path[0] === "projects" ? 1 : 0);
     const sorted = [...ops].sort((a, b) => order(a) - order(b));
     const commits: Promise<boolean>[] = [];
-    for (let i = 0; i < sorted.length; i += BATCH_LIMIT) {
+    const write = (part: Op[]) => {
       const batch = writeBatch(db);
-      for (const op of sorted.slice(i, i + BATCH_LIMIT)) {
+      for (const op of part) {
         const ref = doc(db, op.path[0], ...op.path.slice(1));
         if (op.kind === "delete") batch.delete(ref);
         // "update" as a merge-set, so a document removed meanwhile is simply recreated.
         else if (op.kind === "update") batch.set(ref, op.data!, { merge: true });
         else batch.set(ref, op.data!, { merge: op.path[0] === "users" });
       }
+      return batch.commit();
+    };
+    for (let i = 0; i < sorted.length; i += BATCH_LIMIT) {
+      const part = sorted.slice(i, i + BATCH_LIMIT);
       this.pendingCommits++;
       this.updateSync();
-      const committed = batch
-        .commit()
-        .then(() => {
-          this.pendingCommits--;
-          this.updateSync();
+      const committed = write(part)
+        .then(() => true)
+        .catch(async (err) => {
+          console.error("Firestore write failed", err);
+          if (err?.code !== "permission-denied") {
+            this.setSync({ status: "error", pending: false, message: err?.message || "Couldn't save" });
+            return false;
+          }
+          // One refused change fails the whole batch: save the others one by
+          // one, and say which change it was.
+          const refused: Op[] = [];
+          for (const op of part) {
+            await write([op]).catch((e) => {
+              console.error("Refused:", op.kind, op.path.join("/"), op.data, e);
+              refused.push(op);
+            });
+          }
+          if (refused.length) {
+            this.setSync({ status: "error", pending: false, message: this.refusedMessage(refused) });
+            return false;
+          }
           return true;
         })
-        .catch((err) => {
+        .then((ok) => {
           this.pendingCommits--;
-          console.error("Firestore write failed", err);
-          this.setSync({
-            status: "error",
-            pending: false,
-            message:
-              err?.code === "permission-denied"
-                ? "That change isn't allowed (for example, only a project's owner can delete it)."
-                : err?.message || "Couldn't save",
-          });
-          return false;
+          if (ok) this.updateSync();
+          return ok;
         });
       commits.push(committed);
     }
     return Promise.all(commits).then((all) => all.every(Boolean));
+  }
+
+  /** "Couldn't save a change to “Buy milk” (tasks: archived): not allowed." */
+  private refusedMessage(refused: Op[]): string {
+    const op = refused[0];
+    const [kind, id] = op.path;
+    const known = this.lastKnown;
+    const name =
+      kind === "tasks"
+        ? known?.tasks.find((t) => t.id === id)?.content
+        : kind === "projects"
+          ? known?.projects.find((p) => p.id === id)?.name
+          : undefined;
+    const what = op.kind === "delete" ? "delete" : Object.keys(op.data || {}).slice(0, 4).join(", ");
+    const more = refused.length > 1 ? ` (and ${refused.length - 1} more)` : "";
+    return `Couldn't save a change to ${name ? `“${name}”` : kind} (${kind}: ${what})${more}: the database doesn't allow it.`;
   }
 
   // ---------- attachments removed by an edit ----------

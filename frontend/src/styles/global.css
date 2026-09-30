@@ -7878,26 +7878,6 @@ button.sidebar-link {
 .td-event-toggle.is-on {
   color: var(--color-event);
 }
-.qas-kind {
-  display: flex;
-  align-items: center;
-  padding: 0 16px 6px;
-}
-.qas-kind-end {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--color-event);
-}
-.qas-kind-end input {
-  font: inherit;
-  padding: 2px 6px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-  color: var(--color-text);
-}
 /* Task or event: a small icon at the card's top right. */
 .qas-kind-btn {
   flex-shrink: 0;
@@ -7914,6 +7894,23 @@ button.sidebar-link {
   cursor: pointer;
 }
 .qas-kind-btn.is-event {
-  color: var(--color-event);
-  background: color-mix(in srgb, var(--color-event) 12%, transparent);
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 13%, transparent);
+}
+/* An event's end time: a chip / token like the date, with the clock picker invisible on top. */
+.qas-chip > input[type="time"],
+.qab-token-until > input[type="time"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 16px;
+  cursor: pointer;
+}
+.qab-token-until {
+  position: relative;
+  gap: 5px;
+  padding: 0 10px;
+  cursor: pointer;
 }

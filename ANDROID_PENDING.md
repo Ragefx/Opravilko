@@ -7,16 +7,14 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 47** (commit `e011406`, Sep 30 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-47
+Last build: **build 48** (commit `51cedf5`, Sep 30 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-48
 
-Build 47: the widget's two calendar views (month; month + tasks), Slovenian holidays.
+Build 48: completed tasks on the calendars, off work (🏖️) and trips together, bigger month buttons on the calendar widget.
 
 ## In the code, not in the app yet
 
-- Completed tasks on the calendars (Settings > Appearance): greyed ✓ on the day they were done, in the website, app and widget calendar views
-- Calendar widget: the month's Today button is gone; ‹ › are now two big rounded buttons (tap the month's name to come back to this month)
-- Off work (🏖️, sand colour) and trips together, in the widget's calendar views too
+(nothing yet)
 
 ## Known gaps
 

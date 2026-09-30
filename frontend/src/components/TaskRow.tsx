@@ -7,6 +7,7 @@ import { remindersOf } from "../utils/reminders";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
 import { useSwipeActions } from "./useSwipeActions";
+import { useSwipeTasks } from "../utils/swipeTasks";
 import TaskMenu from "./TaskMenu";
 import { appUi } from "../utils/appUi";
 import PriorityMark from "./PriorityMark";
@@ -45,7 +46,8 @@ export default function TaskRow({
   const priorityColor = PRIORITY_META[task.priority].color;
   const otherProjects = (data?.projects || []).filter((p) => p.id !== task.projectId);
 
-  // Touch swipe: right completes (green), left deletes (red); both can be undone.
+  // Touch swipe (when on in Settings): right completes (green), left deletes (red); both can be undone.
+  const swipeOn = useSwipeTasks();
   const deleteTask = useDeleteTask();
   const restoreTasks = useRestoreTasks();
 
@@ -73,7 +75,7 @@ export default function TaskRow({
     });
   }
 
-  const swipe = useSwipeActions({ onRight: completeWithUndo, onLeft: deleteWithUndo, disabled: task.completed });
+  const swipe = useSwipeActions({ onRight: completeWithUndo, onLeft: deleteWithUndo, disabled: task.completed || !swipeOn });
   const dx = swipe.dx;
   const swipeDir = swipe.dir;
 

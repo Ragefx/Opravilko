@@ -7,6 +7,7 @@ import { setLook, useLook, type Look } from "../utils/look";
 import { PALETTES, setPalette, usePalette } from "../utils/palette";
 import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
+import { setSwipeTasks, useSwipeTasks } from "../utils/swipeTasks";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
 import { setHolidaysOn, useHolidays } from "../utils/holidays";
 import { setCalendarDoneOn, useCalendarDone } from "../utils/calendarDone";
@@ -264,6 +265,7 @@ function Appearance() {
   const palette = usePalette();
   const addStyle = useAddStyle();
   const focusCard = useFocusCard();
+  const swipeTasks = useSwipeTasks();
   const weeklyReview = useWeeklyReview();
   const holidays = useHolidays();
   const calendarDone = useCalendarDone();
@@ -390,6 +392,15 @@ function Appearance() {
         <span>
           <b>Completed tasks on the calendar</b>
           <span>What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).</span>
+        </span>
+      </label>
+
+      <h4>Tasks</h4>
+      <label className="settings-switch">
+        <input type="checkbox" checked={swipeTasks} onChange={(e) => setSwipeTasks(e.target.checked)} />
+        <span>
+          <b>Swipe tasks</b>
+          <span>On a phone, swipe a task right to complete it or left to delete it. Off: only the circle and the menu do.</span>
         </span>
       </label>
 

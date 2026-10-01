@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 54,
+    date: "2026-10-01",
+    items: [
+      "Simple (Settings > Appearance): one switch that hides the extras (shopping list Meal/Shop buttons, shop reminders and suggestions; a task's deadline, labels and location until set; who a Midva task is from; the Now page's \"pick something from Next\"). Each can be shown anyway.",
+      "Calendar: no \"Add task\" line under the day; the + at the bottom adds on it.",
+      "Shopping list: no swiping unless \"Swipe tasks\" is on in Settings.",
+    ],
+  },
+  {
     build: 53,
     date: "2026-09-30",
     items: [

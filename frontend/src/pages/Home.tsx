@@ -7,6 +7,7 @@ import TaskDetail from "../components/TaskDetail";
 import FocusMode from "../components/FocusMode";
 import { useFocusCard } from "../utils/focusCard";
 import { useWeeklyReview } from "../utils/weeklyReview";
+import { useHidden } from "../utils/simple";
 import PriorityMark from "../components/PriorityMark";
 import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
@@ -92,6 +93,8 @@ export default function Home() {
   // just one of today's tasks in the lists below.
   const focusOn = useFocusCard();
   const reviewOn = useWeeklyReview();
+  // Simple (Settings): a free day is just a free day.
+  const plainEmpty = useHidden("nowNext");
   const view = useMemo(() => {
     if (!data) return null;
     const today = todayISO();
@@ -236,7 +239,7 @@ export default function Home() {
       ) : view.nowTasks.length > 0 ? null : (
         <div className="home-clear">
           <b>Nothing due today.</b>
-          <span>Pick something from Next, or enjoy the free day.</span>
+          <span>{plainEmpty ? "Enjoy the free day." : "Pick something from Next, or enjoy the free day."}</span>
         </div>
       )}
 

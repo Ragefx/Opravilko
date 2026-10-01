@@ -8,6 +8,7 @@ import { PALETTES, setPalette, usePalette } from "../utils/palette";
 import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { setSwipeTasks, useSwipeTasks } from "../utils/swipeTasks";
+import { SIMPLE_ITEMS, setSimple, setSimpleShown, useSimple } from "../utils/simple";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
 import { setHolidaysOn, useHolidays } from "../utils/holidays";
 import { setCalendarDoneOn, useCalendarDone } from "../utils/calendarDone";
@@ -271,6 +272,7 @@ function Appearance() {
   const calendarDone = useCalendarDone();
   const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
+  const simple = useSimple();
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
 
   function pickTheme(next: ThemeSetting) {
@@ -281,6 +283,30 @@ function Appearance() {
 
   return (
     <>
+      <h4>Simple</h4>
+      <label className="settings-switch">
+        <input type="checkbox" checked={simple.on} onChange={(e) => setSimple(e.target.checked)} />
+        <span>
+          <b>Simple</b>
+          <span>Hides the extras on this device: fewer buttons, a calmer app. Each one can be brought back below.</span>
+        </span>
+      </label>
+      {simple.on && (
+        <div className="simple-items" role="group" aria-label="Shown anyway">
+          <span className="simple-items-head">Show anyway</span>
+          {SIMPLE_ITEMS.map((it) => (
+            <label key={it.key} className="simple-item">
+              <input
+                type="checkbox"
+                checked={simple.shown.includes(it.key)}
+                onChange={(e) => setSimpleShown(it.key, e.target.checked)}
+              />
+              <span>{it.label}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
       <h4>Look</h4>
       <div className="look-options" role="radiogroup" aria-label="Look">
         {LOOKS.map((l) => (

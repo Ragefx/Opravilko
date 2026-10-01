@@ -17,6 +17,7 @@ Build 53: the calendar's + adds on the day picked there.
 
 - Calendar: no "Add task" line under the day (the + at the bottom adds on that day)
 - Shopping list: no swiping unless "Swipe tasks" is on in Settings > Appearance
+- Simple (Settings > Appearance): hides the Meal/Shop buttons, shop reminders and suggestions on the shopping list; deadline, labels and location in a task (until set); who a Midva task is from; and "pick something from Next" on a free day. Each can be shown anyway
 
 ## Known gaps
 

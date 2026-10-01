@@ -37,6 +37,7 @@ import { useCompleteAnimation } from "./useCompleteAnimation";
 import PickSheet from "./PickSheet";
 import Select from "./Select";
 import ShopPlacesSheet from "./ShopPlacesSheet";
+import { useHidden } from "../utils/simple";
 import { appUi } from "../utils/appUi";
 import { callHelper, helperReady } from "../utils/helper";
 import { completedByName } from "../utils/completedBy";
@@ -189,6 +190,11 @@ export default function ShoppingView({
   }
   const [text, setText] = useState("");
   const [mealsOpen, setMealsOpen] = useState(false);
+  // Simple (Settings): no Meal or Shop buttons, no suggestions, no shop reminders.
+  const hideMeals = useHidden("meals");
+  const hideShops = useHidden("shops");
+  const hideSuggestions = useHidden("suggestions");
+  const hideShopReminder = useHidden("shopReminder");
   // A recipe's web address shared to the list: opens a new meal read from it.
   const [recipeLink, setRecipeLink] = useState<string | null>(null);
   // The shop what you add now is for ("" for any).
@@ -440,19 +446,23 @@ export default function ShoppingView({
           <button className="btn btn-primary" onClick={() => void submit()} disabled={!text.trim()}>
             Add
           </button>
-          <button className="btn btn-secondary shopping-meal-btn" onClick={() => setMealsOpen(true)}>
-            🍳 Meal
-          </button>
-          <button
-            className={`btn btn-secondary shopping-store-btn ${addStore ? "is-on" : ""}`}
-            onClick={() => setPickingShop(true)}
-            aria-label={`Shop for what you add: ${addStore || "any shop"}`}
-          >
-            🏪 {addStore || "Shop"}
-          </button>
+          {!hideMeals && (
+            <button className="btn btn-secondary shopping-meal-btn" onClick={() => setMealsOpen(true)}>
+              🍳 Meal
+            </button>
+          )}
+          {!hideShops && (
+            <button
+              className={`btn btn-secondary shopping-store-btn ${addStore ? "is-on" : ""}`}
+              onClick={() => setPickingShop(true)}
+              aria-label={`Shop for what you add: ${addStore || "any shop"}`}
+            >
+              🏪 {addStore || "Shop"}
+            </button>
+          )}
         </div>
 
-        {usual.length > 0 && (
+        {usual.length > 0 && !hideSuggestions && (
           <div className="shopping-usual" aria-label="Usual items">
             {usual.map((name) => (
               <button key={name} className="shopping-usual-chip" onClick={() => void addItems([{ name }])}>
@@ -463,7 +473,7 @@ export default function ShoppingView({
         )}
 
         {open.length === 0 && ticked.length === 0 && (
-          <p className="shopping-empty">The list is empty. Add things above, or a whole meal with 🍳.</p>
+          <p className="shopping-empty">The list is empty. Add things above{hideMeals ? "" : ", or a whole meal with 🍳"}.</p>
         )}
 
         {storeColumn && (
@@ -553,7 +563,7 @@ export default function ShoppingView({
           </>
         )}
 
-        {appUi && stores.length > 0 && (
+        {appUi && stores.length > 0 && !hideShopReminder && (
           <button type="button" className="shopping-places-link" onClick={() => setPlacesOpen(true)}>
             <MapPinIcon width={16} height={16} />
             Remind me at the shop

@@ -8048,3 +8048,34 @@ button.sidebar-link {
   background: var(--color-hover);
   color: var(--color-text-secondary);
 }
+
+/* Settings > Appearance > Simple: what it hides, each to bring back. */
+.simple-items {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 8px 4px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--color-hover);
+}
+.simple-items-head {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+.simple-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.simple-item input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+}

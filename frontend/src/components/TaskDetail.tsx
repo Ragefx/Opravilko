@@ -74,6 +74,7 @@ import ReminderSheet from "./ReminderSheet";
 import { describeReminder, remindersOf } from "../utils/reminders";
 import { labelTint, useLabelColor } from "./LabelChip";
 import { isEvent } from "../utils/events";
+import { useHidden } from "../utils/simple";
 
 export default function TaskDetail({
   task: initialTask,
@@ -159,6 +160,10 @@ export default function TaskDetail({
   const [pickingDate, setPickingDate] = useState(false);
   const [pickingDeadline, setPickingDeadline] = useState(false);
   const deadlineRow = useRef<HTMLButtonElement>(null);
+  const hideDeadline = useHidden("deadline");
+  const hideLabels = useHidden("labels");
+  const hideLocation = useHidden("location");
+  const hideMidvaFrom = useHidden("midvaFrom");
   const [pickingReminders, setPickingReminders] = useState(false);
   const taskReminders = remindersOf(task);
   const dateRow = useRef<HTMLButtonElement>(null);
@@ -591,7 +596,7 @@ export default function TaskDetail({
               ) : parentTask ? (
                 <button onClick={() => onOpenTask?.(parentTask)}>↰ {parentTask.content}</button>
               ) : (
-                where || `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`
+                where || (hideMidvaFrom ? "Midva" : `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`)
               )}
             </div>
             <RowMenu
@@ -655,7 +660,7 @@ export default function TaskDetail({
               <PropRow
                 icon={project?.isInboxProject ? <InboxIcon width={20} height={20} /> : <span className="td-hash">#</span>}
                 caption="Project"
-                value={where || `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`}
+                value={where || (hideMidvaFrom ? "Midva" : `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`)}
                 chevron={Boolean(project)}
               >
                 {project && (
@@ -774,6 +779,8 @@ export default function TaskDetail({
                 </label>
               )}
 
+              {/* Simple (Settings): deadline, labels and location only show once they're set. */}
+              {!(hideDeadline && !deadline) && (
               <PropRow
                 ref={deadlineRow}
                 icon={<HourglassIcon width={20} height={20} />}
@@ -797,6 +804,7 @@ export default function TaskDetail({
                   ) : undefined
                 }
               />
+              )}
 
               <PropRow
                 icon={<BellIcon width={20} height={20} />}
@@ -830,6 +838,7 @@ export default function TaskDetail({
                 </Select>
               </PropRow>
 
+              {!(hideLabels && task.labels.length === 0) && (
               <div className="td-row td-row-labels">
                 <span className="td-row-icon">
                   <TagIcon width={20} height={20} />
@@ -863,7 +872,9 @@ export default function TaskDetail({
                   </div>
                 </div>
               </div>
+              )}
 
+              {!(hideLocation && !task.location) && (
               <PropRow
                 icon={<MapPinIcon width={20} height={20} />}
                 caption="Location"
@@ -885,6 +896,7 @@ export default function TaskDetail({
                   ) : undefined
                 }
               />
+              )}
               {task.location && arrivalRemindersAvailable && (
                 <label className="td-row td-row-switch">
                   <span className="td-row-icon" />

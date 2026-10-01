@@ -7,15 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 54** (commit `5ee5a35`, Oct 1 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-54
+Last build: **build 55** (commit `3cfe965`, Oct 1 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-55
 (Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 54: Simple (Settings > Appearance), no Add task line under the calendar, no swiping on the shopping list.
+Build 55: a time typed on its own goes on the day already chosen, not today.
 
 ## In the code, not in the app yet
 
-- Add card: a time typed on its own ("ob 18") goes on the day already chosen (the calendar's, or one picked), not today
+(nothing yet)
 
 ## Known gaps
 

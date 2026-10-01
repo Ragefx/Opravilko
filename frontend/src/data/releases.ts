@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 55,
+    date: "2026-10-01",
+    items: [
+      "Add card: a time typed on its own (\"ob 18\") goes on the day already chosen (the calendar's, or one picked), not today.",
+    ],
+  },
+  {
     build: 54,
     date: "2026-10-01",
     items: [

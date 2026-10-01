@@ -28,6 +28,8 @@ export interface ParsedQuickAdd {
   shared: boolean;
   /** "{friday}" typed: the deadline ("yyyy-MM-dd"). */
   deadline: string | null;
+  /** Only a time was typed ("ob 18"): it went on the default day (else today). */
+  timeOnly: boolean;
 }
 
 /**
@@ -69,6 +71,7 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
   // A date typed into the text wins over the view's default (e.g. typing
   // "tomorrow" into Today's quick add), matching Todoist.
   let due: Due | null = null;
+  let timeOnly = false;
   const recurrence = parseNaturalRecurrence(content);
   if (recurrence) {
     content = content.replace(recurrence.matchedText, "").trim();
@@ -93,9 +96,11 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
       rrule: serializeRecurrence(recurrence.rule),
     };
   } else {
-    const parsed = parseNaturalDate(content);
+    // A time on its own goes on the day already chosen (the calendar's), not today.
+    const parsed = parseNaturalDate(content, defaultDue?.date);
     due = parsed.due;
     content = parsed.remaining;
+    timeOnly = parsed.timeOnly;
   }
   if (!due && defaultDue) due = { ...defaultDue, isRecurring: false };
 
@@ -107,6 +112,7 @@ export function parseQuickAddInput(raw: string, defaultDue?: { date: string; str
     projectName,
     shared,
     deadline,
+    timeOnly,
   };
 }
 

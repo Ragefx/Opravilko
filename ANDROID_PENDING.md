@@ -15,7 +15,7 @@ Build 54: Simple (Settings > Appearance), no Add task line under the calendar, n
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Add card: a time typed on its own ("ob 18") goes on the day already chosen (the calendar's, or one picked), not today
 
 ## Known gaps
 

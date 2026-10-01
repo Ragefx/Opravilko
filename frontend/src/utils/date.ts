@@ -258,21 +258,26 @@ function removeToken(text: string, matched: string): string {
 }
 
 /** Pulls a date and/or time out of quick-add text; a time alone means today. */
-export function parseNaturalDate(text: string): { due: Due | null; remaining: string } {
+/**
+ * A date and/or time typed in the text. A time on its own goes on `onDay`
+ * ("yyyy-MM-dd": the day already chosen, e.g. on the calendar), else today.
+ */
+export function parseNaturalDate(text: string, onDay?: string): { due: Due | null; remaining: string; timeOnly: boolean } {
   let remaining = text;
   const time = parseTimeToken(remaining);
   if (time) remaining = removeToken(remaining, time.matched);
   const date = parseDateToken(remaining);
   if (date) remaining = removeToken(remaining, date.matched);
-  if (!date && !time) return { due: null, remaining: text };
+  if (!date && !time) return { due: null, remaining: text, timeOnly: false };
 
-  const day = date?.date ?? startOfDay(new Date());
+  const day = date?.date ?? (onDay ? parseISO(onDay) : startOfDay(new Date()));
   const label = [date?.matched, time?.matched].filter(Boolean).join(" ");
-  if (!time) return { due: makeDue(day, label), remaining };
+  if (!time) return { due: makeDue(day, label), remaining, timeOnly: false };
   const withTime = new Date(day);
   withTime.setHours(time.hours, time.minutes, 0, 0);
   return {
     due: { date: format(day, "yyyy-MM-dd"), datetime: withTime.toISOString(), string: label, isRecurring: false },
     remaining,
+    timeOnly: !date,
   };
 }

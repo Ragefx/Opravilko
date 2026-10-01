@@ -193,9 +193,16 @@ export default function QuickAddSheet({
         ? { date: todayISO(), string: "today" }
         : null
   );
-  const preview = text.trim() ? parseQuickAddInput(text, defaultDue) : null;
+  // A time typed on its own goes on the day already chosen (picked, or the calendar's).
+  const dayForTime = picked ? { date: picked.date, string: picked.string } : picked === null ? null : defaultDue;
+  const preview = text.trim() ? parseQuickAddInput(text, dayForTime) : null;
   const baseDue: Due | null =
-    picked !== undefined ? picked : preview?.due ?? (defaultDue ? { ...defaultDue, isRecurring: false } : null);
+    picked !== undefined
+      ? // A day picked without a time takes a time typed afterwards.
+        picked && !picked.datetime && preview?.timeOnly && preview.due
+        ? { ...preview.due, ...(picked.isRecurring ? { isRecurring: true, rrule: picked.rrule, string: picked.string } : {}) }
+        : picked
+      : preview?.due ?? (defaultDue ? { ...defaultDue, isRecurring: false } : null);
 
   // A typed "#Project" narrows where it goes to that project's sections.
   const typedProject = preview?.projectName

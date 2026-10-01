@@ -7,17 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 53** (commit `cdedb3f`, Sep 30 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-53
+Last build: **build 54** (commit `5ee5a35`, Oct 1 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-54
 (Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 53: the calendar's + adds on the day picked there.
+Build 54: Simple (Settings > Appearance), no Add task line under the calendar, no swiping on the shopping list.
 
 ## In the code, not in the app yet
 
-- Calendar: no "Add task" line under the day (the + at the bottom adds on that day)
-- Shopping list: no swiping unless "Swipe tasks" is on in Settings > Appearance
-- Simple (Settings > Appearance): hides the Meal/Shop buttons, shop reminders and suggestions on the shopping list; deadline, labels and location in a task (until set); who a Midva task is from; and "pick something from Next" on a free day. Each can be shown anyway
+(nothing yet)
 
 ## Known gaps
 

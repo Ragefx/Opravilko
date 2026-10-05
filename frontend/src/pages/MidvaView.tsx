@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useBootstrap } from "../api/hooks";
+import QuickAdd from "../components/QuickAdd";
+import { appUi } from "../utils/appUi";
 import type { Partner, Task } from "../api/types";
 import TaskRow from "../components/TaskRow";
 import TaskDetail from "../components/TaskDetail";
@@ -70,6 +72,9 @@ export default function MidvaView() {
       </div>
 
       {!partner && <PartnerConnect suggestion={sharer} />}
+
+      {/* The website only: the app adds with the + at the bottom (shared on this page). */}
+      {partner && !appUi && <QuickAdd projectId="inbox" defaultShared />}
 
       {[...groups.entries()]
         .sort(([a], [b]) => ORDER.indexOf(a) - ORDER.indexOf(b))

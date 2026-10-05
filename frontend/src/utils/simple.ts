@@ -15,7 +15,8 @@ export type SimpleItem =
   | "labels"
   | "location"
   | "midvaFrom"
-  | "nowNext";
+  | "nowNext"
+  | "completed";
 
 export const SIMPLE_ITEMS: { key: SimpleItem; label: string }[] = [
   { key: "meals", label: "Shopping: the Meal button" },
@@ -27,6 +28,7 @@ export const SIMPLE_ITEMS: { key: SimpleItem; label: string }[] = [
   { key: "location", label: "Task: location" },
   { key: "midvaFrom", label: "Midva: who a task is from" },
   { key: "nowNext", label: "Now: “pick something from Next” when the day is free" },
+  { key: "completed", label: "Menu: Completed" },
 ];
 
 const ON_KEY = "opravilko.simple";

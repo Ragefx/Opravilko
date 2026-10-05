@@ -167,6 +167,7 @@ export default function Sidebar({
 
   const favoriteProjects = (data?.projects || []).filter((p) => p.isFavorite && p.id !== shoppingList?.id);
   const hideLabels = useHidden("labels");
+  const hideCompleted = useHidden("completed");
   const favoriteLabels = labels.filter((l) => l.isFavorite);
   const favoriteFilters = filters.filter((f) => f.isFavorite);
   const hasFavorites = favoriteProjects.length + favoriteLabels.length + favoriteFilters.length > 0;
@@ -322,10 +323,12 @@ export default function Sidebar({
             {counts.midva > 0 && <span className="badge">{counts.midva}</span>}
           </NavLink>
         )}
-        <NavLink to="/app/completed" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <CheckCircleIcon className="icon" />
-          Completed
-        </NavLink>
+        {!hideCompleted && (
+          <NavLink to="/app/completed" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+            <CheckCircleIcon className="icon" />
+            Completed
+          </NavLink>
+        )}
         <NavLink to="/app/stats" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <ChartIcon className="icon" />
           Productivity

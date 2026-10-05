@@ -53,6 +53,7 @@ import {
 import { appUi } from "../utils/appUi";
 import { addTargets } from "../utils/addTargets";
 import DatePickerPopup from "./DatePickerPopup";
+import TimePickerPopup from "./TimePickerPopup";
 import LocationPicker from "./LocationPicker";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import {
@@ -129,6 +130,8 @@ export default function TaskDetail({
   const [content, setContent] = useState(task.content);
   const [description, setDescription] = useState(task.description);
   const [pickingLocation, setPickingLocation] = useState(false);
+  const [pickingEnd, setPickingEnd] = useState(false);
+  const endRow = useRef<HTMLButtonElement>(null);
 
   /** Android app: arrival reminder on/off for me; asks for location access when turning it on. */
   async function toggleArrival(on: boolean) {
@@ -732,19 +735,43 @@ export default function TaskDetail({
                 />
               </label>
               {isEvent(task) && task.due?.datetime && (
-                <label className="td-row">
-                  <span className="td-row-icon" />
-                  <span className="td-row-body">
-                    <span className="td-row-caption">Until</span>
-                    <input
-                      type="time"
-                      className="td-time-input"
-                      value={task.endTime ?? ""}
-                      onChange={(e) => updateTask.mutate({ id: task.id, endTime: e.target.value || undefined })}
-                      aria-label="Ends at"
-                    />
-                  </span>
-                </label>
+                <PropRow
+                  ref={endRow}
+                  icon={<span />}
+                  caption="Until"
+                  value={task.endTime ?? "No end time"}
+                  muted={!task.endTime}
+                  color={task.endTime ? "var(--color-event)" : undefined}
+                  onClick={() => setPickingEnd(true)}
+                  trailing={
+                    task.endTime ? (
+                      <button
+                        className="td-clear"
+                        aria-label="Clear end time"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateTask.mutate({ id: task.id, endTime: undefined });
+                        }}
+                      >
+                        <XIcon width={16} height={16} />
+                      </button>
+                    ) : undefined
+                  }
+                />
+              )}
+              {pickingEnd && (
+                <TimePickerPopup
+                  time={task.endTime ?? ""}
+                  anchor={{
+                    top: (endRow.current?.getBoundingClientRect().bottom ?? 0) + 4,
+                    left: endRow.current?.getBoundingClientRect().left ?? 0,
+                  }}
+                  onSave={(t) => {
+                    setPickingEnd(false);
+                    updateTask.mutate({ id: task.id, endTime: t || undefined });
+                  }}
+                  onCancel={() => setPickingEnd(false)}
+                />
               )}
 
               {due && (

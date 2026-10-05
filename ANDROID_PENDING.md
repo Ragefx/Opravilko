@@ -15,7 +15,7 @@ Build 56: Simple's own Settings page and tidier screens with it on; bought shopp
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Midva: the old "+ Add task" line is gone; the + button at the bottom adds tasks there already shared
 
 ## Known gaps
 

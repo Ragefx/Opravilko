@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 56,
+    date: "2026-10-05",
+    items: [
+      "Simple has its own page in Settings (under Look & feel). With Simple on, the shopping add box, mic and Add share one row, the add card has no label or location icons, and the menu has no Labels or Filters.",
+      "Calendar (and widget): bought shopping items no longer show under Done.",
+    ],
+  },
+  {
     build: 55,
     date: "2026-10-01",
     items: [

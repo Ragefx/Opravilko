@@ -32,7 +32,7 @@ import PartnerConnect from "./PartnerConnect";
 import CalendarFeedsModal from "./CalendarFeedsModal";
 import ImportModal from "./ImportModal";
 import { useToast } from "./ToastProvider";
-import { BellIcon, CalendarIcon, ChevronIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
+import { BellIcon, CalendarIcon, ChevronIcon, CouchIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
 import StorageSettings from "./StorageSettings";
 import { hasGmailKey, makeGmailKey } from "../utils/gmailKey";
 import AboutSection from "./AboutSection";
@@ -41,7 +41,7 @@ import { useNarrowScreen } from "./MobileCalendar";
 import { appUi } from "../utils/appUi";
 
 type ThemeSetting = ThemeChoice | "system";
-type Section = "appearance" | "sharing" | "calendars" | "reminders" | "storage" | "data" | "account" | "about";
+type Section = "simple" | "appearance" | "sharing" | "calendars" | "reminders" | "storage" | "data" | "account" | "about";
 
 const LOOKS: { id: Look; name: string; blurb: string }[] = [
   {
@@ -105,7 +105,9 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const palette = usePalette();
   const partnerName = data?.partner?.name.split(" ")[0];
   const feeds = data?.calendarFeeds?.length ?? 0;
+  const simpleState = useSimple();
   const summaries: Partial<Record<Section, string>> = {
+    simple: simpleState.on ? `On · ${SIMPLE_ITEMS.length - simpleState.shown.length} things hidden` : "Off · hide the extras for a calmer app",
     appearance: [
       LOOKS.find((l) => l.id === look)?.name,
       ...(palette === "soca" ? [] : [PALETTES.find((p) => p.id === palette)?.name]),
@@ -122,7 +124,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     about: `Build ${RELEASES[0].build} · what's new`,
   };
   const groups = ([
-    { title: "Look & feel", ids: ["appearance"] },
+    { title: "Look & feel", ids: ["simple", "appearance"] },
     { title: "Together", ids: ["sharing"] },
     { title: "Tasks", ids: ["reminders", "calendars"] },
     { title: "Data", ids: ["storage", "data"] },
@@ -140,6 +142,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     navigate("/connect", { replace: true });
   }
   const sections: { id: Section; label: string; icon: ReactNode }[] = [
+    { id: "simple", label: "Simple", icon: <CouchIcon width={16} height={16} /> },
     { id: "appearance", label: "Appearance", icon: <SettingsIcon width={16} height={16} /> },
     ...(firebase ? [{ id: "sharing" as const, label: "Sharing", icon: <ShareIcon width={16} height={16} /> }] : []),
     { id: "calendars", label: "Calendars", icon: <CalendarIcon width={16} height={16} /> },
@@ -152,6 +155,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const content = (id: Section) => (
     <>
+      {id === "simple" && <SimpleSection />}
       {id === "appearance" && <Appearance />}
       {id === "sharing" && <Sharing />}
       {id === "calendars" && (
@@ -261,29 +265,11 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function Appearance() {
-  const look = useLook();
-  const palette = usePalette();
-  const addStyle = useAddStyle();
-  const focusCard = useFocusCard();
-  const swipeTasks = useSwipeTasks();
-  const weeklyReview = useWeeklyReview();
-  const holidays = useHolidays();
-  const calendarDone = useCalendarDone();
-  const queryClient = useQueryClient();
-  const pinned = useSidebarPinned(look);
+/** Settings > Simple: one switch that hides the extras, each can be shown anyway. */
+function SimpleSection() {
   const simple = useSimple();
-  const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
-
-  function pickTheme(next: ThemeSetting) {
-    setThemeState(next);
-    if (next === "system") clearTheme();
-    else setTheme(next);
-  }
-
   return (
     <>
-      <h4>Simple</h4>
       <label className="settings-switch">
         <input type="checkbox" checked={simple.on} onChange={(e) => setSimple(e.target.checked)} />
         <span>
@@ -306,7 +292,31 @@ function Appearance() {
           ))}
         </div>
       )}
+    </>
+  );
+}
 
+function Appearance() {
+  const look = useLook();
+  const palette = usePalette();
+  const addStyle = useAddStyle();
+  const focusCard = useFocusCard();
+  const swipeTasks = useSwipeTasks();
+  const weeklyReview = useWeeklyReview();
+  const holidays = useHolidays();
+  const calendarDone = useCalendarDone();
+  const queryClient = useQueryClient();
+  const pinned = useSidebarPinned(look);
+  const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
+
+  function pickTheme(next: ThemeSetting) {
+    setThemeState(next);
+    if (next === "system") clearTheme();
+    else setTheme(next);
+  }
+
+  return (
+    <>
       <h4>Look</h4>
       <div className="look-options" role="radiogroup" aria-label="Look">
         {LOOKS.map((l) => (

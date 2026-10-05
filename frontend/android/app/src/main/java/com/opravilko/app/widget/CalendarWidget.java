@@ -667,18 +667,28 @@ final class CalendarWidget {
                 if (e != null) all.add(new String[] {e.optString("id"), e.optString("c"), e.optString("at")});
             }
         }
+        // Things bought from a shopping list aren't tasks done.
+        Set<String> shopping = new HashSet<>();
+        JSONArray projects = data.optJSONArray("projects");
+        if (projects != null) {
+            for (int i = 0; i < projects.length(); i++) {
+                JSONObject p = projects.optJSONObject(i);
+                if (p != null && "shopping".equals(p.optString("viewStyle"))) shopping.add(p.optString("id"));
+            }
+        }
         JSONArray log = data.optJSONArray("completionLog");
         if (log != null) {
             for (int i = 0; i < log.length(); i++) {
                 JSONObject e = log.optJSONObject(i);
-                if (e != null) all.add(new String[] {e.optString("taskId"), e.optString("content"), e.optString("at")});
+                if (e != null && !shopping.contains(e.optString("projectId"))) all.add(new String[] {e.optString("taskId"), e.optString("content"), e.optString("at")});
             }
         }
         JSONArray tasks = data.optJSONArray("tasks");
         if (tasks != null) {
             for (int i = 0; i < tasks.length(); i++) {
                 JSONObject t = tasks.optJSONObject(i);
-                if (t != null && t.optBoolean("completed") && !t.optString("completedAt").isEmpty() && !TaskLogic.isEvent(t)) {
+                if (t != null && t.optBoolean("completed") && !t.optString("completedAt").isEmpty() && !TaskLogic.isEvent(t)
+                        && !shopping.contains(t.optString("projectId"))) {
                     all.add(new String[] {t.optString("id"), t.optString("content"), t.optString("completedAt")});
                 }
             }

@@ -1,3 +1,4 @@
+import { useHidden } from "../utils/simple";
 import { type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { format, parseISO } from "date-fns";
@@ -159,6 +160,8 @@ export default function QuickAddSheet({
   // A task, or an event (a date night): no tick, an end time, see utils/events.ts.
   const [kind, setKind] = useState<"task" | "event">("task");
   const event = kind === "event";
+  const hideLabelsTool = useHidden("labels");
+  const hideLocationTool = useHidden("location");
   const dateChip = useRef<HTMLButtonElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const title = useRef<HTMLInputElement>(null);
@@ -579,6 +582,8 @@ export default function QuickAddSheet({
               }}
             >
               {toolOrder.map((id) => {
+                // Simple (Settings): no labels or location here either.
+                if ((id === "labels" && hideLabelsTool) || (id === "location" && hideLocationTool)) return null;
                 const el = toolEls[id];
                 return el ? (
                   <span key={id} data-tool={id} className={`qab-slot ${dragging === id ? "is-dragging" : ""}`}>

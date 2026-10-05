@@ -15,7 +15,8 @@ Build 55: a time typed on its own goes on the day already chosen, not today.
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Simple has its own page in Settings (under Look & feel); with Simple on, the shopping add box, mic and Add share one row, the add card has no label or location icons, and the menu has no Labels or Filters
+- Calendar (and widget): bought shopping items no longer show under Done
 
 ## Known gaps
 

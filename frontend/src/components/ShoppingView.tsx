@@ -425,7 +425,8 @@ export default function ShoppingView({
     <div className="content-scroll">
       <div className="shopping">
         {header}
-        <div className="shopping-add">
+        {/* Simple: no Meal or Shop buttons, so the box, mic and Add share one row. */}
+        <div className={`shopping-add ${hideMeals && hideShops ? "is-compact" : ""}`}>
           <input
             ref={addInput}
             value={text}

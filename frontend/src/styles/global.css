@@ -8079,3 +8079,16 @@ button.sidebar-link {
   height: 16px;
   accent-color: var(--color-accent);
 }
+
+/* Shopping list add row without the Meal and Shop buttons (Simple): one row on a phone too. */
+.shopping-add.is-compact {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.shopping-add.is-compact input {
+  flex: 1;
+  flex-basis: auto;
+}
+.shopping-add.is-compact .btn {
+  flex: 0 0 auto;
+}

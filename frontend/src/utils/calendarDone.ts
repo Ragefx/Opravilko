@@ -53,6 +53,8 @@ export function doneByDay(data: AppData | undefined, since?: string): Map<string
   const map = new Map<string, DoneEntry[]>();
   if (!data) return map;
   const seen = new Set<string>();
+  // Things bought from a shopping list aren't tasks done.
+  const shopping = new Set(data.projects.filter((p) => p.viewStyle === "shopping").map((p) => p.id));
   const add = (taskId: string, content: string, at: string) => {
     const key = `${taskId}@${at}`;
     if (seen.has(key) || !at) return;
@@ -62,9 +64,9 @@ export function doneByDay(data: AppData | undefined, since?: string): Map<string
     if (!map.has(day)) map.set(day, []);
     map.get(day)!.push({ taskId, content, at, day });
   };
-  for (const e of data.completionLog ?? []) add(e.taskId, e.content, e.at);
+  for (const e of data.completionLog ?? []) if (!shopping.has(e.projectId)) add(e.taskId, e.content, e.at);
   // Events that are over show as themselves (greyed), not as done.
-  for (const t of data.tasks) if (t.completed && t.completedAt && t.kind !== "event") add(t.id, t.content, t.completedAt);
+  for (const t of data.tasks) if (t.completed && t.completedAt && t.kind !== "event" && !shopping.has(t.projectId)) add(t.id, t.content, t.completedAt);
   for (const list of map.values()) list.sort((a, b) => b.at.localeCompare(a.at));
   return map;
 }

@@ -1,3 +1,4 @@
+import { useHidden } from "../utils/simple";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { openThisMonth } from "../utils/calendarTasks";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -165,6 +166,7 @@ export default function Sidebar({
   const filters = (data?.filters || []).slice().sort((a, b) => a.order - b.order);
 
   const favoriteProjects = (data?.projects || []).filter((p) => p.isFavorite && p.id !== shoppingList?.id);
+  const hideLabels = useHidden("labels");
   const favoriteLabels = labels.filter((l) => l.isFavorite);
   const favoriteFilters = filters.filter((f) => f.isFavorite);
   const hasFavorites = favoriteProjects.length + favoriteLabels.length + favoriteFilters.length > 0;
@@ -391,6 +393,9 @@ export default function Sidebar({
         {topProjects.length === 0 && <span className="sidebar-empty">No projects yet</span>}
       </nav>
 
+      {/* Simple (Settings): no labels, so no labels or filters either. */}
+      {!hideLabels && (
+      <>
       <div className="sidebar-section-title">
         <span>Labels</span>
         <button onClick={() => setModal({ kind: "label" })} aria-label="Add label">
@@ -474,6 +479,8 @@ export default function Sidebar({
         ))}
         {filters.length === 0 && <span className="sidebar-empty">No filters yet</span>}
       </nav>
+      </>
+      )}
 
       {modal && (
         <EntityModal

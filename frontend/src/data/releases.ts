@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 57,
+    date: "2026-10-05",
+    items: [
+      "Midva: the old \"+ Add task\" line is gone; the + button at the bottom adds tasks there already shared.",
+      "Simple can also hide Completed in the menu (hidden with Simple on; can be shown again).",
+      "Settings: Focus task, Weekly review and Completed tasks on the calendar are now on the Simple page.",
+      "Events: \"Until\" in the task window uses the app's own time picker, like Date.",
+    ],
+  },
+  {
     build: 56,
     date: "2026-10-05",
     items: [

@@ -168,6 +168,7 @@ export default function Sidebar({
   const favoriteProjects = (data?.projects || []).filter((p) => p.isFavorite && p.id !== shoppingList?.id);
   const hideLabels = useHidden("labels");
   const hideCompleted = useHidden("completed");
+  const hideProductivity = useHidden("productivity");
   const favoriteLabels = labels.filter((l) => l.isFavorite);
   const favoriteFilters = filters.filter((f) => f.isFavorite);
   const hasFavorites = favoriteProjects.length + favoriteLabels.length + favoriteFilters.length > 0;
@@ -329,10 +330,12 @@ export default function Sidebar({
             Completed
           </NavLink>
         )}
-        <NavLink to="/app/stats" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-          <ChartIcon className="icon" />
-          Productivity
-        </NavLink>
+        {!hideProductivity && (
+          <NavLink to="/app/stats" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+            <ChartIcon className="icon" />
+            Productivity
+          </NavLink>
+        )}
         {reviewOn && (
           <button className="sidebar-link" onClick={() => window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW))}>
             <CalendarIcon className="icon" />

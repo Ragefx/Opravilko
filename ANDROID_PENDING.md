@@ -15,7 +15,7 @@ Build 57: Midva add line gone; Simple hides Completed and holds the focus/review
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Simple can also hide Productivity in the menu (hidden with Simple on; can be shown again)
 
 ## Known gaps
 

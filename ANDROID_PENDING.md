@@ -7,16 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 55** (commit `3cfe965`, Oct 1 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-55
+Last build: **build 56** (commit `7147dce`, Oct 5 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-56
 (Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 55: a time typed on its own goes on the day already chosen, not today.
+Build 56: Simple's own Settings page and tidier screens with it on; bought shopping no longer under Done on the calendar.
 
 ## In the code, not in the app yet
 
-- Simple has its own page in Settings (under Look & feel); with Simple on, the shopping add box, mic and Add share one row, the add card has no label or location icons, and the menu has no Labels or Filters
-- Calendar (and widget): bought shopping items no longer show under Done
+(nothing yet)
 
 ## Known gaps
 

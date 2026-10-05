@@ -90,7 +90,29 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 - Trips: `utils/away.ts`, `components/AwaySheet.tsx`.
   - Your own trips are kept in your profile; a project can be a trip.
   - Your partner's trips are read from their profile.
-  - Each trip is by plane or car.
+  - Each trip is by plane, car, or "off work" (🏖️, sand colour); "together"
+    trips show as both of yours (only whoever added one can change it).
+- Events: a task with `kind: "event"` (`utils/events.ts`): violet, no tick,
+  optional `endTime`, never overdue. Once over they're marked done (or a
+  repeating one rolls on) by `useFinishEvents` in Layout, and stay greyed on
+  the calendars. Task/Event switch: the corner icon in the add card, and a
+  row in the task window.
+- Simple (Settings > Simple, `utils/simple.ts`): one per-device switch that
+  hides extras for the partner (shopping Meal/Shop/reminders/suggestions,
+  task deadline/labels/location until set, Midva "from", Now's "pick from
+  Next", plus labels/location icons in the add card and Labels/Filters in
+  the menu). Each item can be shown anyway. New "please remove X" requests
+  from the partner go here (`useHidden("…")`).
+- Calendars: `CalendarView.tsx` (website: month with a day panel on wide
+  windows, week view) and `MobileCalendar.tsx` (phone). Completed tasks
+  (Settings > Appearance, `utils/calendarDone.ts`; shopping excluded) and
+  Slovenian holidays (`utils/holidays.ts`) show on them. The + adds on the
+  picked day (`utils/calendarDay.ts`).
+- Widget calendar views: `widget/CalendarWidget.java` (Month; Month + tasks);
+  a tapped day opens the app's calendar on it.
+- Settings switches kept per device in localStorage: swipe tasks (off by
+  default, `utils/swipeTasks.ts`), focus card, weekly review, holidays,
+  completed on calendar, Simple.
 - Shopping: `components/ShoppingView.tsx`, `utils/shopping.ts`.
   - Meals, a shop per item, "@shop" in a typed line.
   - The widget has matching logic in `widget/ShoppingLogic.java`.
@@ -121,6 +143,16 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   generated from res/.
 
 ## Open items
+
+- **Vanished shared task.** The partner ticked off a task the owner shared and
+  got "That change isn't allowed"; the task couldn't be found afterwards.
+  Not reproduced. The error message now names the task and what was being
+  changed (`refusedMessage` in `sync.ts`); ask for that screenshot.
+- **Rules paste pending?** The owner may not have pasted the latest
+  `firestore.rules` (adds 'deadline', 'kind', 'endTime' for shared tasks);
+  the console's Publish button didn't show for them once.
+- Build numbers come from the workflow's run number: run 50 was cancelled,
+  so there is no build 50. Check the run number before giving the link.
 
 - **Shared attachment storage.** The 700 MB attachment budget
   (`meta/storage` in `firestore.rules`) is one shared counter, and any

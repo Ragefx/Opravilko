@@ -1,6 +1,6 @@
 import { type ReactNode, forwardRef, useEffect, useRef, useState } from "react";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
-import type { Partner, Project, Task } from "../api/types";
+import type { Attachment, Partner, Project, Task } from "../api/types";
 import {
   useAddComment,
   useBootstrap,
@@ -49,6 +49,7 @@ import {
   TagIcon,
   TrashIcon,
   XIcon,
+  ImageIcon,
 } from "./icons";
 import { appUi } from "../utils/appUi";
 import { addTargets } from "../utils/addTargets";
@@ -69,7 +70,9 @@ import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
 import RichTextEditor from "./RichTextEditor";
 import RowMenu from "./RowMenu";
-import TaskAttachments from "./TaskAttachments";
+import TaskAttachments, { openAttachment } from "./TaskAttachments";
+import { AttachmentError, deleteAttachmentBlobs, uploadAttachment } from "../firebase/attachments";
+import { usingFirebase } from "../data/store";
 import Select from "./Select";
 import ReminderSheet from "./ReminderSheet";
 import { describeReminder, remindersOf } from "../utils/reminders";
@@ -159,6 +162,19 @@ export default function TaskDetail({
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState("");
   const [commentText, setCommentText] = useState("");
+  // Pictures pasted or picked for the comment being written, uploaded straight away.
+  const [commentPics, setCommentPics] = useState<Attachment[]>([]);
+  const [commentUploading, setCommentUploading] = useState(false);
+  const commentPicInput = useRef<HTMLInputElement>(null);
+  const unsentPics = useRef<Attachment[]>([]);
+  unsentPics.current = commentPics;
+  // Pictures never sent (the task closed first) are deleted again.
+  useEffect(
+    () => () => {
+      if (unsentPics.current.length) void deleteAttachmentBlobs(unsentPics.current).catch(() => {});
+    },
+    []
+  );
   const [labelInput, setLabelInput] = useState("");
   const [pickingDate, setPickingDate] = useState(false);
   const [pickingDeadline, setPickingDeadline] = useState(false);
@@ -284,9 +300,31 @@ export default function TaskDetail({
 
   function submitComment() {
     const value = commentText.trim();
-    if (!value) return;
-    addComment.mutate({ taskId: task.id, text: value });
+    if ((!value && !commentPics.length) || commentUploading) return;
+    addComment.mutate({ taskId: task.id, text: value, attachments: commentPics });
     setCommentText("");
+    setCommentPics([]);
+  }
+
+  async function addCommentPics(files: File[]) {
+    const pics = files.filter((f) => f.type.startsWith("image/"));
+    if (!pics.length) return;
+    setCommentUploading(true);
+    try {
+      for (const file of pics) {
+        const att = await uploadAttachment(task.id, file);
+        setCommentPics((list) => [...list, att]);
+      }
+    } catch (err) {
+      showToast({ message: err instanceof AttachmentError ? err.message : "Couldn't add the picture. Check your connection." });
+    } finally {
+      setCommentUploading(false);
+    }
+  }
+
+  function dropCommentPic(att: Attachment) {
+    setCommentPics((list) => list.filter((a) => a.id !== att.id));
+    void deleteAttachmentBlobs([att]).catch(() => {});
   }
 
   /**
@@ -484,6 +522,15 @@ export default function TaskDetail({
               )}
             </div>
           )}
+          {c.attachments?.length ? (
+            <div className="comment-pics">
+              {c.attachments.map((a) => (
+                <button key={a.id} className="comment-pic" onClick={() => void openAttachment(a, showToast)} title={a.name}>
+                  {a.thumb ? <img src={a.thumb} alt={a.name} /> : a.name}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="comment-meta">
             {author && <b className="comment-by">{author.name}</b>}
             <span>
@@ -512,15 +559,64 @@ export default function TaskDetail({
         </div>
         );
       })}
+      {(commentPics.length > 0 || commentUploading) && (
+        <div className="comment-pics comment-pics-new">
+          {commentPics.map((a) => (
+            <span key={a.id} className="comment-pic">
+              {a.thumb ? <img src={a.thumb} alt={a.name} /> : a.name}
+              <button className="comment-pic-remove" onClick={() => dropCommentPic(a)} aria-label={`Remove ${a.name}`}>
+                <XIcon width={12} height={12} />
+              </button>
+            </span>
+          ))}
+          {commentUploading && <span className="comment-pic is-loading">…</span>}
+        </div>
+      )}
       <div className="quick-add" style={{ marginTop: 4 }}>
         <input
-          placeholder="Add a comment"
+          placeholder={usingFirebase() ? "Add a comment (or paste a picture)" : "Add a comment"}
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submitComment()}
+          onPaste={(e) => {
+            if (!usingFirebase()) return;
+            const files = Array.from(e.clipboardData.files).filter((f) => f.type.startsWith("image/"));
+            if (!files.length) return;
+            e.preventDefault();
+            void addCommentPics(files);
+          }}
         />
         <div className="quick-add-actions">
-          <button className="btn btn-primary" onClick={submitComment} disabled={!commentText.trim()}>
+          {usingFirebase() && (
+            <>
+              <button
+                type="button"
+                className="btn btn-text comment-pic-add"
+                onClick={() => commentPicInput.current?.click()}
+                disabled={commentUploading}
+                aria-label="Add a picture"
+                title="Add a picture"
+              >
+                <ImageIcon width={18} height={18} />
+              </button>
+              <input
+                ref={commentPicInput}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) => {
+                  if (e.target.files?.length) void addCommentPics(Array.from(e.target.files));
+                  e.target.value = "";
+                }}
+              />
+            </>
+          )}
+          <button
+            className="btn btn-primary"
+            onClick={submitComment}
+            disabled={(!commentText.trim() && !commentPics.length) || commentUploading}
+          >
             Comment
           </button>
         </div>

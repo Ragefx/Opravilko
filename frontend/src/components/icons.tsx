@@ -326,6 +326,14 @@ export const PaperclipIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const ImageIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="3" y="4" width="18" height="16" rx="2.5" />
+    <circle cx="9" cy="10" r="1.8" />
+    <path d="M21 16l-5-5-8 8" />
+  </svg>
+);
+
 export const MapPinIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" />

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useBootstrap, useRemoveAttachment, useRemoveProjectFile } from "../api/hooks";
+import { useBootstrap, useRemoveAttachment, useRemoveCommentAttachment, useRemoveProjectFile } from "../api/hooks";
 import { activeSession } from "../data/store";
 import { isNativeApp } from "../dropbox/auth";
 import { openFileNatively } from "../native/share";
 import { ATTACHMENT_BUDGET, WARN_AT, formatSize, loadAttachment, watchStorageUsed } from "../firebase/attachments";
-import type { Attachment, Project, Task } from "../api/types";
+import type { Attachment, Comment, Project, Task } from "../api/types";
 import { FileIcon, TrashIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 
@@ -19,6 +19,7 @@ const DATABASE_SIZE = 1024 * 1024 * 1024;
 export default function StorageSettings() {
   const { data } = useBootstrap();
   const removeAttachment = useRemoveAttachment();
+  const removeCommentAttachment = useRemoveCommentAttachment();
   const removeProjectFile = useRemoveProjectFile();
   const showToast = useToast();
   const [used, setUsed] = useState(0);
@@ -33,8 +34,10 @@ export default function StorageSettings() {
   }, []);
 
   const attachments = useMemo(() => {
-    const list: { att: Attachment; task?: Task; project?: Project }[] = [];
+    const list: { att: Attachment; task?: Task; project?: Project; comment?: Comment }[] = [];
     for (const task of data?.tasks || []) for (const att of task.attachments || []) list.push({ att, task });
+    for (const task of data?.tasks || [])
+      for (const comment of task.comments || []) for (const att of comment.attachments || []) list.push({ att, task, comment });
     for (const project of data?.projects || []) for (const att of project.attachments || []) list.push({ att, project });
     return list.sort((a, b) => b.att.size - a.att.size);
   }, [data]);
@@ -79,7 +82,7 @@ export default function StorageSettings() {
         <p className="settings-note top">{loadingOlder ? "Loading…" : "No attachments yet."}</p>
       )}
       <div className="storage-list">
-        {attachments.map(({ att, task, project }) => (
+        {attachments.map(({ att, task, project, comment }) => (
           <div key={att.id} className="storage-item">
             {att.thumb ? <img src={att.thumb} alt="" /> : <FileIcon width={18} height={18} />}
             <span className="storage-item-text">
@@ -101,7 +104,7 @@ export default function StorageSettings() {
               </button>
               <span>
                 {task
-                  ? `on “${task.content}”${task.completed ? " · completed" : ""}`
+                  ? `${comment ? "in a comment " : ""}on “${task.content}”${task.completed ? " · completed" : ""}`
                   : `in the project “${project?.name ?? ""}”`}
               </span>
             </span>
@@ -110,7 +113,8 @@ export default function StorageSettings() {
               className="attachment-remove inline"
               aria-label={`Delete ${att.name}`}
               onClick={() => {
-                if (task) removeAttachment.mutate({ taskId: task.id, attachmentId: att.id });
+                if (task && comment) removeCommentAttachment.mutate({ taskId: task.id, commentId: comment.id, attachmentId: att.id });
+                else if (task) removeAttachment.mutate({ taskId: task.id, attachmentId: att.id });
                 else if (project) removeProjectFile.mutate({ projectId: project.id, attachmentId: att.id });
                 showToast({ message: `Deleted “${att.name}”. The space is freed in a few seconds.` });
               }}

@@ -320,11 +320,17 @@ export function useRevertRecurringCompletion() {
 }
 
 export function useAddComment() {
-  return useLocalMutation<{ taskId: string; text: string }, Task | null>((data, { taskId, text }) => {
+  return useLocalMutation<{ taskId: string; text: string; attachments?: Attachment[] }, Task | null>((data, { taskId, text, attachments }) => {
     const task = data.tasks.find((t) => t.id === taskId);
     if (!task) return null;
     if (!task.comments) task.comments = [];
-    task.comments.push({ id: nanoid(), text, createdAt: new Date().toISOString(), ...(data.me ? { by: data.me } : {}) });
+    task.comments.push({
+      id: nanoid(),
+      text,
+      createdAt: new Date().toISOString(),
+      ...(data.me ? { by: data.me } : {}),
+      ...(attachments?.length ? { attachments } : {}),
+    });
     task.updatedAt = new Date().toISOString();
     return task;
   });
@@ -339,6 +345,21 @@ export function useEditComment() {
     comment.editedAt = new Date().toISOString();
     task.updatedAt = new Date().toISOString();
   });
+}
+
+/** Takes one picture off a comment (Settings > Storage); a comment left with nothing goes too. */
+export function useRemoveCommentAttachment() {
+  return useLocalMutation<{ taskId: string; commentId: string; attachmentId: string }, void>(
+    (data, { taskId, commentId, attachmentId }) => {
+      const task = data.tasks.find((t) => t.id === taskId);
+      const comment = task?.comments?.find((c) => c.id === commentId);
+      if (!task || !comment?.attachments) return;
+      comment.attachments = comment.attachments.filter((a) => a.id !== attachmentId);
+      if (comment.attachments.length === 0) delete comment.attachments;
+      if (!comment.text.trim() && !comment.attachments) task.comments = task.comments!.filter((c) => c.id !== commentId);
+      task.updatedAt = new Date().toISOString();
+    }
+  );
 }
 
 export function useDeleteComment() {

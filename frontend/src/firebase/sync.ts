@@ -847,7 +847,10 @@ export class FirestoreSync {
    */
   private scheduleAttachmentCleanup(prev: AppData, next: AppData) {
     // Tasks' files and projects' own files.
-    const all = (d: AppData) => [...d.tasks, ...d.projects].flatMap((x) => x.attachments || []);
+    const all = (d: AppData) => [
+      ...[...d.tasks, ...d.projects].flatMap((x) => x.attachments || []),
+      ...d.tasks.flatMap((t) => (t.comments || []).flatMap((c) => c.attachments || [])),
+    ];
     const kept = new Set(all(next).map((a) => a.id));
     const removed = all(prev).filter((a) => !kept.has(a.id));
     if (!removed.length) return;

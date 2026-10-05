@@ -56,6 +56,37 @@ export function ProjectFiles({ project }: { project: Project }) {
   );
 }
 
+/**
+ * Opens a stored file: the phone's own viewer in the app; on the website,
+ * photos, PDFs and text in a new tab, anything else downloads.
+ */
+export async function openAttachment(att: Attachment, showToast: ReturnType<typeof useToast>): Promise<void> {
+  try {
+    const blob = await loadAttachment(att);
+    // The app: the phone's own viewer (a browser tab or download does nothing there).
+    if (isNativeApp) {
+      try {
+        await openFileNatively(blob, att.name, att.type);
+      } catch {
+        showToast({ message: `No app on this phone can open “${att.name}”.` });
+      }
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    if (/^(image\/|application\/pdf|text\/)/.test(att.type)) {
+      window.open(url, "_blank", "noopener");
+    } else {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = att.name;
+      a.click();
+    }
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch {
+    showToast({ message: `Couldn't open “${att.name}”. Check your connection.` });
+  }
+}
+
 function AttachmentsPanel({
   holderKey,
   holder,
@@ -144,33 +175,8 @@ function AttachmentsPanel({
 
   async function open(att: Attachment) {
     setOpening(att.id);
-    try {
-      const blob = await loadAttachment(att);
-      // The app: the phone's own viewer (a browser tab or download does nothing there).
-      if (isNativeApp) {
-        try {
-          await openFileNatively(blob, att.name, att.type);
-        } catch {
-          showToast({ message: `No app on this phone can open “${att.name}”.` });
-        }
-        return;
-      }
-      const url = URL.createObjectURL(blob);
-      // Photos, PDFs and text open in a new tab; anything else downloads.
-      if (/^(image\/|application\/pdf|text\/)/.test(att.type)) {
-        window.open(url, "_blank", "noopener");
-      } else {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = att.name;
-        a.click();
-      }
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch {
-      showToast({ message: `Couldn't open “${att.name}”. Check your connection.` });
-    } finally {
-      setOpening(null);
-    }
+    await openAttachment(att, showToast);
+    setOpening(null);
   }
 
   function remove(att: Attachment) {

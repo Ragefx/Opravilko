@@ -87,6 +87,8 @@ export interface Comment {
   by?: string;
   /** When it was last changed, if it was. */
   editedAt?: string;
+  /** Firebase only: pictures pasted or picked into it (the contents live in attachments/{id}). */
+  attachments?: Attachment[];
 }
 
 export interface Task {

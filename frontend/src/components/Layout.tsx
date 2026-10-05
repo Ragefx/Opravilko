@@ -364,7 +364,7 @@ export default function Layout() {
             // On the calendar, a plain + adds on the day picked there.
             defaultDate={quickAddPreset?.date ?? (quickAddPreset?.today ? undefined : calendarDay() ?? undefined)}
             defaultSectionId={quickAddPreset?.sectionId ?? null}
-            defaultShared={quickAddPreset?.shared}
+            defaultShared={quickAddPreset?.shared ?? location.pathname.startsWith("/app/midva")}
             listenOnOpen={quickAddPreset?.voice}
           />
         )}

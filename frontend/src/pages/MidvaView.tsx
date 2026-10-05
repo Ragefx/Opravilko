@@ -4,7 +4,6 @@ import { useBootstrap } from "../api/hooks";
 import type { Partner, Task } from "../api/types";
 import TaskRow from "../components/TaskRow";
 import TaskDetail from "../components/TaskDetail";
-import QuickAdd from "../components/QuickAdd";
 import PartnerConnect from "../components/PartnerConnect";
 import { isDueToday, isDueTomorrow, isOverdue } from "../utils/date";
 import { ShareIcon } from "../components/icons";
@@ -71,8 +70,6 @@ export default function MidvaView() {
       </div>
 
       {!partner && <PartnerConnect suggestion={sharer} />}
-
-      {partner && <QuickAdd projectId="inbox" defaultShared />}
 
       {[...groups.entries()]
         .sort(([a], [b]) => ORDER.indexOf(a) - ORDER.indexOf(b))

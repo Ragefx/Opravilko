@@ -16,7 +16,7 @@ Build 57: Midva add line gone; Simple hides Completed and holds the focus/review
 ## In the code, not in the app yet
 
 - Simple can also hide Productivity in the menu (hidden with Simple on; can be shown again)
-- Comments can have pictures: paste one in (website) or tap the picture button beside Comment
+- Comments can have pictures pasted in
 
 ## Known gaps
 

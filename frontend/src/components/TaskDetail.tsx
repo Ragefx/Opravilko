@@ -49,7 +49,6 @@ import {
   TagIcon,
   TrashIcon,
   XIcon,
-  ImageIcon,
 } from "./icons";
 import { appUi } from "../utils/appUi";
 import { addTargets } from "../utils/addTargets";
@@ -165,7 +164,6 @@ export default function TaskDetail({
   // Pictures pasted or picked for the comment being written, uploaded straight away.
   const [commentPics, setCommentPics] = useState<Attachment[]>([]);
   const [commentUploading, setCommentUploading] = useState(false);
-  const commentPicInput = useRef<HTMLInputElement>(null);
   const unsentPics = useRef<Attachment[]>([]);
   unsentPics.current = commentPics;
   // Pictures never sent (the task closed first) are deleted again.
@@ -587,31 +585,6 @@ export default function TaskDetail({
           }}
         />
         <div className="quick-add-actions">
-          {usingFirebase() && (
-            <>
-              <button
-                type="button"
-                className="btn btn-text comment-pic-add"
-                onClick={() => commentPicInput.current?.click()}
-                disabled={commentUploading}
-                aria-label="Add a picture"
-                title="Add a picture"
-              >
-                <ImageIcon width={18} height={18} />
-              </button>
-              <input
-                ref={commentPicInput}
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-                onChange={(e) => {
-                  if (e.target.files?.length) void addCommentPics(Array.from(e.target.files));
-                  e.target.value = "";
-                }}
-              />
-            </>
-          )}
           <button
             className="btn btn-primary"
             onClick={submitComment}

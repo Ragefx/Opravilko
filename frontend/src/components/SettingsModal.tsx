@@ -107,14 +107,16 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const feeds = data?.calendarFeeds?.length ?? 0;
   const simpleState = useSimple();
   const summaries: Partial<Record<Section, string>> = {
-    simple: simpleState.on ? `On · ${SIMPLE_ITEMS.length - simpleState.shown.length} things hidden` : "Off · hide the extras for a calmer app",
+    simple: [
+      simpleState.on ? `On · ${SIMPLE_ITEMS.length - simpleState.shown.length} things hidden` : "Off · hide the extras for a calmer app",
+      ...(focusOn ? [] : ["no focus task"]),
+      ...(reviewOn ? [] : ["no weekly review"]),
+    ].join(" · "),
     appearance: [
       LOOKS.find((l) => l.id === look)?.name,
       ...(palette === "soca" ? [] : [PALETTES.find((p) => p.id === palette)?.name]),
       theme === "dark" ? "Dark" : theme === "light" ? "Light" : "Match device",
       `${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""} add button`,
-      ...(focusOn ? [] : ["no focus task"]),
-      ...(reviewOn ? [] : ["no weekly review"]),
     ].join(" · "),
     sharing: partnerName ? `With ${partnerName}` : "Connect with your partner",
     calendars: feeds ? `${feeds} subscribed` : "Holidays, birthdays, TV…",
@@ -268,6 +270,10 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 /** Settings > Simple: one switch that hides the extras, each can be shown anyway. */
 function SimpleSection() {
   const simple = useSimple();
+  const focusCard = useFocusCard();
+  const weeklyReview = useWeeklyReview();
+  const calendarDone = useCalendarDone();
+  const queryClient = useQueryClient();
   return (
     <>
       <label className="settings-switch">
@@ -292,6 +298,36 @@ function SimpleSection() {
           ))}
         </div>
       )}
+
+      <h4>More to switch on or off</h4>
+      <label className="settings-switch">
+        <input type="checkbox" checked={focusCard} onChange={(e) => setFocusCard(e.target.checked)} />
+        <span>
+          <b>Focus task</b>
+          <span>Now opens with today's most important task, big, with Tomorrow, Done and Start focus. Off: it's listed with the rest.</span>
+        </span>
+      </label>
+      <label className="settings-switch">
+        <input type="checkbox" checked={weeklyReview} onChange={(e) => setWeeklyReview(e.target.checked)} />
+        <span>
+          <b>Weekly review</b>
+          <span>Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.</span>
+        </span>
+      </label>
+      <label className="settings-switch">
+        <input
+          type="checkbox"
+          checked={calendarDone}
+          onChange={(e) => {
+            setCalendarDoneOn(e.target.checked);
+            queryClient.setQueryData<AppData>(["bootstrap"], (d) => (d ? { ...d } : d));
+          }}
+        />
+        <span>
+          <b>Completed tasks on the calendar</b>
+          <span>What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).</span>
+        </span>
+      </label>
     </>
   );
 }
@@ -300,11 +336,8 @@ function Appearance() {
   const look = useLook();
   const palette = usePalette();
   const addStyle = useAddStyle();
-  const focusCard = useFocusCard();
   const swipeTasks = useSwipeTasks();
-  const weeklyReview = useWeeklyReview();
   const holidays = useHolidays();
-  const calendarDone = useCalendarDone();
   const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
@@ -384,22 +417,7 @@ function Appearance() {
         ))}
       </div>
 
-      <h4>Now page</h4>
-      <label className="settings-switch">
-        <input type="checkbox" checked={focusCard} onChange={(e) => setFocusCard(e.target.checked)} />
-        <span>
-          <b>Focus task</b>
-          <span>Now opens with today's most important task, big, with Tomorrow, Done and Start focus. Off: it's listed with the rest.</span>
-        </span>
-      </label>
-      <label className="settings-switch">
-        <input type="checkbox" checked={weeklyReview} onChange={(e) => setWeeklyReview(e.target.checked)} />
-        <span>
-          <b>Weekly review</b>
-          <span>Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.</span>
-        </span>
-      </label>
-
+      <h4>Calendar</h4>
       <label className="settings-switch">
         <input
           type="checkbox"
@@ -413,21 +431,6 @@ function Appearance() {
         <span>
           <b>Slovenian holidays</b>
           <span>Prazniki in dela prosti dnevi on the calendars (days off in red), worked out for every year.</span>
-        </span>
-      </label>
-
-      <label className="settings-switch">
-        <input
-          type="checkbox"
-          checked={calendarDone}
-          onChange={(e) => {
-            setCalendarDoneOn(e.target.checked);
-            queryClient.setQueryData<AppData>(["bootstrap"], (d) => (d ? { ...d } : d));
-          }}
-        />
-        <span>
-          <b>Completed tasks on the calendar</b>
-          <span>What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).</span>
         </span>
       </label>
 

@@ -76,7 +76,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 ## Where things are
 
 - Now page: `src/pages/Home.tsx`. Its focus card can be switched off:
-  `utils/focusCard.ts`, Settings > Appearance.
+  `utils/focusCard.ts`, Settings > Simple (with Weekly review and completed-on-calendar).
 - Add task card: `src/components/QuickAddSheet.tsx`.
   - In the app it has tokens plus one row of icons, which can be reordered by
     dragging (order in `localStorage["opravilko.addTools"]`).
@@ -105,7 +105,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   from the partner go here (`useHidden("…")`).
 - Calendars: `CalendarView.tsx` (website: month with a day panel on wide
   windows, week view) and `MobileCalendar.tsx` (phone). Completed tasks
-  (Settings > Appearance, `utils/calendarDone.ts`; shopping excluded) and
+  (Settings > Simple, `utils/calendarDone.ts`; shopping excluded) and
   Slovenian holidays (`utils/holidays.ts`) show on them. The + adds on the
   picked day (`utils/calendarDay.ts`).
 - Widget calendar views: `widget/CalendarWidget.java` (Month; Month + tasks);

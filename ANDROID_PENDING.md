@@ -17,6 +17,7 @@ Build 56: Simple's own Settings page and tidier screens with it on; bought shopp
 
 - Midva: the old "+ Add task" line is gone; the + button at the bottom adds tasks there already shared
 - Simple can also hide Completed in the menu (hidden by default with Simple on; can be shown again)
+- Settings: Focus task, Weekly review and Completed tasks on the calendar moved to the Simple page
 
 ## Known gaps
 

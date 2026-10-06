@@ -21,6 +21,7 @@ Build 57: Midva add line gone; Simple hides Completed and holds the focus/review
 - Calendar day list and Upcoming: tasks under their own day show just the time (no repeated "Today"/date)
 - Menu: Weekly review has its own icon (not the calendar's); no "/" keyboard hint in the app
 - Task window: the Event row has a line icon like the other rows (not the 📅 emoji); no "drop files" hint on the phone
+- Task window: no ">" arrows on the rows
 
 ## Known gaps
 

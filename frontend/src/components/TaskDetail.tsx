@@ -734,7 +734,6 @@ export default function TaskDetail({
                 icon={project?.isInboxProject ? <InboxIcon width={20} height={20} /> : <span className="td-hash">#</span>}
                 caption="Project"
                 value={where || (hideMidvaFrom ? "Midva" : `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`)}
-                chevron={Boolean(project)}
               >
                 {project && (
                   <Select
@@ -852,7 +851,6 @@ export default function TaskDetail({
                   caption="Repeat"
                   value={currentRepeat === "none" ? "Doesn't repeat" : describeRecurrence(currentRule) || "Custom"}
                   muted={currentRepeat === "none"}
-                  chevron
                 >
                   <span className="td-cover">
                     <RepeatSelect value={currentRepeat} onChange={setRecurrence} customLabel={describeRecurrence(currentRule)} />
@@ -912,7 +910,6 @@ export default function TaskDetail({
                 muted={!taskReminders.length}
                 color={taskReminders.length ? "var(--color-accent)" : undefined}
                 onClick={() => setPickingReminders(true)}
-                chevron
               />
 
               <PropRow
@@ -921,7 +918,6 @@ export default function TaskDetail({
                 value={PRIORITY_META[task.priority].label}
                 color={priorityColor}
                 muted={!priorityColor}
-                chevron
               >
                 <Select
                   className="td-cover"
@@ -1114,12 +1110,11 @@ const PropRow = forwardRef<
     sub?: string;
     muted?: boolean;
     color?: string;
-    chevron?: boolean;
     onClick?: () => void;
     trailing?: ReactNode;
     children?: ReactNode;
   }
->(function PropRow({ icon, caption, value, sub, muted, color, chevron, onClick, trailing, children }, ref) {
+>(function PropRow({ icon, caption, value, sub, muted, color, onClick, trailing, children }, ref) {
   const body = (
     <>
       <span className="td-row-icon" style={color ? { color } : undefined}>
@@ -1132,7 +1127,6 @@ const PropRow = forwardRef<
         </span>
         {sub && <span className="td-row-sub">{sub}</span>}
       </span>
-      {chevron && <ChevronIcon width={18} height={18} className="td-row-chevron" />}
     </>
   );
   // A tap target of its own, or a row that a native <select> (children) covers.

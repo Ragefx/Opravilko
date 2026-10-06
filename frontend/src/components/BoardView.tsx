@@ -358,7 +358,8 @@ function BoardColumn({
           ))}
         </SortableContext>
       </div>
-      <QuickAdd projectId={projectId} sectionId={column.sectionId} />
+      {/* The app adds with the + at the bottom. */}
+      {!appUi && <QuickAdd projectId={projectId} sectionId={column.sectionId} />}
     </div>
   );
 }

@@ -49,6 +49,7 @@ import {
   TagIcon,
   TrashIcon,
   XIcon,
+  EventIcon,
 } from "./icons";
 import { appUi } from "../utils/appUi";
 import { addTargets } from "../utils/addTargets";
@@ -780,7 +781,9 @@ export default function TaskDetail({
 
               {/* A task to tick off, or an event to go to (no tick, from–to). */}
               <label className="td-row td-row-switch td-event-row">
-                <span className="td-row-icon">📅</span>
+                <span className="td-row-icon">
+                  <EventIcon width={20} height={20} />
+                </span>
                 <span className="td-row-body">
                   <span className="td-row-caption">Event</span>
                   <span className="td-row-value">{isEvent(task) ? "Something happening: no tick, never late" : "A task to tick off"}</span>

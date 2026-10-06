@@ -15,6 +15,7 @@ import { FileIcon, PaperclipIcon, TrashIcon } from "./icons";
 import { isNativeApp } from "../dropbox/auth";
 import { openFileNatively } from "../native/share";
 import { useToast } from "./ToastProvider";
+import { appUi } from "../utils/appUi";
 
 /**
  * The Attachments section of the task details: photos as thumbnails, other
@@ -95,7 +96,8 @@ function AttachmentsPanel({
   onRemove,
   dropSelector,
   title = "Attachments",
-  note = "Photos, PDFs or documents up to 10 MB. You can also drop files onto the task.",
+  // No dropping files on a phone.
+  note = appUi ? "Photos, PDFs or documents up to 10 MB." : "Photos, PDFs or documents up to 10 MB. You can also drop files onto the task.",
 }: {
   holderKey: string;
   holder: string | { projectId: string };

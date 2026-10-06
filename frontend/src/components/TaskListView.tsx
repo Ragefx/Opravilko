@@ -127,7 +127,7 @@ export default function TaskListView({
     reorderTasks.mutate(reordered.map((t, idx) => ({ id: t.id, sectionId: t.sectionId, order: idx })));
   }
 
-  function renderTaskAndChildren(t: Task, depth: number): ReactNode {
+  function renderTaskAndChildren(t: Task, depth: number, day?: string | null): ReactNode {
     const children = childrenOf(t.id);
     const isCollapsed = collapsed.has(t.id);
     return (
@@ -136,12 +136,13 @@ export default function TaskListView({
           task={t}
           onOpen={setOpenTask}
           depth={depth}
+          day={day ?? undefined}
           projectLabel={showProjectChip ? projectNameById?.[t.projectId] : undefined}
           subtaskCount={subtaskProgress(t.id)}
           collapsed={isCollapsed}
           onToggleCollapse={children.length > 0 ? () => toggleCollapse(t.id) : undefined}
         />
-        {!isCollapsed && children.map((c) => renderTaskAndChildren(c, depth + 1))}
+        {!isCollapsed && children.map((c) => renderTaskAndChildren(c, depth + 1, day))}
       </div>
     );
   }
@@ -203,7 +204,10 @@ export default function TaskListView({
               {events.map((e) => (
                 <CalendarEventRow key={e.id} event={e} />
               ))}
-              {items.map((t) => renderTaskAndChildren(t, 0))}
+              {items.map((t) =>
+                // Under a day's heading, that day's tasks show just their time.
+                renderTaskAndChildren(t, 0, spec ? spec.date : label !== "Overdue" ? quickAddDue?.date : undefined)
+              )}
               {spec?.quickAdd && !appUi && <QuickAdd projectId={spec.quickAdd.projectId} defaultDue={spec.quickAdd.due} />}
             </div>
           ))

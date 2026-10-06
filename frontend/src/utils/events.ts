@@ -68,6 +68,12 @@ export function taskDueLabel(t: Task): string {
   return isEvent(t) && t.due?.datetime && t.endTime ? `${label}–${t.endTime}` : label;
 }
 
+/** Just the time ("15:00", or "15:00–16:30" for an event), for a list already under that day. */
+export function taskTimeLabel(t: Task): string {
+  const time = t.due?.datetime ? format(new Date(t.due.datetime), "HH:mm") : "";
+  return isEvent(t) && time && t.endTime ? `${time}–${t.endTime}` : time;
+}
+
 /** The date's colour class: an event is never late, just violet. */
 export function taskDueClass(t: Task): string {
   return isEvent(t) ? "due-event" : dueDateClass(t.due);

@@ -1,4 +1,5 @@
 import { useHidden } from "../utils/simple";
+import { appUi } from "../utils/appUi";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { openThisMonth } from "../utils/calendarTasks";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -36,6 +37,7 @@ import {
   StarIcon,
   SunIcon,
   TrashIcon,
+  ReviewIcon,
 } from "./icons";
 import EntityModal, { type EditableEntity, type EntityKind } from "./EntityModal";
 import RowMenu from "./RowMenu";
@@ -293,7 +295,7 @@ export default function Sidebar({
       <button className="sidebar-link sidebar-search" onClick={onSearch}>
         <SearchIcon className="icon" />
         Search
-        <kbd className="sidebar-kbd">/</kbd>
+        {!appUi && <kbd className="sidebar-kbd">/</kbd>}
       </button>
 
       <nav className="sidebar-nav">
@@ -338,7 +340,7 @@ export default function Sidebar({
         )}
         {reviewOn && (
           <button className="sidebar-link" onClick={() => window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW))}>
-            <CalendarIcon className="icon" />
+            <ReviewIcon className="icon" />
             Weekly review
             {reviewCount > 0 && <span className="badge">{reviewCount}</span>}
           </button>

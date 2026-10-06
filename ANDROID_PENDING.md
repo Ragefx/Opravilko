@@ -18,6 +18,9 @@ Build 57: Midva add line gone; Simple hides Completed and holds the focus/review
 - Simple can also hide Productivity in the menu (hidden with Simple on; can be shown again)
 - Comments can have pictures pasted in
 - No "+ Add task" lines in the Inbox, projects and Upcoming in the app (the + button adds)
+- Calendar day list and Upcoming: tasks under their own day show just the time (no repeated "Today"/date)
+- Menu: Weekly review has its own icon (not the calendar's); no "/" keyboard hint in the app
+- Task window: the Event row has a line icon like the other rows (not the 📅 emoji); no "drop files" hint on the phone
 
 ## Known gaps
 

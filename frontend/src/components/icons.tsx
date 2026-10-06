@@ -326,6 +326,24 @@ export const PaperclipIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** A clipboard with a tick: going through tasks (Weekly review). */
+export const ReviewIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="5" y="4" width="14" height="17" rx="2.5" />
+    <path d="M9 4V3h6v1" />
+    <path d="M9 12.5l2 2 4-4" />
+  </svg>
+);
+
+/** A calendar with a star: an event (something happening) rather than a task. */
+export const EventIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+    <path d="M3.5 9.5h17M8 3v4M16 3v4" />
+    <path d="M12 12l1 2.1 2.3.3-1.7 1.6.4 2.3-2-1.1-2 1.1.4-2.3-1.7-1.6 2.3-.3z" />
+  </svg>
+);
+
 export const MapPinIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" />

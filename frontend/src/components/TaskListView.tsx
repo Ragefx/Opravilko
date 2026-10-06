@@ -9,6 +9,7 @@ import { useBootstrap, useReorderTasks } from "../api/hooks";
 import TaskRow from "./TaskRow";
 import TaskDetail from "./TaskDetail";
 import QuickAdd from "./QuickAdd";
+import { appUi } from "../utils/appUi";
 import CalendarEventRow from "./CalendarEventRow";
 import { CheckCircleIcon } from "./icons";
 
@@ -181,7 +182,8 @@ export default function TaskListView({
         </div>
       )}
 
-      {quickAddProjectId && <QuickAdd projectId={quickAddProjectId} defaultDue={quickAddDue} />}
+      {/* The app adds with the + at the bottom, so no "+ Add task" lines there. */}
+      {quickAddProjectId && !appUi && <QuickAdd projectId={quickAddProjectId} defaultDue={quickAddDue} />}
 
       {active.length === 0 && completed.length === 0 && !hasEvents && !dateGroups?.some((g) => g.keepEmpty) && (
         <div className="empty-state">
@@ -202,7 +204,7 @@ export default function TaskListView({
                 <CalendarEventRow key={e.id} event={e} />
               ))}
               {items.map((t) => renderTaskAndChildren(t, 0))}
-              {spec?.quickAdd && <QuickAdd projectId={spec.quickAdd.projectId} defaultDue={spec.quickAdd.due} />}
+              {spec?.quickAdd && !appUi && <QuickAdd projectId={spec.quickAdd.projectId} defaultDue={spec.quickAdd.due} />}
             </div>
           ))
         : reorderable

@@ -17,6 +17,7 @@ Build 57: Midva add line gone; Simple hides Completed and holds the focus/review
 
 - Simple can also hide Productivity in the menu (hidden with Simple on; can be shown again)
 - Comments can have pictures pasted in
+- No "+ Add task" lines in the Inbox, projects and Upcoming in the app (the + button adds)
 
 ## Known gaps
 

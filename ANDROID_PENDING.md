@@ -7,22 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 57** (commit `113b412`, Oct 5 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-57
+Last build: **build 58** (commit `4ee4141`, Oct 7 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-58
 (Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 57: Midva add line gone; Simple hides Completed and holds the focus/review/calendar-done switches; event Until uses the time picker.
+Build 58: English / Slovenian (app, widget, notifications), pictures in comments, tidier lists and task window.
 
 ## In the code, not in the app yet
 
-- Simple can also hide Productivity in the menu (hidden with Simple on; can be shown again)
-- Comments can have pictures pasted in
-- No "+ Add task" lines in the Inbox, projects and Upcoming in the app (the + button adds)
-- Calendar day list and Upcoming: tasks under their own day show just the time (no repeated "Today"/date)
-- Menu: Weekly review has its own icon (not the calendar's); no "/" keyboard hint in the app
-- Task window: the Event row has a line icon like the other rows (not the 📅 emoji); no "drop files" hint on the phone
-- Task window: no ">" arrows on the rows
-- Languages: English or Slovenian (Settings > Appearance > Language); the widget, the widget's add card, reminders and other notifications follow it
+(nothing yet)
 
 ## Known gaps
 

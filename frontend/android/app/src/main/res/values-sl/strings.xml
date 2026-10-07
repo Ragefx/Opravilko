@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="shortcut_add">Dodaj nalogo</string>
+    <string name="shortcut_shopping">Nakupovalni seznam</string>
+    <string name="shortcut_shopping_voice">Dodaj v nakupe</string>
+    <string name="shortcut_calendar">Koledar</string>
+    <string name="widget_label">Opravilko naloge</string>
+    <string name="widget_description">Danes, prihajajoče, prejeto ali projekt. Odkljukaj naloge kar na začetnem zaslonu.</string>
+</resources>

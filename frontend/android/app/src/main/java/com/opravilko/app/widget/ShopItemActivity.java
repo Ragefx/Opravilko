@@ -50,7 +50,7 @@ public class ShopItemActivity extends WidgetSheetActivity {
         String taskId = getIntent().getStringExtra(EXTRA_TASK_ID);
         task = data != null && taskId != null ? TaskLogic.findTask(data.optJSONArray("tasks"), taskId) : null;
         if (task == null) {
-            Toast.makeText(this, "That item isn't on the list any more.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("That item isn't on the list any more.", "Tega artikla ni več na seznamu."), Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -65,28 +65,28 @@ public class ShopItemActivity extends WidgetSheetActivity {
         // Name and amount side by side.
         LinearLayout names = new LinearLayout(this);
         names.setOrientation(LinearLayout.HORIZONTAL);
-        EditText name = field(parsed[0], "Item", InputType.TYPE_CLASS_TEXT);
+        EditText name = field(parsed[0], L.t("Item", "Artikel"), InputType.TYPE_CLASS_TEXT);
         name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
-        names.addView(labelled("Item", name), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        names.addView(labelled(L.t("Item", "Artikel"), name), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         EditText amount = field(parsed[1] != null ? parsed[1] : "", "1 l, 4, 500 g", InputType.TYPE_CLASS_TEXT);
         LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(dp(110), ViewGroup.LayoutParams.WRAP_CONTENT);
         alp.setMarginStart(dp(10));
-        names.addView(labelled("Amount", amount), alp);
+        names.addView(labelled(L.t("Amount", "Količina"), amount), alp);
         sheet.addView(names);
 
-        EditText note = field(ShoppingLogic.noteOf(description), "e.g. the Alpsko yoghurt, or cheese if there's none",
+        EditText note = field(ShoppingLogic.noteOf(description), L.t("e.g. the Alpsko yoghurt, or cheese if there's none", "npr. Alpski jogurt, ali sir, če ga ni"),
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         note.setMinLines(2);
         note.setGravity(Gravity.TOP | Gravity.START);
-        View noteBox = labelled("Note", note);
+        View noteBox = labelled(L.t("Note", "Opomba"), note);
         ((LinearLayout.LayoutParams) noteBox.getLayoutParams()).topMargin = dp(12);
         sheet.addView(noteBox);
 
-        sheet.addView(caption("Shop"));
+        sheet.addView(caption(L.t("Shop", "Trgovina")));
         shopChips = chipRow(sheet);
         buildShopChips(data);
 
-        sheet.addView(caption("Category"));
+        sheet.addView(caption(L.t("Category", "Kategorija")));
         categoryChips = chipRow(sheet);
         buildCategoryChips(guide);
 
@@ -99,15 +99,15 @@ public class ShopItemActivity extends WidgetSheetActivity {
         aclp.topMargin = dp(18);
         sheet.addView(actions, aclp);
 
-        TextView delete = button("Delete", color(R.color.widget_due_overdue), 0);
+        TextView delete = button(L.t("Delete", "Izbriši"), color(R.color.widget_due_overdue), 0);
         delete.setOnClickListener(v -> delete());
         actions.addView(delete);
         View spacer = new View(this);
         actions.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1));
-        TextView cancel = button("Cancel", color(R.color.widget_text_secondary), 0);
+        TextView cancel = button(L.t("Cancel", "Prekliči"), color(R.color.widget_text_secondary), 0);
         cancel.setOnClickListener(v -> finish());
         actions.addView(cancel);
-        TextView save = button("Save", color(R.color.widget_on_accent), color(R.color.widget_accent));
+        TextView save = button(L.t("Save", "Shrani"), color(R.color.widget_on_accent), color(R.color.widget_accent));
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         slp.setMarginStart(dp(8));
@@ -121,7 +121,7 @@ public class ShopItemActivity extends WidgetSheetActivity {
         shopChips.removeAllViews();
         List<String> shops = new ArrayList<>(ShoppingLogic.stores(data, task.optString("projectId")));
         if (shop != null && !shops.contains(shop)) shops.add(shop);
-        addChip(shopChips, "Any shop", shop == null, v -> {
+        addChip(shopChips, L.t("Any shop", "Katerakoli"), shop == null, v -> {
             shop = null;
             buildShopChips(data);
         });
@@ -152,7 +152,7 @@ public class ShopItemActivity extends WidgetSheetActivity {
 
     private void save(String name, String amount, String note) {
         if (name.trim().isEmpty()) {
-            Toast.makeText(this, "The item needs a name.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("The item needs a name.", "Artikel potrebuje ime."), Toast.LENGTH_SHORT).show();
             return;
         }
         JSONObject data = store.getSnapshot();
@@ -169,7 +169,7 @@ public class ShopItemActivity extends WidgetSheetActivity {
             queue(data, op);
             finish();
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't save that.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't save that.", "Tega ni bilo mogoče shraniti."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -183,7 +183,7 @@ public class ShopItemActivity extends WidgetSheetActivity {
             Toast.makeText(this, "Removed " + ShoppingLogic.parse(task.optString("content"))[0], Toast.LENGTH_SHORT).show();
             finish();
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't remove that.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't remove that.", "Tega ni bilo mogoče odstraniti."), Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import type { Project } from "../api/types";
@@ -15,8 +16,8 @@ export default function ProjectFilesButton({ project }: { project: Project }) {
       <button
         className="display-icon-btn project-files-btn"
         onClick={() => setOpen(true)}
-        aria-label={count ? `Files (${count})` : "Files"}
-        title="Files"
+        aria-label={count ? tr(`Files (${count})`, `Datoteke (${count})`) : tr("Files", "Datoteke")}
+        title={tr("Files", "Datoteke")}
       >
         <PaperclipIcon width={18} height={18} />
         {count > 0 && <span className="project-files-count">{count}</span>}
@@ -32,7 +33,7 @@ export default function ProjectFilesButton({ project }: { project: Project }) {
             >
               <div className="settings-head">
                 <h3>{project.name}</h3>
-                <button className="sidebar-icon-btn" onClick={() => setOpen(false)} aria-label="Close">
+                <button className="sidebar-icon-btn" onClick={() => setOpen(false)} aria-label={tr("Close", "Zapri")}>
                   <XIcon width={18} height={18} />
                 </button>
               </div>

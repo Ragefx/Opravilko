@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Project, Section } from "../api/types";
@@ -58,8 +59,8 @@ export default function SectionMenu({
       onSuccess: (removed) => {
         if (!removed) return;
         showToast({
-          message: `"${section.name}" deleted`,
-          actionLabel: "Undo",
+          message: tr(`"${section.name}" deleted`, `»${section.name}« izbrisan`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreSection.mutate(removed),
         });
       },
@@ -70,8 +71,8 @@ export default function SectionMenu({
   function handleArchive() {
     updateSection.mutate({ id: section.id, archived: true });
     showToast({
-      message: `"${section.name}" archived`,
-      actionLabel: "Undo",
+      message: tr(`"${section.name}" archived`, `»${section.name}« arhiviran`),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () => updateSection.mutate({ id: section.id, archived: false }),
     });
     close();
@@ -84,7 +85,7 @@ export default function SectionMenu({
 
   return (
     <span className="row-menu">
-      <button ref={triggerRef} className="row-menu-trigger" aria-label="Section options" onClick={toggle}>
+      <button ref={triggerRef} className="row-menu-trigger" aria-label={tr("Section options", "Možnosti razdelka")} onClick={toggle}>
         <MoreIcon width={18} height={18} />
       </button>
       {anchor &&
@@ -108,11 +109,11 @@ export default function SectionMenu({
                     }}
                   >
                     <ChevronIcon width={14} height={14} style={{ transform: "rotate(90deg)" }} />
-                    Back
+                    {tr("Back", "Nazaj")}
                   </button>
                   {projects.length === 0 ? (
                     <div className="row-menu-item" style={{ opacity: 0.6, cursor: "default" }}>
-                      No other projects
+                      {tr("No other projects", "Ni drugih projektov")}
                     </div>
                   ) : (
                     projects.map((p) => (
@@ -142,7 +143,7 @@ export default function SectionMenu({
                     }}
                   >
                     <EditIcon width={14} height={14} />
-                    Edit
+                    {tr("Edit", "Uredi")}
                   </button>
                   <button
                     className="row-menu-item"
@@ -165,7 +166,7 @@ export default function SectionMenu({
                     }}
                   >
                     <CopyIcon width={14} height={14} />
-                    Duplicate
+                    {tr("Duplicate", "Podvoji")}
                   </button>
                   <button
                     className="row-menu-item"
@@ -176,7 +177,7 @@ export default function SectionMenu({
                     }}
                   >
                     <ArchiveIcon width={14} height={14} />
-                    Archive
+                    {tr("Archive", "Arhiviraj")}
                   </button>
                   <button
                     className="row-menu-item danger"
@@ -187,7 +188,7 @@ export default function SectionMenu({
                     }}
                   >
                     <TrashIcon width={14} height={14} />
-                    Delete
+                    {tr("Delete", "Izbriši")}
                   </button>
                 </>
               )}

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useState } from "react";
 import type { Task } from "../api/types";
 import { stripHtml } from "../utils/html";
@@ -43,7 +44,7 @@ export default function FocusMode({
   const progress = 1 - left / (minutes * 60_000);
 
   useEffect(() => {
-    document.title = finished ? "Time's up · Opravilko" : `${mm}:${ss} · ${task.content}`;
+    document.title = finished ? tr("Time's up · Opravilko", "Čas je potekel · Opravilko") : `${mm}:${ss} · ${task.content}`;
     return () => {
       document.title = "Opravilko";
     };
@@ -67,13 +68,13 @@ export default function FocusMode({
   const description = task.description ? stripHtml(task.description) : "";
 
   return (
-    <div className="focus-mode" role="dialog" aria-label="Focus">
+    <div className="focus-mode" role="dialog" aria-label={tr("Focus", "Fokus")}>
       <div className="focus-mode-inner">
         <span className="focus-mode-project">{projectName}</span>
         <h2 className="focus-mode-title">{task.content}</h2>
         {description && <p className="focus-mode-desc">{description}</p>}
         <div className="focus-mode-timer" aria-live="polite">
-          {finished ? "Time's up" : `${mm}:${ss}`}
+          {finished ? tr("Time's up", "Čas je potekel") : `${mm}:${ss}`}
         </div>
         <div className="focus-mode-bar">
           <i style={{ width: `${Math.min(100, progress * 100)}%` }} />
@@ -87,15 +88,15 @@ export default function FocusMode({
         </div>
         <div className="focus-mode-actions">
           <button className="btn btn-text" onClick={onClose}>
-            Stop
+            {tr("Stop", "Ustavi")}
           </button>
           {!finished && (
             <button className="btn btn-text" onClick={togglePause}>
-              {pausedLeft !== null ? "Resume" : "Pause"}
+              {pausedLeft !== null ? tr("Resume", "Nadaljuj") : tr("Pause", "Premor")}
             </button>
           )}
           <button className="btn btn-primary" onClick={onDone}>
-            Mark done
+            {tr("Mark done", "Označi kot opravljeno")}
           </button>
         </div>
       </div>

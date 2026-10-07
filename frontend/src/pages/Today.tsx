@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { tr, format, trn, cap } from "../i18n";
 import { useBootstrap } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
 import DateBoardView from "../components/DateBoardView";
@@ -29,24 +29,24 @@ export default function Today() {
   const header = (
     <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
       <div>
-        <h1>Today</h1>
+        <h1>{tr("Today", "Danes")}</h1>
         <div className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: 5 }}>
           {layout === "board" ? (
             <>
               <CheckCircleIcon width={14} height={14} />
-              {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
+              {trn(tasks.length, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"])}
             </>
           ) : (
-            `${format(new Date(), "EEEE d MMMM")} · ${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`
+            `${cap(format(new Date(), tr("EEEE d MMMM", "EEEE, d. MMMM")))} · ${trn(tasks.length, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"])}`
           )}
         </div>
       </div>
       <div className="view-toggle">
         <button className={layout === "list" ? "active" : ""} onClick={() => setLayout("list")}>
-          <ListViewIcon width={14} height={14} /> List
+          <ListViewIcon width={14} height={14} /> {tr("List", "Seznam")}
         </button>
         <button className={layout === "board" ? "active" : ""} onClick={() => setLayout("board")}>
-          <BoardViewIcon width={14} height={14} /> Board
+          <BoardViewIcon width={14} height={14} /> {tr("Board", "Tabla")}
         </button>
       </div>
     </div>
@@ -59,14 +59,14 @@ export default function Today() {
     if (overdueTasks.length > 0) {
       columns.push({
         key: "overdue",
-        label: "Overdue",
+        label: tr("Overdue", "Zamujeno"),
         tasks: overdueTasks,
         extra: <RescheduleButton tasks={overdueTasks} />,
       });
     }
     columns.push({
       key: "today",
-      label: `${format(new Date(), "d MMM")} · Today`,
+      label: `${format(new Date(), tr("d MMM", "d. MMM"))} · ${tr("Today", "Danes")}`,
       tasks: todayTasks,
       quickAdd: { projectId: "inbox", due: { date: todayISO(), string: "today" } },
     });
@@ -82,18 +82,18 @@ export default function Today() {
   return (
     <TaskListView
       header={header}
-      title="Today"
+      title={tr("Today", "Danes")}
       tasks={tasks}
       quickAddProjectId="inbox"
       quickAddDue={{ date: todayISO(), string: "today" }}
-      groupLabel={(t) => (isOverdue(t.due) ? "Overdue" : "Today")}
+      groupLabel={(t) => (isOverdue(t.due) ? tr("Overdue", "Zamujeno") : tr("Today", "Danes"))}
       showProjectChip
       projectNameById={projectNameById}
-      groupExtra={(label, items) => (label === "Overdue" && items.length > 0 ? <RescheduleButton tasks={items} /> : undefined)}
+      groupExtra={(label, items) => (label === tr("Overdue", "Zamujeno") && items.length > 0 ? <RescheduleButton tasks={items} /> : undefined)}
       eventsByDate={eventsByDate}
       dateGroups={[
-        { label: "Overdue", date: null },
-        { label: "Today", date: todayISO() },
+        { label: tr("Overdue", "Zamujeno"), date: null },
+        { label: tr("Today", "Danes"), date: todayISO() },
       ]}
     />
   );

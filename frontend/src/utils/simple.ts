@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useSyncExternalStore } from "react";
 
 /**
@@ -20,17 +21,17 @@ export type SimpleItem =
   | "productivity";
 
 export const SIMPLE_ITEMS: { key: SimpleItem; label: string }[] = [
-  { key: "meals", label: "Shopping: the Meal button" },
-  { key: "shops", label: "Shopping: the Shop button" },
-  { key: "shopReminder", label: "Shopping: Remind me at the shop" },
-  { key: "suggestions", label: "Shopping: suggested items" },
-  { key: "deadline", label: "Task: deadline" },
-  { key: "labels", label: "Task: labels" },
-  { key: "location", label: "Task: location" },
-  { key: "midvaFrom", label: "Midva: who a task is from" },
-  { key: "nowNext", label: "Now: “pick something from Next” when the day is free" },
-  { key: "completed", label: "Menu: Completed" },
-  { key: "productivity", label: "Menu: Productivity" },
+  { key: "meals", label: tr("Shopping: the Meal button", "Nakupi: gumb Obrok") },
+  { key: "shops", label: tr("Shopping: the Shop button", "Nakupi: gumb Trgovina") },
+  { key: "shopReminder", label: tr("Shopping: Remind me at the shop", "Nakupi: Opomni me v trgovini") },
+  { key: "suggestions", label: tr("Shopping: suggested items", "Nakupi: predlagani artikli") },
+  { key: "deadline", label: tr("Task: deadline", "Naloga: rok") },
+  { key: "labels", label: tr("Task: labels", "Naloga: oznake") },
+  { key: "location", label: tr("Task: location", "Naloga: lokacija") },
+  { key: "midvaFrom", label: tr("Midva: who a task is from", "Midva: od koga je naloga") },
+  { key: "nowNext", label: tr("Now: “pick something from Next” when the day is free", "Zdaj: »izberi nekaj iz Naslednje«, ko je dan prost") },
+  { key: "completed", label: tr("Menu: Completed", "Meni: Opravljeno") },
+  { key: "productivity", label: tr("Menu: Productivity", "Meni: Produktivnost") },
 ];
 
 const ON_KEY = "opravilko.simple";

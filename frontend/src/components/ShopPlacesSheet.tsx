@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -35,11 +36,14 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
   async function askAccess() {
     const access = await requestArrivalAccess().catch(() => ({ location: false, background: false }));
     if (!access.location) {
-      showToast({ message: "Shop reminders need location access for Opravilko." });
+      showToast({ message: tr("Shop reminders need location access for Opravilko.", "Opomniki v trgovini potrebujejo dostop do lokacije za Opravilko.") });
     } else if (!access.background) {
       showToast({
-        message: "To notice you arriving with the app closed, set Opravilko's location to “Allow all the time”.",
-        actionLabel: "Settings",
+        message: tr(
+          "To notice you arriving with the app closed, set Opravilko's location to “Allow all the time”.",
+          "Da opazi tvoj prihod tudi z zaprto aplikacijo, Opravilku za lokacijo nastavi »Vedno dovoli«."
+        ),
+        actionLabel: tr("Settings", "Nastavitve"),
         onAction: openLocationSettings,
       });
     }
@@ -67,7 +71,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
     return (
       <LocationPicker
         nameable
-        removeLabel="Remove this shop"
+        removeLabel={tr("Remove this shop", "Odstrani to trgovino")}
         initial={{ name: editing.name, address: editing.address, lat: editing.lat, lng: editing.lng }}
         onClose={() => setEditing(null)}
         onSave={(loc) => {
@@ -87,12 +91,14 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
         onClose();
       }}
     >
-      <div className="shop-picker shop-places" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Shops on the map">
+      <div className="shop-picker shop-places" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Shops on the map", "Trgovine na zemljevidu")}>
         <div className="shop-picker-handle" aria-hidden="true" />
-        <h3>Remind me at the shop</h3>
+        <h3>{tr("Remind me at the shop", "Opomni me v trgovini")}</h3>
         <p>
-          Pin your shops (as many of each as you like). When you arrive at one, your phone shows what to buy there,
-          even with the app closed. Tap a pinned shop to move it or give it a name of its own.
+          {tr(
+            "Pin your shops (as many of each as you like). When you arrive at one, your phone shows what to buy there, even with the app closed. Tap a pinned shop to move it or give it a name of its own.",
+            "Označi svoje trgovine (vsake kolikor želiš). Ko prideš v eno, ti telefon pokaže, kaj tam kupiti, tudi z zaprto aplikacijo. Tapni označeno trgovino, da jo premakneš ali ji daš svoje ime."
+          )}
         </p>
         <div className="shop-picker-list">
           {stores.map((store) => {
@@ -106,7 +112,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
                       type="button"
                       className="shop-places-edit"
                       onClick={() => setEditing(p)}
-                      aria-label={`Change ${p.name}: move it or rename it`}
+                      aria-label={tr(`Change ${p.name}: move it or rename it`, `Spremeni ${p.name}: premakni ali preimenuj`)}
                     >
                       <span className="shop-picker-icon" aria-hidden="true">
                         <MapPinIcon width={18} height={18} />
@@ -119,7 +125,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
                     <button
                       type="button"
                       className="rem-remove"
-                      aria-label={`Remove ${p.name}`}
+                      aria-label={tr(`Remove ${p.name}`, `Odstrani ${p.name}`)}
                       onClick={() => removeShopPlace(p.id)}
                     >
                       <XIcon width={16} height={16} />
@@ -130,7 +136,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
                   <span className="shop-picker-icon" aria-hidden="true">
                     <PlusIcon width={18} height={18} />
                   </span>
-                  <span className="shop-picker-name">{mine.length ? `Add another ${store}` : `Pin your ${store}`}</span>
+                  <span className="shop-picker-name">{mine.length ? tr(`Add another ${store}`, `Dodaj še eno: ${store}`) : tr(`Pin your ${store}`, `Označi svojo trgovino ${store}`)}</span>
                 </button>
               </div>
             );
@@ -138,7 +144,7 @@ export default function ShopPlacesSheet({ stores, onClose }: { stores: string[];
         </div>
         <div className="rem-foot">
           <button type="button" className="btn btn-text" onClick={onClose}>
-            Done
+            {tr("Done", "Končano")}
           </button>
         </div>
       </div>

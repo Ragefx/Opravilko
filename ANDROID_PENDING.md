@@ -22,6 +22,7 @@ Build 57: Midva add line gone; Simple hides Completed and holds the focus/review
 - Menu: Weekly review has its own icon (not the calendar's); no "/" keyboard hint in the app
 - Task window: the Event row has a line icon like the other rows (not the 📅 emoji); no "drop files" hint on the phone
 - Task window: no ">" arrows on the rows
+- Languages: English or Slovenian (Settings > Appearance > Language); the widget, the widget's add card, reminders and other notifications follow it
 
 ## Known gaps
 

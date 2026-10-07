@@ -1,3 +1,4 @@
+import { tr, localeTag } from "../i18n";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import type { Task } from "../api/types";
 import { isNativeApp } from "../dropbox/auth";
@@ -99,8 +100,8 @@ export function checkDueReminders(tasks: Task[], me?: string): void {
       // Only fire for times that have just passed, not a backlog of old ones.
       if (remindAt <= now && now - remindAt < 10 * 60 * 1000) {
         const when = task.due?.datetime
-          ? `Due ${new Date(task.due.datetime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-          : "Due today";
+          ? tr("Due ", "Rok ") + new Date(task.due.datetime).toLocaleTimeString(localeTag, { hour: "2-digit", minute: "2-digit" })
+          : tr("Due today", "Danes");
         new Notification(task.content, { body: `${when} · Opravilko`, tag: key });
         fired.add(key);
         changed = true;

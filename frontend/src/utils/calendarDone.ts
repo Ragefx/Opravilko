@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { format } from "date-fns";
+import { format } from "../i18n";
 import type { AppData } from "../api/types";
 
 /**

@@ -1,17 +1,5 @@
-import {
-  addDays,
-  addMonths,
-  endOfMonth,
-  format,
-  isSameWeek,
-  isBefore,
-  isToday,
-  isTomorrow,
-  parseISO,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
+import { addDays, addMonths, endOfMonth, isSameWeek, isBefore, isToday, isTomorrow, parseISO, startOfDay, startOfMonth, startOfWeek } from "date-fns";
+import { format, tr } from "../i18n";
 import type { Due } from "../api/types";
 
 /**
@@ -94,7 +82,7 @@ export function isDueWithinDays(due: Due | null, days: number): boolean {
 export function formatDueLabel(due: Due | null): string {
   if (!due) return "";
   const d = parseISO(due.date);
-  const dayLabel = isToday(d) ? "Today" : isTomorrow(d) ? "Tomorrow" : format(d, "MMM d");
+  const dayLabel = isToday(d) ? tr("Today", "Danes") : isTomorrow(d) ? tr("Tomorrow", "Jutri") : format(d, tr("MMM d", "d. MMM"));
   if (due.datetime) {
     return `${dayLabel} ${format(new Date(due.datetime), "HH:mm")}`;
   }

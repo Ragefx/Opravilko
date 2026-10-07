@@ -1,3 +1,5 @@
+import { tr } from "../i18n";
+
 import { useRescheduleTasks } from "../api/hooks";
 import type { Task } from "../api/types";
 import { makeDue } from "../utils/date";
@@ -11,7 +13,7 @@ export default function RescheduleButton({ tasks }: { tasks: Task[] }) {
       style={{ fontSize: 12, padding: "2px 6px", marginLeft: "auto" }}
       onClick={() => rescheduleTasks.mutate({ ids: tasks.map((t) => t.id), due: makeDue(new Date(), "Today") })}
     >
-      Reschedule all to today
+      {tr("Reschedule all to today", "Vse prestavi na danes")}
     </button>
   );
 }

@@ -74,7 +74,7 @@ public final class ShopArrival {
         String body = String.join(", ", items);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_opravilko)
-                .setContentTitle("🛒 At " + shop + " · " + items.size() + " to buy")
+                .setContentTitle(L.t("🛒 At " + shop + " · " + items.size() + " to buy", "🛒 V " + shop + " · za kupiti: " + items.size()))
                 .setContentText(body)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -92,8 +92,8 @@ public final class ShopArrival {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager nm = context.getSystemService(NotificationManager.class);
         if (nm == null || nm.getNotificationChannel(CHANNEL) != null) return;
-        NotificationChannel channel = new NotificationChannel(CHANNEL, "Arrival reminders", NotificationManager.IMPORTANCE_HIGH);
-        channel.setDescription("Tasks to do when you arrive at a place");
+        NotificationChannel channel = new NotificationChannel(CHANNEL, L.t("Arrival reminders", "Opomniki ob prihodu"), NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription(L.t("Tasks to do when you arrive at a place", "Naloge za ob prihodu na kraj"));
         nm.createNotificationChannel(channel);
     }
 }

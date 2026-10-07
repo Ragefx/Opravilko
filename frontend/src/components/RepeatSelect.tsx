@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { REPEAT_PRESETS, type RepeatPreset } from "../utils/recurrence";
 import Select from "./Select";
 
@@ -19,10 +20,10 @@ export default function RepeatSelect({
       className="detail-date-input"
       value={value}
       onChange={(e) => onChange(e.target.value as RepeatPreset | "none")}
-      aria-label="Repeat"
+      aria-label={tr("Repeat", "Ponavljanje")}
     >
-      <option value="none">Doesn't repeat</option>
-      {value === "custom" && <option value="custom">{customLabel || "Custom"}</option>}
+      <option value="none">{tr("Doesn't repeat", "Se ne ponavlja")}</option>
+      {value === "custom" && <option value="custom">{customLabel || tr("Custom", "Po meri")}</option>}
       {REPEAT_PRESETS.map((p) => (
         <option key={p.key} value={p.key}>
           {p.label}

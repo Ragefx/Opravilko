@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { Partner } from "../api/types";
 import { ShareIcon } from "./icons";
 
@@ -24,7 +25,7 @@ export default function SharedToggle({
       title={on ? `Shared with ${first} (Midva)` : `Share with ${first}`}
     >
       <ShareIcon width={14} height={14} />
-      {on ? `Midva · ${first}` : "Share"}
+      {on ? `Midva · ${first}` : tr("Share", "Deli")}
     </button>
   );
 }

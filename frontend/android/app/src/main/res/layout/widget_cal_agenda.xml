@@ -62,13 +62,13 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
 
-        <TextView style="@style/WidgetAgWeekday" android:text="M" />
-        <TextView style="@style/WidgetAgWeekday" android:text="T" />
-        <TextView style="@style/WidgetAgWeekday" android:text="W" />
-        <TextView style="@style/WidgetAgWeekday" android:text="T" />
-        <TextView style="@style/WidgetAgWeekday" android:text="F" />
-        <TextView style="@style/WidgetAgWeekday" android:text="S" />
-        <TextView style="@style/WidgetAgWeekday" android:text="S" />
+        <TextView android:id="@+id/ag_wd1" style="@style/WidgetAgWeekday" android:text="M" />
+        <TextView android:id="@+id/ag_wd2" style="@style/WidgetAgWeekday" android:text="T" />
+        <TextView android:id="@+id/ag_wd3" style="@style/WidgetAgWeekday" android:text="W" />
+        <TextView android:id="@+id/ag_wd4" style="@style/WidgetAgWeekday" android:text="T" />
+        <TextView android:id="@+id/ag_wd5" style="@style/WidgetAgWeekday" android:text="F" />
+        <TextView android:id="@+id/ag_wd6" style="@style/WidgetAgWeekday" android:text="S" />
+        <TextView android:id="@+id/ag_wd7" style="@style/WidgetAgWeekday" android:text="S" />
     </LinearLayout>
 
     <LinearLayout

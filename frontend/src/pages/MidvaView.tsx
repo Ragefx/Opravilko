@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useBootstrap } from "../api/hooks";
@@ -11,13 +12,13 @@ import { isDueToday, isDueTomorrow, isOverdue } from "../utils/date";
 import { ShareIcon } from "../components/icons";
 
 function groupOf(t: Task): string {
-  if (!t.due) return "No date";
-  if (isOverdue(t.due)) return "Overdue";
-  if (isDueToday(t.due)) return "Today";
-  if (isDueTomorrow(t.due)) return "Tomorrow";
-  return "Later";
+  if (!t.due) return tr("No date", "Brez datuma");
+  if (isOverdue(t.due)) return tr("Overdue", "Zamujeno");
+  if (isDueToday(t.due)) return tr("Today", "Danes");
+  if (isDueTomorrow(t.due)) return tr("Tomorrow", "Jutri");
+  return tr("Later", "Pozneje");
 }
-const ORDER = ["Overdue", "Today", "Tomorrow", "Later", "No date"];
+const ORDER = [tr("Overdue", "Zamujeno"), tr("Today", "Danes"), tr("Tomorrow", "Jutri"), tr("Later", "Pozneje"), tr("No date", "Brez datuma")];
 
 /**
  * Midva ("the two of us"): every task shared between you and your partner
@@ -62,10 +63,12 @@ export default function MidvaView() {
     <div className="content-scroll">
       <div className="page-header">
         <div>
-          <h1>Midva</h1>
+          <h1>{tr("Midva", "Midva")}</h1>
           <div className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <ShareIcon width={14} height={14} />
-            {partner ? `Shared between you and ${partner.name.split(" ")[0]}` : "Tasks you share with your partner"}
+            {partner
+              ? tr(`Shared between you and ${partner.name.split(" ")[0]}`, `Deljeno med tabo in ${partner.name.split(" ")[0]}`)
+              : tr("Tasks you share with your partner", "Naloge, ki jih deliš s partnerjem")}
             {tasks.length > 0 && ` · ${tasks.length}`}
           </div>
         </div>
@@ -96,10 +99,11 @@ export default function MidvaView() {
       {tasks.length === 0 && partner && (
         <div className="empty-state">
           <ShareIcon width={40} height={40} />
-          <p>Nothing shared yet</p>
+          <p>{tr("Nothing shared yet", "Še nič deljenega")}</p>
           <span>
-            Add a task here, or switch on <b>Share</b> when adding one anywhere (or type <code>+midva</code>). It shows up
-            for {partner.name.split(" ")[0]} right away.
+            {tr("Add a task here, or switch on", "Dodaj nalogo tukaj ali vklopi")} <b>{tr("Share", "Deli")}</b>{" "}
+            {tr("when adding one anywhere (or type", "pri dodajanju kjer koli (ali napiši")} <code>+midva</code>
+            {tr(`). It shows up for ${partner.name.split(" ")[0]} right away.`, `). Takoj se pokaže tudi ${partner.name.split(" ")[0]}.`)}
           </span>
         </div>
       )}

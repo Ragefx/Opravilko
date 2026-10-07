@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { format } from "date-fns";
+import { tr, format } from "../i18n";
 import type { Due, Reminder } from "../api/types";
 import { isNativeApp } from "../dropbox/auth";
 import { enableReminders } from "../utils/notifications";
@@ -19,8 +19,8 @@ import TimeInput from "./TimeInput";
 import { BellIcon, ClockIcon, PlusIcon, XIcon } from "./icons";
 
 function whenText(at: Date | null): string {
-  if (!at) return "Needs a date";
-  return format(at, "EEE d MMM, HH:mm") + (at.getTime() < Date.now() ? " · passed" : "");
+  if (!at) return tr("Needs a date", "Potrebuje datum");
+  return format(at, tr("EEE d MMM, HH:mm", "EEE, d. MMM, HH:mm")) + (at.getTime() < Date.now() ? tr(" · passed", " · preteklo") : "");
 }
 
 /**
@@ -64,10 +64,16 @@ export default function ReminderSheet({
         onClose();
       }}
     >
-      <div className="shop-picker rem-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Reminders">
+      <div className="shop-picker rem-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Reminders", "Opomniki")}>
         <div className="shop-picker-handle" aria-hidden="true" />
-        <h3>Reminders</h3>
-        {!reminders.length && <p>{due ? "None yet. Add one below." : "None yet. Give the task a date for quick options, or pick a time."}</p>}
+        <h3>{tr("Reminders", "Opomniki")}</h3>
+        {!reminders.length && (
+          <p>
+            {due
+              ? tr("None yet. Add one below.", "Še nobenega. Dodaj ga spodaj.")
+              : tr("None yet. Give the task a date for quick options, or pick a time.", "Še nobenega. Nalogi daj datum za hitre možnosti ali izberi čas.")}
+          </p>
+        )}
 
         {reminders.length > 0 && (
           <div className="shop-picker-list rem-list">
@@ -81,16 +87,16 @@ export default function ReminderSheet({
                   <span className="rem-when">
                     {r.type === "absolute"
                       ? (reminderTime(due, r)?.getTime() ?? 0) < Date.now()
-                        ? "Passed"
-                        : "At a set time"
+                        ? tr("Passed", "Preteklo")
+                        : tr("At a set time", "Ob nastavljenem času")
                       : whenText(reminderTime(due, r))}
-                    {!isMine(r, me) && " · your partner's"}
+                    {!isMine(r, me) && tr(" · your partner's", " · partnerjev")}
                   </span>
                 </span>
                 <button
                   type="button"
                   className="rem-remove"
-                  aria-label={`Remove reminder ${describeReminder(r)}`}
+                  aria-label={tr(`Remove reminder ${describeReminder(r)}`, `Odstrani opomnik ${describeReminder(r)}`)}
                   onClick={() => onChange(reminders.filter((x) => x.id !== r.id))}
                 >
                   <XIcon width={16} height={16} />
@@ -100,7 +106,7 @@ export default function ReminderSheet({
           </div>
         )}
 
-        {(available.length > 0 || !custom) && <div className="rem-head">Add</div>}
+        {(available.length > 0 || !custom) && <div className="rem-head">{tr("Add", "Dodaj")}</div>}
         <div className="shop-picker-list">
           {available.map((p) => {
             const spec = p.make();
@@ -122,7 +128,7 @@ export default function ReminderSheet({
               <span className="shop-picker-icon" aria-hidden="true">
                 <ClockIcon width={18} height={18} />
               </span>
-              <span className="shop-picker-name">Pick a day and time…</span>
+              <span className="shop-picker-name">{tr("Pick a day and time…", "Izberi dan in uro …")}</span>
             </button>
           ) : (
             <form
@@ -136,17 +142,17 @@ export default function ReminderSheet({
                 setCustom(false);
               }}
             >
-              <input type="date" value={day} onChange={(e) => setDay(e.target.value)} aria-label="Day" required />
-              <TimeInput idPrefix="reminder-time" value={time} onChange={setTime} label="Reminder" />
+              <input type="date" value={day} onChange={(e) => setDay(e.target.value)} aria-label={tr("Day", "Dan")} required />
+              <TimeInput idPrefix="reminder-time" value={time} onChange={setTime} label={tr("Reminder", "Opomnik")} />
               <button type="submit" className="btn btn-primary">
-                Add
+                {tr("Add", "Dodaj")}
               </button>
             </form>
           )}
         </div>
         <div className="rem-foot">
           <button type="button" className="btn btn-text" onClick={onClose}>
-            Done
+            {tr("Done", "Končano")}
           </button>
         </div>
       </div>

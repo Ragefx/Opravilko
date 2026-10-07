@@ -1,16 +1,5 @@
-import {
-  addDays,
-  addMonths,
-  addWeeks,
-  addYears,
-  differenceInCalendarDays,
-  differenceInCalendarMonths,
-  differenceInCalendarWeeks,
-  differenceInCalendarYears,
-  format,
-  getDaysInMonth,
-  startOfWeek,
-} from "date-fns";
+import { addDays, addMonths, addWeeks, addYears, differenceInCalendarDays, differenceInCalendarMonths, differenceInCalendarWeeks, differenceInCalendarYears, getDaysInMonth, startOfWeek } from "date-fns";
+import { format } from "../i18n";
 import type { CalendarEvent } from "../api/types";
 
 interface IcsDate {

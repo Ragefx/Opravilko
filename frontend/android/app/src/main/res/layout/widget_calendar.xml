@@ -70,13 +70,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView style="@style/WidgetCalWeekday" android:text="Mon" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Tue" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Wed" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Thu" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Fri" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Sat" />
-            <TextView style="@style/WidgetCalWeekday" android:text="Sun" />
+            <TextView android:id="@+id/cal_wd1" style="@style/WidgetCalWeekday" android:text="Mon" />
+            <TextView android:id="@+id/cal_wd2" style="@style/WidgetCalWeekday" android:text="Tue" />
+            <TextView android:id="@+id/cal_wd3" style="@style/WidgetCalWeekday" android:text="Wed" />
+            <TextView android:id="@+id/cal_wd4" style="@style/WidgetCalWeekday" android:text="Thu" />
+            <TextView android:id="@+id/cal_wd5" style="@style/WidgetCalWeekday" android:text="Fri" />
+            <TextView android:id="@+id/cal_wd6" style="@style/WidgetCalWeekday" android:text="Sat" />
+            <TextView android:id="@+id/cal_wd7" style="@style/WidgetCalWeekday" android:text="Sun" />
         </LinearLayout>
 
         <LinearLayout

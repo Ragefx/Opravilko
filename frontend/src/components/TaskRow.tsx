@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
@@ -60,8 +61,8 @@ export default function TaskRow({
     deleteTask.mutate(task.id, {
       onSuccess: (removed) =>
         showToast({
-          message: `"${task.content}" deleted`,
-          actionLabel: "Undo",
+          message: tr(`"${task.content}" deleted`, `»${task.content}« izbrisano`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreTasks.mutate(removed),
         }),
     });
@@ -71,8 +72,8 @@ export default function TaskRow({
     const previousDue = task.due;
     tick.play(() => completeTask.mutate({ id: task.id, completed: true }), { fold: !recurring });
     showToast({
-      message: task.due?.isRecurring ? "Moved to next occurrence" : "Task completed",
-      actionLabel: "Undo",
+      message: task.due?.isRecurring ? tr("Moved to next occurrence", "Prestavljeno na naslednjič") : tr("Task completed", "Naloga opravljena"),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () =>
         task.due?.isRecurring
           ? revertRecurring.mutate({ id: task.id, due: previousDue })
@@ -94,11 +95,11 @@ export default function TaskRow({
         <div className={`task-swipe-bg ${swipe.armed ? "armed" : ""}`}>
           {swipeDir === "right" ? (
             <>
-              <CheckIcon width={18} height={18} /> Complete
+              <CheckIcon width={18} height={18} /> {tr("Complete", "Opravi")}
             </>
           ) : (
             <>
-              Delete <TrashIcon width={18} height={18} />
+              {tr("Delete", "Izbriši")} <TrashIcon width={18} height={18} />
             </>
           )}
         </div>
@@ -117,7 +118,7 @@ export default function TaskRow({
             className="task-collapse-toggle"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={onToggleCollapse}
-            aria-label={collapsed ? "Expand sub-tasks" : "Collapse sub-tasks"}
+            aria-label={collapsed ? tr("Expand sub-tasks", "Razširi podnaloge") : tr("Collapse sub-tasks", "Strni podnaloge")}
           >
             <ChevronIcon width={14} height={14} style={{ transform: collapsed ? "rotate(-90deg)" : undefined }} />
           </button>
@@ -166,16 +167,16 @@ export default function TaskRow({
                   {task.due.isRecurring && (
                     <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
                   )}
-                  {hasReminders && <BellIcon width={12} height={12} aria-label="Has reminders" style={{ verticalAlign: "-2px", marginLeft: 2 }} />}
+                  {hasReminders && <BellIcon width={12} height={12} aria-label={tr("Has reminders", "Ima opomnike")} style={{ verticalAlign: "-2px", marginLeft: 2 }} />}
                 </span>
               )}
               {deadline && (
-                <span className={`chip task-deadline is-${deadline.kind}`} title="Deadline">
+                <span className={`chip task-deadline is-${deadline.kind}`} title={tr("Deadline", "Rok")}>
                   <HourglassIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {deadline.label}
                 </span>
               )}
               {!task.due && hasReminders && (
-                <span className="chip" title="Reminders">
+                <span className="chip" title={tr("Reminders", "Opomniki")}>
                   <BellIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />
                 </span>
               )}

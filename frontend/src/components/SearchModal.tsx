@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBootstrap } from "../api/hooks";
@@ -35,7 +36,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
         <input
           autoFocus
           type="text"
-          placeholder="Search tasks, projects, labels, filters..."
+          placeholder={tr("Search tasks, projects, labels, filters…", "Išči naloge, projekte, oznake, filtre …")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Escape" && onClose()}
@@ -49,7 +50,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
 
         {results.tasks.length > 0 && (
           <div className="search-group">
-            <div className="search-group-title">Tasks</div>
+            <div className="search-group-title">{tr("Tasks", "Naloge")}</div>
             {results.tasks.map((t) => (
               <button key={t.id} className="search-result" onClick={() => goToTask(t.id, t.projectId)}>
                 {t.content}
@@ -60,7 +61,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
 
         {results.projects.length > 0 && (
           <div className="search-group">
-            <div className="search-group-title">Projects</div>
+            <div className="search-group-title">{tr("Projects", "Projekti")}</div>
             {results.projects.map((p) => (
               <button
                 key={p.id}
@@ -78,7 +79,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
 
         {results.labels.length > 0 && (
           <div className="search-group">
-            <div className="search-group-title">Labels</div>
+            <div className="search-group-title">{tr("Labels", "Oznake")}</div>
             {results.labels.map((l) => (
               <button
                 key={l.id}
@@ -96,7 +97,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
 
         {results.filters.length > 0 && (
           <div className="search-group">
-            <div className="search-group-title">Filters</div>
+            <div className="search-group-title">{tr("Filters", "Filtri")}</div>
             {results.filters.map((f) => (
               <button
                 key={f.id}

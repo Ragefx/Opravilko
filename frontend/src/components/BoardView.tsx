@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   DndContext,
@@ -88,7 +89,7 @@ export default function BoardView({
       cols.unshift({
         key: UNSECTIONED,
         sectionId: null,
-        name: sections.length === 0 ? "Tasks" : "To-do",
+        name: sections.length === 0 ? tr("Tasks", "Naloge") : tr("To-do", "Za narediti"),
         tasks: unsectioned,
       });
     }
@@ -221,7 +222,7 @@ export default function BoardView({
           section's name here to move the task there. */}
       {activeTask && columns.length > 1 && (
         <div className="board-drop-strip">
-          <span>Move to</span>
+          <span>{tr("Move to", "Premakni v")}</span>
           {columns.map((c) => (
             <DropChip key={c.key} id={DROP_PREFIX + c.key} label={c.name} />
           ))}
@@ -237,7 +238,7 @@ export default function BoardView({
                 <div className="quick-add">
                   <input
                     autoFocus
-                    placeholder="Section name"
+                    placeholder={tr("Section name", "Ime razdelka")}
                     value={newSectionName}
                     onChange={(e) => setNewSectionName(e.target.value)}
                     onKeyDown={(e) => {
@@ -247,16 +248,16 @@ export default function BoardView({
                   />
                   <div className="quick-add-actions">
                     <button className="btn btn-text" onClick={() => setAddingSection(false)}>
-                      Cancel
+                      {tr("Cancel", "Prekliči")}
                     </button>
                     <button className="btn btn-primary" onClick={submitNewSection} disabled={!newSectionName.trim()}>
-                      Add
+                      {tr("Add", "Dodaj")}
                     </button>
                   </div>
                 </div>
               ) : (
                 <button className="add-task-trigger" onClick={() => setAddingSection(true)}>
-                  <span className="plus">+</span> Add section
+                  <span className="plus">+</span> {tr("Add section", "Dodaj razdelek")}
                 </button>
               )}
             </div>
@@ -341,7 +342,7 @@ function BoardColumn({
           <span
             onClick={() => canRename && setRenaming(true)}
             style={canRename ? { cursor: "text" } : undefined}
-            title={canRename ? "Click to rename" : undefined}
+            title={canRename ? tr("Click to rename", "Klikni za preimenovanje") : undefined}
           >
             {column.name}
           </span>
@@ -405,7 +406,7 @@ function BoardCard({
             onToggle={() =>
               tick.play(() => completeTask.mutate({ id: task.id, completed: true }), { fold: !task.due?.isRecurring })
             }
-            ariaLabel="Mark complete"
+            ariaLabel={tr("Mark complete", "Označi kot opravljeno")}
           />
           <div className={`board-card-content ${tick.busy ? "is-striking" : ""}`} style={{ minWidth: 0 }}>
             <span className="task-content-text">{task.content}</span>

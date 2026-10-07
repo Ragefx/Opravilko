@@ -81,7 +81,7 @@ public class TaskWidgetService extends RemoteViewsService {
             List<TaskLogic.Row> overdue = new ArrayList<>();
             for (TaskLogic.Row r : rows) if (r.dueDate.compareTo(today) < 0) overdue.add(r);
             if (!overdue.isEmpty()) {
-                items.add(Item.heading("Overdue", 0, false, true));
+                items.add(Item.heading(L.t("Overdue", "Zamujeno"), 0, false, true));
                 for (TaskLogic.Row r : overdue) items.add(Item.task(r, false));
             }
             int days = isToday ? 1 : TaskLogic.UPCOMING_DAYS;
@@ -207,6 +207,7 @@ public class TaskWidgetService extends RemoteViewsService {
             bought.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_COMPLETE);
             bought.putExtra(TaskWidgetProvider.EXTRA_TASK_ID, row.id);
             rv.setOnClickFillInIntent(R.id.shop_check, bought);
+            rv.setContentDescription(R.id.shop_check, L.res(context, R.string.widget_bought));
             // Tapping the item itself opens its editing card right over the home
             // screen (name, amount, note, shop, category), without the app.
             Intent edit = new Intent();
@@ -224,6 +225,7 @@ public class TaskWidgetService extends RemoteViewsService {
             rv.setTextViewText(R.id.section_count, showCount ? String.valueOf(item.count) : "");
             rv.setViewVisibility(R.id.section_count, showCount ? View.VISIBLE : View.GONE);
             rv.setViewVisibility(R.id.section_action, item.reschedule ? View.VISIBLE : View.GONE);
+            rv.setTextViewText(R.id.section_action, L.res(context, R.string.widget_reschedule));
             if (item.reschedule) {
                 Intent reschedule = new Intent();
                 reschedule.putExtra(TaskWidgetProvider.EXTRA_ACTION, TaskWidgetProvider.ACTION_RESCHEDULE);
@@ -278,6 +280,7 @@ public class TaskWidgetService extends RemoteViewsService {
             if (row.recurring) complete.putExtra(TaskWidgetProvider.EXTRA_DUE_DATE, row.dueDate);
             // An event has nothing to tick: its mark opens it like the rest of the row.
             if (!row.event) rv.setOnClickFillInIntent(R.id.row_check, complete);
+            rv.setContentDescription(R.id.row_check, L.res(context, R.string.widget_complete_task));
 
             // Tapping the task opens its card right over the home screen (name,
             // notes, date, priority), without the app; the card can open the app.

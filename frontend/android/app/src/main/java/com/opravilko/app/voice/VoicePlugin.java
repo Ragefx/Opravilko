@@ -1,5 +1,6 @@
 package com.opravilko.app.voice;
 
+import com.opravilko.app.widget.L;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -37,7 +38,8 @@ public class VoicePlugin extends Plugin {
         try {
             startActivityForResult(call, intent, "onVoiceResult");
         } catch (ActivityNotFoundException e) {
-            call.reject("This phone has no voice input. Install or enable Google voice typing.");
+            L.load(getContext());
+            call.reject(L.t("This phone has no voice input. Install or enable Google voice typing.", "Ta telefon nima glasovnega vnosa. Namesti ali vklopi Googlovo glasovno tipkanje."));
         }
     }
 

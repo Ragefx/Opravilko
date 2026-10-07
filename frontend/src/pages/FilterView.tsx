@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useParams } from "react-router-dom";
 import { useBootstrap } from "../api/hooks";
 import TaskListView from "../components/TaskListView";
@@ -9,7 +10,7 @@ export default function FilterView() {
   if (isLoading || !data) return null;
 
   const filter = data.filters.find((f) => f.id === id);
-  if (!filter) return <div className="empty-state">Filter not found.</div>;
+  if (!filter) return <div className="empty-state">{tr("Filter not found.", "Filtra ni.")}</div>;
 
   const tasks = data.tasks.filter((t) => matchesQuery(t, filter.query, data));
   const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));

@@ -1,5 +1,5 @@
 import type { Due, Priority } from "../api/types";
-import { format } from "date-fns";
+import { format } from "../i18n";
 import { parseDateToken, parseNaturalDate, parseTimeToken } from "./date";
 import {
   describeRecurrence,

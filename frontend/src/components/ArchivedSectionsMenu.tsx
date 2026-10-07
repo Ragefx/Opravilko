@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { Section } from "../api/types";
 import { useUpdateSection } from "../api/hooks";
 import { ArchiveIcon } from "./icons";
@@ -24,10 +25,10 @@ export default function ArchivedSectionsMenu({
         }}
       />
       <div className="dropdown-panel display-menu" style={{ minWidth: 240 }}>
-        <div className="display-menu-title">Archived sections</div>
+        <div className="display-menu-title">{tr("Archived sections", "Arhivirani razdelki")}</div>
         {sections.length === 0 ? (
           <div style={{ padding: "8px 4px", fontSize: 13, color: "var(--color-text-secondary)" }}>
-            Nothing archived.
+            {tr("Nothing archived.", "Nič arhiviranega.")}
           </div>
         ) : (
           sections.map((s) => (
@@ -56,7 +57,7 @@ export default function ArchivedSectionsMenu({
                 style={{ fontSize: 12, flexShrink: 0 }}
                 onClick={() => updateSection.mutate({ id: s.id, archived: false })}
               >
-                Unarchive
+                {tr("Unarchive", "Obnovi iz arhiva")}
               </button>
             </div>
           ))

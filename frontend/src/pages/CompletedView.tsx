@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { format, isToday, isYesterday, parseISO } from "date-fns";
+import { isToday, isYesterday, parseISO } from "date-fns";
+import { tr, trn, format, cap } from "../i18n";
 import { useBootstrap, useCompleteTask } from "../api/hooks";
 import { completedByName } from "../utils/completedBy";
 import type { Task } from "../api/types";
@@ -16,9 +17,9 @@ type Done = { key: string; task?: Task; content: string; projectId: string; at: 
 
 function groupLabel(iso: string): string {
   const d = parseISO(iso);
-  if (isToday(d)) return "Today";
-  if (isYesterday(d)) return "Yesterday";
-  return format(d, "EEEE d MMMM");
+  if (isToday(d)) return tr("Today", "Danes");
+  if (isYesterday(d)) return tr("Yesterday", "Včeraj");
+  return cap(format(d, tr("EEEE d MMMM", "EEEE, d. MMMM")));
 }
 
 export default function CompletedView() {
@@ -68,7 +69,12 @@ export default function CompletedView() {
   function restore(t: Task) {
     completeTask.mutate(
       { id: t.id, completed: false },
-      { onSuccess: () => showToast({ message: `"${t.content}" restored to ${projectNameById[t.projectId] || "its project"}` }) }
+      { onSuccess: () => showToast({
+          message: tr(
+            `"${t.content}" restored to ${projectNameById[t.projectId] || "its project"}`,
+            `»${t.content}« vrnjeno v ${projectNameById[t.projectId] || "svoj projekt"}`
+          ),
+        }) }
     );
   }
 
@@ -76,10 +82,10 @@ export default function CompletedView() {
     <div className="content-scroll">
       <div className="page-header">
         <div>
-          <h1>Completed</h1>
+          <h1>{tr("Completed", "Opravljeno")}</h1>
           <div className="page-subtitle" style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <CheckCircleIcon width={14} height={14} />
-            {completed.length} {completed.length === 1 ? "task" : "tasks"}
+            {trn(completed.length, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"])}
           </div>
         </div>
       </div>
@@ -90,18 +96,18 @@ export default function CompletedView() {
           <input
             className="detail-date-input"
             style={{ width: "100%", fontSize: 13 }}
-            placeholder="Search completed tasks…"
+            placeholder={tr("Search completed tasks…", "Išči opravljene naloge …")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <Select sheetTitle="Project"
+        <Select sheetTitle={tr("Project", "Projekt")}
           className="detail-sidebar-select"
           style={{ width: 180 }}
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
         >
-          <option value="all">All projects</option>
+          <option value="all">{tr("All projects", "Vsi projekti")}</option>
           {data.projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -121,15 +127,15 @@ export default function CompletedView() {
             setOlderState("done");
           }}
         >
-          {olderState === "loading" ? "Loading…" : "Show older completed tasks"}
+          {olderState === "loading" ? tr("Loading…", "Nalagam …") : tr("Show older completed tasks", "Pokaži starejše opravljene naloge")}
         </button>
       )}
 
       {completed.length === 0 && (
         <div className="empty-state">
           <CheckCircleIcon width={40} height={40} />
-          <p>Nothing here yet</p>
-          <span>Tasks you complete will show up here, and you can bring any of them back.</span>
+          <p>{tr("Nothing here yet", "Tu še ni ničesar")}</p>
+          <span>{tr("Tasks you complete will show up here, and you can bring any of them back.", "Opravljene naloge se pokažejo tukaj in vsako lahko vrneš nazaj.")}</span>
         </div>
       )}
 
@@ -142,7 +148,7 @@ export default function CompletedView() {
               <div key={r.key} className="task-row">
                 {r.repeat ? (
                   // A repeating task's round: it has already moved on, so nothing to restore.
-                  <span className="completed-repeat-mark" title="A repeating task, ticked off" aria-label="Repeating task, done">
+                  <span className="completed-repeat-mark" title={tr("A repeating task, ticked off", "Ponavljajoča se naloga, odkljukana")} aria-label={tr("Repeating task, done", "Ponavljajoča se naloga, opravljena")}>
                     <RepeatIcon width={12} height={12} />
                   </span>
                 ) : (
@@ -150,7 +156,7 @@ export default function CompletedView() {
                     completed
                     priorityColor={PRIORITY_META[t!.priority].color}
                     onToggle={() => restore(t!)}
-                    ariaLabel="Restore task"
+                    ariaLabel={tr("Restore task", "Obnovi nalogo")}
                   />
                 )}
                 <div className="task-main">

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useBootstrap, useCreateProject } from "../api/hooks";
@@ -30,14 +31,14 @@ export default function ShoppingPage() {
   useEffect(() => {
     if (!data || list || creating.current) return;
     creating.current = true;
-    createProject.mutate({ name: "Shopping list", color: "green", viewStyle: "shopping" });
+    createProject.mutate({ name: tr("Shopping list", "Nakupovalni seznam"), color: "green", viewStyle: "shopping" });
   }, [data, list, createProject]);
 
   if (!list) return null;
 
   const header = (
     <div className="topbar" style={{ padding: "0 0 16px", border: "none" }}>
-      <h1>Shopping</h1>
+      <h1>{tr("Shopping", "Nakupi")}</h1>
     </div>
   );
   return <ShoppingView key={list.id} projectId={list.id} header={header} start={start} />;

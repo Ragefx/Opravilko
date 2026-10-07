@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { tripIcon } from "../utils/away";
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -38,12 +39,12 @@ export default function ProjectMenu({
 
   const templateItems = [
     {
-      label: "Add from template…",
+      label: tr("Add from template…", "Dodaj iz predloge …"),
       icon: <ListViewIcon width={14} height={14} />,
       onClick: () => setTemplates({}),
     },
     {
-      label: "Save as template…",
+      label: tr("Save as template…", "Shrani kot predlogo …"),
       icon: <CopyIcon width={14} height={14} />,
       onClick: () => setTemplates({ startWith: { name: p.name, text: projectAsText(p.id, data?.tasks ?? []) } }),
     },
@@ -55,8 +56,8 @@ export default function ProjectMenu({
         if (!removed) return;
         navigate("/app");
         showToast({
-          message: `Project “${p.name}” deleted`,
-          actionLabel: "Undo",
+          message: tr(`Project “${p.name}” deleted`, `Projekt »${p.name}« izbrisan`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreProject.mutate(removed),
         });
       },
@@ -68,29 +69,29 @@ export default function ProjectMenu({
       <RowMenu
         label={p.name}
         items={templatesOnly ? templateItems : [
-          { label: "Edit project", icon: <EditIcon width={14} height={14} />, onClick: () => setModal("edit") },
-          { label: "Add sub-project", icon: <PlusIcon width={14} height={14} />, onClick: () => setModal("sub") },
+          { label: tr("Edit project", "Uredi projekt"), icon: <EditIcon width={14} height={14} />, onClick: () => setModal("edit") },
+          { label: tr("Add sub-project", "Dodaj podprojekt"), icon: <PlusIcon width={14} height={14} />, onClick: () => setModal("sub") },
           ...(p.viewStyle !== "shopping"
-            ? [{ label: p.trip ? `${tripIcon(p.trip)} Trip dates…` : "✈️ It's a trip…", icon: <CalendarIcon width={14} height={14} />, onClick: () => setTripOpen(true) }]
+            ? [{ label: p.trip ? `${tripIcon(p.trip)} ${tr("Trip dates…", "Datumi potovanja …")}` : tr("✈️ It's a trip…", "✈️ To je potovanje …"), icon: <CalendarIcon width={14} height={14} />, onClick: () => setTripOpen(true) }]
             : []),
           ...(usingFirebase()
-            ? [{ label: "Share…", icon: <ShareIcon width={14} height={14} />, onClick: () => setSharing(true) }]
+            ? [{ label: tr("Share…", "Deli …"), icon: <ShareIcon width={14} height={14} />, onClick: () => setSharing(true) }]
             : []),
           ...templateItems,
           // Only the owner can delete a shared project; others can leave it.
           p.ownerId && p.ownerId !== activeSession()?.userId
             ? {
-                label: "Leave project",
+                label: tr("Leave project", "Zapusti projekt"),
                 icon: <TrashIcon width={14} height={14} />,
                 danger: true,
                 onClick: () => {
                   void activeSession()?.leaveProject(p.id);
                   navigate("/app");
-                  showToast({ message: `Left “${p.name}”` });
+                  showToast({ message: tr(`Left “${p.name}”`, `Zapustil(a) si »${p.name}«`) });
                 },
               }
             : {
-                label: "Delete project",
+                label: tr("Delete project", "Izbriši projekt"),
                 icon: <TrashIcon width={14} height={14} />,
                 danger: true,
                 onClick: handleDelete,

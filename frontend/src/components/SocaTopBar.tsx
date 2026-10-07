@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useMemo } from "react";
 import { shoppingListOf } from "../utils/shopping";
 import { openThisMonth } from "../utils/calendarTasks";
@@ -37,15 +38,15 @@ export default function SocaTopBar({
     return [
       {
         to: "/app/home",
-        label: "Now",
+        label: tr("Now", "Zdaj"),
         count: open.filter((t) => isDueToday(t.due) || isOverdue(t.due)).length,
       },
-      { to: "/app/inbox", label: "Inbox", count: count("inbox") },
-      { to: "/app/calendar", label: "Calendar", count: openThisMonth(data) },
-      { to: "/app/shopping", label: "Shopping", count: shopping ? open.filter((t) => t.projectId === shopping.id && !t.parentId).length : 0 },
+      { to: "/app/inbox", label: tr("Inbox", "Prejeto"), count: count("inbox") },
+      { to: "/app/calendar", label: tr("Calendar", "Koledar"), count: openThisMonth(data) },
+      { to: "/app/shopping", label: tr("Shopping", "Nakupi"), count: shopping ? open.filter((t) => t.projectId === shopping.id && !t.parentId).length : 0 },
       // Midva: only with Firebase, where tasks can be shared.
       ...(data.me
-        ? [{ to: "/app/midva", label: "Midva", count: open.filter((t) => t.sharedWith?.length && !t.parentId).length, color: "var(--color-accent)" }]
+        ? [{ to: "/app/midva", label: tr("Midva", "Midva"), count: open.filter((t) => t.sharedWith?.length && !t.parentId).length, color: "var(--color-accent)" }]
         : []),
       ...projects.map((p) => ({ to: `/app/project/${p.id}`, label: p.name, count: count(p.id), color: colorHex(p.color) })),
       ...data.labels
@@ -60,29 +61,29 @@ export default function SocaTopBar({
   return (
     <header className="soca-top">
       <div className="soca-bar">
-        <button className="soca-icon-btn" onClick={onMenu} aria-label="Projects, labels and settings">
+        <button className="soca-icon-btn" onClick={onMenu} aria-label={tr("Projects, labels and settings", "Projekti, oznake in nastavitve")}>
           <MenuIcon width={20} height={20} />
         </button>
-        <NavLink to="/app/home" className="soca-wordmark" aria-label="Opravilko home">
+        <NavLink to="/app/home" className="soca-wordmark" aria-label={tr("Opravilko home", "Opravilko, začetek")}>
           opravilko<i>.</i>
         </NavLink>
         <button className="soca-command" onClick={onCommand}>
           <SearchIcon width={15} height={15} />
-          <span>Jump to a project, or type a new task…</span>
+          <span>{tr("Jump to a project, or type a new task…", "Skoči na projekt ali vpiši novo nalogo …")}</span>
           <kbd>/</kbd>
         </button>
         <div className="soca-sync">
           <SyncIndicator />
         </div>
-        <button className="soca-icon-btn soca-command-mobile" onClick={onCommand} aria-label="Search or jump">
+        <button className="soca-icon-btn soca-command-mobile" onClick={onCommand} aria-label={tr("Search or jump", "Išči ali skoči")}>
           <SearchIcon width={19} height={19} />
         </button>
-        <button className="soca-add" onClick={onQuickAdd} aria-label="Add task">
+        <button className="soca-add" onClick={onQuickAdd} aria-label={tr("Add task", "Dodaj nalogo")}>
           <PlusIcon width={18} height={18} />
-          <span>Add</span>
+          <span>{tr("Add", "Dodaj")}</span>
         </button>
       </div>
-      <nav className="soca-chips" aria-label="Places">
+      <nav className="soca-chips" aria-label={tr("Places", "Mesta")}>
         {chips.map((c) => (
           <NavLink key={c.to} to={c.to} className={({ isActive }) => `soca-chip ${isActive ? "is-active" : ""}`}>
             {c.color && <span className="soca-chip-dot" style={{ background: c.color }} />}

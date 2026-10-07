@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
@@ -36,7 +37,7 @@ export default function LocationPicker({
   onSave,
   onClose,
   nameable = false,
-  removeLabel = "Remove location",
+  removeLabel = tr("Remove location", "Odstrani lokacijo"),
 }: {
   initial?: TaskLocation;
   onSave: (loc: TaskLocation | null) => void;
@@ -79,7 +80,7 @@ export default function LocationPicker({
     if (initial) showPin(initial);
     m.on("click", async (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      const rough = { name: "Dropped pin", lat, lng };
+      const rough = { name: tr("Dropped pin", "Označena točka"), lat, lng };
       setPicked(rough);
       showPin(rough);
       setLocating(true);
@@ -125,7 +126,7 @@ export default function LocationPicker({
         setResults(await searchPlaces(q, c ? { lat: c.lat, lng: c.lng } : undefined, ctrl.signal));
         setError(null);
       } catch (e) {
-        if ((e as Error).name !== "AbortError") setError("Couldn't search right now. You can still click the map.");
+        if ((e as Error).name !== "AbortError") setError(tr("Couldn't search right now. You can still click the map.", "Iskanje trenutno ne deluje. Še vedno lahko klikneš na zemljevid."));
       } finally {
         setSearching(false);
       }
@@ -167,11 +168,11 @@ export default function LocationPicker({
         className="modal location-modal"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Location"
+        aria-label={tr("Location", "Lokacija")}
       >
         <div className="settings-head">
-          <h3>Location</h3>
-          <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
+          <h3>{tr("Location", "Lokacija")}</h3>
+          <button className="sidebar-icon-btn" onClick={onClose} aria-label={tr("Close", "Zapri")}>
             <XIcon width={18} height={18} />
           </button>
         </div>
@@ -180,7 +181,7 @@ export default function LocationPicker({
           <SearchIcon width={16} height={16} />
           <input
             autoFocus
-            placeholder="Search a place or address…"
+            placeholder={tr("Search a place or address…", "Išči kraj ali naslov …")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -207,28 +208,28 @@ export default function LocationPicker({
         {error && <div className="location-error">{error}</div>}
 
         <div className="location-map" ref={mapDiv} />
-        <p className="location-hint">Search above, or click the map to drop a pin.</p>
+        <p className="location-hint">{tr("Search above, or click the map to drop a pin.", "Išči zgoraj ali klikni na zemljevid, da označiš točko.")}</p>
 
         <div className="location-picked">
           {picked ? (
             <>
               <MapPinIcon width={16} height={16} />
               <span>
-                <b>{locating ? "Finding the address…" : picked.name}</b>
+                <b>{locating ? tr("Finding the address…", "Iščem naslov …") : picked.name}</b>
                 {!locating && picked.address && <span>{picked.address}</span>}
               </span>
             </>
           ) : (
-            <span className="location-none">No place picked yet</span>
+            <span className="location-none">{tr("No place picked yet", "Kraj še ni izbran")}</span>
           )}
         </div>
 
         {nameable && picked && (
           <label className="location-name">
-            <span>Name</span>
+            <span>{tr("Name", "Ime")}</span>
             <input
               value={ownName ?? (locating ? "" : picked.name)}
-              placeholder={locating ? "Finding the address…" : picked.name}
+              placeholder={locating ? tr("Finding the address…", "Iščem naslov …") : picked.name}
               onChange={(e) => setOwnName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !locating) save();
@@ -244,10 +245,10 @@ export default function LocationPicker({
             </button>
           )}
           <button className="btn btn-text" onClick={onClose}>
-            Cancel
+            {tr("Cancel", "Prekliči")}
           </button>
           <button className="btn btn-primary" onClick={save} disabled={!picked || locating}>
-            Save
+            {tr("Save", "Shrani")}
           </button>
         </div>
       </div>

@@ -109,7 +109,17 @@ final class CalendarWidget {
         Month m = new Month(context, appWidgetId, data);
         RemoteViews views = new RemoteViews(context.getPackageName(),
                 withTasks ? R.layout.widget_cal_agenda : R.layout.widget_calendar);
-        views.setTextViewText(R.id.cal_month, new SimpleDateFormat("LLLL yyyy", Locale.ENGLISH).format(m.month.getTime()));
+        views.setTextViewText(R.id.cal_month, L.cap(new SimpleDateFormat("LLLL yyyy", L.locale()).format(m.month.getTime())));
+        // The weekday names over the grid, in the app's language.
+        String[] weekdays = withTasks
+                ? (L.sl() ? new String[] { "P", "T", "S", "Č", "P", "S", "N" } : new String[] { "M", "T", "W", "T", "F", "S", "S" })
+                : (L.sl() ? new String[] { "pon", "tor", "sre", "čet", "pet", "sob", "ned" } : new String[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" });
+        int[] weekdayIds = withTasks
+                ? new int[] { R.id.ag_wd1, R.id.ag_wd2, R.id.ag_wd3, R.id.ag_wd4, R.id.ag_wd5, R.id.ag_wd6, R.id.ag_wd7 }
+                : new int[] { R.id.cal_wd1, R.id.cal_wd2, R.id.cal_wd3, R.id.cal_wd4, R.id.cal_wd5, R.id.cal_wd6, R.id.cal_wd7 };
+        for (int i = 0; i < 7; i++) views.setTextViewText(weekdayIds[i], weekdays[i]);
+        views.setContentDescription(R.id.cal_prev, L.res(context, R.string.widget_cal_prev));
+        views.setContentDescription(R.id.cal_next, L.res(context, R.string.widget_cal_next));
         views.setOnClickPendingIntent(R.id.cal_prev, monthIntent(context, appWidgetId, -1));
         views.setOnClickPendingIntent(R.id.cal_next, monthIntent(context, appWidgetId, 1));
         // Tapping the month's name brings back this month; away from it, the name shows in the accent colour.
@@ -324,7 +334,7 @@ final class CalendarWidget {
             }
             if (items.isEmpty() && first && done.isEmpty()) {
                 RemoteViews note = new RemoteViews(context.getPackageName(), R.layout.widget_ag_note);
-                note.setTextViewText(R.id.ag_note, "Nothing due");
+                note.setTextViewText(R.id.ag_note, L.t("Nothing due", "Nič na sporedu"));
                 views.addView(R.id.ag_list, note);
                 budget -= 20;
             }
@@ -344,6 +354,7 @@ final class CalendarWidget {
                 } else {
                     row.setImageViewResource(R.id.ag_check, checkFor(it.priority));
                     row.setOnClickPendingIntent(R.id.ag_check, completeTask(context, appWidgetId, it));
+                    row.setContentDescription(R.id.ag_check, L.res(context, R.string.widget_complete_task));
                 }
                 row.setOnClickPendingIntent(R.id.ag_row, openTask(context, appWidgetId, it.taskId));
                 views.addView(R.id.ag_list, row);
@@ -373,15 +384,15 @@ final class CalendarWidget {
     /** "Today · Thu 8 Oct", "Tomorrow · Fri 9 Oct", "Mon 12 Oct". */
     private static String dayHeading(String day, String today) {
         Calendar c = TaskLogic.calendarFor(day);
-        String label = c != null ? new SimpleDateFormat("EEE d MMM", Locale.ENGLISH).format(c.getTime()) : day;
-        if (day.equals(today)) return "Today · " + label;
-        if (day.equals(TaskLogic.addDaysStr(today, 1))) return "Tomorrow · " + label;
+        String label = c != null ? L.date("EEE d MMM", "EEE, d. MMM", c.getTime()) : day;
+        if (day.equals(today)) return L.t("Today · ", "Danes · ") + label;
+        if (day.equals(TaskLogic.addDaysStr(today, 1))) return L.t("Tomorrow · ", "Jutri · ") + label;
         return label;
     }
 
     private static String shortDate(String day) {
         Calendar c = TaskLogic.calendarFor(day);
-        return c != null ? new SimpleDateFormat("d MMM", Locale.ENGLISH).format(c.getTime()) : day;
+        return c != null ? L.date("d MMM", "d. MMM", c.getTime()) : day;
     }
 
     private static String shortRange(Trip t) {

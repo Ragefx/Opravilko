@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import type { Project } from "../api/types";
 import { useUpdateProject } from "../api/hooks";
@@ -37,14 +38,14 @@ export default function ProjectDescription({ project }: { project: Project }) {
     return (
       <div className="project-description">
         <button className="project-description-add" onClick={() => setEditing(true)}>
-          <PlusIcon width={13} height={13} /> Add a description
+          <PlusIcon width={13} height={13} /> {tr("Add a description", "Dodaj opis")}
         </button>
       </div>
     );
   }
   return (
     <div ref={box} className={`project-description ${editing ? "is-editing" : ""}`} onFocus={() => setEditing(true)}>
-      <RichTextEditor html={html} onChange={setHtml} onBlur={save} placeholder="What this project is about…" />
+      <RichTextEditor html={html} onChange={setHtml} onBlur={save} placeholder={tr("What this project is about…", "O čem je ta projekt …")} />
     </div>
   );
 }

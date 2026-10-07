@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { Priority, Task } from "../api/types";
 import { PRIORITY_META } from "./priority";
 import { formatDueLabel, isDueToday, isDueWithinDays, isOverdue } from "./date";
@@ -74,9 +75,9 @@ export function groupKeyFor(t: Task, grouping: Grouping): string {
     case "priority":
       return PRIORITY_META[t.priority].label;
     case "label":
-      return t.labels[0] || "No label";
+      return t.labels[0] || tr("No label", "Brez oznake");
     case "dueDate":
-      return t.due ? formatDueLabel(t.due) : "No date";
+      return t.due ? formatDueLabel(t.due) : tr("No date", "Brez datuma");
     default:
       return "";
   }

@@ -1,3 +1,4 @@
+import { tr, trn, lang, setLang, isSl } from "../i18n";
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -47,21 +48,21 @@ const LOOKS: { id: Look; name: string; blurb: string }[] = [
   {
     id: "soca",
     name: "Soča",
-    blurb: "A Now / Next / Later home, a command bar (press /) and project chips.",
+    blurb: tr("A Now / Next / Later home, a command bar (press /) and project chips.", "Začetna stran Zdaj / Naslednje / Pozneje, ukazna vrstica (tipka /) in projekti kot gumbi."),
   },
   {
     id: "classic",
-    name: "Classic",
-    blurb: "The sidebar on the left, projects as plain lists.",
+    name: tr("Classic", "Klasičen"),
+    blurb: tr("The sidebar on the left, projects as plain lists.", "Stranski meni na levi, projekti kot preprosti seznami."),
   },
 ];
 
 const ADD_STYLES: { id: AddStyle; name: string; blurb: string }[] = [
-  { id: "corner", name: "Corner button", blurb: "Bottom right. Hold it for task, shopping item or voice." },
-  { id: "tabs", name: "Bottom bar", blurb: "Now, Calendar, +, Shopping, Midva at the bottom; the chips row goes away." },
-  { id: "bar", name: "Add bar", blurb: "An “Add a task…” bar at the bottom, with a mic for voice." },
-  { id: "dot", name: "The dot", blurb: "The logo’s dot as the button. Swipe it left for shopping, up for voice." },
-  { id: "top", name: "At the top", blurb: "The + in the header, as before." },
+  { id: "corner", name: tr("Corner button", "Gumb v kotu"), blurb: tr("Bottom right. Hold it for task, shopping item or voice.", "Spodaj desno. Pridrži ga za nalogo, nakup ali glas.") },
+  { id: "tabs", name: tr("Bottom bar", "Spodnja vrstica"), blurb: tr("Now, Calendar, +, Shopping, Midva at the bottom; the chips row goes away.", "Zdaj, Koledar, +, Nakupi, Midva spodaj; vrstica z gumbi zgoraj izgine.") },
+  { id: "bar", name: tr("Add bar", "Vrstica za dodajanje"), blurb: tr("An “Add a task…” bar at the bottom, with a mic for voice.", "Vrstica »Dodaj nalogo …« spodaj, z mikrofonom za glas.") },
+  { id: "dot", name: tr("The dot", "Pika"), blurb: tr("The logo’s dot as the button. Swipe it left for shopping, up for voice.", "Pika iz logotipa kot gumb. Povleci levo za nakupe, gor za glas.") },
+  { id: "top", name: tr("At the top", "Zgoraj"), blurb: tr("The + in the header, as before.", "+ v glavi, kot prej.") },
 ];
 
 /** Saves everything as one JSON file -- the same format the Dropbox storage used. */
@@ -99,8 +100,8 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const reviewOn = useWeeklyReview();
   const user = currentUser();
   const me = firebase
-    ? { name: user?.displayName || user?.email || "", detail: user?.email ? `Google · ${user.email}` : "Signed in with Google" }
-    : { name: "Dropbox", detail: "Tasks stored in your Dropbox" };
+    ? { name: user?.displayName || user?.email || "", detail: user?.email ? `Google · ${user.email}` : tr("Signed in with Google", "Prijavljen z Googlom") }
+    : { name: "Dropbox", detail: tr("Tasks stored in your Dropbox", "Naloge so shranjene v tvojem Dropboxu") };
   const theme = getStoredTheme();
   const palette = usePalette();
   const partnerName = data?.partner?.name.split(" ")[0];
@@ -108,29 +109,31 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const simpleState = useSimple();
   const summaries: Partial<Record<Section, string>> = {
     simple: [
-      simpleState.on ? `On · ${SIMPLE_ITEMS.length - simpleState.shown.length} things hidden` : "Off · hide the extras for a calmer app",
-      ...(focusOn ? [] : ["no focus task"]),
-      ...(reviewOn ? [] : ["no weekly review"]),
+      simpleState.on
+        ? `${tr("On", "Vklopljeno")} · ${trn(SIMPLE_ITEMS.length - simpleState.shown.length, ["# thing hidden", "# things hidden"], ["# stvar skrita", "# stvari skriti", "# stvari skrite", "# stvari skritih"])}`
+        : tr("Off · hide the extras for a calmer app", "Izklopljeno · skrij dodatke za mirnejšo aplikacijo"),
+      ...(focusOn ? [] : [tr("no focus task", "brez glavne naloge")]),
+      ...(reviewOn ? [] : [tr("no weekly review", "brez tedenskega pregleda")]),
     ].join(" · "),
     appearance: [
       LOOKS.find((l) => l.id === look)?.name,
       ...(palette === "soca" ? [] : [PALETTES.find((p) => p.id === palette)?.name]),
-      theme === "dark" ? "Dark" : theme === "light" ? "Light" : "Match device",
-      `${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""} add button`,
+      theme === "dark" ? tr("Dark", "Temno") : theme === "light" ? tr("Light", "Svetlo") : tr("Match device", "Kot naprava"),
+      tr(`${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""} add button`, `Gumb za dodajanje: ${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""}`),
     ].join(" · "),
-    sharing: partnerName ? `With ${partnerName}` : "Connect with your partner",
-    calendars: feeds ? `${feeds} subscribed` : "Holidays, birthdays, TV…",
-    reminders: "Defaults for new tasks",
-    storage: "Photos and files on tasks",
-    data: "Todoist import, backup file, Gmail add-on",
-    about: `Build ${RELEASES[0].build} · what's new`,
+    sharing: partnerName ? tr(`With ${partnerName}`, `Z ${partnerName}`) : tr("Connect with your partner", "Poveži se s partnerjem"),
+    calendars: feeds ? trn(feeds, ["# subscribed", "# subscribed"], ["# naročen", "# naročena", "# naročeni", "# naročenih"]) : tr("Holidays, birthdays, TV…", "Prazniki, rojstni dnevi, TV …"),
+    reminders: tr("Defaults for new tasks", "Privzeto za nove naloge"),
+    storage: tr("Photos and files on tasks", "Fotografije in datoteke na nalogah"),
+    data: tr("Todoist import, backup file, Gmail add-on", "Uvoz iz Todoista, varnostna kopija, dodatek za Gmail"),
+    about: tr(`Build ${RELEASES[0].build} · what's new`, `Različica ${RELEASES[0].build} · kaj je novega`),
   };
   const groups = ([
-    { title: "Look & feel", ids: ["simple", "appearance"] },
-    { title: "Together", ids: ["sharing"] },
-    { title: "Tasks", ids: ["reminders", "calendars"] },
-    { title: "Data", ids: ["storage", "data"] },
-    { title: "App", ids: ["about"] },
+    { title: tr("Look & feel", "Videz in občutek"), ids: ["simple", "appearance"] },
+    { title: tr("Together", "Skupaj"), ids: ["sharing"] },
+    { title: tr("Tasks", "Naloge"), ids: ["reminders", "calendars"] },
+    { title: tr("Data", "Podatki"), ids: ["storage", "data"] },
+    { title: tr("App", "Aplikacija"), ids: ["about"] },
   ] as { title: string; ids: Section[] }[]).filter((g) => g.ids.some((id) => id !== "sharing" || firebase));
   async function signOutHere() {
     onClose();
@@ -144,15 +147,15 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     navigate("/connect", { replace: true });
   }
   const sections: { id: Section; label: string; icon: ReactNode }[] = [
-    { id: "simple", label: "Simple", icon: <CouchIcon width={16} height={16} /> },
-    { id: "appearance", label: "Appearance", icon: <SettingsIcon width={16} height={16} /> },
-    ...(firebase ? [{ id: "sharing" as const, label: "Sharing", icon: <ShareIcon width={16} height={16} /> }] : []),
-    { id: "calendars", label: "Calendars", icon: <CalendarIcon width={16} height={16} /> },
-    { id: "reminders", label: "Reminders", icon: <BellIcon width={16} height={16} /> },
-    ...(firebase ? [{ id: "storage" as const, label: "Storage", icon: <PaperclipIcon width={16} height={16} /> }] : []),
-    { id: "data", label: "Import, backup & Gmail", icon: <ImportIcon width={16} height={16} /> },
-    { id: "account", label: "Account", icon: <LogOutIcon width={16} height={16} /> },
-    { id: "about", label: "About", icon: <InfoIcon width={16} height={16} /> },
+    { id: "simple", label: tr("Simple", "Preprosto"), icon: <CouchIcon width={16} height={16} /> },
+    { id: "appearance", label: tr("Appearance", "Videz"), icon: <SettingsIcon width={16} height={16} /> },
+    ...(firebase ? [{ id: "sharing" as const, label: tr("Sharing", "Deljenje"), icon: <ShareIcon width={16} height={16} /> }] : []),
+    { id: "calendars", label: tr("Calendars", "Koledarji"), icon: <CalendarIcon width={16} height={16} /> },
+    { id: "reminders", label: tr("Reminders", "Opomniki"), icon: <BellIcon width={16} height={16} /> },
+    ...(firebase ? [{ id: "storage" as const, label: tr("Storage", "Prostor"), icon: <PaperclipIcon width={16} height={16} /> }] : []),
+    { id: "data", label: tr("Import, backup & Gmail", "Uvoz, kopija in Gmail"), icon: <ImportIcon width={16} height={16} /> },
+    { id: "account", label: tr("Account", "Račun"), icon: <LogOutIcon width={16} height={16} /> },
+    { id: "about", label: tr("About", "O aplikaciji"), icon: <InfoIcon width={16} height={16} /> },
   ];
 
   const content = (id: Section) => (
@@ -162,7 +165,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
       {id === "sharing" && <Sharing />}
       {id === "calendars" && (
         <>
-          {!phone && <h4>Calendars</h4>}
+          {!phone && <h4>{tr("Calendars", "Koledarji")}</h4>}
           <CalendarFeedsModal embedded onClose={onClose} />
         </>
       )}
@@ -181,16 +184,16 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     const open = pageOpen ? sections.find((x) => x.id === section) : undefined;
     return (
       <div className="modal-backdrop sp-backdrop" onClick={() => (open ? setPageOpen(false) : onClose())}>
-        <div className="sp" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Settings">
+        <div className="sp" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Settings", "Nastavitve")}>
           <div className="sp-head">
             <button
               className="sp-back"
               onClick={() => (open ? setPageOpen(false) : onClose())}
-              aria-label={open ? "Back to Settings" : "Close settings"}
+              aria-label={open ? tr("Back to Settings", "Nazaj na nastavitve") : tr("Close settings", "Zapri nastavitve")}
             >
               {open ? <ChevronIcon width={22} height={22} style={{ transform: "rotate(90deg)" }} /> : <XIcon width={22} height={22} />}
             </button>
-            <h3>{open ? open.label : "Settings"}</h3>
+            <h3>{open ? open.label : tr("Settings", "Nastavitve")}</h3>
           </div>
           {open ? (
             <div className="sp-page settings-panel" key={open.id}>
@@ -227,7 +230,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
                 </div>
               ))}
               <button className="sp-signout" onClick={() => void signOutHere()}>
-                <LogOutIcon width={18} height={18} /> {firebase ? "Sign out" : "Disconnect Dropbox"}
+                <LogOutIcon width={18} height={18} /> {firebase ? tr("Sign out", "Odjava") : tr("Disconnect Dropbox", "Prekini povezavo z Dropboxom")}
               </button>
             </div>
           )}
@@ -238,15 +241,15 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal settings-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Settings">
+      <div className="modal settings-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Settings", "Nastavitve")}>
         <div className="settings-head">
-          <h3>Settings</h3>
-          <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close settings">
+          <h3>{tr("Settings", "Nastavitve")}</h3>
+          <button className="sidebar-icon-btn" onClick={onClose} aria-label={tr("Close settings", "Zapri nastavitve")}>
             <XIcon width={18} height={18} />
           </button>
         </div>
         <div className="settings-body">
-          <nav className="settings-nav" aria-label="Settings sections">
+          <nav className="settings-nav" aria-label={tr("Settings sections", "Razdelki nastavitev")}>
             {sections.map((s) => (
               <button
                 key={s.id}
@@ -279,13 +282,13 @@ function SimpleSection() {
       <label className="settings-switch">
         <input type="checkbox" checked={simple.on} onChange={(e) => setSimple(e.target.checked)} />
         <span>
-          <b>Simple</b>
-          <span>Hides the extras on this device: fewer buttons, a calmer app. Each one can be brought back below.</span>
+          <b>{tr("Simple", "Preprosto")}</b>
+          <span>{tr("Hides the extras on this device: fewer buttons, a calmer app. Each one can be brought back below.", "Na tej napravi skrije dodatke: manj gumbov, mirnejša aplikacija. Vsakega lahko spodaj vrneš nazaj.")}</span>
         </span>
       </label>
       {simple.on && (
-        <div className="simple-items" role="group" aria-label="Shown anyway">
-          <span className="simple-items-head">Show anyway</span>
+        <div className="simple-items" role="group" aria-label={tr("Shown anyway", "Vseeno prikazano")}>
+          <span className="simple-items-head">{tr("Show anyway", "Vseeno prikaži")}</span>
           {SIMPLE_ITEMS.map((it) => (
             <label key={it.key} className="simple-item">
               <input
@@ -299,19 +302,19 @@ function SimpleSection() {
         </div>
       )}
 
-      <h4>More to switch on or off</h4>
+      <h4>{tr("More to switch on or off", "Še več za vklop ali izklop")}</h4>
       <label className="settings-switch">
         <input type="checkbox" checked={focusCard} onChange={(e) => setFocusCard(e.target.checked)} />
         <span>
-          <b>Focus task</b>
-          <span>Now opens with today's most important task, big, with Tomorrow, Done and Start focus. Off: it's listed with the rest.</span>
+          <b>{tr("Focus task", "Glavna naloga")}</b>
+          <span>{tr("Now opens with today's most important task, big, with Tomorrow, Done and Start focus. Off: it's listed with the rest.", "Zdaj se odpre z najpomembnejšo nalogo dneva, veliko, z gumbi Jutri, Opravljeno in Začni fokus. Izklopljeno: je na seznamu z ostalimi.")}</span>
         </span>
       </label>
       <label className="settings-switch">
         <input type="checkbox" checked={weeklyReview} onChange={(e) => setWeeklyReview(e.target.checked)} />
         <span>
-          <b>Weekly review</b>
-          <span>Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.</span>
+          <b>{tr("Weekly review", "Tedenski pregled")}</b>
+          <span>{tr("Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.", "Pojdi skozi zamujene naloge in naloge brez datuma, eno po eno; ponujen na strani Zdaj ob vikendu in v meniju. Izklopljeno: nikjer.")}</span>
         </span>
       </label>
       <label className="settings-switch">
@@ -324,8 +327,8 @@ function SimpleSection() {
           }}
         />
         <span>
-          <b>Completed tasks on the calendar</b>
-          <span>What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).</span>
+          <b>{tr("Completed tasks on the calendar", "Opravljene naloge na koledarju")}</b>
+          <span>{tr("What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).", "Kar je bilo narejeno, sivo s ✓ na dan, ko je bilo odkljukano (spletna stran, aplikacija in pripomoček).")}</span>
         </span>
       </label>
     </>
@@ -350,8 +353,17 @@ function Appearance() {
 
   return (
     <>
-      <h4>Look</h4>
-      <div className="look-options" role="radiogroup" aria-label="Look">
+      <h4>{tr("Language", "Jezik")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Language", "Jezik")}>
+        {(["en", "sl"] as const).map((l) => (
+          <button key={l} role="radio" aria-checked={lang === l} className={lang === l ? "active" : ""} onClick={() => lang !== l && setLang(l)}>
+            {l === "en" ? "English" : "Slovenščina"}
+          </button>
+        ))}
+      </div>
+
+      <h4>{tr("Look", "Videz")}</h4>
+      <div className="look-options" role="radiogroup" aria-label={tr("Look", "Videz")}>
         {LOOKS.map((l) => (
           <button
             key={l.id}
@@ -373,8 +385,8 @@ function Appearance() {
         ))}
       </div>
 
-      <h4>Colours</h4>
-      <div className="palette-options" role="radiogroup" aria-label="Colours">
+      <h4>{tr("Colours", "Barve")}</h4>
+      <div className="palette-options" role="radiogroup" aria-label={tr("Colours", "Barve")}>
         {PALETTES.map((p) => (
           <button
             key={p.id}
@@ -396,8 +408,8 @@ function Appearance() {
         ))}
       </div>
 
-      <h4>Add button on the phone</h4>
-      <div className="look-options add-style-options" role="radiogroup" aria-label="Add button on the phone">
+      <h4>{tr("Add button on the phone", "Gumb za dodajanje na telefonu")}</h4>
+      <div className="look-options add-style-options" role="radiogroup" aria-label={tr("Add button on the phone", "Gumb za dodajanje na telefonu")}>
         {ADD_STYLES.map((a) => (
           <button
             key={a.id}
@@ -417,7 +429,7 @@ function Appearance() {
         ))}
       </div>
 
-      <h4>Calendar</h4>
+      <h4>{tr("Calendar", "Koledar")}</h4>
       <label className="settings-switch">
         <input
           type="checkbox"
@@ -429,40 +441,40 @@ function Appearance() {
           }}
         />
         <span>
-          <b>Slovenian holidays</b>
-          <span>Prazniki in dela prosti dnevi on the calendars (days off in red), worked out for every year.</span>
+          <b>{tr("Slovenian holidays", "Slovenski prazniki")}</b>
+          <span>{tr("Slovenian holidays and days off on the calendars (days off in red), worked out for every year.", "Prazniki in dela prosti dnevi na koledarjih (prosti dnevi rdeče), izračunani za vsako leto.")}</span>
         </span>
       </label>
 
-      <h4>Tasks</h4>
+      <h4>{tr("Tasks", "Naloge")}</h4>
       <label className="settings-switch">
         <input type="checkbox" checked={swipeTasks} onChange={(e) => setSwipeTasks(e.target.checked)} />
         <span>
-          <b>Swipe tasks</b>
-          <span>On a phone, swipe a task or a shopping item right to tick it off or left to delete it. Off: only the circle and the menu do.</span>
+          <b>{tr("Swipe tasks", "Poteg nalog")}</b>
+          <span>{tr("On a phone, swipe a task or a shopping item right to tick it off or left to delete it. Off: only the circle and the menu do.", "Na telefonu povleci nalogo ali nakup desno, da ga odkljukaš, ali levo, da ga izbrišeš. Izklopljeno: to delata le krogec in meni.")}</span>
         </span>
       </label>
 
-      <h4>Theme</h4>
-      <div className="segmented" role="radiogroup" aria-label="Theme">
+      <h4>{tr("Theme", "Tema")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Theme", "Tema")}>
         {(["system", "light", "dark"] as const).map((t) => (
           <button key={t} role="radio" aria-checked={theme === t} className={theme === t ? "active" : ""} onClick={() => pickTheme(t)}>
-            {t === "system" ? "Match device" : t === "light" ? "Light" : "Dark"}
+            {t === "system" ? tr("Match device", "Kot naprava") : t === "light" ? tr("Light", "Svetla") : tr("Dark", "Temna")}
           </button>
         ))}
       </div>
 
       {/* Pinning the sidebar is for wide screens; the phone always slides it in. */}
-      {!appUi && <h4>Sidebar</h4>}
+      {!appUi && <h4>{tr("Sidebar", "Stranski meni")}</h4>}
       {!appUi && <label className="settings-switch">
         <input type="checkbox" checked={pinned} onChange={(e) => setSidebarPinned(look, e.target.checked)} />
         <span>
-          <b>Keep the sidebar open</b>
-          <span>Or let it slide away and open it from the ☰ button. Same as the pin at the top of the sidebar.</span>
+          <b>{tr("Keep the sidebar open", "Stranski meni naj ostane odprt")}</b>
+          <span>{tr("Or let it slide away and open it from the ☰ button. Same as the pin at the top of the sidebar.", "Ali naj se skrije in ga odpreš z gumbom ☰. Enako kot žebljiček na vrhu menija.")}</span>
         </span>
       </label>}
 
-      <p className="settings-note">Appearance is saved on this device only, so your phone and computer can differ.</p>
+      <p className="settings-note">{tr("Appearance and language are saved on this device only, so your phone and computer can differ.", "Videz in jezik sta shranjena le na tej napravi, zato se telefon in računalnik lahko razlikujeta.")}</p>
     </>
   );
 }
@@ -472,10 +484,19 @@ function Sharing() {
   if (!data) return null;
   return (
     <>
-      <h4>Partner (Midva)</h4>
+      <h4>{tr("Partner (Midva)", "Partner (Midva)")}</h4>
       <p className="settings-note top">
-        Tasks you switch to <b>Share</b> (or type <code>+midva</code>) go to your partner, and show up for both of you in
-        Midva. Whole projects are shared from the project's ⋯ menu.
+        {isSl ? (
+          <>
+            Naloge, ki jim vklopiš <b>Deli</b> (ali napišeš <code>+midva</code>), gredo partnerju in se obema prikažejo v
+            Midva. Cele projekte deliš iz menija ⋯ projekta.
+          </>
+        ) : (
+          <>
+            Tasks you switch to <b>Share</b> (or type <code>+midva</code>) go to your partner, and show up for both of you in
+            Midva. Whole projects are shared from the project's ⋯ menu.
+          </>
+        )}
       </p>
       {data.partner ? (
         <div className="share-member">
@@ -487,7 +508,7 @@ function Sharing() {
             <span>{data.partner.email}</span>
           </span>
           <button className="btn btn-text" onClick={() => void activeSession()?.clearPartner()}>
-            Disconnect
+            {tr("Disconnect", "Prekini povezavo")}
           </button>
         </div>
       ) : (
@@ -503,7 +524,7 @@ function PartnerNewsSwitch({ name }: { name: string }) {
   const [on, setOn] = useState(partnerNewsEnabled);
   return (
     <>
-      <h4>Notifications</h4>
+      <h4>{tr("Notifications", "Obvestila")}</h4>
       <label className="settings-switch">
         <input
           type="checkbox"
@@ -514,10 +535,12 @@ function PartnerNewsSwitch({ name }: { name: string }) {
           }}
         />
         <span>
-          <b>Tell me what {name} adds or finishes</b>
+          <b>{tr(`Tell me what ${name} adds or finishes`, `Povej mi, kaj ${name} doda ali opravi`)}</b>
           <span>
-            For example "{name} added to Shopping: milk, eggs". Checked about every 15 minutes, also with the app
-            closed; not while you're in the app.
+            {tr(
+              `For example "${name} added to Shopping: milk, eggs". Checked about every 15 minutes, also with the app closed; not while you're in the app.`,
+              `Na primer »${name} je dodal(a) v Nakupe: mleko, jajca«. Preverjeno približno vsakih 15 minut, tudi z zaprto aplikacijo; ne, ko si v njej.`
+            )}
           </span>
         </span>
       </label>
@@ -535,10 +558,12 @@ function Reminders() {
   };
   return (
     <>
-      <h4>Reminders</h4>
+      <h4>{tr("Reminders", "Opomniki")}</h4>
       <p className="settings-note top">
-        Add reminders to a task from its Reminders row, or while adding it. Your phone notifies you even when the app
-        is closed, including for reminders you set here on the website.
+        {tr(
+          "Add reminders to a task from its Reminders row, or while adding it. Your phone notifies you even when the app is closed, including for reminders you set here on the website.",
+          "Opomnike nalogi dodaš v vrstici Opomniki ali med dodajanjem. Telefon te opomni tudi z zaprto aplikacijo, tudi za opomnike, nastavljene tukaj na spletni strani."
+        )}
       </p>
       <label className="settings-switch">
         <input
@@ -555,27 +580,27 @@ function Reminders() {
             if (!ok)
               showToast({
                 message: isNativeApp
-                  ? "Notifications are blocked. Allow them for Opravilko in Android's settings, then try again."
-                  : "Your browser blocked notifications. Allow them in the site settings, then try again.",
+                  ? tr("Notifications are blocked. Allow them for Opravilko in Android's settings, then try again.", "Obvestila so blokirana. Dovoli jih za Opravilko v nastavitvah Androida in poskusi znova.")
+                  : tr("Your browser blocked notifications. Allow them in the site settings, then try again.", "Brskalnik je blokiral obvestila. Dovoli jih v nastavitvah strani in poskusi znova."),
               });
           }}
         />
         <span>
-          <b>{isNativeApp ? "Notify me on this phone" : "Also notify me in this browser"}</b>
+          <b>{isNativeApp ? tr("Notify me on this phone", "Obveščaj me na tem telefonu") : tr("Also notify me in this browser", "Obveščaj me tudi v tem brskalniku")}</b>
           <span>
             {isNativeApp
-              ? "For the reminders you add, at their time."
-              : "Only while a tab is open. Not needed for your phone to remind you."}
+              ? tr("For the reminders you add, at their time.", "Za opomnike, ki jih dodaš, ob njihovem času.")
+              : tr("Only while a tab is open. Not needed for your phone to remind you.", "Le dokler je zavihek odprt. Za opomnike na telefonu ni potrebno.")}
           </span>
         </span>
       </label>
 
-      <h4>Default reminder for new tasks</h4>
+      <h4>{tr("Default reminder for new tasks", "Privzeti opomnik za nove naloge")}</h4>
       <div className="settings-pick">
-        <span>Tasks with a time</span>
+        <span>{tr("Tasks with a time", "Naloge z uro")}</span>
         <Select
           className="select"
-          sheetTitle="Tasks with a time"
+          sheetTitle={tr("Tasks with a time", "Naloge z uro")}
           value={defaults.timed}
           onChange={(e) => pickDefault("timed", e.target.value)}
         >
@@ -587,10 +612,10 @@ function Reminders() {
         </Select>
       </div>
       <div className="settings-pick">
-        <span>All-day tasks</span>
+        <span>{tr("All-day tasks", "Celodnevne naloge")}</span>
         <Select
           className="select"
-          sheetTitle="All-day tasks"
+          sheetTitle={tr("All-day tasks", "Celodnevne naloge")}
           value={defaults.allDay}
           onChange={(e) => pickDefault("allDay", e.target.value)}
         >
@@ -601,7 +626,7 @@ function Reminders() {
           ))}
         </Select>
       </div>
-      <p className="settings-note">Added to new tasks with a date unless you pick reminders yourself. Saved on this device only.</p>
+      <p className="settings-note">{tr("Added to new tasks with a date unless you pick reminders yourself. Saved on this device only.", "Doda se novim nalogam z datumom, razen če opomnike izbereš sam. Shranjeno le na tej napravi.")}</p>
     </>
   );
 }
@@ -612,10 +637,11 @@ function DataSection({ onClose }: { onClose: () => void }) {
   const firebase = usingFirebase();
   return (
     <>
-      <h4>Backup</h4>
+      <h4>{tr("Backup", "Varnostna kopija")}</h4>
       <p className="settings-note top">
-        Everything in one file: projects, tasks, labels, filters, calendars and history
-        {firebase ? ", including older completed tasks." : "."} You can import it again on a first sign-in.
+        {firebase
+          ? tr("Everything in one file: projects, tasks, labels, filters, calendars and history, including older completed tasks. You can import it again on a first sign-in.", "Vse v eni datoteki: projekti, naloge, oznake, filtri, koledarji in zgodovina, tudi starejše opravljene naloge. Ob prvi prijavi jo lahko znova uvoziš.")
+          : tr("Everything in one file: projects, tasks, labels, filters, calendars and history. You can import it again on a first sign-in.", "Vse v eni datoteki: projekti, naloge, oznake, filtri, koledarji in zgodovina. Ob prvi prijavi jo lahko znova uvoziš.")}
       </p>
       <button
         className="btn btn-primary"
@@ -629,12 +655,12 @@ function DataSection({ onClose }: { onClose: () => void }) {
           setBusy(false);
         }}
       >
-        {busy ? "Preparing…" : "Download backup"}
+        {busy ? tr("Preparing…", "Pripravljam …") : tr("Download backup", "Prenesi varnostno kopijo")}
       </button>
 
       {firebase && <GmailKey />}
 
-      <h4>Import from Todoist</h4>
+      <h4>{tr("Import from Todoist", "Uvoz iz Todoista")}</h4>
       <ImportModal embedded onClose={onClose} />
     </>
   );
@@ -653,8 +679,8 @@ function GmailKey() {
     <>
       <h4>Gmail</h4>
       <p className="settings-note top">
-        The Opravilko add-on in Gmail turns an email into a task. It needs a key from here, pasted into it once.
-        {has && !key ? " You have one; making a new one stops the old one working." : ""}
+        {tr("The Opravilko add-on in Gmail turns an email into a task. It needs a key from here, pasted into it once.", "Dodatek Opravilko v Gmailu iz e-pošte naredi nalogo. Potrebuje ključ od tukaj, ki ga enkrat prilepiš vanj.")}
+        {has && !key ? tr(" You have one; making a new one stops the old one working.", " Enega že imaš; nov ključ ustavi starega.") : ""}
       </p>
       {key ? (
         <div className="gmail-key">
@@ -663,9 +689,9 @@ function GmailKey() {
             className="btn btn-secondary"
             onClick={() => void navigator.clipboard.writeText(key).then(() => setCopied(true), () => setCopied(false))}
           >
-            {copied ? "Copied" : "Copy"}
+            {copied ? tr("Copied", "Kopirano") : tr("Copy", "Kopiraj")}
           </button>
-          <span className="settings-note">Shown only now: paste it into the add-on (Settings in its panel).</span>
+          <span className="settings-note">{tr("Shown only now: paste it into the add-on (Settings in its panel).", "Prikazan le zdaj: prilepi ga v dodatek (Settings v njegovem oknu).")}</span>
         </div>
       ) : (
         <button
@@ -681,7 +707,7 @@ function GmailKey() {
             }
           }}
         >
-          {busy ? "Making…" : has ? "Make a new key" : "Make a key"}
+          {busy ? tr("Making…", "Ustvarjam …") : has ? tr("Make a new key", "Ustvari nov ključ") : tr("Make a key", "Ustvari ključ")}
         </button>
       )}
     </>
@@ -694,17 +720,21 @@ function Account({ onClose }: { onClose: () => void }) {
   const user = currentUser();
   return (
     <>
-      <h4>Account</h4>
+      <h4>{tr("Account", "Račun")}</h4>
       <div className="settings-account">
         {firebase ? (
           <>
             <b>{user?.displayName || user?.email}</b>
-            <span>Signed in with Google{user?.email ? ` as ${user.email}` : ""}. Your tasks are stored in Firebase.</span>
+            <span>
+              {tr("Signed in with Google", "Prijavljen z Googlom")}
+              {user?.email ? tr(` as ${user.email}`, ` kot ${user.email}`) : ""}
+              {tr(". Your tasks are stored in Firebase.", ". Naloge so shranjene v Firebase.")}
+            </span>
           </>
         ) : (
           <>
             <b>Dropbox</b>
-            <span>Your tasks are stored in your Dropbox, in {DATA_PATH}.</span>
+            <span>{tr(`Your tasks are stored in your Dropbox, in ${DATA_PATH}.`, `Naloge so shranjene v tvojem Dropboxu, v ${DATA_PATH}.`)}</span>
           </>
         )}
       </div>
@@ -722,7 +752,7 @@ function Account({ onClose }: { onClose: () => void }) {
           navigate("/connect", { replace: true });
         }}
       >
-        <LogOutIcon width={15} height={15} /> {firebase ? "Sign out" : "Disconnect Dropbox"}
+        <LogOutIcon width={15} height={15} /> {firebase ? tr("Sign out", "Odjava") : tr("Disconnect Dropbox", "Prekini povezavo z Dropboxom")}
       </button>
     </>
   );

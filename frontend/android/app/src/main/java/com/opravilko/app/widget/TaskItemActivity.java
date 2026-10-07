@@ -52,7 +52,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         String taskId = getIntent().getStringExtra(EXTRA_TASK_ID);
         task = data != null && taskId != null ? TaskLogic.findTask(data.optJSONArray("tasks"), taskId) : null;
         if (task == null) {
-            Toast.makeText(this, "That task isn't on the list any more.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("That task isn't on the list any more.", "Te naloge ni več na seznamu."), Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -82,7 +82,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
 
         String html = task.optString("description", "");
         String shownNotes = plain(html);
-        EditText notes = field(shownNotes, "Description",
+        EditText notes = field(shownNotes, L.t("Description", "Opis"),
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         notes.setMinLines(2);
         notes.setGravity(Gravity.TOP | Gravity.START);
@@ -90,11 +90,11 @@ public class TaskItemActivity extends WidgetSheetActivity {
         nlp.topMargin = dp(10);
         sheet.addView(notes, nlp);
 
-        sheet.addView(caption("Date"));
+        sheet.addView(caption(L.t("Date", "Datum")));
         dateChips = chipRow(sheet);
         buildDateChips();
 
-        sheet.addView(caption("Priority"));
+        sheet.addView(caption(L.t("Priority", "Prednost")));
         priorityChips = chipRow(sheet);
         buildPriorityChips();
 
@@ -107,14 +107,14 @@ public class TaskItemActivity extends WidgetSheetActivity {
         aclp.topMargin = dp(18);
         sheet.addView(actions, aclp);
 
-        TextView delete = button("Delete", color(R.color.widget_due_overdue), 0);
+        TextView delete = button(L.t("Delete", "Izbriši"), color(R.color.widget_due_overdue), 0);
         delete.setOnClickListener(v -> delete());
         actions.addView(delete);
         actions.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
-        TextView open = button("Open in app", color(R.color.widget_text_secondary), 0);
+        TextView open = button(L.t("Open in app", "Odpri v aplikaciji"), color(R.color.widget_text_secondary), 0);
         open.setOnClickListener(v -> openInApp());
         actions.addView(open);
-        TextView save = button("Save", color(R.color.widget_on_accent), color(R.color.widget_accent));
+        TextView save = button(L.t("Save", "Shrani"), color(R.color.widget_on_accent), color(R.color.widget_accent));
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         slp.setMarginStart(dp(8));
@@ -131,12 +131,12 @@ public class TaskItemActivity extends WidgetSheetActivity {
         String today = TaskLogic.todayStr();
         String tomorrow = TaskLogic.addDaysStr(today, 1);
         String nextWeek = TaskLogic.addDaysStr(today, 7);
-        addChip(dateChips, "No date", date == null, v -> pickDate(null));
-        addChip(dateChips, "Today", today.equals(date), v -> pickDate(today));
-        addChip(dateChips, "Tomorrow", tomorrow.equals(date), v -> pickDate(tomorrow));
-        addChip(dateChips, "Next week", nextWeek.equals(date), v -> pickDate(nextWeek));
+        addChip(dateChips, L.t("No date", "Brez datuma"), date == null, v -> pickDate(null));
+        addChip(dateChips, L.t("Today", "Danes"), today.equals(date), v -> pickDate(today));
+        addChip(dateChips, L.t("Tomorrow", "Jutri"), tomorrow.equals(date), v -> pickDate(tomorrow));
+        addChip(dateChips, L.t("Next week", "Naslednji teden"), nextWeek.equals(date), v -> pickDate(nextWeek));
         boolean other = date != null && !date.equals(today) && !date.equals(tomorrow) && !date.equals(nextWeek);
-        addChip(dateChips, other ? dayLabel(date) : "Pick a day…", other, v -> showCalendar());
+        addChip(dateChips, other ? dayLabel(date) : L.t("Pick a day…", "Izberi dan …"), other, v -> showCalendar());
     }
 
     private void pickDate(String day) {
@@ -157,7 +157,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
     /** "Thu 2 Oct". */
     private static String dayLabel(String day) {
         Calendar c = TaskLogic.calendarFor(day);
-        return c != null ? new SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(c.getTime()) : day;
+        return c != null ? L.date("EEE d MMM", "EEE, d. MMM", c.getTime()) : day;
     }
 
     /** The task's due moved to the picked day: its time and repeat rule stay. */
@@ -190,7 +190,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         // Stored 4..2, shown as P1..P3, and 1 as None (as in the app).
         for (int stored = 4; stored >= 1; stored--) {
             final int p = stored;
-            addChip(priorityChips, stored == 1 ? "None" : "P" + (5 - stored), priority == stored, v -> {
+            addChip(priorityChips, stored == 1 ? L.t("None", "Brez") : "P" + (5 - stored), priority == stored, v -> {
                 priority = p;
                 buildPriorityChips();
             });
@@ -201,7 +201,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
 
     private void save(String name, String notes, String html, String shownNotes) {
         if (name.trim().isEmpty()) {
-            Toast.makeText(this, "The task needs a name.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("The task needs a name.", "Naloga potrebuje ime."), Toast.LENGTH_SHORT).show();
             return;
         }
         JSONObject data = store.getSnapshot();
@@ -225,7 +225,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
             queue(data, op);
             finish();
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't save that.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't save that.", "Tega ni bilo mogoče shraniti."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -239,7 +239,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
             Toast.makeText(this, "Deleted " + task.optString("content"), Toast.LENGTH_SHORT).show();
             finish();
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't delete that.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't delete that.", "Tega ni bilo mogoče izbrisati."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -255,7 +255,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
     // ---- helpers ----
 
     private static String projectName(JSONObject data, String projectId) {
-        if (projectId == null || "inbox".equals(projectId)) return "Inbox";
+        if (projectId == null || "inbox".equals(projectId)) return L.t("Inbox", "Prejeto");
         JSONObject p = TaskLogic.findProject(data, projectId);
         if (p == null) return null;
         return p.optBoolean("isInboxProject") ? "Inbox" : "# " + p.optString("name");

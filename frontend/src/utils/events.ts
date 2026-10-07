@@ -1,4 +1,5 @@
-import { addMinutes, endOfDay, format, parseISO } from "date-fns";
+import { addMinutes, endOfDay, parseISO } from "date-fns";
+import { format, tr } from "../i18n";
 import { dueDateClass, formatDueLabel } from "./date";
 import type { Task } from "../api/types";
 
@@ -57,7 +58,7 @@ export function eventOver(t: Task, now = new Date()): boolean {
 
 /** "19:30–23:00", "19:30", or "All day". */
 export function eventTimeLabel(t: Task): string {
-  if (!t.due?.datetime) return "All day";
+  if (!t.due?.datetime) return tr("All day", "Ves dan");
   const start = format(new Date(t.due.datetime), "HH:mm");
   return t.endTime ? `${start}–${t.endTime}` : start;
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import { currentUser } from "../firebase/auth";
 import { firestore } from "../firebase/app";
@@ -22,7 +23,7 @@ export async function hasGmailKey(): Promise<boolean> {
 
 export async function makeGmailKey(): Promise<string> {
   const user = currentUser();
-  if (!user) throw new Error("Sign in with Google first");
+  if (!user) throw new Error(tr("Sign in with Google first", "Najprej se prijavi z Googlom"));
   const bytes = crypto.getRandomValues(new Uint8Array(24));
   const key = "opk_" + [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
   const hash = await sha256Hex(key);

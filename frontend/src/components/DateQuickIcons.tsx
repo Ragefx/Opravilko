@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { tr, format } from "../i18n";
 import { CouchIcon, MoreIcon, SkipForwardIcon, SunIcon } from "./icons";
 import { weekendOffsetDays } from "../utils/quickDates";
 
@@ -19,27 +19,27 @@ export default function DateQuickIcons({
       <button
         type="button"
         className="date-quick-btn today"
-        title="Today"
+        title={tr("Today", "Danes")}
         onClick={() => onPick(0)}
       >
         {format(new Date(), "d")}
       </button>
-      <button type="button" className="date-quick-btn tomorrow" title="Tomorrow" onClick={() => onPick(1)}>
+      <button type="button" className="date-quick-btn tomorrow" title={tr("Tomorrow", "Jutri")} onClick={() => onPick(1)}>
         <SunIcon width={15} height={15} />
       </button>
       <button
         type="button"
         className="date-quick-btn weekend"
-        title="This weekend"
+        title={tr("This weekend", "Ta vikend")}
         onClick={() => onPick(weekendOffsetDays())}
       >
         <CouchIcon width={15} height={15} />
       </button>
-      <button type="button" className="date-quick-btn nextweek" title="Next week" onClick={() => onPick(7)}>
+      <button type="button" className="date-quick-btn nextweek" title={tr("Next week", "Naslednji teden")} onClick={() => onPick(7)}>
         <SkipForwardIcon width={15} height={15} />
       </button>
       {onMore && (
-        <button type="button" className="date-quick-btn more" title="More date options" onClick={onMore}>
+        <button type="button" className="date-quick-btn more" title={tr("More date options", "Več možnosti datuma")} onClick={onMore}>
           <MoreIcon width={16} height={16} />
         </button>
       )}

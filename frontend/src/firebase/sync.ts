@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import {
   arrayRemove,
   arrayUnion,
@@ -415,10 +416,15 @@ export class FirestoreSync {
     const key = email.trim().toLowerCase();
     const found = await getDoc(doc(firestore(), "userEmails", key));
     if (!found.exists()) {
-      throw new ShareError(`No one has signed in to Opravilko as ${key} yet. Ask them to sign in once, then try again.`);
+      throw new ShareError(
+        tr(
+          `No one has signed in to Opravilko as ${key} yet. Ask them to sign in once, then try again.`,
+          `Z naslovom ${key} se še nihče ni prijavil v Opravilko. Naj se enkrat prijavi, nato poskusi znova.`
+        )
+      );
     }
     const { uid, name, photo } = found.data() as { uid: string; name: string; photo?: string | null };
-    if (uid === this.uid) throw new ShareError("That's you.");
+    if (uid === this.uid) throw new ShareError(tr("That's you.", "To si ti."));
     const partner: Partner = { uid, name, email: key, photo: photo ?? null };
     await setDoc(doc(firestore(), "users", this.uid), { partner }, { merge: true });
     return partner;
@@ -491,15 +497,20 @@ export class FirestoreSync {
 
   async shareProject(appProjectId: string, email: string): Promise<MemberProfile> {
     const pid = this.toStoredProjectId(appProjectId)!;
-    if (pid === inboxId(this.uid)) throw new Error("The Inbox can't be shared.");
+    if (pid === inboxId(this.uid)) throw new Error(tr("The Inbox can't be shared.", "Prejetega ni mogoče deliti."));
     const db = firestore();
     const key = email.trim().toLowerCase();
     const found = await getDoc(doc(db, "userEmails", key));
     if (!found.exists()) {
-      throw new ShareError(`No one has signed in to Opravilko as ${key} yet. Ask them to sign in once, then try again.`);
+      throw new ShareError(
+        tr(
+          `No one has signed in to Opravilko as ${key} yet. Ask them to sign in once, then try again.`,
+          `Z naslovom ${key} se še nihče ni prijavil v Opravilko. Naj se enkrat prijavi, nato poskusi znova.`
+        )
+      );
     }
     const { uid, name, photo } = found.data() as { uid: string; name: string; photo?: string | null };
-    if (uid === this.uid) throw new ShareError("That's you.");
+    if (uid === this.uid) throw new ShareError(tr("That's you.", "To si ti."));
     const profile: MemberProfile = { name, email: key, photo: photo ?? null };
     await updateDoc(doc(db, "projects", pid), {
       members: arrayUnion(uid),
@@ -553,7 +564,13 @@ export class FirestoreSync {
     for (const [id, p] of this.projects) {
       // Someone else's Inbox never shows up, even if it were shared by mistake.
       if (p.isInboxProject && id !== inboxId(this.uid)) continue;
-      projects.push({ ...(p as Project), id: this.toAppProjectId(id)!, parentId: this.toAppProjectId(p.parentId) });
+      projects.push({
+        ...(p as Project),
+        // The Inbox is stored as "Inbox"; it's shown in the app's language.
+        ...(p.isInboxProject ? { name: tr("Inbox", "Prejeto") } : {}),
+        id: this.toAppProjectId(id)!,
+        parentId: this.toAppProjectId(p.parentId),
+      });
     }
     const sections: Section[] = [];
     for (const map of this.sectionsByProject.values())
@@ -794,7 +811,7 @@ export class FirestoreSync {
         .catch(async (err) => {
           console.error("Firestore write failed", err);
           if (err?.code !== "permission-denied") {
-            this.setSync({ status: "error", pending: false, message: err?.message || "Couldn't save" });
+            this.setSync({ status: "error", pending: false, message: err?.message || tr("Couldn't save", "Ni shranjeno") });
             return false;
           }
           // One refused change fails the whole batch: save the others one by
@@ -834,8 +851,11 @@ export class FirestoreSync {
           ? known?.projects.find((p) => p.id === id)?.name
           : undefined;
     const what = op.kind === "delete" ? "delete" : Object.keys(op.data || {}).slice(0, 4).join(", ");
-    const more = refused.length > 1 ? ` (and ${refused.length - 1} more)` : "";
-    return `Couldn't save a change to ${name ? `“${name}”` : kind} (${kind}: ${what})${more}: the database doesn't allow it.`;
+    const more = refused.length > 1 ? tr(` (and ${refused.length - 1} more)`, ` (in še ${refused.length - 1})`) : "";
+    return tr(
+      `Couldn't save a change to ${name ? `“${name}”` : kind} (${kind}: ${what})${more}: the database doesn't allow it.`,
+      `Sprememba ${name ? `»${name}«` : kind} ni shranjena (${kind}: ${what})${more}: baza tega ne dovoli.`
+    );
   }
 
   // ---------- attachments removed by an edit ----------

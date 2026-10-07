@@ -1,4 +1,5 @@
-import { parseISO, isValid, format } from "date-fns";
+import { parseISO, isValid } from "date-fns";
+import { format, tr } from "../i18n";
 import type { Due, Priority } from "../api/types";
 import { parseNaturalDate } from "./date";
 import {
@@ -127,7 +128,7 @@ export function parseTodoistCsv(text: string): ImportPreview {
   const iDate = col("DATE");
 
   if (iType === -1 || iContent === -1) {
-    throw new Error("This doesn't look like a Todoist CSV export (missing TYPE/CONTENT columns).");
+    throw new Error(tr("This doesn't look like a Todoist CSV export (missing TYPE/CONTENT columns).", "To ni videti kot izvoz CSV iz Todoista (manjkata stolpca TYPE/CONTENT)."));
   }
 
   const sections: string[] = [];

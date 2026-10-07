@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useHidden } from "../utils/simple";
 import { appUi } from "../utils/appUi";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
@@ -55,8 +56,8 @@ function StarToggle({ active, onClick }: { active: boolean; onClick: () => void 
         e.stopPropagation();
         onClick();
       }}
-      aria-label={active ? "Remove from favorites" : "Add to favorites"}
-      title={active ? "Remove from favorites" : "Add to favorites"}
+      aria-label={active ? tr("Remove from favorites", "Odstrani iz priljubljenih") : tr("Add to favorites", "Dodaj med priljubljene")}
+      title={active ? tr("Remove from favorites", "Odstrani iz priljubljenih") : tr("Add to favorites", "Dodaj med priljubljene")}
     >
       <StarIcon width={14} height={14} fill={active ? "#ff9a14" : "none"} />
     </button>
@@ -181,8 +182,8 @@ export default function Sidebar({
         if (!removed) return;
         navigate("/app");
         showToast({
-          message: `Label “${name}” deleted`,
-          actionLabel: "Undo",
+          message: tr(`Label “${name}” deleted`, `Oznaka »${name}« izbrisana`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreLabel.mutate(removed),
         });
       },
@@ -195,8 +196,8 @@ export default function Sidebar({
         if (!removed) return;
         navigate("/app");
         showToast({
-          message: `Filter “${name}” deleted`,
-          actionLabel: "Undo",
+          message: tr(`Filter “${name}” deleted`, `Filter »${name}« izbrisan`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreFilter.mutate(removed),
         });
       },
@@ -230,7 +231,7 @@ export default function Sidebar({
                 e.stopPropagation();
                 toggleProjectCollapsed(p.id);
               }}
-              aria-label={collapsed ? "Expand sub-projects" : "Collapse sub-projects"}
+              aria-label={collapsed ? tr("Expand sub-projects", "Razširi podprojekte") : tr("Collapse sub-projects", "Strni podprojekte")}
             >
               <ChevronIcon width={12} height={12} style={{ transform: collapsed ? "rotate(-90deg)" : undefined }} />
             </button>
@@ -242,7 +243,7 @@ export default function Sidebar({
           </span>
           <span className="sidebar-link-label">{p.name}</span>
           {(p.members?.length ?? 0) > 1 && (
-            <span className={`sidebar-shared ${projectTaskCounts[p.id] > 0 ? "has-count" : ""}`} title="Shared">
+            <span className={`sidebar-shared ${projectTaskCounts[p.id] > 0 ? "has-count" : ""}`} title={tr("Shared", "Deljeno")}>
               <ShareIcon width={13} height={13} />
             </span>
           )}
@@ -266,8 +267,8 @@ export default function Sidebar({
         <button
           className="sidebar-icon-btn"
           onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={theme === "dark" ? tr("Switch to light mode", "Preklopi na svetlo") : tr("Switch to dark mode", "Preklopi na temno")}
+          title={theme === "dark" ? tr("Switch to light mode", "Preklopi na svetlo") : tr("Switch to dark mode", "Preklopi na temno")}
         >
           {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
         </button>
@@ -276,72 +277,72 @@ export default function Sidebar({
           className={`sidebar-icon-btn sidebar-pin ${pinned ? "is-pinned" : ""}`}
           onClick={onTogglePin}
           aria-pressed={pinned}
-          aria-label={pinned ? "Let the sidebar hide" : "Keep the sidebar open"}
-          title={pinned ? "Let the sidebar hide" : "Keep the sidebar open"}
+          aria-label={pinned ? tr("Let the sidebar hide", "Naj se meni skrije") : tr("Keep the sidebar open", "Naj meni ostane odprt")}
+          title={pinned ? tr("Let the sidebar hide", "Naj se meni skrije") : tr("Keep the sidebar open", "Naj meni ostane odprt")}
         >
           <PinIcon width={16} height={16} />
         </button>
         {/* Settings, straight away (signing out is in there, under your account). */}
-        <button className="sidebar-icon-btn" onClick={onOpenSettings} aria-label="Settings" title="Settings">
+        <button className="sidebar-icon-btn" onClick={onOpenSettings} aria-label={tr("Settings", "Nastavitve")} title={tr("Settings", "Nastavitve")}>
           <SettingsIcon width={17} height={17} />
         </button>
       </div>
 
       <button className="sidebar-add-task" onClick={onQuickAdd}>
         <PlusIcon width={18} height={18} />
-        Add task
+        {tr("Add task", "Dodaj nalogo")}
       </button>
 
       <button className="sidebar-link sidebar-search" onClick={onSearch}>
         <SearchIcon className="icon" />
-        Search
+        {tr("Search", "Iskanje")}
         {!appUi && <kbd className="sidebar-kbd">/</kbd>}
       </button>
 
       <nav className="sidebar-nav">
         <NavLink to="/app/home" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <FocusIcon className="icon" />
-          Now
+          {tr("Now", "Zdaj")}
           {counts.today > 0 && <span className="badge">{counts.today}</span>}
         </NavLink>
         <NavLink to="/app/inbox" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <InboxIcon className="icon" />
-          Inbox
+          {tr("Inbox", "Prejeto")}
           {counts.inbox > 0 && <span className="badge">{counts.inbox}</span>}
         </NavLink>
         <NavLink to="/app/calendar" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <CalendarIcon className="icon" />
-          Calendar
+          {tr("Calendar", "Koledar")}
           {counts.calendar > 0 && <span className="badge">{counts.calendar}</span>}
         </NavLink>
         <NavLink to="/app/shopping" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <CartIcon className="icon" />
-          Shopping
+          {tr("Shopping", "Nakupi")}
           {counts.shopping > 0 && <span className="badge">{counts.shopping}</span>}
         </NavLink>
         {data?.me && (
           <NavLink to="/app/midva" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
             <ShareIcon className="icon" />
-            Midva
+            {tr("Midva", "Midva")}
             {counts.midva > 0 && <span className="badge">{counts.midva}</span>}
           </NavLink>
         )}
         {!hideCompleted && (
           <NavLink to="/app/completed" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
             <CheckCircleIcon className="icon" />
-            Completed
+            {tr("Completed", "Opravljeno")}
           </NavLink>
         )}
         {!hideProductivity && (
           <NavLink to="/app/stats" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
             <ChartIcon className="icon" />
-            Productivity
+            {tr("Productivity", "Produktivnost")}
           </NavLink>
         )}
         {reviewOn && (
           <button className="sidebar-link" onClick={() => window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW))}>
             <ReviewIcon className="icon" />
-            Weekly review
+            {tr("Weekly review", "Tedenski pregled")}
             {reviewCount > 0 && <span className="badge">{reviewCount}</span>}
           </button>
         )}
@@ -350,7 +351,7 @@ export default function Sidebar({
       {hasFavorites && (
         <>
           <div className="sidebar-section-title">
-            <span>Favorites</span>
+            <span>{tr("Favorites", "Priljubljeno")}</span>
           </div>
           <nav className="sidebar-nav">
             {favoriteProjects.map((p) => (
@@ -391,22 +392,22 @@ export default function Sidebar({
       )}
 
       <div className="sidebar-section-title">
-        <span>Projects</span>
-        <button onClick={() => setModal({ kind: "project" })} aria-label="Add project">
+        <span>{tr("Projects", "Projekti")}</span>
+        <button onClick={() => setModal({ kind: "project" })} aria-label={tr("Add project", "Dodaj projekt")}>
           <PlusIcon width={14} height={14} />
         </button>
       </div>
       <nav className="sidebar-nav">
         {rootProjects.map((p) => renderProject(p, 0))}
-        {topProjects.length === 0 && <span className="sidebar-empty">No projects yet</span>}
+        {topProjects.length === 0 && <span className="sidebar-empty">{tr("No projects yet", "Še ni projektov")}</span>}
       </nav>
 
       {/* Simple (Settings): no labels, so no labels or filters either. */}
       {!hideLabels && (
       <>
       <div className="sidebar-section-title">
-        <span>Labels</span>
-        <button onClick={() => setModal({ kind: "label" })} aria-label="Add label">
+        <span>{tr("Labels", "Oznake")}</span>
+        <button onClick={() => setModal({ kind: "label" })} aria-label={tr("Add label", "Dodaj oznako")}>
           <PlusIcon width={14} height={14} />
         </button>
       </div>
@@ -427,12 +428,12 @@ export default function Sidebar({
               label={l.name}
               items={[
                 {
-                  label: "Edit label",
+                  label: tr("Edit label", "Uredi oznako"),
                   icon: <EditIcon width={14} height={14} />,
                   onClick: () => setModal({ kind: "label", existing: { id: l.id, name: l.name, color: l.color } }),
                 },
                 {
-                  label: "Delete label",
+                  label: tr("Delete label", "Izbriši oznako"),
                   icon: <TrashIcon width={14} height={14} />,
                   danger: true,
                   onClick: () => handleDeleteLabel(l.id, l.name),
@@ -441,12 +442,12 @@ export default function Sidebar({
             />
           </NavLink>
         ))}
-        {labels.length === 0 && <span className="sidebar-empty">No labels yet</span>}
+        {labels.length === 0 && <span className="sidebar-empty">{tr("No labels yet", "Še ni oznak")}</span>}
       </nav>
 
       <div className="sidebar-section-title">
-        <span>Filters</span>
-        <button onClick={() => setModal({ kind: "filter" })} aria-label="Add filter">
+        <span>{tr("Filters", "Filtri")}</span>
+        <button onClick={() => setModal({ kind: "filter" })} aria-label={tr("Add filter", "Dodaj filter")}>
           <PlusIcon width={14} height={14} />
         </button>
       </div>
@@ -467,7 +468,7 @@ export default function Sidebar({
               label={f.name}
               items={[
                 {
-                  label: "Edit filter",
+                  label: tr("Edit filter", "Uredi filter"),
                   icon: <EditIcon width={14} height={14} />,
                   onClick: () =>
                     setModal({
@@ -476,7 +477,7 @@ export default function Sidebar({
                     }),
                 },
                 {
-                  label: "Delete filter",
+                  label: tr("Delete filter", "Izbriši filter"),
                   icon: <TrashIcon width={14} height={14} />,
                   danger: true,
                   onClick: () => handleDeleteFilter(f.id, f.name),
@@ -485,7 +486,7 @@ export default function Sidebar({
             />
           </NavLink>
         ))}
-        {filters.length === 0 && <span className="sidebar-empty">No filters yet</span>}
+        {filters.length === 0 && <span className="sidebar-empty">{tr("No filters yet", "Še ni filtrov")}</span>}
       </nav>
       </>
       )}

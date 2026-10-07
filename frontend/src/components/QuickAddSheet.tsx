@@ -1,7 +1,8 @@
 import { useHidden } from "../utils/simple";
 import { type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
+import { tr, format } from "../i18n";
 import { useAddAttachments, useBootstrap, useCreateTask } from "../api/hooks";
 import type { Due, Reminder, Task, TaskLocation } from "../api/types";
 import { highlightParts, parseQuickAddInput } from "../utils/quickAddParse";
@@ -191,7 +192,7 @@ export default function QuickAddSheet({
 
   const [defaultDue] = useState(() =>
     defaultDate
-      ? { date: defaultDate, string: format(parseISO(defaultDate), "MMM d") }
+      ? { date: defaultDate, string: format(parseISO(defaultDate), tr("MMM d", "d. MMM")) }
       : defaultToday
         ? { date: todayISO(), string: "today" }
         : null
@@ -241,7 +242,10 @@ export default function QuickAddSheet({
     });
     if (dialog) {
       showToast({
-        message: `Added to ${target.label}${isShared && partner ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
+        message: tr(
+          `Added to ${target.label}${isShared && partner ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
+          `Dodano v ${target.label}${isShared && partner ? `, deljeno z ${partner.name.split(" ")[0]}` : ""}`
+        ),
       });
       onClose();
     } else {
@@ -264,7 +268,7 @@ export default function QuickAddSheet({
         const att = await uploadAttachment(task.id, f);
         addAttachments.mutate({ id: task.id, attachments: [att] });
       } catch (err) {
-        showToast({ message: (err as Error).message || "The file couldn't be attached." });
+        showToast({ message: (err as Error).message || tr("The file couldn't be attached.", "Datoteke ni bilo mogoče pripeti.") });
       }
     }
   }
@@ -299,7 +303,7 @@ export default function QuickAddSheet({
   if (repeat !== "none")
     tokens.push({
       key: "repeat",
-      label: REPEAT_PRESETS.find((p) => p.key === repeat)?.label ?? "Repeats",
+      label: REPEAT_PRESETS.find((p) => p.key === repeat)?.label ?? tr("Repeats", "Ponavlja se"),
       open: () => {},
       clear: () => setRepeat("none"),
     });
@@ -316,20 +320,20 @@ export default function QuickAddSheet({
     tokens.push({ key: "location", label: `📍 ${location.name}`, open: () => setPicking("location"), clear: () => setLocation(null) });
   if (file) tokens.push({ key: "file", label: `📎 ${file.name}`, open: () => fileInput.current?.click(), clear: () => setFile(null) });
   if (shared && partner)
-    tokens.push({ key: "shared", label: `With ${partner.name.split(" ")[0]}`, open: () => setShared(false), clear: () => setShared(false) });
+    tokens.push({ key: "shared", label: tr(`With ${partner.name.split(" ")[0]}`, `Z ${partner.name.split(" ")[0]}`), open: () => setShared(false), clear: () => setShared(false) });
 
   const dueColor = !baseDue ? undefined : baseDue.date < todayISO() ? "var(--color-danger)" : "var(--color-accent)";
   const menuItems: { label: string; icon: ReactNode; run: () => void }[] = [
-    { label: "Description", icon: <NotesIcon />, run: () => setDescription((d) => d ?? "") },
-    { label: "Labels", icon: <TagIcon width={20} height={20} />, run: () => setPicking("labels") },
-    { label: "Location", icon: <MapPinIcon width={20} height={20} />, run: () => setPicking("location") },
-    { label: "Reminders", icon: <BellIcon width={20} height={20} />, run: () => setPicking("reminders") },
+    { label: tr("Description", "Opis"), icon: <NotesIcon />, run: () => setDescription((d) => d ?? "") },
+    { label: tr("Labels", "Oznake"), icon: <TagIcon width={20} height={20} />, run: () => setPicking("labels") },
+    { label: tr("Location", "Lokacija"), icon: <MapPinIcon width={20} height={20} />, run: () => setPicking("location") },
+    { label: tr("Reminders", "Opomniki"), icon: <BellIcon width={20} height={20} />, run: () => setPicking("reminders") },
   ];
 
   // The app card's icons, in the order you've dragged them into.
   const toolEls: Record<string, ReactNode> = {
     date: (
-      <button ref={dateChip} type="button" className={`qab-tool ${baseDue ? "is-on" : ""}`} onClick={() => setPicking("date")} aria-label="Date">
+      <button ref={dateChip} type="button" className={`qab-tool ${baseDue ? "is-on" : ""}`} onClick={() => setPicking("date")} aria-label={tr("Date", "Datum")}>
         <CalendarIcon width={19} height={19} />
       </button>
     ),
@@ -337,10 +341,10 @@ export default function QuickAddSheet({
       <label
         className={`qab-tool ${effectivePriority !== 1 ? "is-on" : ""}`}
         style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}
-        aria-label="Priority"
+        aria-label={tr("Priority", "Prednost")}
       >
         <FlagIcon width={19} height={19} />
-        <Select value={effectivePriority} onChange={(e) => setPriority(Number(e.target.value))} aria-label="Priority">
+        <Select value={effectivePriority} onChange={(e) => setPriority(Number(e.target.value))} aria-label={tr("Priority", "Prednost")}>
           {PRIORITY_ORDER.map((p) => (
             <option key={p} value={p}>
               {PRIORITY_META[p].label}
@@ -350,25 +354,25 @@ export default function QuickAddSheet({
       </label>
     ),
     reminders: (
-      <button type="button" className={`qab-tool ${reminders?.length ? "is-on" : ""}`} onClick={() => setPicking("reminders")} aria-label="Reminders">
+      <button type="button" className={`qab-tool ${reminders?.length ? "is-on" : ""}`} onClick={() => setPicking("reminders")} aria-label={tr("Reminders", "Opomniki")}>
         <BellIcon width={19} height={19} />
       </button>
     ),
     labels: (
-      <button type="button" className={`qab-tool ${allLabels.length ? "is-on" : ""}`} onClick={() => setPicking("labels")} aria-label="Labels">
+      <button type="button" className={`qab-tool ${allLabels.length ? "is-on" : ""}`} onClick={() => setPicking("labels")} aria-label={tr("Labels", "Oznake")}>
         <TagIcon width={19} height={19} />
       </button>
     ),
     location: (
-      <button type="button" className={`qab-tool ${location ? "is-on" : ""}`} onClick={() => setPicking("location")} aria-label="Location">
+      <button type="button" className={`qab-tool ${location ? "is-on" : ""}`} onClick={() => setPicking("location")} aria-label={tr("Location", "Lokacija")}>
         <MapPinIcon width={19} height={19} />
       </button>
     ),
     repeat: (
-      <label className={`qab-tool ${repeat !== "none" ? "is-on" : ""}`} aria-label="Repeat">
+      <label className={`qab-tool ${repeat !== "none" ? "is-on" : ""}`} aria-label={tr("Repeat", "Ponavljanje")}>
         <RepeatIcon width={19} height={19} />
-        <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
-          <option value="none">Doesn't repeat</option>
+        <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label={tr("Repeat", "Ponavljanje")}>
+          <option value="none">{tr("Doesn't repeat", "Se ne ponavlja")}</option>
           {REPEAT_PRESETS.map((p) => (
             <option key={p.key} value={p.key}>
               {p.label}
@@ -378,7 +382,7 @@ export default function QuickAddSheet({
       </label>
     ),
     attach: usingFirebase() ? (
-      <button type="button" className={`qab-tool ${file ? "is-on" : ""}`} onClick={() => fileInput.current?.click()} aria-label="Attach a photo or file">
+      <button type="button" className={`qab-tool ${file ? "is-on" : ""}`} onClick={() => fileInput.current?.click()} aria-label={tr("Attach a photo or file", "Pripni fotografijo ali datoteko")}>
         <AttachIcon />
       </button>
     ) : null,
@@ -388,7 +392,7 @@ export default function QuickAddSheet({
         className={`qab-tool ${shared ? "is-on" : ""}`}
         onClick={() => setShared((v) => !v)}
         aria-pressed={shared}
-        aria-label={`Share with ${partner.name.split(" ")[0]}`}
+        aria-label={tr(`Share with ${partner.name.split(" ")[0]}`, `Deli z ${partner.name.split(" ")[0]}`)}
       >
         <ShareIcon width={19} height={19} />
       </button>
@@ -462,7 +466,7 @@ export default function QuickAddSheet({
 
   return createPortal(
     <div className={`qas-scrim ${dialog ? "qas-dialog-scrim" : ""}`} onClick={onClose}>
-      <div className={`qas-card ${dialog ? "qas-dialog" : `qab ${addStyle === "tabs" ? "qab-anim-grow" : "qab-anim-rise"}`}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label={event ? "Add event" : "Add task"}>
+      <div className={`qas-card ${dialog ? "qas-dialog" : `qab ${addStyle === "tabs" ? "qab-anim-grow" : "qab-anim-rise"}`}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label={event ? tr("Add event", "Dodaj dogodek") : tr("Add task", "Dodaj nalogo")}>
         {added && <div className="qas-added">{added}</div>}
         {/* What was read as a date, time, p1, #project... shows highlighted: the
             text is drawn by the copy behind the (see-through) field. */}
@@ -484,7 +488,7 @@ export default function QuickAddSheet({
                 if (mirror.current) mirror.current.scrollLeft = e.currentTarget.scrollLeft;
               }}
               autoFocus
-              placeholder={event ? "Event name" : "Task name"}
+              placeholder={event ? tr("Event name", "Ime dogodka") : tr("Task name", "Ime naloge")}
               value={text}
               enterKeyHint="send"
               onChange={(e) => setText(e.target.value)}
@@ -503,8 +507,8 @@ export default function QuickAddSheet({
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setKind(event ? "task" : "event")}
             aria-pressed={event}
-            aria-label={event ? "Event (tap for a task)" : "Task (tap for an event)"}
-            title={event ? "Event · tap to make it a task" : "Task · tap to make it an event"}
+            aria-label={event ? tr("Event (tap for a task)", "Dogodek (tapni za nalogo)") : tr("Task (tap for an event)", "Naloga (tapni za dogodek)")}
+            title={event ? tr("Event · tap to make it a task", "Dogodek · tapni, da bo naloga") : tr("Task · tap to make it an event", "Naloga · tapni, da bo dogodek")}
           >
             {event ? <CalendarIcon width={18} height={18} /> : <CheckIcon width={18} height={18} />}
           </button>
@@ -524,7 +528,7 @@ export default function QuickAddSheet({
             // window always shows it, and starts in the task's name.
             autoFocus={false}
             rows={1}
-            placeholder="Description"
+            placeholder={tr("Description", "Opis")}
             value={description}
             onChange={(e) => {
               setDescription(e.target.value);
@@ -559,7 +563,7 @@ export default function QuickAddSheet({
                 setMenu(false);
                 setWhere((w) => !w);
               }}
-              aria-label={`Where it goes: ${target.label}`}
+              aria-label={tr(`Where it goes: ${target.label}`, `Kam gre: ${target.label}`)}
               aria-expanded={where}
             >
               {isInbox ? <InboxIcon width={17} height={17} /> : <span className="qas-hash">#</span>}
@@ -593,7 +597,7 @@ export default function QuickAddSheet({
               })}
             </div>
             {text.trim() ? (
-              <button type="button" className="qas-send qab-send" onClick={() => void submit()} aria-label="Add task">
+              <button type="button" className="qas-send qab-send" onClick={() => void submit()} aria-label={tr("Add task", "Dodaj nalogo")}>
                 <SendIcon />
               </button>
             ) : (
@@ -621,7 +625,7 @@ export default function QuickAddSheet({
                   setWhere(false);
                   setMenu((m) => !m);
                 }}
-                aria-label="More"
+                aria-label={tr("More", "Več")}
               >
                 <PlusIcon width={20} height={20} />
               </button>
@@ -634,7 +638,7 @@ export default function QuickAddSheet({
                   setMenu(false);
                   setWhere((w) => !w);
                 }}
-                aria-label={`Where it goes: ${target.label}`}
+                aria-label={tr(`Where it goes: ${target.label}`, `Kam gre: ${target.label}`)}
                 aria-expanded={where}
               >
                 {isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
@@ -646,10 +650,10 @@ export default function QuickAddSheet({
   
               <button ref={dateChip} type="button" className="qas-chip" style={{ color: dueColor }} onClick={() => setPicking("date")}>
                 <CalendarIcon width={20} height={20} />
-                {baseDue ? formatDueLabel(baseDue) : "Date"}
+                {baseDue ? formatDueLabel(baseDue) : tr("Date", "Datum")}
               </button>
               {typedDeadline && (
-                <span className="qas-chip" style={typedDeadline.kind === "later" ? undefined : { color: "var(--color-danger)" }} title="Deadline (typed as {…})">
+                <span className="qas-chip" style={typedDeadline.kind === "later" ? undefined : { color: "var(--color-danger)" }} title={tr("Deadline (typed as {…})", "Rok (vpisan kot {…})")}>
                   ⏳ {typedDeadline.label}
                 </span>
               )}
@@ -660,20 +664,20 @@ export default function QuickAddSheet({
                   className="qas-chip"
                   style={file ? { color: "var(--color-accent)" } : undefined}
                   onClick={() => (file ? setFile(null) : fileInput.current?.click())}
-                  title={file ? "Tap to remove" : "Attach a photo or file"}
+                  title={file ? tr("Tap to remove", "Tapni za odstranitev") : tr("Attach a photo or file", "Pripni fotografijo ali datoteko")}
                 >
                   <AttachIcon />
-                  {file ? file.name : "Attachment"}
+                  {file ? file.name : tr("Attachment", "Priponka")}
                 </button>
               )}
   
               <label className="qas-chip" style={effectivePriority !== 1 ? { color: PRIORITY_META[effectivePriority].color } : undefined}>
                 <FlagIcon width={20} height={20} />
-                <span>{effectivePriority !== 1 ? `P${5 - effectivePriority}` : "Priority"}</span>
+                <span>{effectivePriority !== 1 ? `P${5 - effectivePriority}` : tr("Priority", "Prednost")}</span>
                 <Select
                   value={effectivePriority}
                   onChange={(e) => setPriority(Number(e.target.value))}
-                  aria-label="Priority"
+                  aria-label={tr("Priority", "Prednost")}
                 >
                   {PRIORITY_ORDER.map((p) => (
                     <option key={p} value={p}>
@@ -685,9 +689,9 @@ export default function QuickAddSheet({
   
               <label className="qas-chip" style={repeat !== "none" ? { color: "var(--color-accent)" } : undefined}>
                 <RepeatIcon width={20} height={20} />
-                <span>{repeat === "none" ? "Repeat" : REPEAT_PRESETS.find((p) => p.key === repeat)?.label}</span>
-                <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label="Repeat">
-                  <option value="none">Doesn't repeat</option>
+                <span>{repeat === "none" ? tr("Repeat", "Ponavljanje") : REPEAT_PRESETS.find((p) => p.key === repeat)?.label}</span>
+                <Select value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatPreset | "none")} aria-label={tr("Repeat", "Ponavljanje")}>
+                  <option value="none">{tr("Doesn't repeat", "Se ne ponavlja")}</option>
                   {REPEAT_PRESETS.map((p) => (
                     <option key={p.key} value={p.key}>
                       {p.label}
@@ -704,20 +708,20 @@ export default function QuickAddSheet({
                   aria-pressed={shared}
                 >
                   <ShareIcon width={20} height={20} />
-                  {shared ? `With ${partner.name.split(" ")[0]}` : "Share"}
+                  {shared ? tr(`With ${partner.name.split(" ")[0]}`, `Z ${partner.name.split(" ")[0]}`) : tr("Share", "Deli")}
                 </button>
               )}
   
               {dialog && allLabels.length === 0 && (
                 <button type="button" className="qas-chip" onClick={() => setPicking("labels")}>
                   <TagIcon width={20} height={20} />
-                  Labels
+                  {tr("Labels", "Oznake")}
                 </button>
               )}
               {dialog && !location && (
                 <button type="button" className="qas-chip" onClick={() => setPicking("location")}>
                   <MapPinIcon width={20} height={20} />
-                  Location
+                  {tr("Location", "Lokacija")}
                 </button>
               )}
               {allLabels.length > 0 && (
@@ -734,7 +738,7 @@ export default function QuickAddSheet({
               {dialog && !reminders?.length && (
                 <button type="button" className="qas-chip" onClick={() => setPicking("reminders")}>
                   <BellIcon width={20} height={20} />
-                  Reminders
+                  {tr("Reminders", "Opomniki")}
                 </button>
               )}
               {reminders && reminders.length > 0 && (
@@ -747,7 +751,7 @@ export default function QuickAddSheet({
             </div>
   
             {dialog ? null : text.trim() ? (
-              <button type="button" className="qas-send" onClick={() => void submit()} aria-label="Add task">
+              <button type="button" className="qas-send" onClick={() => void submit()} aria-label={tr("Add task", "Dodaj nalogo")}>
                 <SendIcon />
               </button>
             ) : (
@@ -773,7 +777,7 @@ export default function QuickAddSheet({
                 setMenu(false);
                 setWhere((w) => !w);
               }}
-              aria-label={`Where it goes: ${target.label}`}
+              aria-label={tr(`Where it goes: ${target.label}`, `Kam gre: ${target.label}`)}
               aria-expanded={where}
             >
               {isInbox ? <InboxIcon width={20} height={20} /> : <span className="qas-hash">#</span>}
@@ -782,17 +786,17 @@ export default function QuickAddSheet({
 
             <div className="qas-footer-actions">
               <button type="button" className="btn btn-text" onClick={onClose}>
-                Cancel
+                {tr("Cancel", "Prekliči")}
               </button>
               <button type="button" className="btn btn-primary" onClick={() => void submit()} disabled={!preview?.content}>
-                {event ? "Add event" : "Add task"}
+                {event ? tr("Add event", "Dodaj dogodek") : tr("Add task", "Dodaj nalogo")}
               </button>
             </div>
           </div>
         )}
 
         {where && (
-          <div className="qas-menu qas-where" role="listbox" aria-label="Where it goes">
+          <div className="qas-menu qas-where" role="listbox" aria-label={tr("Where it goes", "Kam gre")}>
             {places.map((t) => (
               <button
                 key={t.key}
@@ -886,8 +890,8 @@ function LabelPicker({ all, chosen, onDone }: { all: string[]; chosen: string[];
   }
   return (
     <div className="modal-backdrop over-modal" onClick={(e) => (e.stopPropagation(), onDone(on))}>
-      <div className="modal qas-labels" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Labels">
-        <h3>Labels</h3>
+      <div className="modal qas-labels" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Labels", "Oznake")}>
+        <h3>{tr("Labels", "Oznake")}</h3>
         <div className="qas-label-list">
           {names.map((n) => (
             <label key={n} className="qas-label-row">
@@ -898,14 +902,14 @@ function LabelPicker({ all, chosen, onDone }: { all: string[]; chosen: string[];
         </div>
         <input
           className="qas-label-new"
-          placeholder="New label"
+          placeholder={tr("New label", "Nova oznaka")}
           value={fresh}
           onChange={(e) => setFresh(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addFresh()}
         />
         <div className="modal-actions">
           <button className="btn btn-primary" onClick={() => (addFresh(), onDone(fresh.trim() ? [...on, fresh.trim()] : on))}>
-            Done
+            {tr("Done", "Končano")}
           </button>
         </div>
       </div>

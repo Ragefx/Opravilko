@@ -46,7 +46,7 @@ final class PartnerNews {
     static String partnerFirstName(JSONObject data) {
         JSONObject partner = data != null ? data.optJSONObject("partner") : null;
         String name = partner != null ? partner.optString("name", "").trim() : "";
-        if (name.isEmpty()) return "Your partner";
+        if (name.isEmpty()) return L.t("Your partner", "Partner");
         int space = name.indexOf(' ');
         return space > 0 ? name.substring(0, space) : name;
     }
@@ -86,8 +86,8 @@ final class PartnerNews {
     }
 
     static String projectName(JSONObject data, String projectId) {
-        if ("inbox".equals(projectId)) return "Inbox";
+        if ("inbox".equals(projectId)) return L.t("Inbox", "Prejeto");
         JSONObject project = TaskLogic.findProject(data, projectId);
-        return project != null ? project.optString("name", "the list") : "the list";
+        return project != null ? project.optString("name", L.t("the list", "seznam")) : L.t("the list", "seznam");
     }
 }

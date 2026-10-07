@@ -1,4 +1,5 @@
-import { format, subDays } from "date-fns";
+import { subDays } from "date-fns";
+import { format, lang } from "../i18n";
 import { calendarDoneOn, doneByDay } from "../utils/calendarDone";
 import { holidaysOn } from "../utils/holidays";
 import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
@@ -15,6 +16,8 @@ import { partnerNewsEnabled, remindersEnabled } from "../utils/notifications";
 interface OpravilkoWidgetPlugin {
   update(options: {
     data: string;
+    /** The app's language ("en" or "sl"), for the widget and the phone's own screens. */
+    lang?: string;
     appKey: string;
     refreshToken: string | null;
     dataPath: string;
@@ -124,6 +127,7 @@ export function pushWidgetData(data: AppData): void {
   const firebase = firebaseWidgetAuth();
   void OpravilkoWidget.update({
     data: JSON.stringify(widgetData),
+    lang,
     appKey,
     refreshToken: firebase ? null : refreshToken,
     dataPath: DATA_PATH,

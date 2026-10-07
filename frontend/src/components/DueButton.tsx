@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useRef, useState } from "react";
 import type { Due } from "../api/types";
 import { formatDueLabel } from "../utils/date";
@@ -38,10 +39,10 @@ export default function DueButton({
         type="button"
         className={`field-pill due-button ${shown ? "has-date" : ""}`}
         onClick={open}
-        title="Pick a date"
+        title={tr("Pick a date", "Izberi datum")}
       >
         <CalendarIcon width={14} height={14} />
-        {shown ? formatDueLabel(shown) : "Date"}
+        {shown ? formatDueLabel(shown) : tr("Date", "Datum")}
       </button>
       {anchor && (
         <DatePickerPopup

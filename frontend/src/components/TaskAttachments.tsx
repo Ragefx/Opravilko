@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import type { Attachment, Project, Task } from "../api/types";
 import { useAddAttachments, useAddProjectFiles, useRemoveAttachment, useRemoveProjectFile } from "../api/hooks";
@@ -51,8 +52,11 @@ export function ProjectFiles({ project }: { project: Project }) {
       onAdd={(added) => addFiles.mutate({ id: project.id, attachments: added })}
       onRemove={(att) => removeFile.mutate({ projectId: project.id, attachmentId: att.id })}
       dropSelector=".project-files-modal"
-      title="Files"
-      note="Photos, PDFs or documents up to 10 MB, kept with the project (everyone on it sees them). You can also drop files here."
+      title={tr("Files", "Datoteke")}
+      note={tr(
+        "Photos, PDFs or documents up to 10 MB, kept with the project (everyone on it sees them). You can also drop files here.",
+        "Fotografije, PDF-ji ali dokumenti do 10 MB, shranjeni pri projektu (vidijo jih vsi na njem). Datoteke lahko tudi spustiš sem."
+      )}
     />
   );
 }
@@ -69,7 +73,7 @@ export async function openAttachment(att: Attachment, showToast: ReturnType<type
       try {
         await openFileNatively(blob, att.name, att.type);
       } catch {
-        showToast({ message: `No app on this phone can open “${att.name}”.` });
+        showToast({ message: tr(`No app on this phone can open “${att.name}”.`, `Na tem telefonu ni aplikacije, ki bi odprla »${att.name}«.`) });
       }
       return;
     }
@@ -84,7 +88,7 @@ export async function openAttachment(att: Attachment, showToast: ReturnType<type
     }
     window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   } catch {
-    showToast({ message: `Couldn't open “${att.name}”. Check your connection.` });
+    showToast({ message: tr(`Couldn't open “${att.name}”. Check your connection.`, `»${att.name}« se ni odprlo. Preveri povezavo.`) });
   }
 }
 
@@ -95,9 +99,11 @@ function AttachmentsPanel({
   onAdd,
   onRemove,
   dropSelector,
-  title = "Attachments",
+  title = tr("Attachments", "Priponke"),
   // No dropping files on a phone.
-  note = appUi ? "Photos, PDFs or documents up to 10 MB." : "Photos, PDFs or documents up to 10 MB. You can also drop files onto the task.",
+  note = appUi
+    ? tr("Photos, PDFs or documents up to 10 MB.", "Fotografije, PDF-ji ali dokumenti do 10 MB.")
+    : tr("Photos, PDFs or documents up to 10 MB. You can also drop files onto the task.", "Fotografije, PDF-ji ali dokumenti do 10 MB. Datoteke lahko tudi spustiš na nalogo."),
 }: {
   holderKey: string;
   holder: string | { projectId: string };
@@ -154,7 +160,7 @@ function AttachmentsPanel({
     return (
       <div className="attachments">
         <div className="attachments-title">{title}</div>
-        <p className="attachments-note">Attachments need Google sign-in (Settings → Account).</p>
+        <p className="attachments-note">{tr("Attachments need Google sign-in (Settings → Account).", "Priponke potrebujejo prijavo z Googlom (Nastavitve → Račun).")}</p>
       </div>
     );
   }
@@ -167,7 +173,7 @@ function AttachmentsPanel({
       try {
         added.push(await uploadAttachment(holder, file, (share) => setUploading({ name: file.name, share })));
       } catch (err) {
-        setError(err instanceof AttachmentError ? err.message : `Couldn't attach “${file.name}”.`);
+        setError(err instanceof AttachmentError ? err.message : tr(`Couldn't attach “${file.name}”.`, `»${file.name}« ni bilo mogoče pripeti.`));
         break;
       }
     }
@@ -184,8 +190,8 @@ function AttachmentsPanel({
   function remove(att: Attachment) {
     onRemove(att);
     showToast({
-      message: `Removed “${att.name}”`,
-      actionLabel: "Undo",
+      message: tr(`Removed “${att.name}”`, `Odstranjeno: »${att.name}«`),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () => onAdd([att]),
     });
   }
@@ -200,7 +206,7 @@ function AttachmentsPanel({
       <div className="attachments-title">
         {title}
         <button className="btn btn-text attachments-add" onClick={() => inputRef.current?.click()} disabled={Boolean(uploading)}>
-          <PaperclipIcon width={14} height={14} /> Add file
+          <PaperclipIcon width={14} height={14} /> {tr("Add file", "Dodaj datoteko")}
         </button>
         <input
           ref={inputRef}
@@ -233,7 +239,7 @@ function AttachmentsPanel({
         <div key={a.id} className="attachment-file">
           <FileIcon width={16} height={16} />
           <button className="attachment-name" onClick={() => void open(a)} disabled={opening === a.id}>
-            {opening === a.id ? "Opening…" : a.name}
+            {opening === a.id ? tr("Opening…", "Odpiram …") : a.name}
           </button>
           <span className="attachment-size">{formatSize(a.size)}</span>
           <button className="attachment-remove inline" onClick={() => remove(a)} aria-label={`Remove ${a.name}`}>
@@ -244,7 +250,7 @@ function AttachmentsPanel({
 
       {uploading && (
         <div className="attachment-progress">
-          <span>Uploading {uploading.name}…</span>
+          <span>{tr(`Uploading ${uploading.name}…`, `Nalagam ${uploading.name} …`)}</span>
           <i style={{ width: `${Math.round(uploading.share * 100)}%` }} />
         </div>
       )}
@@ -254,8 +260,10 @@ function AttachmentsPanel({
       )}
       {nearlyFull && (
         <p className="attachments-note warn">
-          Attachments are almost full: {formatSize(used)} of {formatSize(ATTACHMENT_BUDGET)}. Settings → Storage shows
-          what takes the most space.
+          {tr(
+            `Attachments are almost full: ${formatSize(used)} of ${formatSize(ATTACHMENT_BUDGET)}. Settings → Storage shows what takes the most space.`,
+            `Priponke so skoraj polne: ${formatSize(used)} od ${formatSize(ATTACHMENT_BUDGET)}. Nastavitve → Prostor pokaže, kaj zasede največ.`
+          )}
         </p>
       )}
     </div>

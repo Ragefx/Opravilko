@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import {
   Bytes,
   collection,
@@ -122,19 +123,26 @@ export async function uploadAttachment(
   onProgress?: (share: number) => void
 ): Promise<Attachment> {
   const user = currentUser();
-  if (!user) throw new AttachmentError("Attachments need Google sign-in.");
+  if (!user) throw new AttachmentError(tr("Attachments need Google sign-in.", "Priponke potrebujejo prijavo z Googlom."));
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
-    throw new AttachmentError("You're offline. Attach files once you're back online.");
+    throw new AttachmentError(tr("You're offline. Attach files once you're back online.", "Nisi povezan. Datoteke pripni, ko boš spet na spletu."));
   }
   const prepared = await prepare(file);
   if (prepared.blob.size > MAX_FILE) {
-    throw new AttachmentError(`“${file.name}” is ${(prepared.blob.size / 1048576).toFixed(1)} MB; the limit is 10 MB per file.`);
+    throw new AttachmentError(
+      tr(
+        `“${file.name}” is ${(prepared.blob.size / 1048576).toFixed(1)} MB; the limit is 10 MB per file.`,
+        `»${file.name}« ima ${(prepared.blob.size / 1048576).toFixed(1)} MB; omejitev je 10 MB na datoteko.`
+      )
+    );
   }
   const used = await storageUsed();
   if (used + prepared.blob.size > ATTACHMENT_BUDGET) {
     throw new AttachmentError(
-      `Not enough space: attachments use ${(used / 1048576).toFixed(0)} of ${ATTACHMENT_BUDGET / 1048576} MB. ` +
-        "Free some up in Settings → Storage."
+      tr(
+        `Not enough space: attachments use ${(used / 1048576).toFixed(0)} of ${ATTACHMENT_BUDGET / 1048576} MB. Free some up in Settings → Storage.`,
+        `Ni dovolj prostora: priponke zasedajo ${(used / 1048576).toFixed(0)} od ${ATTACHMENT_BUDGET / 1048576} MB. Sprosti ga v Nastavitve → Prostor.`
+      )
     );
   }
 
@@ -172,7 +180,7 @@ export async function uploadAttachment(
     await done.commit();
   } catch (err) {
     void removeBlob(id, 0).catch(() => {});
-    throw err instanceof AttachmentError ? err : new AttachmentError("Upload failed. Check your connection and try again.");
+    throw err instanceof AttachmentError ? err : new AttachmentError(tr("Upload failed. Check your connection and try again.", "Nalaganje ni uspelo. Preveri povezavo in poskusi znova."));
   }
   return {
     id,

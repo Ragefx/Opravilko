@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,7 +21,7 @@ export default function SyncIndicator() {
     return (
       <div className="sync-banner conflict">
         <CloudOffIcon width={14} height={14} />
-        <span>Edited somewhere else since you opened this.</span>
+        <span>{tr("Edited somewhere else since you opened this.", "Odkar si to odprl(a), je bilo urejeno drugje.")}</span>
         <button
           className="sync-banner-action"
           onClick={async () => {
@@ -28,10 +29,10 @@ export default function SyncIndicator() {
             await qc.invalidateQueries({ queryKey: ["bootstrap"] });
           }}
         >
-          Load theirs
+          {tr("Load theirs", "Naloži njihovo")}
         </button>
         <button className="sync-banner-action" onClick={() => void forceOverwrite()}>
-          Keep mine
+          {tr("Keep mine", "Obdrži moje")}
         </button>
       </div>
     );
@@ -39,9 +40,9 @@ export default function SyncIndicator() {
 
   if (state.status === "offline") {
     return (
-      <div className="sync-chip muted" title="Changes are kept on this device and upload when you're back online.">
+      <div className="sync-chip muted" title={tr("Changes are kept on this device and upload when you're back online.", "Spremembe so shranjene na tej napravi in se naložijo, ko boš spet na spletu.")}>
         <CloudOffIcon width={13} height={13} />
-        {state.pending ? "Offline · changes saved on this device" : "Offline"}
+        {state.pending ? tr("Offline · changes saved on this device", "Brez povezave · spremembe shranjene na tej napravi") : tr("Offline", "Brez povezave")}
       </div>
     );
   }
@@ -50,15 +51,17 @@ export default function SyncIndicator() {
     return (
       <div className="sync-banner error">
         <CloudOffIcon width={14} height={14} />
-        <span title={state.message}>{usingFirebase() ? state.message || "Couldn't save your changes." : "Couldn't save to Dropbox."}</span>
+        <span title={state.message}>{usingFirebase()
+          ? state.message || tr("Couldn't save your changes.", "Sprememb ni bilo mogoče shraniti.")
+          : tr("Couldn't save to Dropbox.", "Shranjevanje v Dropbox ni uspelo.")}</span>
         {usingFirebase() ? (
           // A rejected Firebase write can't be retried as-is; the screen already shows the saved state.
           <button className="sync-banner-action" onClick={() => setState({ status: "idle", pending: false })}>
-            OK
+            {tr("OK", "V redu")}
           </button>
         ) : (
           <button className="sync-banner-action" onClick={() => void retrySave()}>
-            Retry
+            {tr("Retry", "Poskusi znova")}
           </button>
         )}
       </div>
@@ -69,7 +72,7 @@ export default function SyncIndicator() {
     return (
       <div className="sync-chip">
         <RefreshIcon width={13} height={13} className="spin" />
-        Saving…
+        {tr("Saving…", "Shranjujem …")}
       </div>
     );
   }
@@ -78,7 +81,7 @@ export default function SyncIndicator() {
     return (
       <div className="sync-chip muted">
         <CloudIcon width={13} height={13} />
-        Saved
+        {tr("Saved", "Shranjeno")}
       </div>
     );
   }

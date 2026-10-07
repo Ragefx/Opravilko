@@ -55,6 +55,24 @@ After a change to `firestore.rules`, tell the owner to paste the whole file
 (https://github.com/Ragefx/Opravilko/blob/main/firestore.rules) into
 https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 
+## Languages (English / Slovenian)
+
+- Settings > Appearance > Language, per device (`localStorage["opravilko.lang"]`,
+  English by default; switching reloads). `src/i18n.ts`.
+- Every bit of text is written in place as `tr("English", "Slovensko")`;
+  counts use `trn(n, [one, other], [1, 2, 3–4, 5+])` with `#` for the number.
+- Dates: import `format` from `src/i18n.ts` (not date-fns) so day and month
+  names follow the language; Slovenian patterns differ (`tr("EEE d MMM",
+  "EEE, d. MMM")`), standalone months are `LLLL`, and `cap()` capitalises a
+  heading that starts with a day or month.
+- The Inbox is stored as "Inbox" and shown as "Prejeto" (`assemble` in sync.ts,
+  WidgetSyncJob). Built-in meals and shopping categories follow the language.
+- Android: `widget/L.java` does the same (`L.t(en, sl)`, `L.date`, `L.res` for
+  res/values strings); the language reaches it with the widget data
+  (`lang` in `OpravilkoWidget.update`).
+- New text, new release notes (`itemsSl` in releases.ts) and new toasts need
+  both languages.
+
 ## Checking changes
 
 - Type check: `cd frontend && npx tsc -b`. Build: `npm run build`.

@@ -7,6 +7,8 @@ export interface Release {
   build: number;
   date: string;
   items: string[];
+  /** The same in Slovenian (from build 57 on), shown when the app is in Slovenian. */
+  itemsSl?: string[];
 }
 
 export const RELEASES: Release[] = [
@@ -19,6 +21,12 @@ export const RELEASES: Release[] = [
       "Settings: Focus task, Weekly review and Completed tasks on the calendar are now on the Simple page.",
       "Events: \"Until\" in the task window uses the app's own time picker, like Date.",
     ],
+    itemsSl: [
+      "Midva: stare vrstice »+ Dodaj nalogo« ni več; gumb + spodaj tam doda že deljeno nalogo.",
+      "Preprosto lahko skrije tudi Opravljeno v meniju (s Preprosto vklopljenim skrito; lahko ga spet prikažeš).",
+      "Nastavitve: Glavna naloga, Tedenski pregled in Opravljene naloge na koledarju so zdaj na strani Preprosto.",
+      "Dogodki: »Do« v oknu naloge uporablja izbirnik ure aplikacije, kot Datum.",
+    ],
   },
   {
     build: 56,
@@ -26,6 +34,10 @@ export const RELEASES: Release[] = [
     items: [
       "Simple has its own page in Settings (under Look & feel). With Simple on, the shopping add box, mic and Add share one row, the add card has no label or location icons, and the menu has no Labels or Filters.",
       "Calendar (and widget): bought shopping items no longer show under Done.",
+    ],
+    itemsSl: [
+      "Preprosto ima svojo stran v Nastavitvah (pod Videz in občutek). S Preprosto vklopljenim so polje za nakupe, mikrofon in Dodaj v eni vrstici, kartica za dodajanje nima ikon za oznake in lokacijo, meni pa nima Oznak in Filtrov.",
+      "Koledar (in pripomoček): kupljeni artikli se ne kažejo več med Opravljeno.",
     ],
   },
   {

@@ -147,7 +147,7 @@ final class ReminderLogic {
     /** The notification's second line: "Due 14:30", "Due today", "Due tomorrow at 9:00", "Due Fri 3 Oct". */
     static String dueText(JSONObject task, long now) {
         JSONObject due = task.optJSONObject("due");
-        if (due == null) return "Reminder";
+        if (due == null) return L.t("Reminder", "Opomnik");
         String today = TaskLogic.dayFormat().format(new Date(now));
         String tomorrow = TaskLogic.addDaysStr(today, 1);
         if (hasDatetime(due)) {
@@ -155,17 +155,17 @@ final class ReminderLogic {
             if (d != null) {
                 String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(d);
                 String day = TaskLogic.dayFormat().format(d);
-                if (day.equals(today)) return "Due " + time;
-                if (day.equals(tomorrow)) return "Due tomorrow at " + time;
-                return "Due " + new SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(d) + " at " + time;
+                if (day.equals(today)) return L.t("Due ", "Danes ob ") + time;
+                if (day.equals(tomorrow)) return L.t("Due tomorrow at ", "Jutri ob ") + time;
+                return L.t("Due ", "") + L.date("EEE d MMM", "EEE, d. MMM", d) + L.t(" at ", " ob ") + time;
             }
         }
         String date = due.optString("date", "");
-        if (date.equals(today)) return "Due today";
-        if (date.equals(tomorrow)) return "Due tomorrow";
+        if (date.equals(today)) return L.t("Due today", "Danes");
+        if (date.equals(tomorrow)) return L.t("Due tomorrow", "Jutri");
         Calendar c = TaskLogic.calendarFor(date);
-        if (c == null) return "Reminder";
-        if (date.compareTo(today) < 0) return "Overdue since " + new SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(c.getTime());
-        return "Due " + new SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(c.getTime());
+        if (c == null) return L.t("Reminder", "Opomnik");
+        if (date.compareTo(today) < 0) return L.t("Overdue since ", "Zamuja od ") + L.date("EEE d MMM", "EEE, d. MMM", c.getTime());
+        return L.t("Due ", "Rok ") + L.date("EEE d MMM", "EEE, d. MMM", c.getTime());
     }
 }

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncArrivalPlaces } from "../native/places";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -312,21 +313,21 @@ export default function Layout() {
             />
           )}
           <div className="mobile-appbar">
-            <button className="mobile-appbar-btn" onClick={() => setNavOpen(true)} aria-label="Open menu">
+            <button className="mobile-appbar-btn" onClick={() => setNavOpen(true)} aria-label={tr("Open menu", "Odpri meni")}>
               <MenuIcon width={22} height={22} />
             </button>
             <span className="mobile-appbar-title">Opravilko</span>
-            <button className="mobile-appbar-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
+            <button className="mobile-appbar-btn" onClick={() => setSearchOpen(true)} aria-label={tr("Search", "Iskanje")}>
               <SearchIcon width={20} height={20} />
             </button>
-            <button className="mobile-appbar-btn" onClick={() => setQuickAddOpen(true)} aria-label="Add task">
+            <button className="mobile-appbar-btn" onClick={() => setQuickAddOpen(true)} aria-label={tr("Add task", "Dodaj nalogo")}>
               <PlusIcon width={22} height={22} />
             </button>
           </div>
           {look !== "soca" && <SyncIndicator />}
           {/* Until the tasks are in (from the phone's copy, or the server the first time). */}
           {!appData && (
-            <div className="page-loading" role="status" aria-label="Loading">
+            <div className="page-loading" role="status" aria-label={tr("Loading", "Nalagam")}>
               <span />
             </div>
           )}

@@ -5,22 +5,8 @@ import { setCalendarDay } from "../utils/calendarDay";
 import { eventTimeLabel, isEvent } from "../utils/events";
 import { doneByDay, useCalendarDone, type DoneEntry } from "../utils/calendarDone";
 import { isNativeApp } from "../dropbox/auth";
-import {
-  addDays,
-  addMonths,
-  addWeeks,
-  differenceInCalendarDays,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameMonth,
-  isToday,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-  subWeeks,
-} from "date-fns";
+import { addDays, addMonths, addWeeks, differenceInCalendarDays, endOfMonth, endOfWeek, isSameMonth, isToday, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks } from "date-fns";
+import { tr, format, trn, isSl, cap } from "../i18n";
 import {
   DndContext,
   DragOverlay,
@@ -46,7 +32,7 @@ import { requestQuickAdd } from "../native/widget";
 import MobileCalendar, { useNarrowScreen } from "./MobileCalendar";
 import TaskRow from "./TaskRow";
 
-const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAY_LABELS = isSl ? ["pon", "tor", "sre", "čet", "pet", "sob", "ned"] : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_VISIBLE_PER_DAY = 3;
 /**
  * The month beside its day panel fills each day with as many lines as fit
@@ -198,8 +184,8 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
     const before = task.due;
     updateTask.mutate({ id: task.id, due: moveDue(before, toDate) });
     showToast({
-      message: `Moved to ${format(parseISO(toDate), "EEE, MMM d")}`,
-      actionLabel: "Undo",
+      message: tr(`Moved to ${format(parseISO(toDate), "EEE, MMM d")}`, `Prestavljeno na ${format(parseISO(toDate), "EEE, d. MMM")}`),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () => updateTask.mutate({ id: task.id, due: before }),
     });
   }
@@ -226,13 +212,13 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
 
   const title =
     mode === "month"
-      ? format(cursor, "MMMM yyyy")
+      ? cap(format(cursor, "LLLL yyyy"))
       : (() => {
           const a = days[0];
           const b = days[6];
           return isSameMonth(a, b)
-            ? `${format(a, "MMM d")} – ${format(b, "d, yyyy")}`
-            : `${format(a, "MMM d")} – ${format(b, "MMM d, yyyy")}`;
+            ? tr(`${format(a, "MMM d")} – ${format(b, "d, yyyy")}`, `${format(a, "d.")} – ${format(b, "d. MMM yyyy")}`)
+            : tr(`${format(a, "MMM d")} – ${format(b, "MMM d, yyyy")}`, `${format(a, "d. MMM")} – ${format(b, "d. MMM yyyy")}`);
         })();
 
   return (
@@ -240,20 +226,20 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
       <div className="topbar" style={{ padding: "0 0 16px", border: "none", flexShrink: 0 }}>
         <h1>{title}</h1>
         <div className="calendar-controls">
-          <button className="btn btn-secondary calendar-away-btn" onClick={() => setAwayEdit({})} title="Mark days you're away">
+          <button className="btn btn-secondary calendar-away-btn" onClick={() => setAwayEdit({})} title={tr("Mark days you're away", "Označi dneve, ko te ni")}>
             ✈️ Away
           </button>
-          <div className="view-toggle" role="radiogroup" aria-label="Calendar layout">
+          <div className="view-toggle" role="radiogroup" aria-label={tr("Calendar layout", "Postavitev koledarja")}>
             {(["month", "week"] as const).map((m) => (
               <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? "active" : ""} onClick={() => setMode(m)}>
-                {m === "month" ? "Month" : "Week"}
+                {m === "month" ? tr("Month", "Mesec") : tr("Week", "Teden")}
               </button>
             ))}
           </div>
           <div className="view-toggle">
             <button
               onClick={() => setCursor((c) => (mode === "month" ? subMonths(c, 1) : subWeeks(c, 1)))}
-              aria-label={mode === "month" ? "Previous month" : "Previous week"}
+              aria-label={mode === "month" ? tr("Previous month", "Prejšnji mesec") : tr("Previous week", "Prejšnji teden")}
             >
               ‹
             </button>
@@ -263,11 +249,11 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                 setSelectedKey(todayKey);
               }}
             >
-              Today
+              {tr("Today", "Danes")}
             </button>
             <button
               onClick={() => setCursor((c) => (mode === "month" ? addMonths(c, 1) : addWeeks(c, 1)))}
-              aria-label={mode === "month" ? "Next month" : "Next week"}
+              aria-label={mode === "month" ? tr("Next month", "Naslednji mesec") : tr("Next week", "Naslednji teden")}
             >
               ›
             </button>
@@ -347,11 +333,11 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                           ? setAwayEdit({ period: t.period })
                           : showToast({
                               message: `${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}${
-                                t.period.together ? ` · added by ${t.who}, who can change it` : ""
+                                t.period.together ? tr(` · added by ${t.who}, who can change it`, ` · dodal(a) ${t.who}, ki ga lahko spremeni`) : ""
                               }`,
                             })
                     }
-                    title={`${t.period.by === "off" ? "Off work" : "Away"}: ${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}`}
+                    title={`${t.period.by === "off" ? tr("Off work", "Dopust") : tr("Away", "Odsoten")}: ${tripName(t)} · ${awayRange(t.period)}${t.period.note ? ` · ${t.period.note}` : ""}`}
                   >
                     {tripIcon(t.period)} {tripName(t)}
                     {time && <span className="calendar-away-time">{time}</span>}
@@ -373,7 +359,7 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                     <button
                       key={`${d.taskId}@${d.at}`}
                       className="calendar-done-chip"
-                      title={`Done: ${d.content} · ${format(new Date(d.at), "HH:mm")}`}
+                      title={`${tr("Done", "Opravljeno")}: ${d.content} · ${format(new Date(d.at), "HH:mm")}`}
                       onClick={() => task && setOpenTask(task)}
                     >
                       ✓ {d.content}
@@ -382,12 +368,12 @@ function GridCalendar({ tasks, projectId, eventsByDate }: CalendarProps) {
                 })}
                 {hidden > 0 && (
                   <button className="calendar-more" onClick={() => (panel ? setSelectedKey(key) : setExpandedDay(key))}>
-                    +{hidden} more
+                    {tr(`+${hidden} more`, `+ še ${hidden}`)}
                   </button>
                 )}
                 {mode === "month" && !panel && expandedDay === key && dayEvents.length + dayTasks.length + dayDone.length > MAX_VISIBLE_PER_DAY && (
                   <button className="calendar-more" onClick={() => setExpandedDay(null)}>
-                    Show less
+                    {tr("Show less", "Pokaži manj")}
                   </button>
                 )}
               </DayCell>
@@ -467,15 +453,17 @@ function DayPanel({
   const todo = [...late, ...onDay.filter((t) => !isEvent(t) && !t.completed).sort(byTime)];
   const label = (t: Task) => (t.projectId === "inbox" ? undefined : projectNames[t.projectId]);
   const counts = [
-    ownEvents.length + events.length ? `${ownEvents.length + events.length} ${ownEvents.length + events.length === 1 ? "event" : "events"}` : "",
-    todo.length ? `${todo.length} ${todo.length === 1 ? "task" : "tasks"}` : "",
+    ownEvents.length + events.length
+      ? trn(ownEvents.length + events.length, ["# event", "# events"], ["# dogodek", "# dogodka", "# dogodki", "# dogodkov"])
+      : "",
+    todo.length ? trn(todo.length, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"]) : "",
   ].filter(Boolean);
   const empty = !ownEvents.length && !events.length && !todo.length && !done.length && !dayTrips.length;
   return (
-    <aside className="calendar-day-panel" aria-label={`${format(parseISO(dayKey), "EEEE d MMMM")}`}>
-      <h2>{format(parseISO(dayKey), "EEEE d MMMM")}</h2>
+    <aside className="calendar-day-panel" aria-label={format(parseISO(dayKey), tr("EEEE d MMMM", "EEEE, d. MMMM"))}>
+      <h2>{cap(format(parseISO(dayKey), tr("EEEE d MMMM", "EEEE, d. MMMM")))}</h2>
       <div className="calendar-day-sub">
-        {[isTodayKey ? "Today" : "", ...counts].filter(Boolean).join(" · ") || (empty ? "Nothing planned" : "")}
+        {[isTodayKey ? tr("Today", "Danes") : "", ...counts].filter(Boolean).join(" · ") || (empty ? tr("Nothing planned", "Nič načrtovanega") : "")}
       </div>
       {dayTrips.map((t) => (
         <button
@@ -486,7 +474,7 @@ function DayPanel({
           {tripIcon(t.period)}
           <span className="mcal-away-text">
             <b>
-              {t.period.by === "off" ? "Off work" : "Away"} · {tripName(t)}
+              {t.period.by === "off" ? tr("Off work", "Dopust") : tr("Away", "Odsoten")} · {tripName(t)}
             </b>
             <span>
               {awayRange(t.period)}
@@ -495,7 +483,7 @@ function DayPanel({
           </span>
         </button>
       ))}
-      {(ownEvents.length > 0 || events.length > 0) && <div className="calendar-day-head">Events</div>}
+      {(ownEvents.length > 0 || events.length > 0) && <div className="calendar-day-head">{tr("Events", "Dogodki")}</div>}
       {events.map((e) => (
         <div key={e.id} className="calendar-event-chip calendar-day-feed" style={{ borderLeftColor: e.color }} title={e.title}>
           {e.start && !e.allDay && <span className="calendar-chip-time">{format(new Date(e.start), "HH:mm")}</span>}
@@ -505,16 +493,16 @@ function DayPanel({
       {ownEvents.map((t) => (
         <TaskRow key={t.id} task={t} onOpen={onOpenTask} projectLabel={label(t)} />
       ))}
-      {todo.length > 0 && <div className="calendar-day-head">To do</div>}
+      {todo.length > 0 && <div className="calendar-day-head">{tr("To do", "Za narediti")}</div>}
       {todo.map((t) => (
         <TaskRow key={t.id} task={t} onOpen={onOpenTask} projectLabel={label(t)} />
       ))}
       <button className="calendar-day-add" onClick={onAdd}>
-        + Add task or event
+        + {tr("Add task or event", "Dodaj nalogo ali dogodek")}
       </button>
       {done.length > 0 && (
         <>
-          <div className="calendar-day-head">Done</div>
+          <div className="calendar-day-head">{tr("Done", "Opravljeno")}</div>
           <div className="mcal-done">
             {done.map((d) => (
               <span key={`${d.taskId}@${d.at}`} className="mcal-done-row">

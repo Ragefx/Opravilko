@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useState } from "react";
 import type { Partner } from "../api/types";
 import { activeSession } from "../data/store";
@@ -20,7 +21,7 @@ export default function PartnerConnect({ suggestion, compact }: { suggestion?: P
     try {
       await action();
     } catch (err) {
-      setError(err instanceof ShareError ? err.message : "Couldn't connect. Check your connection and try again.");
+      setError(err instanceof ShareError ? err.message : tr("Couldn't connect. Check your connection and try again.", "Povezava ni uspela. Preveri internet in poskusi znova."));
     } finally {
       setBusy(false);
     }
@@ -30,15 +31,15 @@ export default function PartnerConnect({ suggestion, compact }: { suggestion?: P
     <div className={`partner-connect ${compact ? "compact" : ""}`}>
       {!compact && (
         <>
-          <b>Connect your partner</b>
+          <b>{tr("Connect your partner", "Poveži partnerja")}</b>
           <span>
-            Then any task can be shared with one switch. They need to have signed in to Opravilko once.
+            {tr("Then any task can be shared with one switch. They need to have signed in to Opravilko once.", "Potem lahko katero koli nalogo deliš z enim stikalom. Partner se mora v Opravilko enkrat prijaviti.")}
           </span>
         </>
       )}
       {suggestion && (
         <button className="btn btn-primary" disabled={busy} onClick={() => run(() => session.setPartnerProfile(suggestion))}>
-          Connect {suggestion.name.split(" ")[0]} ({suggestion.email})
+          {tr(`Connect ${suggestion.name.split(" ")[0]} (${suggestion.email})`, `Poveži ${suggestion.name.split(" ")[0]} (${suggestion.email})`)}
         </button>
       )}
       <form
@@ -52,13 +53,13 @@ export default function PartnerConnect({ suggestion, compact }: { suggestion?: P
           type="text"
           inputMode="email"
           autoComplete="email"
-          placeholder="Their Google email address"
+          placeholder={tr("Their Google email address", "Partnerjev Googlov e-poštni naslov")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          aria-label="Partner's email"
+          aria-label={tr("Partner's email", "Partnerjeva e-pošta")}
         />
         <button className="btn btn-primary" type="submit" disabled={busy || !email.trim()}>
-          {busy ? "Connecting…" : "Connect"}
+          {busy ? tr("Connecting…", "Povezujem …") : tr("Connect", "Poveži")}
         </button>
       </form>
       {error && <div className="login-error">{error}</div>}

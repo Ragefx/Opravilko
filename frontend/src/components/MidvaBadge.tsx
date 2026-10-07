@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { Task } from "../api/types";
 import { useBootstrap } from "../api/hooks";
 import { ShareIcon } from "./icons";
@@ -11,7 +12,7 @@ export default function MidvaBadge({ task }: { task: Task }) {
   const fromOther = task.sharedBy && task.sharedBy.uid !== data?.me;
   const who = fromOther ? `from ${task.sharedBy!.name.split(" ")[0]}` : data?.partner?.name.split(" ")[0];
   return (
-    <span className="chip midva-badge" title="Shared (Midva)">
+    <span className="chip midva-badge" title={tr("Shared (Midva)", "Deljeno (Midva)")}>
       <ShareIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> Midva{who && !plain ? ` · ${who}` : ""}
     </span>
   );

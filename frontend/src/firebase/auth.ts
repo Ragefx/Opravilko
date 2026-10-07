@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -54,7 +55,7 @@ export async function signInWithGoogle(): Promise<void> {
     // rest of the app works exactly as on the website.
     const result = await FirebaseAuthentication.signInWithGoogle({ skipNativeAuth: true });
     const idToken = result.credential?.idToken;
-    if (!idToken) throw new Error("Google sign-in was cancelled.");
+    if (!idToken) throw new Error(tr("Google sign-in was cancelled.", "Prijava z Googlom je bila preklicana."));
     await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
     return;
   }

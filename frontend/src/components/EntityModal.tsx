@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useState } from "react";
 import {
   useBootstrap,
@@ -22,9 +23,9 @@ export interface EditableEntity {
 }
 
 const TITLES: Record<EntityKind, { create: string; edit: string; placeholder: string }> = {
-  project: { create: "Add project", edit: "Edit project", placeholder: "Project name" },
-  label: { create: "Add label", edit: "Edit label", placeholder: "Label name" },
-  filter: { create: "Add filter", edit: "Edit filter", placeholder: "Filter name" },
+  project: { create: tr("Add project", "Dodaj projekt"), edit: tr("Edit project", "Uredi projekt"), placeholder: tr("Project name", "Ime projekta") },
+  label: { create: tr("Add label", "Dodaj oznako"), edit: tr("Edit label", "Uredi oznako"), placeholder: tr("Label name", "Ime oznake") },
+  filter: { create: tr("Add filter", "Dodaj filter"), edit: tr("Edit filter", "Uredi filter"), placeholder: tr("Filter name", "Ime filtra") },
 };
 
 /** Create/edit dialog shared by projects, labels, and filters. */
@@ -95,7 +96,7 @@ export default function EntityModal({
     }
   }
 
-  const title = existing ? TITLES[kind].edit : defaultParentId ? "Add sub-project" : TITLES[kind].create;
+  const title = existing ? TITLES[kind].edit : defaultParentId ? tr("Add sub-project", "Dodaj podprojekt") : TITLES[kind].create;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -115,7 +116,7 @@ export default function EntityModal({
         {needsQuery && (
           <input
             type="text"
-            placeholder="Query, e.g. p1 today or @work overdue"
+            placeholder={tr("Query, e.g. p1 today or @work overdue", "Poizvedba, npr. p1 today ali @služba overdue")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -126,9 +127,9 @@ export default function EntityModal({
         )}
         {kind === "project" && parentOptions.length > 0 && (
           <label className="entity-parent-field">
-            <span>Parent project</span>
-            <Select sheetTitle="Inside" value={parentId ?? ""} onChange={(e) => setParentId(e.target.value || null)}>
-              <option value="">No parent</option>
+            <span>{tr("Parent project", "Nadrejeni projekt")}</span>
+            <Select sheetTitle={tr("Inside", "Znotraj")} value={parentId ?? ""} onChange={(e) => setParentId(e.target.value || null)}>
+              <option value="">{tr("No parent", "Brez nadrejenega")}</option>
               {parentOptions.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -151,10 +152,10 @@ export default function EntityModal({
         </div>
         <div className="modal-actions">
           <button className="btn btn-text" onClick={onClose}>
-            Cancel
+            {tr("Cancel", "Prekliči")}
           </button>
           <button className="btn btn-primary" onClick={submit} disabled={!canSubmit}>
-            {existing ? "Save" : "Add"}
+            {existing ? tr("Save", "Shrani") : tr("Add", "Dodaj")}
           </button>
         </div>
       </div>

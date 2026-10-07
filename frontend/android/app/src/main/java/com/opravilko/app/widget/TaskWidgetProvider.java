@@ -116,7 +116,7 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 : new RemoteViews(context.getPackageName(), R.layout.widget_task_list);
 
         boolean shopping = ShoppingLogic.isShoppingView(data, view);
-        views.setTextViewText(R.id.widget_title, shopping ? "Shopping" : TaskLogic.viewTitle(data, view));
+        views.setTextViewText(R.id.widget_title, shopping ? L.t("Shopping", "Nakupi") : TaskLogic.viewTitle(data, view));
         views.setImageViewResource(R.id.widget_logo, shopping ? R.drawable.ic_w_cart : R.drawable.ic_w_logo);
         if (!calendar) setUpList(context, views, appWidgetId, data, shopping);
         setUpHeader(context, views, appWidgetId, view, shopping);
@@ -134,8 +134,8 @@ public class TaskWidgetProvider extends AppWidgetProvider {
 
     private static void setUpList(Context context, RemoteViews views, int appWidgetId, JSONObject data, boolean shopping) {
         views.setTextViewText(R.id.widget_empty, data == null
-                ? context.getString(R.string.widget_empty_signed_out)
-                : context.getString(shopping ? R.string.widget_shopping_empty : R.string.widget_empty));
+                ? L.res(context, R.string.widget_empty_signed_out)
+                : L.res(context, shopping ? R.string.widget_shopping_empty : R.string.widget_empty));
 
         // The list's rows are built by TaskWidgetService; a unique data URI
         // per widget keeps Android from sharing one adapter between widgets.
@@ -159,6 +159,9 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                         : "opravilko://open?view=" + Uri.encode(WidgetStore.VIEW_CALENDAR_TASKS.equals(view) ? WidgetStore.VIEW_CALENDAR : view)));
         // + and the mic: the Add task sheet over the home screen (items on the shopping list).
         views.setOnClickPendingIntent(R.id.widget_add, quickAdd(context, appWidgetId, view, false));
+        views.setContentDescription(R.id.widget_add, L.res(context, R.string.widget_add_task));
+        views.setContentDescription(R.id.widget_voice, L.res(context, R.string.widget_add_by_voice));
+        views.setContentDescription(R.id.widget_refresh, L.res(context, R.string.widget_refresh));
         views.setOnClickPendingIntent(R.id.widget_voice, quickAdd(context, appWidgetId, view, true));
 
         // Refresh: fetch the latest list now (a spinner while it runs).

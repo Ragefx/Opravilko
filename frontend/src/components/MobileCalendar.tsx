@@ -9,22 +9,8 @@ import {
   type DoneEntry,
 } from "../utils/calendarDone";
 import { EVENT_COLOR, eventTimeLabel, isEvent } from "../utils/events";
-import {
-  addDays,
-  addMonths,
-  addWeeks,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  isToday,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-  subWeeks,
-} from "date-fns";
+import { addDays, addMonths, addWeeks, endOfMonth, endOfWeek, isSameDay, isSameMonth, isToday, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks } from "date-fns";
+import { tr, format, trn, isSl, cap } from "../i18n";
 import type { CalendarEvent, Task } from "../api/types";
 import { useBootstrap } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
@@ -193,7 +179,7 @@ export default function MobileCalendar({
   const pastEvents = tasks.filter(
     (t) => isEvent(t) && t.completed && t.due?.date === key,
   );
-  const dayLabel = `${format(selected, "EEEE, d MMM")}${isToday(selected) ? " · Today" : ""}`;
+  const dayLabel = `${cap(format(selected, tr("EEEE, d MMM", "EEEE, d. MMM")))}${isToday(selected) ? tr(" · Today", " · Danes") : ""}`;
   const projectNameById = Object.fromEntries(
     (data?.projects ?? []).map((p) => [p.id, p.name]),
   );
@@ -211,7 +197,7 @@ export default function MobileCalendar({
             onClick={() => setMonthOpen(!monthOpen)}
             aria-expanded={monthOpen}
           >
-            {format(cursor, "MMMM yyyy")}
+            {cap(format(cursor, "LLLL yyyy"))}
             <ChevronIcon
               width={16}
               height={16}
@@ -221,7 +207,7 @@ export default function MobileCalendar({
           <div className="mcal-nav">
             <button
               onClick={() => step(-1)}
-              aria-label={monthOpen ? "Previous month" : "Previous week"}
+              aria-label={monthOpen ? tr("Previous month", "Prejšnji mesec") : tr("Previous week", "Prejšnji teden")}
             >
               <ChevronIcon
                 width={18}
@@ -234,16 +220,16 @@ export default function MobileCalendar({
               onClick={() =>
                 setAwayEdit({ startDay: format(selected, "yyyy-MM-dd") })
               }
-              aria-label="Mark days you're away"
+              aria-label={tr("Mark days you're away", "Označi dneve, ko te ni")}
             >
               ✈️
             </button>
             <button className="mcal-today" onClick={goToday}>
-              Today
+              {tr("Today", "Danes")}
             </button>
             <button
               onClick={() => step(1)}
-              aria-label={monthOpen ? "Next month" : "Next week"}
+              aria-label={monthOpen ? tr("Next month", "Naslednji mesec") : tr("Next week", "Naslednji teden")}
             >
               <ChevronIcon
                 width={18}
@@ -254,7 +240,7 @@ export default function MobileCalendar({
           </div>
         </div>
         <div className="mcal-grid">
-          {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+          {(isSl ? ["P", "T", "S", "Č", "P", "S", "N"] : ["M", "T", "W", "T", "F", "S", "S"]).map((d, i) => (
             <span key={i} className="mcal-wd">
               {d}
             </span>
@@ -294,7 +280,7 @@ export default function MobileCalendar({
                   .filter(Boolean)
                   .join(" ")}
                 onClick={() => setSelected(d)}
-                aria-label={`${format(d, "EEEE d MMMM")}: ${list.length} ${list.length === 1 ? "task" : "tasks"}`}
+                aria-label={`${format(d, tr("EEEE d MMMM", "EEEE, d. MMMM"))}: ${trn(list.length, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"])}`}
               >
                 <span className="mcal-num">{format(d, "d")}</span>
                 <span className="mcal-dots">
@@ -316,7 +302,7 @@ export default function MobileCalendar({
         <button
           className="mcal-handle"
           onClick={() => setMonthOpen(!monthOpen)}
-          aria-label={monthOpen ? "Show one week" : "Show the whole month"}
+          aria-label={monthOpen ? tr("Show one week", "Pokaži en teden") : tr("Show the whole month", "Pokaži cel mesec")}
         />
       </div>
       {awayEdit && (
@@ -345,7 +331,7 @@ export default function MobileCalendar({
                 {tripIcon(t.period)}
                 <span className="mcal-away-text">
                   <b>
-                    {t.period.by === "off" ? "Off work" : "Away"} ·{" "}
+                    {t.period.by === "off" ? tr("Off work", "Dopust") : tr("Away", "Odsoten")} ·{" "}
                     {tripName(t)}
                   </b>
                   <span>
@@ -362,14 +348,14 @@ export default function MobileCalendar({
         tasks={[...overdue, ...dayTasks]}
         // The app adds with the + at the bottom (on the day picked here), so no "Add task" line.
         quickAddProjectId={appUi ? undefined : projectId}
-        quickAddDue={{ date: key, string: format(parseISO(key), "MMM d") }}
+        quickAddDue={{ date: key, string: format(parseISO(key), tr("MMM d", "d. MMM")) }}
         groupLabel={(t) =>
-          showOverdue && isOverdue(t.due) ? "Overdue" : dayLabel
+          showOverdue && isOverdue(t.due) ? tr("Overdue", "Zamujeno") : dayLabel
         }
         showProjectChip
         projectNameById={projectNameById}
         groupExtra={(label, items) =>
-          label === "Overdue" && items.length > 0 ? (
+          label === tr("Overdue", "Zamujeno") && items.length > 0 ? (
             <RescheduleButton tasks={items} />
           ) : undefined
         }
@@ -379,7 +365,7 @@ export default function MobileCalendar({
             <>
               {pastEvents.length > 0 && (
                 <div className="mcal-done">
-                  <b>Past events</b>
+                  <b>{tr("Past events", "Pretekli dogodki")}</b>
                   {pastEvents.map((t) => (
                     <span key={t.id} className="mcal-done-row is-event">
                       <span>📅 {t.content}</span>
@@ -390,7 +376,7 @@ export default function MobileCalendar({
               )}
               {dayDone.length > 0 && (
                 <div className="mcal-done">
-                  <b>Done</b>
+                  <b>{tr("Done", "Opravljeno")}</b>
                   {dayDone.map((d) => (
                     <span key={`${d.taskId}@${d.at}`} className="mcal-done-row">
                       <s>✓ {d.content}</s>
@@ -403,7 +389,7 @@ export default function MobileCalendar({
           )
         }
         dateGroups={[
-          ...(overdue.length ? [{ label: "Overdue", date: null }] : []),
+          ...(overdue.length ? [{ label: tr("Overdue", "Zamujeno"), date: null }] : []),
           { label: dayLabel, date: key, keepEmpty: true },
         ]}
       />

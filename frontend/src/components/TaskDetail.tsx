@@ -1,5 +1,6 @@
 import { type ReactNode, forwardRef, useEffect, useRef, useState } from "react";
-import { format, isToday, isTomorrow, parseISO } from "date-fns";
+import { isToday, isTomorrow, parseISO } from "date-fns";
+import { format, tr, localeTag } from "../i18n";
 import type { Attachment, Partner, Project, Task } from "../api/types";
 import {
   useAddComment,
@@ -123,8 +124,8 @@ export default function TaskDetail({
         onClose();
         showToast(
           repeats
-            ? { message: `✓ ${task.content} · next time moved on` }
-            : { message: `✓ ${task.content}`, actionLabel: "Undo", onAction: () => completeTask.mutate({ id, completed: false }) }
+            ? { message: tr(`✓ ${task.content} · next time moved on`, `✓ ${task.content} · prestavljeno na naslednjič`) }
+            : { message: `✓ ${task.content}`, actionLabel: tr("Undo", "Razveljavi"), onAction: () => completeTask.mutate({ id, completed: false }) }
         );
       },
       { fold: false }
@@ -150,11 +151,14 @@ export default function TaskDetail({
     await LocalNotifications.requestPermissions().catch(() => {});
     const access = await requestArrivalAccess();
     if (!access.location) {
-      showToast({ message: "Arrival reminders need location access for Opravilko." });
+      showToast({ message: tr("Arrival reminders need location access for Opravilko.", "Opomniki ob prihodu potrebujejo dostop do lokacije za Opravilko.") });
     } else if (!access.background) {
       showToast({
-        message: "To remind you with the app closed, set Opravilko's location to “Allow all the time”.",
-        actionLabel: "Settings",
+        message: tr(
+          "To remind you with the app closed, set Opravilko's location to “Allow all the time”.",
+          "Da te opomni tudi z zaprto aplikacijo, Opravilku za lokacijo nastavi »Vedno dovoli«."
+        ),
+        actionLabel: tr("Settings", "Nastavitve"),
         onAction: openLocationSettings,
       });
     }
@@ -315,7 +319,7 @@ export default function TaskDetail({
         setCommentPics((list) => [...list, att]);
       }
     } catch (err) {
-      showToast({ message: err instanceof AttachmentError ? err.message : "Couldn't add the picture. Check your connection." });
+      showToast({ message: err instanceof AttachmentError ? err.message : tr("Couldn't add the picture. Check your connection.", "Slike ni bilo mogoče dodati. Preveri povezavo.") });
     } finally {
       setCommentUploading(false);
     }
@@ -365,7 +369,7 @@ export default function TaskDetail({
       },
       {
         onSuccess: (created) => {
-          showToast({ message: "Task duplicated" });
+          showToast({ message: tr("Task duplicated", "Naloga podvojena") });
           onOpenTask?.(created);
         },
       }
@@ -376,8 +380,8 @@ export default function TaskDetail({
     deleteTask.mutate(task.id, {
       onSuccess: (removed) => {
         showToast({
-          message: `"${task.content}" deleted`,
-          actionLabel: "Undo",
+          message: tr(`"${task.content}" deleted`, `»${task.content}« izbrisano`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreTasks.mutate(removed),
         });
       },
@@ -388,7 +392,7 @@ export default function TaskDetail({
   const subtasksBlock = (
     <div style={{ marginTop: 20 }}>
       <div className="task-section-title" style={{ margin: "0 0 8px" }}>
-        Sub-tasks
+        {tr("Sub-tasks", "Podnaloge")}
         {subtasks.length > 0
           ? ` (${subtasks.filter((s) => s.completed).length}/${subtasks.length})`
           : ""}
@@ -430,7 +434,7 @@ export default function TaskDetail({
         <div className="quick-add" style={{ marginTop: 4 }}>
           <input
             autoFocus
-            placeholder="Sub-task name"
+            placeholder={tr("Sub-task name", "Ime podnaloge")}
             value={subtaskText}
             onChange={(e) => setSubtaskText(e.target.value)}
             onKeyDown={(e) => {
@@ -440,16 +444,16 @@ export default function TaskDetail({
           />
           <div className="quick-add-actions">
             <button className="btn btn-text" onClick={() => setAddingSubtask(false)}>
-              Cancel
+              {tr("Cancel", "Prekliči")}
             </button>
             <button className="btn btn-primary" onClick={addSubtask} disabled={!subtaskText.trim()}>
-              Add
+              {tr("Add", "Dodaj")}
             </button>
           </div>
         </div>
       ) : (
         <button className="add-task-trigger" onClick={() => setAddingSubtask(true)}>
-          <span className="plus">+</span> Add sub-task
+          <span className="plus">+</span> {tr("Add sub-task", "Dodaj podnalogo")}
         </button>
       )}
     </div>
@@ -457,7 +461,8 @@ export default function TaskDetail({
   const commentsBlock = (
     <div style={{ marginTop: 20 }}>
       <div className="task-section-title" style={{ margin: "0 0 8px" }}>
-        Comments{task.comments?.length ? ` (${task.comments.length})` : ""}
+        {tr("Comments", "Komentarji")}
+        {task.comments?.length ? ` (${task.comments.length})` : ""}
       </div>
       {(task.comments || []).map((c) => {
         const author = commentAuthor(c.by, task, data, me);
@@ -491,10 +496,10 @@ export default function TaskDetail({
               />
               <div className="comment-edit-actions">
                 <button className="btn btn-text" onClick={() => setEditingComment(null)}>
-                  Cancel
+                  {tr("Cancel", "Prekliči")}
                 </button>
                 <button className="btn btn-primary" onClick={saveCommentEdit} disabled={!editingComment.text.trim()}>
-                  Save
+                  {tr("Save", "Shrani")}
                 </button>
               </div>
             </div>
@@ -533,8 +538,8 @@ export default function TaskDetail({
           <div className="comment-meta">
             {author && <b className="comment-by">{author.name}</b>}
             <span>
-              {new Date(c.createdAt).toLocaleString()}
-              {c.editedAt ? " · edited" : ""}
+              {new Date(c.createdAt).toLocaleString(localeTag)}
+              {c.editedAt ? tr(" · edited", " · urejeno") : ""}
             </span>
             {/* Your own comments can be changed (and older ones, which don't say whose they are). */}
             {(!c.by || c.by === data?.me) && editingComment?.id !== c.id && (
@@ -543,7 +548,7 @@ export default function TaskDetail({
                 style={{ padding: "0 0 0 8px", fontSize: 12 }}
                 onClick={() => setEditingComment({ id: c.id, text: c.text })}
               >
-                Edit
+                {tr("Edit", "Uredi")}
               </button>
             )}
             <button
@@ -551,7 +556,7 @@ export default function TaskDetail({
               style={{ padding: "0 0 0 8px", fontSize: 12 }}
               onClick={() => deleteComment.mutate({ taskId: task.id, commentId: c.id })}
             >
-              Delete
+              {tr("Delete", "Izbriši")}
             </button>
           </div>
           </div>
@@ -563,7 +568,7 @@ export default function TaskDetail({
           {commentPics.map((a) => (
             <span key={a.id} className="comment-pic">
               {a.thumb ? <img src={a.thumb} alt={a.name} /> : a.name}
-              <button className="comment-pic-remove" onClick={() => dropCommentPic(a)} aria-label={`Remove ${a.name}`}>
+              <button className="comment-pic-remove" onClick={() => dropCommentPic(a)} aria-label={tr(`Remove ${a.name}`, `Odstrani ${a.name}`)}>
                 <XIcon width={12} height={12} />
               </button>
             </span>
@@ -573,7 +578,7 @@ export default function TaskDetail({
       )}
       <div className="quick-add" style={{ marginTop: 4 }}>
         <input
-          placeholder={usingFirebase() ? "Add a comment (or paste a picture)" : "Add a comment"}
+          placeholder={usingFirebase() ? tr("Add a comment (or paste a picture)", "Dodaj komentar (ali prilepi sliko)") : tr("Add a comment", "Dodaj komentar")}
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submitComment()}
@@ -591,7 +596,7 @@ export default function TaskDetail({
             onClick={submitComment}
             disabled={(!commentText.trim() && !commentPics.length) || commentUploading}
           >
-            Comment
+            {tr("Comment", "Komentiraj")}
           </button>
         </div>
       </div>
@@ -615,7 +620,7 @@ export default function TaskDetail({
     const due = task.due;
     const dueDay = due ? parseISO(due.date) : null;
     const dueText = dueDay
-      ? `${isToday(dueDay) ? "Today" : isTomorrow(dueDay) ? "Tomorrow" : format(dueDay, "EEE, d MMM yyyy")}${
+      ? `${isToday(dueDay) ? tr("Today", "Danes") : isTomorrow(dueDay) ? tr("Tomorrow", "Jutri") : format(dueDay, tr("EEE, d MMM yyyy", "EEE, d. MMM yyyy"))}${
           due?.datetime ? ` · ${format(new Date(due.datetime), "HH:mm")}` : ""
         }`
       : "";
@@ -654,36 +659,36 @@ export default function TaskDetail({
         >
           <div className="td-head">
             {appUi && (
-              <button className="td-head-btn" onClick={onClose} aria-label="Close">
+              <button className="td-head-btn" onClick={onClose} aria-label={tr("Close", "Zapri")}>
                 <XIcon width={22} height={22} />
               </button>
             )}
             <div className="td-head-where">
               {parentTask && !appUi ? (
                 // Website: a clear way back up to the task this one belongs to.
-                <button className="td-back" onClick={() => onOpenTask?.(parentTask)} title={`Back to ${parentTask.content}`}>
+                <button className="td-back" onClick={() => onOpenTask?.(parentTask)} title={tr(`Back to ${parentTask.content}`, `Nazaj na ${parentTask.content}`)}>
                   <ChevronIcon width={16} height={16} className="td-back-icon" />
-                  <span className="td-back-label">Back to</span>
+                  <span className="td-back-label">{tr("Back to", "Nazaj na")}</span>
                   <span className="td-back-name">{parentTask.content}</span>
                 </button>
               ) : parentTask ? (
                 <button onClick={() => onOpenTask?.(parentTask)}>↰ {parentTask.content}</button>
               ) : (
-                where || (hideMidvaFrom ? "Midva" : `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`)
+                where || (hideMidvaFrom ? "Midva" : tr(`Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`, `Midva · od ${task.sharedBy?.name.split(" ")[0] || "partnerja"}`))
               )}
             </div>
             <RowMenu
-              label="Task"
+              label={tr("Task", "Naloga")}
               items={[
-                { label: "Duplicate", icon: <CopyIcon width={16} height={16} />, onClick: duplicateTask },
+                { label: tr("Duplicate", "Podvoji"), icon: <CopyIcon width={16} height={16} />, onClick: duplicateTask },
                 ...(!task.parentId
-                  ? [{ label: "✈️ Make it a trip project", icon: <CalendarIcon width={16} height={16} />, onClick: () => void makeTripProject() }]
+                  ? [{ label: tr("✈️ Make it a trip project", "✈️ Naredi projekt potovanja"), icon: <CalendarIcon width={16} height={16} />, onClick: () => void makeTripProject() }]
                   : []),
-                { label: "Delete task", icon: <TrashIcon width={16} height={16} />, danger: true, onClick: handleDelete },
+                { label: tr("Delete task", "Izbriši nalogo"), icon: <TrashIcon width={16} height={16} />, danger: true, onClick: handleDelete },
               ]}
             />
             {!appUi && (
-              <button className="td-head-btn" onClick={onClose} aria-label="Close">
+              <button className="td-head-btn" onClick={onClose} aria-label={tr("Close", "Zapri")}>
                 <XIcon width={20} height={20} />
               </button>
             )}
@@ -719,8 +724,8 @@ export default function TaskDetail({
             </div>
             {doneBy && (
               <div className="td-done-by">
-                ✓ Ticked off by {doneBy === "You" ? "you" : doneBy}
-                {task.completedAt ? `, ${format(parseISO(task.completedAt), "EEE d MMM, HH:mm")}` : ""}
+                ✓ {tr("Ticked off by", "Odkljukal(a)")} {doneBy === tr("You", "Ti") ? tr("you", "ti") : doneBy}
+                {task.completedAt ? `, ${format(parseISO(task.completedAt), tr("EEE d MMM, HH:mm", "EEE, d. MMM, HH:mm"))}` : ""}
               </div>
             )}
             <div className="td-desc">
@@ -732,14 +737,14 @@ export default function TaskDetail({
             <div className="td-props">
               <PropRow
                 icon={project?.isInboxProject ? <InboxIcon width={20} height={20} /> : <span className="td-hash">#</span>}
-                caption="Project"
-                value={where || (hideMidvaFrom ? "Midva" : `Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`)}
+                caption={tr("Project", "Projekt")}
+                value={where || (hideMidvaFrom ? "Midva" : tr(`Midva · from ${task.sharedBy?.name.split(" ")[0] || "your partner"}`, `Midva · od ${task.sharedBy?.name.split(" ")[0] || "partnerja"}`))}
               >
                 {project && (
                   <Select
                     className="td-cover"
                     value={hereKey}
-                    aria-label="Move to"
+                    aria-label={tr("Move to", "Premakni v")}
                     onChange={(e) => {
                       const t = places.find((x) => x.key === e.target.value);
                       if (t) updateTask.mutate({ id: task.id, projectId: t.projectId, sectionId: t.sectionId });
@@ -757,8 +762,8 @@ export default function TaskDetail({
               <PropRow
                 ref={dateRow}
                 icon={<CalendarIcon width={20} height={20} />}
-                caption="Date"
-                value={dueText || "No date"}
+                caption={tr("Date", "Datum")}
+                value={dueText || tr("No date", "Brez datuma")}
                 muted={!due}
                 color={due ? (isEvent(task) ? "var(--color-event)" : overdue ? "var(--color-danger)" : "var(--color-accent)") : undefined}
                 onClick={openDate}
@@ -766,7 +771,7 @@ export default function TaskDetail({
                   due ? (
                     <button
                       className="td-clear"
-                      aria-label="Clear date"
+                      aria-label={tr("Clear date", "Odstrani datum")}
                       onClick={(e) => {
                         e.stopPropagation();
                         setDueOffset(null);
@@ -784,8 +789,12 @@ export default function TaskDetail({
                   <EventIcon width={20} height={20} />
                 </span>
                 <span className="td-row-body">
-                  <span className="td-row-caption">Event</span>
-                  <span className="td-row-value">{isEvent(task) ? "Something happening: no tick, never late" : "A task to tick off"}</span>
+                  <span className="td-row-caption">{tr("Event", "Dogodek")}</span>
+                  <span className="td-row-value">
+                    {isEvent(task)
+                      ? tr("Something happening: no tick, never late", "Nekaj se dogaja: brez kljukice, nikoli zamujeno")
+                      : tr("A task to tick off", "Naloga za odkljukati")}
+                  </span>
                 </span>
                 <input
                   type="checkbox"
@@ -809,8 +818,8 @@ export default function TaskDetail({
                 <PropRow
                   ref={endRow}
                   icon={<span />}
-                  caption="Until"
-                  value={task.endTime ?? "No end time"}
+                  caption={tr("Until", "Do")}
+                  value={task.endTime ?? tr("No end time", "Brez konca")}
                   muted={!task.endTime}
                   color={task.endTime ? "var(--color-event)" : undefined}
                   onClick={() => setPickingEnd(true)}
@@ -818,7 +827,7 @@ export default function TaskDetail({
                     task.endTime ? (
                       <button
                         className="td-clear"
-                        aria-label="Clear end time"
+                        aria-label={tr("Clear end time", "Odstrani konec")}
                         onClick={(e) => {
                           e.stopPropagation();
                           updateTask.mutate({ id: task.id, endTime: undefined });
@@ -848,8 +857,8 @@ export default function TaskDetail({
               {due && (
                 <PropRow
                   icon={<RepeatIcon width={20} height={20} />}
-                  caption="Repeat"
-                  value={currentRepeat === "none" ? "Doesn't repeat" : describeRecurrence(currentRule) || "Custom"}
+                  caption={tr("Repeat", "Ponavljanje")}
+                  value={currentRepeat === "none" ? tr("Doesn't repeat", "Se ne ponavlja") : describeRecurrence(currentRule) || tr("Custom", "Po meri")}
                   muted={currentRepeat === "none"}
                 >
                   <span className="td-cover">
@@ -861,10 +870,10 @@ export default function TaskDetail({
                 <label className="td-row td-row-switch">
                   <span className="td-row-icon" />
                   <span className="td-row-body">
-                    <span className="td-row-value">Count from when it's done</span>
+                    <span className="td-row-value">{tr("Count from when it's done", "Štej od dneva, ko je opravljeno")}</span>
                     <span className="td-row-sub">
                       Done today → next{" "}
-                      {task.due && format(parseISO(nextOccurrence(task.due.date, currentRule, todayISO())), "d MMM")}
+                      {task.due && format(parseISO(nextOccurrence(task.due.date, currentRule, todayISO())), tr("d MMM", "d. MMM"))}
                     </span>
                   </span>
                   <input
@@ -881,8 +890,8 @@ export default function TaskDetail({
               <PropRow
                 ref={deadlineRow}
                 icon={<HourglassIcon width={20} height={20} />}
-                caption="Deadline"
-                value={deadline ? `${deadline.label}${deadline.kind === "past" ? " · passed" : ""}` : "No deadline"}
+                caption={tr("Deadline", "Rok")}
+                value={deadline ? `${deadline.label}${deadline.kind === "past" ? tr(" · passed", " · pretekel") : ""}` : tr("No deadline", "Brez roka")}
                 muted={!deadline}
                 color={deadline ? (deadline.kind === "later" ? "var(--color-text)" : "var(--color-danger)") : undefined}
                 onClick={openDeadline}
@@ -890,7 +899,7 @@ export default function TaskDetail({
                   deadline ? (
                     <button
                       className="td-clear"
-                      aria-label="Clear deadline"
+                      aria-label={tr("Clear deadline", "Odstrani rok")}
                       onClick={(e) => {
                         e.stopPropagation();
                         updateTask.mutate({ id: task.id, deadline: undefined });
@@ -905,8 +914,8 @@ export default function TaskDetail({
 
               <PropRow
                 icon={<BellIcon width={20} height={20} />}
-                caption="Reminders"
-                value={taskReminders.length ? taskReminders.map(describeReminder).join(", ") : "No reminders"}
+                caption={tr("Reminders", "Opomniki")}
+                value={taskReminders.length ? taskReminders.map(describeReminder).join(", ") : tr("No reminders", "Brez opomnikov")}
                 muted={!taskReminders.length}
                 color={taskReminders.length ? "var(--color-accent)" : undefined}
                 onClick={() => setPickingReminders(true)}
@@ -914,7 +923,7 @@ export default function TaskDetail({
 
               <PropRow
                 icon={<FlagIcon width={20} height={20} />}
-                caption="Priority"
+                caption={tr("Priority", "Prednost")}
                 value={PRIORITY_META[task.priority].label}
                 color={priorityColor}
                 muted={!priorityColor}
@@ -922,7 +931,7 @@ export default function TaskDetail({
                 <Select
                   className="td-cover"
                   value={task.priority}
-                  aria-label="Priority"
+                  aria-label={tr("Priority", "Prednost")}
                   onChange={(e) => setPriority(Number(e.target.value) as (typeof PRIORITY_ORDER)[number])}
                 >
                   {PRIORITY_ORDER.map((p) => (
@@ -939,12 +948,12 @@ export default function TaskDetail({
                   <TagIcon width={20} height={20} />
                 </span>
                 <div className="td-row-body">
-                  <span className="td-row-caption">Labels</span>
+                  <span className="td-row-caption">{tr("Labels", "Oznake")}</span>
                   <div className="td-label-chips">
                     {task.labels.map((l) => (
                       <span key={l} className="td-label-chip label-tint" style={labelTint(labelColor(l))}>
                         @{l}
-                        <button onClick={() => removeLabel(l)} aria-label={`Remove label ${l}`}>
+                        <button onClick={() => removeLabel(l)} aria-label={tr(`Remove label ${l}`, `Odstrani oznako ${l}`)}>
                           <XIcon width={12} height={12} />
                         </button>
                       </span>
@@ -952,7 +961,7 @@ export default function TaskDetail({
                     <input
                       className="td-label-input"
                       list="task-detail-existing-labels"
-                      placeholder={task.labels.length ? "Add" : "Add a label"}
+                      placeholder={task.labels.length ? tr("Add", "Dodaj") : tr("Add a label", "Dodaj oznako")}
                       value={labelInput}
                       enterKeyHint="done"
                       onChange={(e) => setLabelInput(e.target.value)}
@@ -972,8 +981,8 @@ export default function TaskDetail({
               {!(hideLocation && !task.location) && (
               <PropRow
                 icon={<MapPinIcon width={20} height={20} />}
-                caption="Location"
-                value={task.location ? task.location.name : "Add a location"}
+                caption={tr("Location", "Lokacija")}
+                value={task.location ? task.location.name : tr("Add a location", "Dodaj lokacijo")}
                 sub={task.location?.address}
                 muted={!task.location}
                 onClick={() => setPickingLocation(true)}
@@ -986,7 +995,7 @@ export default function TaskDetail({
                       rel="noreferrer"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Map
+                      {tr("Map", "Zemljevid")}
                     </a>
                   ) : undefined
                 }
@@ -996,7 +1005,7 @@ export default function TaskDetail({
                 <label className="td-row td-row-switch">
                   <span className="td-row-icon" />
                   <span className="td-row-body">
-                    <span className="td-row-value">Remind me when I arrive</span>
+                    <span className="td-row-value">{tr("Remind me when I arrive", "Opomni me ob prihodu")}</span>
                   </span>
                   <input
                     type="checkbox"
@@ -1014,10 +1023,12 @@ export default function TaskDetail({
                     <ShareIcon width={20} height={20} />
                   </span>
                   <span className="td-row-body">
-                    <span className="td-row-caption">Shared</span>
+                    <span className="td-row-caption">{tr("Shared", "Deljeno")}</span>
                     <span className="td-row-value">
-                      With {projectPeople(project, data?.me, data?.partner) || "everyone on the project"}, like all of “
-                      {project.name}”
+                      {tr(
+                        `With ${projectPeople(project, data?.me, data?.partner) || "everyone on the project"}, like all of “${project.name}”`,
+                        `Z ${projectPeople(project, data?.me, data?.partner) || "vsemi na projektu"}, kot vse v »${project.name}«`
+                      )}
                     </span>
                   </span>
                 </div>
@@ -1027,8 +1038,8 @@ export default function TaskDetail({
                     <ShareIcon width={20} height={20} />
                   </span>
                   <span className="td-row-body">
-                    <span className="td-row-caption">Midva</span>
-                    <span className="td-row-value">{shared ? `Shared with ${first}` : `Share with ${first}`}</span>
+                    <span className="td-row-caption">{tr("Midva", "Midva")}</span>
+                    <span className="td-row-value">{shared ? tr(`Shared with ${first}`, `Deljeno z ${first}`) : tr(`Share with ${first}`, `Deli z ${first}`)}</span>
                   </span>
                   <input
                     type="checkbox"
@@ -1153,5 +1164,5 @@ function projectPeople(project: Project, me: string | undefined, partner: Partne
     .map((uid) => (partner?.uid === uid ? partner.name : project.memberProfiles?.[uid]?.name) ?? "")
     .map((n) => n.split(" ")[0])
     .filter(Boolean);
-  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} ${tr("and", "in")} ${names[names.length - 1]}`;
 }

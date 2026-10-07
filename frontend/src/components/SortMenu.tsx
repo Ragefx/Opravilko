@@ -1,20 +1,21 @@
+import { tr } from "../i18n";
 import { useState } from "react";
 import type { Direction, DisplayOptions, Sorting } from "../utils/displayOptions";
 
 /** How each direction reads, per sorting ("asc" first). */
 const DIRECTIONS: Record<Exclude<Sorting, "manual">, [string, string]> = {
-  date: ["Soonest first", "Latest first"],
-  priority: ["Highest first", "Lowest first"],
+  date: [tr("Soonest first", "Najprej najbližje"), tr("Latest first", "Najprej najkasnejše")],
+  priority: [tr("Highest first", "Najprej najvišja"), tr("Lowest first", "Najprej najnižja")],
   name: ["A → Z", "Z → A"],
-  created: ["Oldest first", "Newest first"],
+  created: [tr("Oldest first", "Najprej najstarejše"), tr("Newest first", "Najprej najnovejše")],
 };
 
 const CHOICES: { id: Sorting; label: string }[] = [
-  { id: "manual", label: "My order (drag)" },
-  { id: "date", label: "Date" },
-  { id: "priority", label: "Priority" },
-  { id: "name", label: "Name" },
-  { id: "created", label: "Date added" },
+  { id: "manual", label: tr("My order (drag)", "Moj vrstni red (vleci)") },
+  { id: "date", label: tr("Date", "Datum") },
+  { id: "priority", label: tr("Priority", "Prednost") },
+  { id: "name", label: tr("Name", "Ime") },
+  { id: "created", label: tr("Date added", "Datum dodajanja") },
 ];
 
 /** A project's Sort button (the layout is fixed: the Inbox a board, projects lists). */
@@ -27,8 +28,12 @@ export default function SortMenu({ value, onChange }: { value: DisplayOptions; o
       <button
         className={`display-icon-btn sort-btn ${sorted ? "is-on" : ""}`}
         onClick={() => setOpen((v) => !v)}
-        aria-label="Sort"
-        title={sorted ? `Sorted by ${CHOICES.find((c) => c.id === value.sorting)?.label.toLowerCase()}` : "Sort"}
+        aria-label={tr("Sort", "Razvrsti")}
+        title={
+          sorted
+            ? tr(`Sorted by ${CHOICES.find((c) => c.id === value.sorting)?.label.toLowerCase()}`, `Razvrščeno po: ${CHOICES.find((c) => c.id === value.sorting)?.label.toLowerCase()}`)
+            : tr("Sort", "Razvrsti")
+        }
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4" />
@@ -44,8 +49,8 @@ export default function SortMenu({ value, onChange }: { value: DisplayOptions; o
               setOpen(false);
             }}
           />
-          <div className="dropdown-panel sort-menu" role="menu" aria-label="Sort">
-            <div className="display-menu-title">Sort by</div>
+          <div className="dropdown-panel sort-menu" role="menu" aria-label={tr("Sort", "Razvrsti")}>
+            <div className="display-menu-title">{tr("Sort by", "Razvrsti po")}</div>
             {CHOICES.map((c) => (
               <button
                 key={c.id}

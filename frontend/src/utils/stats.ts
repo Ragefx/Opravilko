@@ -1,4 +1,5 @@
-import { addDays, format, startOfDay } from "date-fns";
+import { addDays, startOfDay } from "date-fns";
+import { format } from "../i18n";
 import type { ActivitySummary, AppData, CompletionEntry } from "../api/types";
 
 /**

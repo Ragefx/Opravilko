@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useSyncExternalStore } from "react";
 import type { CalendarEvent } from "../api/types";
 
@@ -42,24 +43,24 @@ export function useHolidays(): boolean {
 
 /** [month, day, name, work-free] */
 const FIXED: [number, number, string, boolean][] = [
-  [1, 1, "Novo leto", true],
-  [1, 2, "Novo leto", true],
-  [2, 8, "Prešernov dan, slovenski kulturni praznik", true],
-  [4, 27, "Dan upora proti okupatorju", true],
-  [5, 1, "Praznik dela", true],
-  [5, 2, "Praznik dela", true],
-  [6, 8, "Dan Primoža Trubarja", false],
-  [6, 25, "Dan državnosti", true],
-  [8, 15, "Marijino vnebovzetje", true],
-  [8, 17, "Združitev prekmurskih Slovencev z matičnim narodom", false],
-  [9, 15, "Vrnitev Primorske k matični domovini", false],
-  [9, 23, "Dan slovenskega športa", false],
-  [10, 25, "Dan suverenosti", false],
-  [10, 31, "Dan reformacije", true],
-  [11, 1, "Dan spomina na mrtve", true],
-  [11, 23, "Dan Rudolfa Maistra", false],
-  [12, 25, "Božič", true],
-  [12, 26, "Dan samostojnosti in enotnosti", true],
+  [1, 1, tr("New Year's Day", "Novo leto"), true],
+  [1, 2, tr("New Year's Day", "Novo leto"), true],
+  [2, 8, tr("Prešeren Day, Slovenian Cultural Holiday", "Prešernov dan, slovenski kulturni praznik"), true],
+  [4, 27, tr("Day of Uprising Against Occupation", "Dan upora proti okupatorju"), true],
+  [5, 1, tr("Labour Day", "Praznik dela"), true],
+  [5, 2, tr("Labour Day", "Praznik dela"), true],
+  [6, 8, tr("Primož Trubar Day", "Dan Primoža Trubarja"), false],
+  [6, 25, tr("Statehood Day", "Dan državnosti"), true],
+  [8, 15, tr("Assumption Day", "Marijino vnebovzetje"), true],
+  [8, 17, tr("Unification of Prekmurje Slovenes with the Mother Nation", "Združitev prekmurskih Slovencev z matičnim narodom"), false],
+  [9, 15, tr("Return of Primorska to the Motherland", "Vrnitev Primorske k matični domovini"), false],
+  [9, 23, tr("Slovenian Sports Day", "Dan slovenskega športa"), false],
+  [10, 25, tr("Sovereignty Day", "Dan suverenosti"), false],
+  [10, 31, tr("Reformation Day", "Dan reformacije"), true],
+  [11, 1, tr("Remembrance Day", "Dan spomina na mrtve"), true],
+  [11, 23, tr("Rudolf Maister Day", "Dan Rudolfa Maistra"), false],
+  [12, 25, tr("Christmas Day", "Božič"), true],
+  [12, 26, tr("Independence and Unity Day", "Dan samostojnosti in enotnosti"), true],
 ];
 
 /** Easter Sunday (Gregorian), as [month, day]. */
@@ -99,9 +100,9 @@ export function holidaysOf(year: number): Holiday[] {
     x.setDate(x.getDate() + days);
     return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
   };
-  out.push({ date: plus(0), name: "Velika noč", free: true });
-  out.push({ date: plus(1), name: "Velikonočni ponedeljek", free: true });
-  out.push({ date: plus(49), name: "Binkošti", free: true });
+  out.push({ date: plus(0), name: tr("Easter Sunday", "Velika noč"), free: true });
+  out.push({ date: plus(1), name: tr("Easter Monday", "Velikonočni ponedeljek"), free: true });
+  out.push({ date: plus(49), name: tr("Whit Sunday", "Binkošti"), free: true });
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }
 

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
@@ -189,8 +190,8 @@ export default function TaskListView({
       {active.length === 0 && completed.length === 0 && !hasEvents && !dateGroups?.some((g) => g.keepEmpty) && (
         <div className="empty-state">
           <CheckCircleIcon width={40} height={40} />
-          <p>All clear</p>
-          <span>Nothing due here. Add a task above, or press q from anywhere.</span>
+          <p>{tr("All clear", "Vse opravljeno")}</p>
+          <span>{tr("Nothing due here. Add a task above, or press q from anywhere.", "Tu ni nič na sporedu. Dodaj nalogo zgoraj ali kjer koli pritisni q.")}</span>
         </div>
       )}
 
@@ -206,7 +207,7 @@ export default function TaskListView({
               ))}
               {items.map((t) =>
                 // Under a day's heading, that day's tasks show just their time.
-                renderTaskAndChildren(t, 0, spec ? spec.date : label !== "Overdue" ? quickAddDue?.date : undefined)
+                renderTaskAndChildren(t, 0, spec ? spec.date : label !== tr("Overdue", "Zamujeno") ? quickAddDue?.date : undefined)
               )}
               {spec?.quickAdd && !appUi && <QuickAdd projectId={spec.quickAdd.projectId} defaultDue={spec.quickAdd.due} />}
             </div>
@@ -231,7 +232,7 @@ export default function TaskListView({
 
       {completed.length > 0 && (
         <>
-          <div className="task-section-title">Completed</div>
+          <div className="task-section-title">{tr("Completed", "Opravljeno")}</div>
           {completed.map((t) => (
             <TaskRow key={t.id} task={t} onOpen={setOpenTask} />
           ))}

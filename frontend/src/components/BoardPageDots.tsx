@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useState, type RefObject } from "react";
 
 /**
@@ -40,7 +41,7 @@ export default function BoardPageDots({
   }
 
   return (
-    <div className="board-page-dots" role="tablist" aria-label="Board columns">
+    <div className="board-page-dots" role="tablist" aria-label={tr("Board columns", "Stolpci table")}>
       {Array.from({ length: count }, (_, i) => {
         const isAdd = withAdd && i === count - 1;
         return (
@@ -48,7 +49,7 @@ export default function BoardPageDots({
             key={i}
             role="tab"
             aria-selected={i === active}
-            aria-label={isAdd ? "Add section" : `Column ${i + 1} of ${withAdd ? count - 1 : count}`}
+            aria-label={isAdd ? tr("Add section", "Dodaj razdelek") : tr(`Column ${i + 1} of ${withAdd ? count - 1 : count}`, `Stolpec ${i + 1} od ${withAdd ? count - 1 : count}`)}
             className={`board-page-dot ${isAdd ? "is-add" : ""} ${i === active ? "is-active" : ""}`}
             onClick={() => goTo(i)}
           >

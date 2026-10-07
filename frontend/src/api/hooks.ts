@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } from "date-fns";
@@ -660,7 +661,7 @@ export function useDuplicateSection() {
     const newSection: Section = {
       id: nanoid(),
       projectId: section.projectId,
-      name: `${section.name} (copy)`,
+      name: tr(`${section.name} (copy)`, `${section.name} (kopija)`),
       order: nextOrder(data.sections.filter((s) => s.projectId === section.projectId)),
     };
     data.sections.push(newSection);
@@ -848,7 +849,7 @@ export function useDeleteCalendarFeed() {
 async function runFeedSync(qc: QueryClient, feedId: string, manual = true): Promise<void> {
   const current = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? (await fetchAppData());
   const feed = current.calendarFeeds?.find((f) => f.id === feedId);
-  if (!feed) throw new Error("Calendar not found");
+  if (!feed) throw new Error(tr("Calendar not found", "Koledarja ni"));
 
   const windowStart = subMonths(new Date(), 1);
   const windowEnd = addMonths(new Date(), 12);
@@ -863,7 +864,7 @@ async function runFeedSync(qc: QueryClient, feedId: string, manual = true): Prom
     // fine, so an automatic sync keeps its events and error as they were and
     // tries again later instead of saving a scary error.
     if (e instanceof NoConnectionError && !manual) throw e;
-    error = e instanceof Error ? e.message : "Sync failed";
+    error = e instanceof Error ? e.message : tr("Sync failed", "Usklajevanje ni uspelo");
   }
 
   const latest = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? current;

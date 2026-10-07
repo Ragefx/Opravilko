@@ -1,4 +1,5 @@
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
+import { format } from "../i18n";
 import type { CalendarEvent } from "../api/types";
 
 /**

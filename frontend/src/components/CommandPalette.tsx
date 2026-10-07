@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { openThisMonth } from "../utils/calendarTasks";
 import { shoppingListOf } from "../utils/shopping";
@@ -68,21 +69,21 @@ export default function CommandPalette({
     const countIn = (projectId: string) => open.filter((t) => t.projectId === projectId).length;
 
     const views: Command[] = [
-      { key: "v-home", group: "Go to", label: "Now · Next · Later", icon: <FocusIcon width={16} height={16} />, run: go("/app/home") },
-      { key: "v-today", group: "Go to", label: "Today", icon: <TodayIcon width={16} height={16} />, run: go("/app/today") },
-      ...(data.me ? [{ key: "v-midva", group: "Go to", label: "Midva", icon: <ShareIcon width={16} height={16} />, run: go("/app/midva") }] : []),
-      { key: "v-upcoming", group: "Go to", label: "Upcoming", icon: <UpcomingIcon width={16} height={16} />, run: go("/app/upcoming") },
-      { key: "v-inbox", group: "Go to", label: "Inbox", hint: String(countIn("inbox")), icon: <InboxIcon width={16} height={16} />, run: go("/app/inbox") },
-      { key: "v-calendar", group: "Go to", label: "Calendar", hint: String(openThisMonth(data)), icon: <CalendarIcon width={16} height={16} />, run: go("/app/calendar") },
-      { key: "v-shopping", group: "Go to", label: "Shopping", icon: <CartIcon width={16} height={16} />, run: go("/app/shopping") },
-      { key: "v-completed", group: "Go to", label: "Completed", icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
-      { key: "v-stats", group: "Go to", label: "Productivity", icon: <ChartIcon width={16} height={16} />, run: go("/app/stats") },
+      { key: "v-home", group: tr("Go to", "Pojdi na"), label: tr("Now · Next · Later", "Zdaj · Naslednje · Pozneje"), icon: <FocusIcon width={16} height={16} />, run: go("/app/home") },
+      { key: "v-today", group: tr("Go to", "Pojdi na"), label: tr("Today", "Danes"), icon: <TodayIcon width={16} height={16} />, run: go("/app/today") },
+      ...(data.me ? [{ key: "v-midva", group: tr("Go to", "Pojdi na"), label: tr("Midva", "Midva"), icon: <ShareIcon width={16} height={16} />, run: go("/app/midva") }] : []),
+      { key: "v-upcoming", group: tr("Go to", "Pojdi na"), label: tr("Upcoming", "Prihajajoče"), icon: <UpcomingIcon width={16} height={16} />, run: go("/app/upcoming") },
+      { key: "v-inbox", group: tr("Go to", "Pojdi na"), label: tr("Inbox", "Prejeto"), hint: String(countIn("inbox")), icon: <InboxIcon width={16} height={16} />, run: go("/app/inbox") },
+      { key: "v-calendar", group: tr("Go to", "Pojdi na"), label: tr("Calendar", "Koledar"), hint: String(openThisMonth(data)), icon: <CalendarIcon width={16} height={16} />, run: go("/app/calendar") },
+      { key: "v-shopping", group: tr("Go to", "Pojdi na"), label: tr("Shopping", "Nakupi"), icon: <CartIcon width={16} height={16} />, run: go("/app/shopping") },
+      { key: "v-completed", group: tr("Go to", "Pojdi na"), label: tr("Completed", "Opravljeno"), icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
+      { key: "v-stats", group: tr("Go to", "Pojdi na"), label: tr("Productivity", "Produktivnost"), icon: <ChartIcon width={16} height={16} />, run: go("/app/stats") },
       ...(reviewOn
         ? [
             {
               key: "v-review",
-              group: "Go to",
-              label: "Weekly review",
+              group: tr("Go to", "Pojdi na"),
+              label: tr("Weekly review", "Tedenski pregled"),
               icon: <CalendarIcon width={16} height={16} />,
               run: () => {
                 onClose();
@@ -93,8 +94,8 @@ export default function CommandPalette({
         : []),
       {
         key: "v-settings",
-        group: "Go to",
-        label: "Settings",
+        group: tr("Go to", "Pojdi na"),
+        label: tr("Settings", "Nastavitve"),
         icon: <SettingsIcon width={16} height={16} />,
         run: () => {
           onClose();
@@ -109,7 +110,7 @@ export default function CommandPalette({
       .sort((a, b) => Number(b.isFavorite) - Number(a.isFavorite) || a.order - b.order)
       .map((p) => ({
         key: `p-${p.id}`,
-        group: "Projects",
+        group: tr("Projects", "Projekti"),
         label: p.name,
         hint: String(countIn(p.id)),
         icon: <HashIcon width={16} height={16} style={{ color: colorHex(p.color) }} />,
@@ -120,7 +121,7 @@ export default function CommandPalette({
       .filter((l) => matches(l.name))
       .map((l) => ({
         key: `l-${l.id}`,
-        group: "Labels",
+        group: tr("Labels", "Oznake"),
         label: l.name,
         icon: <LabelIcon width={16} height={16} style={{ color: colorHex(l.color) }} />,
         run: go(`/app/label/${encodeURIComponent(l.name)}`),
@@ -130,7 +131,7 @@ export default function CommandPalette({
       .filter((f) => matches(f.name))
       .map((f) => ({
         key: `f-${f.id}`,
-        group: "Filters",
+        group: tr("Filters", "Filtri"),
         label: f.name,
         icon: <FilterIcon width={16} height={16} style={{ color: colorHex(f.color) }} />,
         run: go(`/app/filter/${f.id}`),
@@ -142,7 +143,7 @@ export default function CommandPalette({
           .slice(0, 8)
           .map((t) => ({
             key: `t-${t.id}`,
-            group: "Tasks",
+            group: tr("Tasks", "Naloge"),
             label: t.content,
             hint: t.due ? formatDueLabel(t.due) : undefined,
             icon: <span className="cmd-ring" />,
@@ -162,11 +163,11 @@ export default function CommandPalette({
           ? data.projects.find((p) => p.name.toLowerCase() === parsed.projectName!.toLowerCase())
           : undefined;
         const share = parsed.shared && data.partner ? data.partner : null;
-        const bits = [project?.name || "Inbox", parsed.due ? formatDueLabel(parsed.due) : null, share ? "Midva" : null].filter(Boolean);
+        const bits = [project?.name || tr("Inbox", "Prejeto"), parsed.due ? formatDueLabel(parsed.due) : null, share ? "Midva" : null].filter(Boolean);
         add.push({
           key: "add",
-          group: "New task",
-          label: `Add “${parsed.content}”`,
+          group: tr("New task", "Nova naloga"),
+          label: tr(`Add “${parsed.content}”`, `Dodaj »${parsed.content}«`),
           hint: bits.join(" · "),
           icon: <PlusIcon width={16} height={16} />,
           run: () => {
@@ -180,7 +181,7 @@ export default function CommandPalette({
                 ...(parsed.deadline ? { deadline: parsed.deadline } : {}),
                 sharedWith: share ? [share.uid] : undefined,
               },
-              { onSuccess: () => showToast({ message: `Added to ${project?.name || "Inbox"}` }) }
+              { onSuccess: () => showToast({ message: tr(`Added to ${project?.name || "Inbox"}`, `Dodano v ${project?.name || "Prejeto"}`) }) }
             );
             onClose();
           },
@@ -222,11 +223,11 @@ export default function CommandPalette({
           autoFocus
           type="text"
           className="cmd-input"
-          placeholder="Jump to a project, or type a new task…"
+          placeholder={tr("Jump to a project, or type a new task…", "Skoči na projekt ali vpiši novo nalogo …")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
-          aria-label="Command"
+          aria-label={tr("Command", "Ukaz")}
         />
         <div className="cmd-list" ref={listRef}>
           {commands.map((c, i) => {
@@ -248,18 +249,18 @@ export default function CommandPalette({
               </div>
             );
           })}
-          {commands.length === 0 && <div className="cmd-empty">Nothing matches “{query}”.</div>}
+          {commands.length === 0 && <div className="cmd-empty">{tr(`Nothing matches “${query}”.`, `Nič se ne ujema z »${query}«.`)}</div>}
         </div>
         <div className="cmd-footer">
           <span>
             <kbd>↑</kbd>
-            <kbd>↓</kbd> move
+            <kbd>↓</kbd> {tr("move", "premik")}
           </span>
           <span>
-            <kbd>Enter</kbd> open
+            <kbd>Enter</kbd> {tr("open", "odpri")}
           </span>
           <span>
-            <kbd>Esc</kbd> close
+            <kbd>Esc</kbd> {tr("close", "zapri")}
           </span>
         </div>
       </div>

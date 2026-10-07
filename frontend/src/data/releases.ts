@@ -13,6 +13,28 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 58,
+    date: "2026-10-07",
+    items: [
+      "Languages: English or Slovenian, chosen per device in Settings > Appearance > Language. The app, the widget, its add card, reminders and other notifications follow it.",
+      "Comments can have pictures: paste one into the comment box.",
+      "Simple can also hide Productivity in the menu.",
+      "No \"+ Add task\" lines in the Inbox, projects and Upcoming in the app: the + button adds.",
+      "Calendar day list and Upcoming: tasks under their own day show just the time, not \"Today\" again.",
+      "Menu: Weekly review has its own icon; no keyboard hint beside Search.",
+      "Task window: the Event row has a simple icon like the others; no \">\" arrows on the rows; no \"drop files\" hint on the phone.",
+    ],
+    itemsSl: [
+      "Jeziki: angleščina ali slovenščina, za vsako napravo posebej v Nastavitve > Videz > Jezik. Sledijo mu aplikacija, pripomoček, njegova kartica za dodajanje, opomniki in druga obvestila.",
+      "Komentarji imajo lahko slike: prilepi jo v polje za komentar.",
+      "Preprosto lahko skrije tudi Produktivnost v meniju.",
+      "V aplikaciji ni več vrstic »+ Dodaj nalogo« v Prejeto, projektih in Prihajajoče: dodaja gumb +.",
+      "Seznam dneva na koledarju in Prihajajoče: naloge pod svojim dnem kažejo le uro, ne še enkrat »Danes«.",
+      "Meni: Tedenski pregled ima svojo ikono; ob Iskanju ni več namiga za tipkovnico.",
+      "Okno naloge: vrstica Dogodek ima preprosto ikono kot ostale; brez puščic »>« v vrsticah; na telefonu brez namiga »spusti datoteke«.",
+    ],
+  },
+  {
     build: 57,
     date: "2026-10-05",
     items: [

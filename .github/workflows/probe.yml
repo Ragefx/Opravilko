@@ -1,0 +1,51 @@
+name: Store probe (temporary)
+on:
+  push:
+    branches: [claude/great-ride-xt5fan]
+    paths: [".github/workflows/probe.yml"]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pip install -q curl_cffi playwright && python -m playwright install --with-deps chromium > /dev/null 2>&1
+      - name: Probe
+        shell: python3 {0}
+        run: |
+          import re, json
+          from curl_cffi import requests as R
+          s = R.Session(impersonate="chrome")
+          js = s.get("https://online.spar.si/_next/static/chunks/53427-3ad39a3ab20cc096.js", timeout=30).text
+          for m in list(re.finditer(r'headers|api/v3', js))[:6]:
+            print("CHUNK …", re.sub(r"\s+", " ", js[max(0, m.start()-300):m.start()+300]))
+          from playwright.sync_api import sync_playwright
+          seen = []
+          with sync_playwright() as p:
+            b = p.chromium.launch()
+            pg = b.new_page(locale="sl-SI")
+            def on_req(req):
+              if "instaleap" in req.url and req.method == "POST":
+                body = req.post_data or ""
+                op = re.search(r'"operationName":"(\w+)"', body)
+                hs = {k: v[:60] for k, v in req.headers.items() if k.lower() not in ("user-agent", "accept-language", "sec-ch-ua", "sec-ch-ua-platform", "sec-ch-ua-mobile", "referer", "accept", "content-length")}
+                seen.append(op.group(1) if op else "?")
+                if op and re.search(r"Product|Categor|Promo|Search", op.group(1)) and len(seen) < 40:
+                  print("REQ", req.url, op.group(1), json.dumps(hs))
+                  print("   VARS", re.sub(r'"query":"(?:[^"\\]|\\.)*",?', "", body)[:500])
+                  print("   QUERY", (json.loads(body).get("query") or "")[:1200].replace("\n", " "))
+            def on_res(res):
+              if "instaleap" in res.url and res.request.method == "POST":
+                try: t = res.text()
+                except Exception: return
+                if '"price"' in t or '"name"' in t:
+                  print("RES", res.status, len(t), t[:900])
+            pg.on("request", on_req); pg.on("response", on_res)
+            pg.goto("https://online.spar.si/aktualno/iz-letaka/S17/S17-1", wait_until="networkidle", timeout=90000)
+            pg.wait_for_timeout(5000)
+            for _ in range(4):
+              pg.mouse.wheel(0, 4000); pg.wait_for_timeout(1500)
+            print("OPS", seen)
+            txt = pg.inner_text("body")
+            print("BODY", re.sub(r"\s+", " ", txt)[:800])
+            b.close()

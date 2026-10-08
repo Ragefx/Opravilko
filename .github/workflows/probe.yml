@@ -1,0 +1,43 @@
+name: Store probe (temporary)
+on:
+  push:
+    branches: [claude/great-ride-xt5fan]
+    paths: [".github/workflows/probe.yml"]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe
+        shell: python3 {0}
+        run: |
+          import re, urllib.request, ssl
+          URLS = [
+            "https://www.hofer.si/sl/ponudba.html",
+            "https://www.hofer.si/sl/",
+            "https://www.lidl.si/",
+            "https://www.lidl.si/c/akcijska-ponudba/a10011452",
+            "https://www.spar.si/",
+            "https://www.spar.si/online/",
+            "https://www.tus.si/",
+            "https://www.tus.si/aktualno/akcije/",
+            "https://www.tus.si/katalogi/",
+          ]
+          UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
+          for u in URLS:
+            print("\n=====", u)
+            try:
+              r = urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": UA, "Accept-Language": "sl"}), timeout=30)
+              b = r.read().decode("utf-8", "replace")
+              print("status", r.status, "final", r.url, "len", len(b))
+            except Exception as e:
+              print("ERR", e); continue
+            t = re.search(r"<title>(.*?)</title>", b, re.S)
+            print("title", t and t.group(1).strip()[:100])
+            links = sorted(set(re.findall(r'(?:href|src|data-[a-z-]+)="([^"]*(?:akcij|ponudb|letak|katalog|flyer|leaflet|api|json|graphql|offer|sale|popust)[^"]*)"', b, re.I)))
+            for l in links[:60]: print("  link", l[:200])
+            apis = sorted(set(re.findall(r'https?://[a-zA-Z0-9.-]*(?:api|search|endpoint|leaflet|flyer)[a-zA-Z0-9.-]*\.[a-z]+[^"\'\s<>]{0,120}', b)))
+            for a in apis[:30]: print("  api", a)
+            for m in list(re.finditer(r"€", b))[:6]:
+              s = re.sub(r"<[^>]+>", " ", b[max(0,m.start()-250):m.start()+60]); print("  price…", re.sub(r"\s+"," ",s)[-200:])

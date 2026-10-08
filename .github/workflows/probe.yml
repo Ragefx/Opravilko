@@ -18,42 +18,27 @@ jobs:
           s = R.Session(impersonate="chrome")
           def get(u):
             try:
-              r = s.get(u, timeout=30, headers={"Accept-Language": "sl-SI,sl;q=0.9"}); print("##", u, r.status_code, r.url, len(r.text)); return r.text if r.ok else None
+              r = s.get(u, timeout=30, headers={"Accept-Language": "sl-SI,sl;q=0.9"}); print("##", u, r.status_code, len(r.text)); return r.text if r.ok else None
             except Exception as e: print("##", u, "ERR", e)
-          def ctx(b, pat, n=3, w=600):
-            for m in list(re.finditer(pat, b))[:n]: print("   …", re.sub(r"\s+"," ",b[max(0,m.start()-w//2):m.start()+w//2]))
-          print("\n===== HOFER")
-          for u in ["https://www.hofer.si/posebna-ponudba/2026-10-08", "https://www.hofer.si/izdelki/pregled-posebne-ponudbe/k/1588161418378530"]:
-            b = get(u)
-            if not b: continue
-            for k in ["product-tile", "base-price", "price", "__NUXT__", "__NEXT_DATA__", "application/ld+json", "strikethrough", "regular", "€"]: print(" ", k, b.count(k))
-            ctx(b, r'product-tile', 2, 2500)
-            print(sorted(set(re.findall(r'https?://[a-zA-Z0-9.-]*(?:api|search)[a-zA-Z0-9.-]*[^"\'\s<>\\]{0,80}', b)))[:15])
-          print("\n===== SPAR www")
-          b = get("https://www.spar.si/")
-          if b:
-            print(sorted(set(re.findall(r'href="([^"]*(?:akcij|letak|ponudb|katalog)[^"]*)"', b)))[:30])
-          print("\n===== SPAR online js")
+          print("\n===== HOFER tile")
+          b = get("https://www.hofer.si/izdelki/pregled-posebne-ponudbe/k/1588161418378530")
+          tiles = re.split(r'<div id="product-tile-', b or "")[1:]
+          print("tiles", len(tiles))
+          for t in tiles[:3] + [x for x in tiles if "regular" in x][:2]:
+            t = re.sub(r'<svg.*?</svg>', '', t, flags=re.S); t = re.sub(r'(srcset|src|sizes|onerror|style)="[^"]*"', '', t)
+            print("   TILE", re.sub(r"\s+"," ",t[:2500]))
+          print("pages:", sorted(set(re.findall(r'href="([^"]*\?page=\d+[^"]*)"', b or "")))[:5], b.count("page=") if b else 0)
+          print("\n===== SPAR categories")
           b = get("https://online.spar.si/akcije")
           if b:
-            srcs = sorted(set(re.findall(r'src="(/_next/static/[^"]+\.js)"', b)))
-            print(len(srcs))
-            found = set()
-            for sr in srcs:
-              try: js = s.get("https://online.spar.si" + sr, timeout=30).text
-              except Exception: continue
-              for m in re.findall(r'https?://[a-zA-Z0-9.-]+(?:/[a-zA-Z0-9_./-]*)?', js):
-                if re.search(r'api|graphql|instaleap|search', m) and m not in found:
-                  found.add(m); print("  ", sr[-30:], m)
-              if "graphql" in js and "akcij" in js.lower(): print("  graphql+akcij in", sr)
-            ctx(b, r'akcije', 2, 800)
-          print("\n===== TUS katalog")
-          b = get("https://www.tus.si/aktualno/akcijska-ponudba/aktualno-iz-kataloga")
-          if b:
-            print("Redna", b.count("Redna cena"), sorted(set(re.findall(r'href="([^"]*/page/\d+/?[^"]*)"', b)))[:10])
-          print("\n===== LIDL one food tile")
-          b = get("https://www.lidl.si/c/super-ponudba-od-cetrtka/a10104430")
-          for t in re.findall(r'data-grid-data="([^"]+)"', b or ""):
-            d = json.loads(H.unescape(t))
-            if (d.get("keyfacts") or {}).get("analyticsCategory") == "Food" and "oldPrice" in json.dumps(d.get("price")):
-              print(json.dumps({k: d.get(k) for k in ["fullTitle","price","storeStartDate","storeEndDate","canonicalUrl","image","ribbons","stockAvailability"]}, ensure_ascii=False)[:2000]); break
+            u = b.replace('\\"', '"')
+            for m in re.finditer(r'"categoryNamesPath":"(/AKTUALNO[^"]*)".{0,400}?"reference":"([^"]+)".{0,200}?"slug":"([^"]+)"', u):
+              print("  ", m.group(1), m.group(2), m.group(3))
+            for k in ["storeReference", "storeId", "\"store\"", "clientId"]:
+              for m in list(re.finditer(k, u))[:2]: print("   ", k, "…", u[m.start()-80:m.start()+160])
+          print("\n===== SPAR chunk queries")
+          js = s.get("https://online.spar.si/_next/static/chunks/53427-3ad39a3ab20cc096.js", timeout=30).text
+          print(len(js))
+          for m in list(re.finditer(r'(?:query|mutation)\s+([A-Za-z]+)\s*\(', js))[:60]: print("  op", m.group(1))
+          for m in list(re.finditer(r'getProductsByCategor|searchProducts|getProducts', js))[:3]:
+            print("   …", js[m.start()-200:m.start()+1200])

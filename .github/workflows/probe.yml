@@ -16,27 +16,26 @@ jobs:
           import re, json, collections
           from curl_cffi import requests as R
           s = R.Session(impersonate="chrome")
-          def get(u):
-            r = s.get(u, timeout=30, headers={"Accept-Language": "sl-SI,sl;q=0.9"}); print("##", u, r.status_code, len(r.text)); return r.text
-          print("== HOFER price classes")
-          c = collections.Counter()
+          out = []
+          c = collections.Counter(); ex = []
           for p in range(1, 4):
-            b = get(f"https://www.hofer.si/izdelki/pregled-posebne-ponudbe/k/1588161418378530?page={p}")
+            b = s.get(f"https://www.hofer.si/izdelki/pregled-posebne-ponudbe/k/1588161418378530?page={p}", timeout=30).text
             c.update(re.findall(r'class="(base-price__[a-z_-]+)', b))
-            for m in list(re.finditer(r'base-price__(?!regular|discount-tag__wrapper)[a-z_-]+', b))[:2]:
-              print("  ", re.sub(r"<!--.*?-->", "", b[m.start()-40:m.start()+300]))
-          print(c)
-          print("== SPAR category page")
-          b = get("https://online.spar.si/aktualno/iz-letaka/S17/S17-1")
+            for m in re.finditer(r'class="base-price__(?!regular|discount-tag__wrapper)[a-z_-]+', b):
+              if len(ex) < 2: ex.append(re.sub(r"<!--.*?-->|\s+", " ", b[m.start():m.start()+250]))
+          out.append("HOFER " + json.dumps(c)); out += ["  EX " + e for e in ex]
+          b = s.get("https://online.spar.si/aktualno/iz-letaka/S17/S17-1", timeout=30).text
           u = b.replace('\\"', '"')
-          for k in ['"price"', '"promotion"', '"name"', '"sku"', '"specialPrice"', '"conditions"']: print(k, u.count(k))
-          m = re.search(r'"sku"', u)
-          if m: print("  …", u[m.start()-600:m.start()+1400])
-          print("== SPAR chunks with product queries")
+          out.append("SPAR page " + str(len(b)) + " " + str({k: u.count(k) for k in ['"price"', '"promotion"', '"sku"', '"specialPrice"']}))
           srcs = sorted(set(re.findall(r'src="(/_next/static/[^"]+\.js)"', b)))
+          ops = set(); bodies = []
           for sr in srcs:
             js = s.get("https://online.spar.si" + sr, timeout=30).text
-            for m in re.finditer(r'(?:query|mutation) (\w*[Pp]roduct\w*)\(', js):
-              print("  ", sr[-35:], m.group(1)); 
-            m = re.search(r'query \w*[Pp]roductsBy\w*\(', js) or re.search(r'query \w*[Ss]earch\w*\(', js)
-            if m: print("    BODY", js[m.start():m.start()+1500].replace("\\n"," "))
+            for m in re.finditer(r'query (\w+)\(', js):
+              ops.add(m.group(1))
+              if re.search(r'ProductsBy|Search|Category', m.group(1)) and len(bodies) < 3:
+                body = js[m.start():m.start()+900]
+                bodies.append(re.sub(r"\s+", " ", body.replace("\\n", " ")))
+          out.append("SPAR ops " + " ".join(sorted(ops)))
+          out += ["  Q " + q for q in bodies]
+          print("\n".join(out))

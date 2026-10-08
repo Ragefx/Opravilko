@@ -9,46 +9,54 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - run: pip install -q curl_cffi
       - name: Probe
         shell: python3 {0}
         run: |
-          import re, urllib.request, html as H
-          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "sl-SI,sl;q=0.9,en;q=0.8"}
-          def get(u, h=UA):
+          import re, json, html as H
+          from curl_cffi import requests as R
+          s = R.Session(impersonate="chrome")
+          def get(u):
             try:
-              r = urllib.request.urlopen(urllib.request.Request(u, headers=h), timeout=30)
-              b = r.read().decode("utf-8", "replace"); print("##", u, r.status, r.url, len(b)); return b
-            except urllib.error.HTTPError as e:
-              b = e.read().decode("utf-8","replace"); print("##", u, "HTTP", e.code, dict(e.headers).get("Server"), re.sub(r"\s+"," ",b[:300])); return None
-            except Exception as e:
-              print("##", u, "ERR", e); return None
-          def ctx(b, pat, n=5, w=300):
-            for m in list(re.finditer(pat, b))[:n]:
-              print("   …", re.sub(r"\s+"," ",H.unescape(b[max(0,m.start()-w//2):m.start()+w//2])))
-          print("\n===== LIDL")
-          b = get("https://www.lidl.si/c/super-ponudba-od-cetrtka/a10104430")
+              r = s.get(u, timeout=30, headers={"Accept-Language": "sl-SI,sl;q=0.9"}); print("##", u, r.status_code, r.url, len(r.text)); return r.text if r.ok else None
+            except Exception as e: print("##", u, "ERR", e)
+          def ctx(b, pat, n=3, w=600):
+            for m in list(re.finditer(pat, b))[:n]: print("   …", re.sub(r"\s+"," ",b[max(0,m.start()-w//2):m.start()+w//2]))
+          print("\n===== HOFER")
+          for u in ["https://www.hofer.si/sl/ponudba.html", "https://www.hofer.si/"]:
+            b = get(u)
+            if b:
+              print(sorted(set(re.findall(r'href="([^"]*(?:ponudb|akcij|letak)[^"]*)"', b)))[:40]); ctx(b, "€", 3)
+          print("\n===== SPAR /akcije")
+          b = get("https://online.spar.si/akcije")
           if b:
-            print("fullTitle count", b.count("fullTitle"), "oldPrice", b.count("oldPrice"), "data-grid-data", b.count("data-grid-data"))
-            ctx(b, "fullTitle", 2, 1500)
-          print("\n===== TUS")
+            for k in ["\\\"price\\\"", "promotion", "\\\"name\\\"", "listPrice", "salePrice", "discount", "__NEXT_DATA__", "apollo", "graphql"]:
+              print(k, b.count(k))
+            ctx(b, r'listPrice|salePrice|promotion', 3, 1200)
+            print(sorted(set(re.findall(r'https?://[a-zA-Z0-9.-]*(?:api|graphql|instaleap)[^"\'\s<>\\]*', b)))[:20])
+          print("\n===== LIDL tiles")
+          home = get("https://www.lidl.si/")
+          pages = sorted(set(re.findall(r'href="((?:https://www\.lidl\.si)?/c/[^"]+/[as]\d+)"', home or "")))
+          print(pages)
+          for p in pages[:12]:
+            u = p if p.startswith("http") else "https://www.lidl.si" + p
+            b = get(u)
+            if not b: continue
+            tiles = re.findall(r'data-grid-data="([^"]+)"', b)
+            n = 0
+            for t in tiles:
+              try: d = json.loads(H.unescape(t))
+              except Exception as e: print("bad", e); continue
+              items = d if isinstance(d, list) else [d]
+              for it in items:
+                pr = it.get("price") or {}
+                if n < 4: print("   ", it.get("fullTitle"), "|", pr.get("price"), "|", pr.get("oldPrice"), "|", (pr.get("discount") or {}).get("discountText"), "|", it.get("storeStartDate"), it.get("storeEndDate"), "|", (it.get("keyfacts") or {}).get("analyticsCategory"))
+                n += 1
+            print("  tiles", n)
+          print("\n===== TUS pages")
           b = get("https://www.tus.si/aktualno/akcijska-ponudba/")
           if b:
-            print("€ count", b.count("€"))
-            ctx(b, "€", 3, 900)
-            print(sorted(set(re.findall(r'https?://[^"\'\s<>]*(?:api|ajax|json|wp-json)[^"\'\s<>]*', b)))[:20])
-          print("\n===== SPAR ONLINE")
-          b = get("https://online.spar.si/")
-          if b:
-            print(sorted(set(re.findall(r'["\'](/[^"\']*akci[^"\']*)["\']', b)))[:20])
-            print(sorted(set(re.findall(r'https?://[a-zA-Z0-9.-]+', b)))[:60])
-            ctx(b, "akcij", 3, 400)
-          b = get("https://online.spar.si/akcije")
-          print("\n===== HOFER")
-          for u in ["https://www.hofer.si/sl/ponudba.html", "https://www.hofer.si/", "https://hofer.si/", "https://www.hofer.si/robots.txt", "https://www.hofer.si/sitemap.xml"]:
-            b = get(u)
-            if b: print(b[:1500])
-          print("\n===== SPAR WWW")
-          for u in ["https://www.spar.si/robots.txt", "https://www.spar.si/aktualno/akcije"]:
-            b = get(u)
-            if b: print(b[:800])
+            print("h3", len(re.findall(r"<h3>", b)), "Redna", b.count("Redna cena"))
+            print(sorted(set(re.findall(r'href="([^"]*(?:page|stran|paged)[^"]*)"', b)))[:20])
+            ctx(b, "load-more|pagination|data-page|data-max", 3, 400)
+            ctx(b, "velja|Velja|do \\d", 2, 300)

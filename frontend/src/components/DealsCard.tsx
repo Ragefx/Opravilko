@@ -47,7 +47,7 @@ export default function DealsCard({
   onAddMeal: (m: MealDeal) => void;
   onAddItem: (name: string, shop: string) => void;
 }) {
-  const data = useDeals();
+  const { data, error, loading } = useDeals();
   const [open, setOpen] = useState(readOpen);
   const [all, setAll] = useState(false);
   const [moreMeals, setMoreMeals] = useState(false);
@@ -62,7 +62,23 @@ export default function DealsCard({
     [onList, usual, deals]
   );
 
-  if (!data || deals.length === 0) return null;
+  if (loading) return null;
+  if (!data || deals.length === 0) {
+    // Say why, rather than leaving no trace of the card.
+    const why = error
+      ? error === "permission-denied"
+        ? tr("the database rules don't allow it yet (paste the new rules and publish them)", "pravila baze tega še ne dovolijo (prilepi nova pravila in jih objavi)")
+        : error
+      : !data
+        ? tr("no deals have been saved yet", "akcije še niso shranjene")
+        : tr("none are on this week", "ta teden ni nobene")
+    return (
+      <p className="deals-missing">
+        🏷️ {tr("Shop deals can't be shown: ", "Akcij trgovin ni mogoče prikazati: ")}
+        {why}
+      </p>
+    );
+  }
 
   function toggle() {
     const next = !open;

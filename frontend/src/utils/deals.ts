@@ -53,12 +53,25 @@ async function load(): Promise<DealsData | null> {
 const today = () => new Date().toLocaleDateString("sv-SE");
 
 /** This week's deals that haven't ended (and start within three days). */
-export function useDeals(enabled = true): DealsData | null {
-  const { data } = useQuery({ queryKey: ["deals"], queryFn: load, enabled, staleTime: 60 * 60 * 1000, retry: 1 });
-  if (!data) return null;
+export function useDeals(enabled = true): { data: DealsData | null; error: string | null; loading: boolean } {
+  const q = useQuery({
+    queryKey: ["deals"],
+    queryFn: load,
+    enabled,
+    staleTime: 60 * 60 * 1000,
+    retry: 1,
+    // A failed read (rules not published yet, offline) is tried again on return.
+    refetchOnWindowFocus: (query) => query.state.status === "error",
+  });
+  const error = q.error ? ((q.error as { code?: string }).code ?? String(q.error)) : null;
+  if (!q.data) return { data: null, error, loading: q.isLoading };
   const now = today();
   const soon = new Date(Date.now() + 3 * 86400000).toLocaleDateString("sv-SE");
-  return { ...data, deals: data.deals.filter((d) => (!d.t || d.t >= now) && (!d.f || d.f <= soon)) };
+  return {
+    data: { ...q.data, deals: q.data.deals.filter((d) => (!d.t || d.t >= now) && (!d.f || d.f <= soon)) },
+    error,
+    loading: false,
+  };
 }
 
 /** Not yet on: "from Thu". */

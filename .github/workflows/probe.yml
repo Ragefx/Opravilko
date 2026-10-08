@@ -12,32 +12,43 @@ jobs:
       - name: Probe
         shell: python3 {0}
         run: |
-          import re, urllib.request, ssl
-          URLS = [
-            "https://www.hofer.si/sl/ponudba.html",
-            "https://www.hofer.si/sl/",
-            "https://www.lidl.si/",
-            "https://www.lidl.si/c/akcijska-ponudba/a10011452",
-            "https://www.spar.si/",
-            "https://www.spar.si/online/",
-            "https://www.tus.si/",
-            "https://www.tus.si/aktualno/akcije/",
-            "https://www.tus.si/katalogi/",
-          ]
-          UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
-          for u in URLS:
-            print("\n=====", u)
+          import re, urllib.request, html as H
+          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "sl-SI,sl;q=0.9,en;q=0.8"}
+          def get(u, h=UA):
             try:
-              r = urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": UA, "Accept-Language": "sl"}), timeout=30)
-              b = r.read().decode("utf-8", "replace")
-              print("status", r.status, "final", r.url, "len", len(b))
+              r = urllib.request.urlopen(urllib.request.Request(u, headers=h), timeout=30)
+              b = r.read().decode("utf-8", "replace"); print("##", u, r.status, r.url, len(b)); return b
+            except urllib.error.HTTPError as e:
+              b = e.read().decode("utf-8","replace"); print("##", u, "HTTP", e.code, dict(e.headers).get("Server"), re.sub(r"\s+"," ",b[:300])); return None
             except Exception as e:
-              print("ERR", e); continue
-            t = re.search(r"<title>(.*?)</title>", b, re.S)
-            print("title", t and t.group(1).strip()[:100])
-            links = sorted(set(re.findall(r'(?:href|src|data-[a-z-]+)="([^"]*(?:akcij|ponudb|letak|katalog|flyer|leaflet|api|json|graphql|offer|sale|popust)[^"]*)"', b, re.I)))
-            for l in links[:60]: print("  link", l[:200])
-            apis = sorted(set(re.findall(r'https?://[a-zA-Z0-9.-]*(?:api|search|endpoint|leaflet|flyer)[a-zA-Z0-9.-]*\.[a-z]+[^"\'\s<>]{0,120}', b)))
-            for a in apis[:30]: print("  api", a)
-            for m in list(re.finditer(r"€", b))[:6]:
-              s = re.sub(r"<[^>]+>", " ", b[max(0,m.start()-250):m.start()+60]); print("  price…", re.sub(r"\s+"," ",s)[-200:])
+              print("##", u, "ERR", e); return None
+          def ctx(b, pat, n=5, w=300):
+            for m in list(re.finditer(pat, b))[:n]:
+              print("   …", re.sub(r"\s+"," ",H.unescape(b[max(0,m.start()-w//2):m.start()+w//2])))
+          print("\n===== LIDL")
+          b = get("https://www.lidl.si/c/super-ponudba-od-cetrtka/a10104430")
+          if b:
+            print("fullTitle count", b.count("fullTitle"), "oldPrice", b.count("oldPrice"), "data-grid-data", b.count("data-grid-data"))
+            ctx(b, "fullTitle", 2, 1500)
+          print("\n===== TUS")
+          b = get("https://www.tus.si/aktualno/akcijska-ponudba/")
+          if b:
+            print("€ count", b.count("€"))
+            ctx(b, "€", 3, 900)
+            print(sorted(set(re.findall(r'https?://[^"\'\s<>]*(?:api|ajax|json|wp-json)[^"\'\s<>]*', b)))[:20])
+          print("\n===== SPAR ONLINE")
+          b = get("https://online.spar.si/")
+          if b:
+            print(sorted(set(re.findall(r'["\'](/[^"\']*akci[^"\']*)["\']', b)))[:20])
+            print(sorted(set(re.findall(r'https?://[a-zA-Z0-9.-]+', b)))[:60])
+            ctx(b, "akcij", 3, 400)
+          b = get("https://online.spar.si/akcije")
+          print("\n===== HOFER")
+          for u in ["https://www.hofer.si/sl/ponudba.html", "https://www.hofer.si/", "https://hofer.si/", "https://www.hofer.si/robots.txt", "https://www.hofer.si/sitemap.xml"]:
+            b = get(u)
+            if b: print(b[:1500])
+          print("\n===== SPAR WWW")
+          for u in ["https://www.spar.si/robots.txt", "https://www.spar.si/aktualno/akcije"]:
+            b = get(u)
+            if b: print(b[:800])

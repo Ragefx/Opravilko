@@ -13,6 +13,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 59,
+    date: "2026-10-08",
+    items: [
+      "Shopping: an \"On sale\" card with this week's deals at Hofer, Lidl, Spar and Tuš that fit your meals and the things you usually buy. \"+ Add\" puts a meal on the list with each deal's shop; \"All deals\" lets you search them all. It can be hidden in Simple.",
+    ],
+    itemsSl: [
+      "Nakupi: kartica »V akciji« s tedenskimi akcijami Hoferja, Lidla, Spara in Tuša, ki ustrezajo tvojim obrokom in stvarem, ki jih običajno kupuješ. »+ Dodaj« doda obrok na seznam s trgovino vsake akcije; v »Vse akcije« lahko iščeš med vsemi. Skrije se lahko v Preprostem.",
+    ],
+  },
+  {
     build: 58,
     date: "2026-10-07",
     items: [

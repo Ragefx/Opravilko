@@ -11,4 +11,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: pip install -q curl_cffi
-      - run: python deals/fetch.py --dry 2>&1 | grep -v '"s": "Hofer"\|"s": "Lidl"\|"s": "Tuš"' | head -30
+      - run: |
+          python deals/fetch.py --dry 2>&1 | grep -v 'Hofer", "n\|Lidl", "n\|Tuš", "n' | head -30

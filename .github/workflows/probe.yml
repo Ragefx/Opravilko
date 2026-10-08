@@ -9,46 +9,29 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: pip install -q curl_cffi playwright && python -m playwright install --with-deps chromium > /dev/null 2>&1
+      - run: pip install -q curl_cffi
       - name: Probe
         shell: python3 {0}
         run: |
-          import re, json
+          import json
           from curl_cffi import requests as R
           s = R.Session(impersonate="chrome")
           API = "https://deadpool.unified-jennet.instaleap.io/api/v3"
           H = {"Origin": "https://online.spar.si", "Referer": "https://online.spar.si/", "content-type": "application/json",
                "dpl-api-key": "febe3691-edb4-498b-b1a6-d6fe1ddd068e", "apollographql-client-name": "e-commerce Moira Engine client SPAR_SLOVENIA",
                "apollographql-client-version": "0.19.358", "client-name": "e-commerce Moira Engine SPAR_SLOVENIA", "client-version": "0.19.358"}
-          inp = {"categoryReference": "S17-1", "clientId": "SPAR_SLOVENIA", "storeReference": "81701", "currentPage": 1, "pageSize": 3}
-          r = s.post(API, headers=H, json={"operationName": "G", "query": "query G($i: GetProductsByCategoryInput!) { getProductsByCategory(getProductsByCategoryInput: $i) { category { name products { name sku price } } } }", "variables": {"i": inp}}, timeout=30)
-          print("DIRECT", r.status_code, r.text[:800])
-          from playwright.sync_api import sync_playwright
-          with sync_playwright() as p:
-            b = p.chromium.launch()
-            pg = b.new_page(locale="sl-SI")
-            def on_req(req):
-              if "instaleap" not in req.url or req.method != "POST": return
-              try:
-                body = json.loads(req.post_data or "null")
-              except Exception: return
-              for op in (body if isinstance(body, list) else [body]):
-                name = op.get("operationName")
-                print("OP", name, json.dumps(op.get("variables"))[:300])
-                if name and name not in ("GetCategoryTree",) and re.search(r"Product|Promo|Search|Home|Categ", name):
-                  print("   QUERY", re.sub(r"\s+", " ", op.get("query") or "")[:1500])
-            pg.on("request", on_req)
-            pg.goto("https://online.spar.si/akcije", wait_until="networkidle", timeout=90000)
-            pg.wait_for_timeout(3000)
-            for _ in range(5):
-              pg.mouse.wheel(0, 3000); pg.wait_for_timeout(1200)
-            more = pg.get_by_text("Poglej več")
-            print("MORE", more.count())
-            if more.count():
-              try:
-                with pg.expect_navigation(timeout=20000): more.first.click()
-              except Exception as e: print("nav", e)
-              pg.wait_for_timeout(5000); print("URL", pg.url)
-              for _ in range(3):
-                pg.mouse.wheel(0, 3000); pg.wait_for_timeout(1200)
-            b.close()
+          def q(fields, size=3, ref="S17-1"):
+            inp = {"categoryReference": ref, "clientId": "SPAR_SLOVENIA", "storeReference": "81701", "currentPage": 1, "pageSize": size}
+            r = s.post(API, headers=H, json={"query": "query G($i: GetProductsByCategoryInput!) { getProductsByCategory(getProductsByCategoryInput: $i) { category { name products { " + fields + " } } } }", "variables": {"i": inp}}, timeout=30)
+            print("==", fields[:80], "->", r.status_code, r.text[:900]); return r
+          q("name price promotion { type }")
+          q("name price promotion { type description conditions { price quantity } }")
+          q("name price promotion { type description startDateTime endDateTime conditions { price priceBeforeTaxes quantity } } unit")
+          q("name price specialPrice promotions { type }")
+          q("name price promotions { type description conditions { price } endDateTime }")
+          q("name price stock unit slug photosUrl")
+          r = q("sku", 500)
+          try: print("COUNT", len(r.json()["data"]["getProductsByCategory"]["category"]["products"]))
+          except Exception as e: print("count err", e)
+          r = s.post(API, headers=H, json={"query": "query G($i: GetProductsByCategoryInput!) { getProductsByCategory(getProductsByCategoryInput: $i) { pagination { total pages } category { name } } }", "variables": {"i": {"categoryReference": "S17-1", "clientId": "SPAR_SLOVENIA", "storeReference": "81701", "currentPage": 1, "pageSize": 50}}}, timeout=30)
+          print("PAG", r.text[:500])

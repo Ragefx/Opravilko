@@ -16,41 +16,39 @@ jobs:
           import re, json
           from curl_cffi import requests as R
           s = R.Session(impersonate="chrome")
+          API = "https://deadpool.unified-jennet.instaleap.io/api/v3"
+          H = {"Origin": "https://online.spar.si", "Referer": "https://online.spar.si/", "content-type": "application/json",
+               "dpl-api-key": "febe3691-edb4-498b-b1a6-d6fe1ddd068e", "apollographql-client-name": "e-commerce Moira Engine client SPAR_SLOVENIA",
+               "apollographql-client-version": "0.19.358", "client-name": "e-commerce Moira Engine SPAR_SLOVENIA", "client-version": "0.19.358"}
+          inp = {"categoryReference": "S17-1", "clientId": "SPAR_SLOVENIA", "storeReference": "81701", "currentPage": 1, "pageSize": 3}
+          r = s.post(API, headers=H, json={"operationName": "G", "query": "query G($i: GetProductsByCategoryInput!) { getProductsByCategory(getProductsByCategoryInput: $i) { category { name products { name sku price } } } }", "variables": {"i": inp}}, timeout=30)
+          print("DIRECT", r.status_code, r.text[:800])
           from playwright.sync_api import sync_playwright
-          seen = []
           with sync_playwright() as p:
             b = p.chromium.launch()
             pg = b.new_page(locale="sl-SI")
             def on_req(req):
-              if "instaleap" in req.url and req.method == "POST":
-                body = req.post_data or ""
-                op = re.search(r'"operationName":"(\w+)"', body)
-                hs = {k: v[:60] for k, v in req.headers.items() if k.lower() not in ("user-agent", "accept-language", "sec-ch-ua", "sec-ch-ua-platform", "sec-ch-ua-mobile", "referer", "accept", "content-length")}
-                seen.append(op.group(1) if op else "?")
-                if op and re.search(r"Product|Categor|Promo|Search", op.group(1)) and len(seen) < 40:
-                  print("REQ", req.url, op.group(1), json.dumps(hs))
-                  print("   VARS", re.sub(r'"query":"(?:[^"\\]|\\.)*",?', "", body)[:500])
-                  print("   QUERY", (json.loads(body).get("query") or "")[:1200].replace("\n", " "))
-            def on_res(res):
-              if "instaleap" in res.url and res.request.method == "POST":
-                try: t = res.text()
-                except Exception: return
-                if '"price"' in t or '"name"' in t:
-                  print("RES", res.status, len(t), t[:900])
-            pg.on("request", on_req); pg.on("response", on_res)
+              if "instaleap" not in req.url or req.method != "POST": return
+              try:
+                body = json.loads(req.post_data or "null")
+              except Exception: return
+              for op in (body if isinstance(body, list) else [body]):
+                name = op.get("operationName")
+                print("OP", name, json.dumps(op.get("variables"))[:300])
+                if name and name not in ("GetCategoryTree",) and re.search(r"Product|Promo|Search|Home|Categ", name):
+                  print("   QUERY", re.sub(r"\s+", " ", op.get("query") or "")[:1500])
+            pg.on("request", on_req)
             pg.goto("https://online.spar.si/akcije", wait_until="networkidle", timeout=90000)
-            pg.get_by_text("Dovoli vse").first.click(timeout=5000) if pg.get_by_text("Dovoli vse").count() else None
             pg.wait_for_timeout(3000)
-            print("OPS1", seen)
-            links = pg.eval_on_selector_all("a", "els => els.map(e => e.getAttribute('href')).filter(h => h && /letak|akcij|S17/i.test(h))")
-            print("LINKS", sorted(set(links))[:30])
-            target = next((l for l in links if "letak" in l.lower() and "dom" not in l.lower()), None)
-            if target:
-              pg.goto("https://online.spar.si" + target if target.startswith("/") else target, wait_until="networkidle", timeout=90000)
-              pg.wait_for_timeout(5000)
-            for _ in range(4):
-              pg.mouse.wheel(0, 4000); pg.wait_for_timeout(1500)
-            print("OPS", seen)
-            txt = pg.inner_text("body")
-            print("BODY", re.sub(r"\s+", " ", txt)[:800])
+            for _ in range(5):
+              pg.mouse.wheel(0, 3000); pg.wait_for_timeout(1200)
+            more = pg.get_by_text("Poglej več")
+            print("MORE", more.count())
+            if more.count():
+              try:
+                with pg.expect_navigation(timeout=20000): more.first.click()
+              except Exception as e: print("nav", e)
+              pg.wait_for_timeout(5000); print("URL", pg.url)
+              for _ in range(3):
+                pg.mouse.wheel(0, 3000); pg.wait_for_timeout(1200)
             b.close()

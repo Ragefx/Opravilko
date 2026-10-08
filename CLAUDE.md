@@ -134,6 +134,13 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 - Shopping: `components/ShoppingView.tsx`, `utils/shopping.ts`.
   - Meals, a shop per item, "@shop" in a typed line.
   - The widget has matching logic in `widget/ShoppingLogic.java`.
+- Shop deals ("On sale" card on Shopping, `components/DealsCard.tsx`,
+  `utils/deals.ts`): `.github/workflows/deals.yml` runs `deals/fetch.py`
+  twice a day on GitHub (the shops block this container; GitHub's machines
+  can read them with curl_cffi's Chrome look) and saves `deals/current` in
+  Firestore. Hofer (special offers), Lidl (food tiles' JSON), Tuš (akcijska
+  ponudba + katalog). Spar isn't read: its shop's product service refuses
+  outside visitors. Matching: word stems, English names mapped (`EN_SL`).
 - Widget add card (task and shopping): `widget/QuickAddActivity.java`,
   `res/layout/widget_quick_add.xml`.
 - Sync with Firestore: `src/firebase/sync.ts`.

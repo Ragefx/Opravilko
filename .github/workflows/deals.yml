@@ -1,0 +1,36 @@
+name: Shop deals
+
+# Twice a day, reads this week's deals at Hofer, Lidl and Tuš
+# (deals/fetch.py) and saves them to Firestore (deals/current) for the
+# Shopping page. Needs the FIREBASE_SERVICE_ACCOUNT secret; without it the
+# run only prints what it found.
+on:
+  schedule:
+    - cron: "23 4,14 * * *" # about 6:20 and 16:20 in Ljubljana
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["deals/**", ".github/workflows/deals.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deals
+  cancel-in-progress: false
+
+jobs:
+  deals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q curl_cffi google-auth requests
+      - name: Read the shops' deals
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then python deals/fetch.py; else python deals/fetch.py --dry; fi

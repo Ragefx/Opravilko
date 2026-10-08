@@ -153,6 +153,13 @@ service cloud.firestore {
       }
     }
 
+    // This week's shop deals, written twice a day by the deals workflow
+    // (with the service account, which these rules don't apply to).
+    match /deals/{doc} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     match /meta/storage {
       allow read: if signedIn();
       allow create, update: if signedIn()

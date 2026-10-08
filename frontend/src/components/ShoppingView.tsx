@@ -38,6 +38,7 @@ import { useCompleteAnimation } from "./useCompleteAnimation";
 import PickSheet from "./PickSheet";
 import Select from "./Select";
 import ShopPlacesSheet from "./ShopPlacesSheet";
+import DealsCard from "./DealsCard";
 import { useHidden } from "../utils/simple";
 import { appUi } from "../utils/appUi";
 import { callHelper, helperReady } from "../utils/helper";
@@ -196,6 +197,8 @@ export default function ShoppingView({
   const hideShops = useHidden("shops");
   const hideSuggestions = useHidden("suggestions");
   const hideShopReminder = useHidden("shopReminder");
+  const hideDeals = useHidden("deals");
+  const dealMeals = useMemo(() => (hideMeals ? [] : allMeals(listMeals ?? customMeals())), [hideMeals, listMeals]);
   // A recipe's web address shared to the list: opens a new meal read from it.
   const [recipeLink, setRecipeLink] = useState<string | null>(null);
   // The shop what you add now is for ("" for any).
@@ -474,6 +477,38 @@ export default function ShoppingView({
           </div>
         )}
 
+        {!hideDeals && (
+          <DealsCard
+            meals={dealMeals}
+            usual={usual}
+            onList={open.map((t) => parseItem(t.content).name)}
+            onAddMeal={async ({ meal, onSale }) => {
+              const servings = 2;
+              const list = meal.ingredients.map((ing) => {
+                const sale = onSale.find((x) => x.ing === ing);
+                return { ...scaled(ing, servings), ...(sale ? { store: sale.deal.s } : {}) };
+              });
+              const undo = await addItems(list, meal.name);
+              showToast({
+                message: tr(
+                  `Added ${list.length} ingredients for ${meal.name} (${servings})`,
+                  `Dodane sestavine za ${meal.name} (${servings}): ${list.length}`
+                ),
+                actionLabel: tr("Undo", "Razveljavi"),
+                onAction: undo,
+              });
+            }}
+            onAddItem={async (name, shop) => {
+              const undo = await addItems([parseItem(name)], undefined, shop);
+              showToast({
+                message: tr(`Added ${name} (${shop})`, `Dodano: ${name} (${shop})`),
+                actionLabel: tr("Undo", "Razveljavi"),
+                onAction: undo,
+              });
+            }}
+          />
+        )}
+
         {open.length === 0 && ticked.length === 0 && (
           <p className="shopping-empty">
             {hideMeals
@@ -658,6 +693,12 @@ export default function ShoppingView({
       )}
     </div>
   );
+}
+
+/** Your own meals, then the built-in ones (with your changes to them). */
+function allMeals(mine: Meal[]): Meal[] {
+  const builtinIds = new Set(BUILTIN_MEALS.map((m) => m.id));
+  return [...mine.filter((m) => !builtinIds.has(m.id)), ...BUILTIN_MEALS.map((b) => mine.find((m) => m.id === b.id) ?? b)];
 }
 
 function ShoppingRow({
@@ -1039,7 +1080,7 @@ function MealPicker({
   const [showHidden, setShowHidden] = useState(false);
   const builtinIds = new Set(BUILTIN_MEALS.map((m) => m.id));
   const mineIds = new Set(mine.map((m) => m.id));
-  const all = [...mine.filter((m) => !builtinIds.has(m.id)), ...BUILTIN_MEALS.map((b) => mine.find((m) => m.id === b.id) ?? b)];
+  const all = allMeals(mine);
   const meals = all.filter((m) => !m.hidden);
   const hidden = all.filter((m) => m.hidden);
 

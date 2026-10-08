@@ -12,6 +12,7 @@ export type SimpleItem =
   | "shops"
   | "shopReminder"
   | "suggestions"
+  | "deals"
   | "deadline"
   | "labels"
   | "location"
@@ -25,6 +26,7 @@ export const SIMPLE_ITEMS: { key: SimpleItem; label: string }[] = [
   { key: "shops", label: tr("Shopping: the Shop button", "Nakupi: gumb Trgovina") },
   { key: "shopReminder", label: tr("Shopping: Remind me at the shop", "Nakupi: Opomni me v trgovini") },
   { key: "suggestions", label: tr("Shopping: suggested items", "Nakupi: predlagani artikli") },
+  { key: "deals", label: tr("Shopping: On sale (shop deals)", "Nakupi: V akciji (akcije trgovin)") },
   { key: "deadline", label: tr("Task: deadline", "Naloga: rok") },
   { key: "labels", label: tr("Task: labels", "Naloga: oznake") },
   { key: "location", label: tr("Task: location", "Naloga: lokacija") },

@@ -3367,6 +3367,231 @@ kbd {
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
+/* Shopping: "On sale" (this week's shop deals for your meals and items). */
+.deals-card {
+  margin: 0 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.deals-head,
+.deals-more,
+.deals-all-btn {
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.deals-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--color-text);
+}
+.deals-head-icon {
+  font-size: 18px;
+}
+.deals-head-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.deals-sub {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.deals-chevron {
+  display: flex;
+  color: var(--color-text-secondary);
+  transform: rotate(-90deg);
+  transition: transform 0.15s;
+}
+.deals-card.is-open .deals-chevron {
+  transform: none;
+}
+.deals-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 10px;
+}
+.deals-meal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border);
+}
+.deals-meal-main {
+  flex: 1;
+  min-width: 0;
+}
+.deals-meal-name {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.deals-meal-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.deals-tag b,
+.deals-item b,
+.deals-row-price b {
+  color: var(--color-text);
+  margin-left: 3px;
+}
+.deals-pct {
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, #e5484d 14%, transparent);
+  color: #d4383d;
+  font-weight: 600;
+  font-size: 12px;
+}
+.deals-from {
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--color-accent);
+}
+.deals-shop {
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.deals-shop::before {
+  content: "· ";
+}
+.btn.deals-add {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+.deals-more,
+.deals-all-btn {
+  padding: 0;
+  align-self: flex-start;
+  color: var(--color-accent);
+  font-size: 14px;
+}
+.deals-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+.deals-item {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+button.deals-item:hover {
+  border-color: var(--color-accent);
+}
+.deals-item.is-listed {
+  border-style: dashed;
+}
+.deals-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+.deals-updated {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.modal.deals-modal {
+  width: 520px;
+  max-height: min(80vh, 720px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.deals-modal .settings-head {
+  margin-bottom: 0;
+}
+.deals-search {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+}
+.deals-search:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+.deals-shops {
+  margin: 0;
+}
+.deals-list {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.deals-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.deals-row-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+}
+.deals-row-text a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+.deals-size {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+.deals-row-price {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.deals-row-price b {
+  margin-left: 0;
+}
+.deals-old {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.deals-row-add {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  color: var(--color-accent);
+  font-size: 18px;
+}
+.deals-row-add:disabled {
+  color: var(--color-text-secondary);
+}
 /* Templates (reusable checklists) */
 .modal.templates-modal {
   width: 520px;

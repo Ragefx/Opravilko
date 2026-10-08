@@ -15,7 +15,7 @@ Build 58: English / Slovenian (app, widget, notifications), pictures in comments
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Shopping: "On sale" card with this week's deals at Hofer, Lidl and Tuš that fit your meals and usual items (+ Add puts a meal on the list with each deal's shop), and "All deals" to search them. Can be hidden in Simple. / Nakupi: kartica »V akciji« s tedenskimi akcijami Hoferja, Lidla in Tuša za tvoje obroke in običajne artikle (+ Dodaj doda obrok s trgovino vsake akcije) in »Vse akcije« za iskanje. Skrije se lahko v Preprostem.
 
 ## Known gaps
 

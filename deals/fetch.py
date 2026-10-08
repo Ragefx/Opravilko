@@ -1,4 +1,4 @@
-"""Reads this week's deals at Hofer, Lidl, Spar and Tuš and saves them to
+"""Reads this week's deals at Hofer, Lidl and Tuš (Spar: see below) and saves them to
 Firestore (deals/current), where the app's Shopping page finds them.
 
 Run by .github/workflows/deals.yml twice a day. Needs the repository secret
@@ -50,7 +50,7 @@ def day(ts):
 
 
 def deal(shop, name, price, old=None, pct=None, size=None, start=None, end=None, url=None):
-    name = re.sub(r"\s+", " ", html.unescape(name or "")).strip()
+    name = re.sub(r"\s+", " ", html.unescape(name or "")).strip().lstrip("-–• ").strip()
     if not name or not price:
         return None
     if old and old <= price:
@@ -81,7 +81,7 @@ def lidl():
                 t = json.loads(html.unescape(raw))
             except ValueError:
                 continue
-            if (t.get("keyfacts") or {}).get("analyticsCategory", "Food") != "Food":
+            if (t.get("keyfacts") or {}).get("analyticsCategory") != "Food":
                 continue
             pid = t.get("productId")
             if pid in seen:
@@ -177,13 +177,11 @@ def hofer():
     return out
 
 
-# ---- Spar: the online shop's "Iz letaka" (from the flyer) section ----
+# Spar: its online shop loads products from a service that refuses outside
+# visitors (INVALID_HEADERS), and www.spar.si sits behind a bot check, so
+# Spar isn't read yet.
 
-def spar():
-    return None  # filled in below once the shop's product feed is known
-
-
-SHOPS = {"Hofer": hofer, "Lidl": lidl, "Spar": spar, "Tuš": tus}
+SHOPS = {"Hofer": hofer, "Lidl": lidl, "Tuš": tus}
 
 
 def firestore_session():
@@ -221,7 +219,7 @@ def main():
             report[shop] = f"kept {len(found)}"
         else:
             report[shop] = len(found)
-        deals += found
+        deals += [d for d in found if not d.get("t") or d["t"] >= today]
     print(json.dumps(report, ensure_ascii=False))
     if dry:
         for d in deals[:15] + [d for d in deals if d.get("o")][:15]:

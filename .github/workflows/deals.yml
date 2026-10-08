@@ -1,6 +1,6 @@
 name: Shop deals
 
-# Twice a day, reads this week's deals at Hofer, Lidl and Tuš
+# Twice a day, reads this week's deals at Hofer, Lidl, Spar and Tuš
 # (deals/fetch.py) and saves them to Firestore (deals/current) for the
 # Shopping page. Needs the FIREBASE_SERVICE_ACCOUNT secret; without it the
 # run only prints what it found.

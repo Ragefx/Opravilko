@@ -6,7 +6,7 @@ import { isSl } from "../i18n";
 import type { Ingredient, Meal } from "./shopping";
 
 /**
- * This week's deals at Hofer, Lidl and Tuš (Spar can't be read yet). A GitHub Actions job
+ * This week's deals at Hofer, Lidl, Spar and Tuš. A GitHub Actions job
  * (.github/workflows/deals.yml, deals/fetch.py) reads the shops' deals pages
  * twice a day and writes them to deals/current; the Shopping page matches
  * them to your meals and usual items.

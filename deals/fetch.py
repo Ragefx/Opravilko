@@ -1,4 +1,4 @@
-"""Reads this week's deals at Hofer, Lidl and Tuš (Spar: see below) and saves them to
+"""Reads this week's deals at Hofer, Lidl, Spar and Tuš and saves them to
 Firestore (deals/current), where the app's Shopping page finds them.
 
 Run by .github/workflows/deals.yml twice a day. Needs the repository secret
@@ -177,11 +177,75 @@ def hofer():
     return out
 
 
-# Spar: its online shop loads products from a service that refuses outside
-# visitors (INVALID_HEADERS), and www.spar.si sits behind a bot check, so
-# Spar isn't read yet.
+# ---- Spar: the online shop's "Iz letaka" (from the flyer) section ----
+# The shop's product service (Instaleap) answers only with the labels its
+# own website sends; the key is the website's public one.
 
-SHOPS = {"Hofer": hofer, "Lidl": lidl, "Tuš": tus}
+SPAR_API = "https://deadpool.unified-jennet.instaleap.io/api/v3"
+SPAR_HEADERS = {
+    "Origin": "https://online.spar.si",
+    "Referer": "https://online.spar.si/",
+    "content-type": "application/json",
+    "dpl-api-key": "febe3691-edb4-498b-b1a6-d6fe1ddd068e",
+    "apollographql-client-name": "e-commerce Moira Engine client SPAR_SLOVENIA",
+    "apollographql-client-version": "0.19.358",
+    "client-name": "e-commerce Moira Engine SPAR_SLOVENIA",
+    "client-version": "0.19.358",
+}
+SPAR_QUERY = """query G($i: GetProductsByCategoryInput!) {
+  getProductsByCategory(getProductsByCategoryInput: $i) {
+    category { products { sku name price slug
+      promotion { startDateTime endDateTime conditions { price quantity } } } }
+  }
+}"""
+
+
+def spar_day(stamp):
+    if not stamp:
+        return None
+    return dt.datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(TZ).date().isoformat()
+
+
+def spar():
+    out, seen = [], set()
+    for page in range(1, 16):
+        r = web.post(SPAR_API, headers=SPAR_HEADERS, timeout=40, json={
+            "query": SPAR_QUERY,
+            "variables": {"i": {"categoryReference": "S17-1", "clientId": "SPAR_SLOVENIA",
+                                "storeReference": "81701", "currentPage": page, "pageSize": 200}},
+        })
+        if r.status_code != 200:
+            print(f"  Spar: HTTP {r.status_code} {r.text[:200]}", file=sys.stderr)
+            return out or None
+        body = r.json()
+        if body.get("errors"):
+            print(f"  Spar: {body['errors'][0].get('message')}", file=sys.stderr)
+            return out or None
+        products = (((body.get("data") or {}).get("getProductsByCategory") or {}).get("category") or {}).get("products") or []
+        fresh = [p for p in products if p.get("sku") not in seen]
+        for p in fresh:
+            seen.add(p.get("sku"))
+            promo = p.get("promotion") or {}
+            cond = next((c for c in promo.get("conditions") or [] if c.get("price")), None)
+            # SHOUTED NAMES ("MAJONEZA THOMY, 265G") read better as a sentence.
+            name = (p.get("name") or "").strip()
+            name = name[:1] + name[1:].lower() if name.isupper() else name
+            d = deal(
+                "Spar",
+                name,
+                cond["price"] if cond else p.get("price"),
+                old=p.get("price") if cond else None,
+                start=spar_day(promo.get("startDateTime")),
+                end=spar_day(promo.get("endDateTime")),
+            )
+            if d:
+                out.append(d)
+        if len(products) < 200 or not fresh:
+            break
+    return out
+
+
+SHOPS = {"Hofer": hofer, "Lidl": lidl, "Spar": spar, "Tuš": tus}
 
 
 def firestore_session():

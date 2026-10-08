@@ -29,8 +29,8 @@ function DealNote({ deal }: { deal: Deal }) {
 }
 
 /**
- * The Shopping page's "On sale" card: this week's deals at Hofer, Lidl and
- * Tuš that fit your meals and what you usually buy, plus all deals to search.
+ * The Shopping page's "On sale" card: this week's deals at Hofer, Lidl, Spar
+ * and Tuš that fit your meals and what you usually buy, plus all deals to search.
  */
 export default function DealsCard({
   meals,

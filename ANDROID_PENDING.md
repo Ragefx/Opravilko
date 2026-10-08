@@ -15,7 +15,7 @@ Build 59: Shopping "On sale" card with this week's deals at Hofer, Lidl, Spar an
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Shopping: when shop deals can't be shown, a short line says why. / Nakupi: ko akcij ni mogoče prikazati, kratka vrstica pove zakaj.
 
 ## Known gaps
 

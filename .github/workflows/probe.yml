@@ -2,29 +2,13 @@ name: Store probe (temporary)
 on:
   push:
     branches: [claude/great-ride-xt5fan]
-    paths: [".github/workflows/probe.yml"]
+    paths: [".github/workflows/probe.yml", "deals/**"]
 permissions:
   contents: read
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - run: pip install -q curl_cffi
-      - name: Probe
-        shell: python3 {0}
-        run: |
-          import json
-          from curl_cffi import requests as R
-          s = R.Session(impersonate="chrome")
-          API = "https://deadpool.unified-jennet.instaleap.io/api/v3"
-          H = {"Origin": "https://online.spar.si", "Referer": "https://online.spar.si/", "Content-Type": "application/json"}
-          def q(name, query, variables):
-            try:
-              r = s.post(API, headers=H, json={"operationName": name, "query": query, "variables": variables}, timeout=30)
-              print("==", name, r.status_code, r.text[:700])
-            except Exception as e: print("==", name, "ERR", e)
-          inp = {"categoryReference": "S17-1", "clientId": "SPAR_SLOVENIA", "storeReference": "81701", "currentPage": 1, "pageSize": 5}
-          q("GetProductsByCategory", "query GetProductsByCategory($getProductsByCategoryInput: GetProductsByCategoryInput!) { getProductsByCategory(getProductsByCategoryInput: $getProductsByCategoryInput) { category { name products { name sku price } } } }", {"getProductsByCategoryInput": inp})
-          q("T", "query T { __type(name: \"GetProductsByCategoryInput\") { inputFields { name type { name kind ofType { name } } } } }", {})
-          q("T2", "query T2 { __type(name: \"CatalogProductModel\") { fields { name } } }", {})
-          q("T3", "query T3 { __schema { queryType { fields { name } } } }", {})
+      - run: python deals/fetch.py --dry 2>&1 | tail -40

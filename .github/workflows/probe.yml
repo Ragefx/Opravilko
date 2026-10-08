@@ -16,9 +16,6 @@ jobs:
           import re, json
           from curl_cffi import requests as R
           s = R.Session(impersonate="chrome")
-          js = s.get("https://online.spar.si/_next/static/chunks/53427-3ad39a3ab20cc096.js", timeout=30).text
-          for m in list(re.finditer(r'headers|api/v3', js))[:6]:
-            print("CHUNK …", re.sub(r"\s+", " ", js[max(0, m.start()-300):m.start()+300]))
           from playwright.sync_api import sync_playwright
           seen = []
           with sync_playwright() as p:
@@ -41,8 +38,16 @@ jobs:
                 if '"price"' in t or '"name"' in t:
                   print("RES", res.status, len(t), t[:900])
             pg.on("request", on_req); pg.on("response", on_res)
-            pg.goto("https://online.spar.si/aktualno/iz-letaka/S17/S17-1", wait_until="networkidle", timeout=90000)
-            pg.wait_for_timeout(5000)
+            pg.goto("https://online.spar.si/akcije", wait_until="networkidle", timeout=90000)
+            pg.get_by_text("Dovoli vse").first.click(timeout=5000) if pg.get_by_text("Dovoli vse").count() else None
+            pg.wait_for_timeout(3000)
+            print("OPS1", seen)
+            links = pg.eval_on_selector_all("a", "els => els.map(e => e.getAttribute('href')).filter(h => h && /letak|akcij|S17/i.test(h))")
+            print("LINKS", sorted(set(links))[:30])
+            target = next((l for l in links if "letak" in l.lower() and "dom" not in l.lower()), None)
+            if target:
+              pg.goto("https://online.spar.si" + target if target.startswith("/") else target, wait_until="networkidle", timeout=90000)
+              pg.wait_for_timeout(5000)
             for _ in range(4):
               pg.mouse.wheel(0, 4000); pg.wait_for_timeout(1500)
             print("OPS", seen)

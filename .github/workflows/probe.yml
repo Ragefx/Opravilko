@@ -13,32 +13,30 @@ jobs:
       - name: Probe
         shell: python3 {0}
         run: |
-          import re, json, html as H
+          import re, json, collections
           from curl_cffi import requests as R
           s = R.Session(impersonate="chrome")
           def get(u):
-            try:
-              r = s.get(u, timeout=30, headers={"Accept-Language": "sl-SI,sl;q=0.9"}); print("##", u, r.status_code, len(r.text)); return r.text if r.ok else None
-            except Exception as e: print("##", u, "ERR", e)
-          print("\n===== HOFER tile")
-          b = get("https://www.hofer.si/izdelki/pregled-posebne-ponudbe/k/1588161418378530")
-          tiles = re.split(r'<div id="product-tile-', b or "")[1:]
-          print("tiles", len(tiles))
-          for t in tiles[:3] + [x for x in tiles if "regular" in x][:2]:
-            t = re.sub(r'<svg.*?</svg>', '', t, flags=re.S); t = re.sub(r'(srcset|src|sizes|onerror|style)="[^"]*"', '', t)
-            print("   TILE", re.sub(r"\s+"," ",t[:2500]))
-          print("pages:", sorted(set(re.findall(r'href="([^"]*\?page=\d+[^"]*)"', b or "")))[:5], b.count("page=") if b else 0)
-          print("\n===== SPAR categories")
-          b = get("https://online.spar.si/akcije")
-          if b:
-            u = b.replace('\\"', '"')
-            for m in re.finditer(r'"categoryNamesPath":"(/AKTUALNO[^"]*)".{0,400}?"reference":"([^"]+)".{0,200}?"slug":"([^"]+)"', u):
-              print("  ", m.group(1), m.group(2), m.group(3))
-            for k in ["storeReference", "storeId", "\"store\"", "clientId"]:
-              for m in list(re.finditer(k, u))[:2]: print("   ", k, "…", u[m.start()-80:m.start()+160])
-          print("\n===== SPAR chunk queries")
-          js = s.get("https://online.spar.si/_next/static/chunks/53427-3ad39a3ab20cc096.js", timeout=30).text
-          print(len(js))
-          for m in list(re.finditer(r'(?:query|mutation)\s+([A-Za-z]+)\s*\(', js))[:60]: print("  op", m.group(1))
-          for m in list(re.finditer(r'getProductsByCategor|searchProducts|getProducts', js))[:3]:
-            print("   …", js[m.start()-200:m.start()+1200])
+            r = s.get(u, timeout=30, headers={"Accept-Language": "sl-SI,sl;q=0.9"}); print("##", u, r.status_code, len(r.text)); return r.text
+          print("== HOFER price classes")
+          c = collections.Counter()
+          for p in range(1, 4):
+            b = get(f"https://www.hofer.si/izdelki/pregled-posebne-ponudbe/k/1588161418378530?page={p}")
+            c.update(re.findall(r'class="(base-price__[a-z_-]+)', b))
+            for m in list(re.finditer(r'base-price__(?!regular|discount-tag__wrapper)[a-z_-]+', b))[:2]:
+              print("  ", re.sub(r"<!--.*?-->", "", b[m.start()-40:m.start()+300]))
+          print(c)
+          print("== SPAR category page")
+          b = get("https://online.spar.si/aktualno/iz-letaka/S17/S17-1")
+          u = b.replace('\\"', '"')
+          for k in ['"price"', '"promotion"', '"name"', '"sku"', '"specialPrice"', '"conditions"']: print(k, u.count(k))
+          m = re.search(r'"sku"', u)
+          if m: print("  …", u[m.start()-600:m.start()+1400])
+          print("== SPAR chunks with product queries")
+          srcs = sorted(set(re.findall(r'src="(/_next/static/[^"]+\.js)"', b)))
+          for sr in srcs:
+            js = s.get("https://online.spar.si" + sr, timeout=30).text
+            for m in re.finditer(r'(?:query|mutation) (\w*[Pp]roduct\w*)\(', js):
+              print("  ", sr[-35:], m.group(1)); 
+            m = re.search(r'query \w*[Pp]roductsBy\w*\(', js) or re.search(r'query \w*[Ss]earch\w*\(', js)
+            if m: print("    BODY", js[m.start():m.start()+1500].replace("\\n"," "))

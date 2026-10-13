@@ -54,17 +54,47 @@ final class Holidays {
         return new int[] {(h + l - 7 * m + 114) / 31, ((h + l - 7 * m + 114) % 31) + 1};
     }
 
+    /** The holidays' names in English, for the app in English. */
+    private static final java.util.Map<String, String> EN = new java.util.HashMap<>();
+    static {
+        EN.put("Novo leto", "New Year's Day");
+        EN.put("Prešernov dan", "Prešeren Day");
+        EN.put("Dan upora proti okupatorju", "Day of Uprising Against Occupation");
+        EN.put("Praznik dela", "Labour Day");
+        EN.put("Dan Primoža Trubarja", "Primož Trubar Day");
+        EN.put("Dan državnosti", "Statehood Day");
+        EN.put("Marijino vnebovzetje", "Assumption Day");
+        EN.put("Združitev prekmurskih Slovencev", "Unification of Prekmurje Slovenes");
+        EN.put("Vrnitev Primorske", "Return of Primorska");
+        EN.put("Dan slovenskega športa", "Slovenian Sports Day");
+        EN.put("Dan suverenosti", "Sovereignty Day");
+        EN.put("Dan reformacije", "Reformation Day");
+        EN.put("Dan spomina na mrtve", "Remembrance Day");
+        EN.put("Dan Rudolfa Maistra", "Rudolf Maister Day");
+        EN.put("Božič", "Christmas Day");
+        EN.put("Dan samostojnosti in enotnosti", "Independence and Unity Day");
+        EN.put("Velika noč", "Easter Sunday");
+        EN.put("Velikonočni ponedeljek", "Easter Monday");
+        EN.put("Binkošti", "Whit Sunday");
+    }
+
+    private static String name(String sl) {
+        if (L.sl()) return sl;
+        String en = EN.get(sl);
+        return en != null ? en : sl;
+    }
+
     static List<Holiday> of(int year) {
         List<Holiday> out = new ArrayList<>();
         for (Object[] f : FIXED) {
             out.add(new Holiday(String.format(Locale.US, "%04d-%02d-%02d", year, (int) f[0], (int) f[1]),
-                    (String) f[2], (boolean) f[3]));
+                    name((String) f[2]), (boolean) f[3]));
         }
         int[] e = easter(year);
         Calendar c = Calendar.getInstance();
         c.clear();
         c.set(year, e[0] - 1, e[1]);
-        String[] names = {"Velika noč", "Velikonočni ponedeljek", "Binkošti"};
+        String[] names = {name("Velika noč"), name("Velikonočni ponedeljek"), name("Binkošti")};
         int[] offsets = {0, 1, 49};
         for (int n = 0; n < 3; n++) {
             Calendar x = (Calendar) c.clone();

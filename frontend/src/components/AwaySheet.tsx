@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { nanoid } from "nanoid";
@@ -83,7 +84,7 @@ export default function AwaySheet({
     } else {
       const next: AwayPeriod = {
         id: period?.id ?? nanoid(8),
-        title: title.trim() || (off ? "Off work" : "Away"),
+        title: title.trim() || (off ? tr("Off work", "Dopust") : tr("Away", "Odsoten")),
         ...dates(),
       };
       if (projectId) updateProject.mutate({ id: projectId, trip: undefined });
@@ -109,37 +110,43 @@ export default function AwaySheet({
         className="modal away-modal"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label={off ? "Off work" : "Trip"}
+        aria-label={off ? tr("Off work", "Dopust") : tr("Trip", "Potovanje")}
       >
         <div className="settings-head">
           <h3>
             {tripIcon({ by })}{" "}
             {off
               ? editing
-                ? "Off work"
-                : "Time off"
+                ? tr("Off work", "Dopust")
+                : tr("Time off", "Prosti dnevi")
               : editing
-                ? "Trip"
-                : "New trip"}
+                ? tr("Trip", "Potovanje")
+                : tr("New trip", "Novo potovanje")}
           </h3>
           <button
             className="sidebar-icon-btn"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tr("Close", "Zapri")}
           >
             <XIcon width={18} height={18} />
           </button>
         </div>
         <p className="away-note">
           {linkedProject
-            ? `Shows across these days for everyone on “${linkedProject.name}”; its tasks are the prep.`
-            : `Shows across these days in the calendar${partnerName ? `, yours and ${partnerName}'s` : ""}. Tasks on them stay as they are.`}
+            ? tr(
+                `Shows across these days for everyone on “${linkedProject.name}”; its tasks are the prep.`,
+                `Prikaže se čez te dni za vse na »${linkedProject.name}«; njegove naloge so priprave.`
+              )
+            : tr(
+                `Shows across these days in the calendar${partnerName ? `, yours and ${partnerName}'s` : ""}. Tasks on them stay as they are.`,
+                `Prikaže se čez te dni v koledarju${partnerName ? `, tvojem in od ${partnerName}` : ""}. Naloge na te dni ostanejo, kot so.`
+              )}
         </p>
         {!existingProject && (
           <div
             className="segmented away-kind"
             role="radiogroup"
-            aria-label="Trip or off work"
+            aria-label={tr("Trip or off work", "Potovanje ali dopust")}
           >
             {(["trip", "off"] as const).map((k) => (
               <button
@@ -155,22 +162,22 @@ export default function AwaySheet({
                   } else if (off) setBy("plane");
                 }}
               >
-                {k === "off" ? "🏖️ Off work" : "✈️ Trip"}
+                {k === "off" ? tr("🏖️ Off work", "🏖️ Dopust") : tr("✈️ Trip", "✈️ Potovanje")}
               </button>
             ))}
           </div>
         )}
         {!off && (
           <label className="away-field">
-            <span>Trip for a project</span>
+            <span>{tr("Trip for a project", "Potovanje za projekt")}</span>
             <Select
               id="away-project"
               className="away-select"
-              sheetTitle="Trip for a project"
+              sheetTitle={tr("Trip for a project", "Potovanje za projekt")}
               value={linked}
               onChange={(e) => setLinked(e.target.value)}
             >
-              <option value="">No project, just me away</option>
+              <option value="">{tr("No project, just me away", "Brez projekta, samo jaz odsoten")}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -181,11 +188,11 @@ export default function AwaySheet({
         )}
         {!linked && (
           <label className="away-field">
-            <span>{off ? "What" : "Where / what"}</span>
+            <span>{off ? tr("What", "Kaj") : tr("Where / what", "Kam / kaj")}</span>
             <input
               id="away-title"
               value={title}
-              placeholder={off ? "e.g. Summer holiday" : "e.g. Athens"}
+              placeholder={off ? tr("e.g. Summer holiday", "npr. Poletni dopust") : tr("e.g. Athens", "npr. Atene")}
               autoFocus={!editing}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && save()}
@@ -201,21 +208,23 @@ export default function AwaySheet({
               onChange={(e) => setTogether(e.target.checked)}
             />
             <span>
-              <b>Together with {partnerName}</b>
+              <b>{tr(`Together with ${partnerName}`, `Skupaj z ${partnerName}`)}</b>
               <small>
-                Shows as both of yours in both calendars; only you can change
-                it.
+                {tr(
+                  "Shows as both of yours in both calendars; only you can change it.",
+                  "Prikaže se kot vajino v obeh koledarjih; spremeniš ga lahko le ti."
+                )}
               </small>
             </span>
           </label>
         )}
         {!off && (
           <div className="away-field">
-            <span>Getting there</span>
+            <span>{tr("Getting there", "Prevoz")}</span>
             <div
               className="segmented away-by"
               role="radiogroup"
-              aria-label="Getting there"
+              aria-label={tr("Getting there", "Prevoz")}
             >
               {(["plane", "car"] as const).map((b) => (
                 <button
@@ -226,7 +235,7 @@ export default function AwaySheet({
                   className={by === b ? "active" : ""}
                   onClick={() => setBy(b)}
                 >
-                  {b === "plane" ? "✈️ Plane" : "🚗 Car"}
+                  {b === "plane" ? tr("✈️ Plane", "✈️ Letalo") : tr("🚗 Car", "🚗 Avto")}
                 </button>
               ))}
             </div>
@@ -234,7 +243,7 @@ export default function AwaySheet({
         )}
         <div className="away-dates">
           <label className="away-field">
-            <span>{off ? "From" : "Leaving"}</span>
+            <span>{off ? tr("From", "Od") : tr("Leaving", "Odhod")}</span>
             <input
               id="away-start"
               type="date"
@@ -247,18 +256,18 @@ export default function AwaySheet({
           </label>
           {!off && (
             <label className="away-field">
-              <span>Time (optional)</span>
+              <span>{tr("Time (optional)", "Ura (neobvezno)")}</span>
               <TimeInput
                 idPrefix="away-start-time"
                 value={startTime}
                 onChange={setStartTime}
                 optional
-                label="Leaving"
+                label={tr("Leaving", "Odhod")}
               />
             </label>
           )}
           <label className="away-field">
-            <span>{off ? "Until" : "Back"}</span>
+            <span>{off ? tr("Until", "Do") : tr("Back", "Povratek")}</span>
             <input
               id="away-end"
               type="date"
@@ -269,28 +278,28 @@ export default function AwaySheet({
           </label>
           {!off && (
             <label className="away-field">
-              <span>Time (optional)</span>
+              <span>{tr("Time (optional)", "Ura (neobvezno)")}</span>
               <TimeInput
                 idPrefix="away-end-time"
                 value={endTime}
                 onChange={setEndTime}
                 optional
-                label="Back"
+                label={tr("Back", "Povratek")}
               />
             </label>
           )}
         </div>
         <label className="away-field">
-          <span>Note (optional)</span>
+          <span>{tr("Note (optional)", "Opomba (neobvezno)")}</span>
           <input
             id="away-note"
             value={note}
             placeholder={
               off
-                ? "e.g. out of office from 13:00"
+                ? tr("e.g. out of office from 13:00", "npr. odsoten od 13:00")
                 : by === "car"
-                  ? "e.g. via Graz, charge in Maribor"
-                  : "e.g. flight JU 386, Terminal 1"
+                  ? tr("e.g. via Graz, charge in Maribor", "npr. čez Gradec, polnjenje v Mariboru")
+                  : tr("e.g. flight JU 386, Terminal 1", "npr. let JU 386, terminal 1")
             }
             onChange={(e) => setNote(e.target.value)}
           />
@@ -298,15 +307,15 @@ export default function AwaySheet({
         <div className="modal-actions away-actions">
           {editing && (
             <button className="btn btn-text meal-danger" onClick={remove}>
-              {existingProject ? "Remove trip dates" : "Delete"}
+              {existingProject ? tr("Remove trip dates", "Odstrani datume potovanja") : tr("Delete", "Izbriši")}
             </button>
           )}
           <span style={{ flex: 1 }} />
           <button className="btn btn-text" onClick={onClose}>
-            Cancel
+            {tr("Cancel", "Prekliči")}
           </button>
           <button className="btn btn-primary" onClick={save} disabled={!valid}>
-            Save
+            {tr("Save", "Shrani")}
           </button>
         </div>
       </div>

@@ -56,8 +56,8 @@ final class PartnerNotifier {
         PartnerNews.Event first = g.get(0);
         String list = PartnerNews.projectName(data, first.projectId);
         String title;
-        if (first.shopping) title = PartnerNews.ADDED.equals(first.kind) ? who + " added to " + list : who + " bought";
-        else title = PartnerNews.ADDED.equals(first.kind) ? who + " added" : who + " finished";
+        if (first.shopping) title = PartnerNews.ADDED.equals(first.kind) ? who + L.t(" added to ", " je dodal(a) v ") + list : who + L.t(" bought", " je kupil(a)");
+        else title = PartnerNews.ADDED.equals(first.kind) ? who + L.t(" added", " je dodal(a)") : who + L.t(" finished", " je opravil(a)");
         // With push, changes arrive one by one (each item ticked in the shop):
         // while the last notification for this list is still showing, it's
         // updated with the new ones, quietly, instead of buzzing each time.
@@ -123,8 +123,8 @@ final class PartnerNotifier {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager nm = context.getSystemService(NotificationManager.class);
         if (nm == null || nm.getNotificationChannel(CHANNEL) != null) return;
-        NotificationChannel channel = new NotificationChannel(CHANNEL, "From your partner", NotificationManager.IMPORTANCE_DEFAULT);
-        channel.setDescription("When your partner adds to or ticks off your shared lists");
+        NotificationChannel channel = new NotificationChannel(CHANNEL, L.t("From your partner", "Od partnerja"), NotificationManager.IMPORTANCE_DEFAULT);
+        channel.setDescription(L.t("When your partner adds to or ticks off your shared lists", "Ko partner kaj doda na skupne sezname ali odkljuka"));
         nm.createNotificationChannel(channel);
     }
 }

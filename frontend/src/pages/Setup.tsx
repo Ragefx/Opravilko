@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useRef, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import type { AppData } from "../api/types";
@@ -28,25 +29,28 @@ export default function Setup() {
       <div className="login-page">
         <div className="login-card">
           <h1>Opravilko</h1>
-          <div className="login-error">Couldn't load your data: {(loadError as Error).message}</div>
+          <div className="login-error">
+            {tr("Couldn't load your data: ", "Podatkov ni bilo mogoče naložiti: ")}
+            {(loadError as Error).message}
+          </div>
         </div>
       </div>
     );
   if (isLoading || !data) return null;
   if (!needsSetup() && !busy) return <Navigate to="/app" replace />;
 
-  const name = currentUser()?.displayName?.split(" ")[0] || "there";
+  const name = currentUser()?.displayName?.split(" ")[0] || "";
 
   async function importData(source: string, load: () => Promise<AppData>) {
     setError(null);
     setBusy(source);
     try {
       const imported = await load();
-      if (!looksLikeAppData(imported)) throw new Error("That file doesn't look like Opravilko data.");
+      if (!looksLikeAppData(imported)) throw new Error(tr("That file doesn't look like Opravilko data.", "Ta datoteka ni videti kot podatki Opravilka."));
       await activeSession()!.importAll(imported);
       navigate("/app", { replace: true });
     } catch (err: any) {
-      setError(err?.message || "Import failed.");
+      setError(err?.message || tr("Import failed.", "Uvoz ni uspel."));
       setBusy(null);
     }
   }
@@ -60,30 +64,32 @@ export default function Setup() {
   return (
     <div className="login-page">
       <div className="login-card setup-card">
-        <h1>Welcome, {name}</h1>
-        <p>Your tasks now sync through your Google account. Where should we start?</p>
+        <h1>{name ? tr(`Welcome, ${name}`, `Dobrodošel/a, ${name}`) : tr("Welcome", "Dobrodošel/a")}</h1>
+        <p>{tr("Your tasks now sync through your Google account. Where should we start?", "Naloge se zdaj usklajujejo prek tvojega Google računa. Kje začnemo?")}</p>
         {error && <div className="login-error">{error}</div>}
 
         <div className="setup-options">
           <div className="setup-option">
-            <b>Bring over my Dropbox tasks</b>
-            <span>Copies everything from your Opravilko file in Dropbox: projects, tasks, labels, filters, calendars and history.</span>
+            <b>{tr("Bring over my Dropbox tasks", "Prenesi moje naloge iz Dropboxa")}</b>
+            <span>
+              {tr("Copies everything from your Opravilko file in Dropbox: projects, tasks, labels, filters, calendars and history.", "Kopira vse iz tvoje datoteke Opravilko v Dropboxu: projekte, naloge, oznake, filtre, koledarje in zgodovino.")}
+            </span>
             {dropboxConnected() ? (
               <button className="btn btn-primary" disabled={busy !== null} onClick={() => importData("dropbox", fetchDropboxFile)}>
-                {busy === "dropbox" ? "Importing…" : "Import from Dropbox"}
+                {busy === "dropbox" ? tr("Importing…", "Uvažam …") : tr("Import from Dropbox", "Uvozi iz Dropboxa")}
               </button>
             ) : (
               <button className="btn btn-primary" disabled={busy !== null} onClick={() => void startConnect()}>
-                Connect Dropbox to import
+                {tr("Connect Dropbox to import", "Poveži Dropbox za uvoz")}
               </button>
             )}
           </div>
 
           <div className="setup-option">
-            <b>Import a backup file</b>
-            <span>A .json backup downloaded from Opravilko (or the file from your Dropbox).</span>
+            <b>{tr("Import a backup file", "Uvozi varnostno kopijo")}</b>
+            <span>{tr("A .json backup downloaded from Opravilko (or the file from your Dropbox).", "Kopija .json, prenesena iz Opravilka (ali datoteka iz tvojega Dropboxa).")}</span>
             <button className="btn btn-text" disabled={busy !== null} onClick={() => fileRef.current?.click()}>
-              {busy === "file" ? "Importing…" : "Choose file…"}
+              {busy === "file" ? tr("Importing…", "Uvažam …") : tr("Choose file…", "Izberi datoteko …")}
             </button>
             <input
               ref={fileRef}
@@ -99,10 +105,10 @@ export default function Setup() {
           </div>
 
           <div className="setup-option">
-            <b>Start fresh</b>
-            <span>An empty Inbox. Good if someone has shared projects with you.</span>
+            <b>{tr("Start fresh", "Začni na novo")}</b>
+            <span>{tr("An empty Inbox. Good if someone has shared projects with you.", "Prazen Prejeto. Dobro, če je kdo s tabo že delil projekte.")}</span>
             <button className="btn btn-text" disabled={busy !== null} onClick={() => void startFresh()}>
-              Start with an empty list
+              {tr("Start with an empty list", "Začni s praznim seznamom")}
             </button>
           </div>
         </div>

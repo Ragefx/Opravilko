@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { CalendarIcon, CheckIcon } from "./icons";
 
 /**
@@ -25,7 +26,7 @@ export default function TaskCheckbox({
 }) {
   if (event) {
     return (
-      <span className={`task-event-mark ${completed ? "is-past" : ""}`} aria-label={completed ? "Past event" : "Event"} role="img">
+      <span className={`task-event-mark ${completed ? "is-past" : ""}`} aria-label={completed ? tr("Past event", "Pretekel dogodek") : tr("Event", "Dogodek")} role="img">
         <CalendarIcon />
       </span>
     );
@@ -40,7 +41,7 @@ export default function TaskCheckbox({
         if (popping) return;
         onToggle(!completed);
       }}
-      aria-label={ariaLabel || (completed ? "Mark incomplete" : "Mark complete")}
+      aria-label={ariaLabel || (completed ? tr("Mark incomplete", "Označi kot neopravljeno") : tr("Mark complete", "Označi kot opravljeno"))}
     >
       <CheckIcon />
     </button>

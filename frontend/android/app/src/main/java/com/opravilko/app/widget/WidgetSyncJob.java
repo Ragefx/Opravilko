@@ -348,6 +348,8 @@ public class WidgetSyncJob extends JobService {
                 // Someone else's Inbox never shows, as in the app.
                 if (p.optBoolean("isInboxProject") && !myInbox.equals(id)) continue;
                 p.put("id", appProjectId(id, myInbox));
+                // The Inbox is stored as "Inbox"; it's shown in the app's language.
+                if (p.optBoolean("isInboxProject")) p.put("name", L.t("Inbox", "Prejeto"));
                 if (p.has("parentId") && !p.isNull("parentId")) p.put("parentId", appProjectId(p.getString("parentId"), myInbox));
                 projects.put(p);
                 JSONArray secs = firestore.whereEquals("sections", "projectId", id, false);
@@ -448,6 +450,7 @@ public class WidgetSyncJob extends JobService {
             String id = p.getString("id");
             if (p.optBoolean("isInboxProject") && !myInbox.equals(id)) continue;
             p.put("id", appProjectId(id, myInbox));
+            if (p.optBoolean("isInboxProject")) p.put("name", L.t("Inbox", "Prejeto"));
             if (p.has("parentId") && !p.isNull("parentId")) p.put("parentId", appProjectId(p.getString("parentId"), myInbox));
             projects.put(p);
             ids.add(p.getString("id"));

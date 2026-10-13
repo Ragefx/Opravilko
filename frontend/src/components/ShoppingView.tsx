@@ -1,3 +1,4 @@
+import { tr, trn } from "../i18n";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AppData, Task } from "../api/types";
@@ -37,6 +38,7 @@ import { useCompleteAnimation } from "./useCompleteAnimation";
 import PickSheet from "./PickSheet";
 import Select from "./Select";
 import ShopPlacesSheet from "./ShopPlacesSheet";
+import DealsCard from "./DealsCard";
 import { useHidden } from "../utils/simple";
 import { appUi } from "../utils/appUi";
 import { callHelper, helperReady } from "../utils/helper";
@@ -163,8 +165,8 @@ export default function ShoppingView({
     deleteTask.mutate(t.id, {
       onSuccess: (removed) =>
         showToast({
-          message: `Removed ${parseItem(t.content).name}`,
-          actionLabel: "Undo",
+          message: tr(`Removed ${parseItem(t.content).name}`, `Odstranjeno: ${parseItem(t.content).name}`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreTasks.mutate(removed),
         }),
     });
@@ -195,6 +197,8 @@ export default function ShoppingView({
   const hideShops = useHidden("shops");
   const hideSuggestions = useHidden("suggestions");
   const hideShopReminder = useHidden("shopReminder");
+  const hideDeals = useHidden("deals");
+  const dealMeals = useMemo(() => (hideMeals ? [] : allMeals(listMeals ?? customMeals())), [hideMeals, listMeals]);
   // A recipe's web address shared to the list: opens a new meal read from it.
   const [recipeLink, setRecipeLink] = useState<string | null>(null);
   // The shop what you add now is for ("" for any).
@@ -351,7 +355,7 @@ export default function ShoppingView({
       const parts = shared ? splitItems(shared) : [];
       if (!parts.length) return;
       void addItems(parts.map((l) => parseLine(l, stores))).then((undo) =>
-        showToast({ message: `Added ${parts.length} to the list`, actionLabel: "Undo", onAction: undo })
+        showToast({ message: trn(parts.length, ["Added # to the list", "Added # to the list"], ["# dodan na seznam", "# dodana na seznam", "# dodani na seznam", "# dodanih na seznam"]), actionLabel: tr("Undo", "Razveljavi"), onAction: undo })
       );
     }
     take();
@@ -410,8 +414,8 @@ export default function ShoppingView({
     const gone = ticked.map((t) => ({ content: t.content, description: t.description }));
     ticked.forEach((t) => deleteTask.mutate(t.id));
     showToast({
-      message: `Cleared ${gone.length} item${gone.length === 1 ? "" : "s"}`,
-      actionLabel: "Undo",
+      message: trn(gone.length, ["Cleared # item", "Cleared # items"], ["Pospravljen # artikel", "Pospravljena # artikla", "Pospravljeni # artikli", "Pospravljenih # artiklov"]),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: async () => {
         for (const g of gone) {
           const t = await createTask.mutateAsync({ ...g, projectId });
@@ -433,8 +437,8 @@ export default function ShoppingView({
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && void submit()}
             // The app: no example text in the box (the website keeps it).
-            placeholder={appUi ? "" : "Add: mleko 1 l, 2x jajca, kruh"}
-            aria-label="Add items"
+            placeholder={appUi ? "" : tr("Add: milk 1 l, 2x eggs, bread", "Dodaj: mleko 1 l, 2x jajca, kruh")}
+            aria-label={tr("Add items", "Dodaj artikle")}
             // Kept exactly as typed: no capital letter from the keyboard either.
             autoCapitalize="off"
             enterKeyHint="done"
@@ -442,30 +446,30 @@ export default function ShoppingView({
           <MicButton
             key={start?.mode === "voice" ? `voice-${start.n}` : "mic"}
             autoStart={start?.mode === "voice"}
-            prompt="Kaj dodam na seznam?"
+            prompt={tr("What should I add to the list?", "Kaj dodam na seznam?")}
             onText={(said) => void addItems(splitSpokenItems(said).map(parseItem))}
           />
           <button className="btn btn-primary" onClick={() => void submit()} disabled={!text.trim()}>
-            Add
+            {tr("Add", "Dodaj")}
           </button>
           {!hideMeals && (
             <button className="btn btn-secondary shopping-meal-btn" onClick={() => setMealsOpen(true)}>
-              🍳 Meal
+              🍳 {tr("Meal", "Obrok")}
             </button>
           )}
           {!hideShops && (
             <button
               className={`btn btn-secondary shopping-store-btn ${addStore ? "is-on" : ""}`}
               onClick={() => setPickingShop(true)}
-              aria-label={`Shop for what you add: ${addStore || "any shop"}`}
+              aria-label={tr(`Shop for what you add: ${addStore || "any shop"}`, `Trgovina za to, kar dodaš: ${addStore || "katerakoli"}`)}
             >
-              🏪 {addStore || "Shop"}
+              🏪 {addStore || tr("Shop", "Trgovina")}
             </button>
           )}
         </div>
 
         {usual.length > 0 && !hideSuggestions && (
-          <div className="shopping-usual" aria-label="Usual items">
+          <div className="shopping-usual" aria-label={tr("Usual items", "Običajni artikli")}>
             {usual.map((name) => (
               <button key={name} className="shopping-usual-chip" onClick={() => void addItems([{ name }])}>
                 + {name}
@@ -474,14 +478,50 @@ export default function ShoppingView({
           </div>
         )}
 
+        {!hideDeals && (
+          <DealsCard
+            meals={dealMeals}
+            usual={usual}
+            onList={open.map((t) => parseItem(t.content).name)}
+            onAddMeal={async ({ meal, onSale }) => {
+              const servings = 2;
+              const list = meal.ingredients.map((ing) => {
+                const sale = onSale.find((x) => x.ing === ing);
+                return { ...scaled(ing, servings), ...(sale ? { store: sale.deal.s } : {}) };
+              });
+              const undo = await addItems(list, meal.name);
+              showToast({
+                message: tr(
+                  `Added ${list.length} ingredients for ${meal.name} (${servings})`,
+                  `Dodane sestavine za ${meal.name} (${servings}): ${list.length}`
+                ),
+                actionLabel: tr("Undo", "Razveljavi"),
+                onAction: undo,
+              });
+            }}
+            onAddItem={async (name, shop) => {
+              const undo = await addItems([parseItem(name)], undefined, shop);
+              showToast({
+                message: tr(`Added ${name} (${shop})`, `Dodano: ${name} (${shop})`),
+                actionLabel: tr("Undo", "Razveljavi"),
+                onAction: undo,
+              });
+            }}
+          />
+        )}
+
         {open.length === 0 && ticked.length === 0 && (
-          <p className="shopping-empty">The list is empty. Add things above{hideMeals ? "" : ", or a whole meal with 🍳"}.</p>
+          <p className="shopping-empty">
+            {hideMeals
+              ? tr("The list is empty. Add things above.", "Seznam je prazen. Dodaj stvari zgoraj.")
+              : tr("The list is empty. Add things above, or a whole meal with 🍳.", "Seznam je prazen. Dodaj stvari zgoraj ali cel obrok s 🍳.")}
+          </p>
         )}
 
         {storeColumn && (
-          <div className="shopping-shops" role="group" aria-label="Show a shop's items">
+          <div className="shopping-shops" role="group" aria-label={tr("Show a shop's items", "Pokaži artikle trgovine")}>
             <button className={`shopping-shop-chip ${shopFilter === "" ? "is-current" : ""}`} onClick={() => setShopFilter("")}>
-              All <b>{open.length}</b>
+              {tr("All", "Vse")} <b>{open.length}</b>
             </button>
             {filterShops.map((s) => (
               <button
@@ -496,17 +536,22 @@ export default function ShoppingView({
               className={`shopping-shop-chip ${shopFilter === ANY_SHOP ? "is-current" : ""}`}
               onClick={() => setShopFilter(ANY_SHOP)}
             >
-              Any shop <b>{openCount(ANY_SHOP)}</b>
+              {tr("Any shop", "Katerakoli")} <b>{openCount(ANY_SHOP)}</b>
             </button>
           </div>
         )}
 
         {learnedHere && shown.length + anywhere.length > 1 && (
-          <p className="shopping-walk-note">In {inShop}'s order, learned from how you shop there</p>
+          <p className="shopping-walk-note">
+            {tr(`In ${inShop}'s order, learned from how you shop there`, `V vrstnem redu trgovine ${inShop}, naučenem iz tvojih nakupov tam`)}
+          </p>
         )}
 
         {filtering && shown.length === 0 && anywhere.length === 0 && open.length > 0 && (
-          <p className="shopping-empty">Nothing left for {shopFilter === ANY_SHOP ? "any shop" : shopFilter}.</p>
+          <p className="shopping-empty">
+            {tr("Nothing left for ", "Nič več za ")}
+            {shopFilter === ANY_SHOP ? tr("any shop", "katerokoli trgovino") : shopFilter}.
+          </p>
         )}
 
         <ul className="shopping-list">
@@ -525,7 +570,9 @@ export default function ShoppingView({
         {anywhere.length > 0 && (
           <>
             <div className="shopping-basket-head">
-              <span>Any shop · {anywhere.length}</span>
+              <span>
+                {tr("Any shop", "Katerakoli trgovina")} · {anywhere.length}
+              </span>
             </div>
             <ul className="shopping-list">
               {anywhere.map((t) => (
@@ -545,9 +592,11 @@ export default function ShoppingView({
         {ticked.length > 0 && (
           <>
             <div className="shopping-basket-head">
-              <span>In the basket · {ticked.length}</span>
+              <span>
+                {tr("In the basket", "V košarici")} · {ticked.length}
+              </span>
               <button className="btn btn-text" onClick={clearTicked}>
-                Clear
+                {tr("Clear", "Pospravi")}
               </button>
             </div>
             <ul className="shopping-list is-ticked">
@@ -568,7 +617,7 @@ export default function ShoppingView({
         {appUi && stores.length > 0 && !hideShopReminder && (
           <button type="button" className="shopping-places-link" onClick={() => setPlacesOpen(true)}>
             <MapPinIcon width={16} height={16} />
-            Remind me at the shop
+            {tr("Remind me at the shop", "Opomni me v trgovini")}
           </button>
         )}
       </div>
@@ -633,8 +682,11 @@ export default function ShoppingView({
             const list = meal.ingredients.filter((_, n) => !have.has(n)).map((ing) => scaled(ing, servings));
             const undo = await addItems(list, meal.name);
             showToast({
-              message: `Added ${list.length} ingredients for ${meal.name} (${servings})${have.size ? `, ${have.size} at home` : ""}`,
-              actionLabel: "Undo",
+              message: tr(
+                `Added ${list.length} ingredients for ${meal.name} (${servings})${have.size ? `, ${have.size} at home` : ""}`,
+                `Dodane sestavine za ${meal.name} (${servings}): ${list.length}${have.size ? `, doma: ${have.size}` : ""}`
+              ),
+              actionLabel: tr("Undo", "Razveljavi"),
               onAction: undo,
             });
           }}
@@ -642,6 +694,12 @@ export default function ShoppingView({
       )}
     </div>
   );
+}
+
+/** Your own meals, then the built-in ones (with your changes to them). */
+function allMeals(mine: Meal[]): Meal[] {
+  const builtinIds = new Set(BUILTIN_MEALS.map((m) => m.id));
+  return [...mine.filter((m) => !builtinIds.has(m.id)), ...BUILTIN_MEALS.map((b) => mine.find((m) => m.id === b.id) ?? b)];
 }
 
 function ShoppingRow({
@@ -682,11 +740,11 @@ function ShoppingRow({
         <div className={`task-swipe-bg ${swipe.armed ? "armed" : ""}`}>
           {swipe.dir === "right" ? (
             <>
-              <CheckIcon width={18} height={18} /> {task.completed ? "Put back" : "Bought"}
+              <CheckIcon width={18} height={18} /> {task.completed ? tr("Put back", "Vrni") : tr("Bought", "Kupljeno")}
             </>
           ) : (
             <>
-              Delete <TrashIcon width={18} height={18} />
+              {tr("Delete", "Izbriši")} <TrashIcon width={18} height={18} />
             </>
           )}
         </div>
@@ -702,13 +760,13 @@ function ShoppingRow({
           className="shopping-tick"
           onClick={tap}
           aria-pressed={task.completed}
-          aria-label={task.completed ? `Put ${item.name} back` : `Tick off ${item.name}`}
+          aria-label={task.completed ? tr(`Put ${item.name} back`, `Vrni ${item.name}`) : tr(`Tick off ${item.name}`, `Odkljukaj ${item.name}`)}
         >
           <span className="shopping-check" aria-hidden="true">
             {(task.completed || tick.busy) && <CheckIcon width={14} height={14} />}
           </span>
         </button>
-        <button className="shopping-row-main" onClick={onEdit} aria-label={`Edit ${item.name}`}>
+        <button className="shopping-row-main" onClick={onEdit} aria-label={tr(`Edit ${item.name}`, `Uredi ${item.name}`)}>
           <span className="shopping-name">
             <span className="shopping-name-text">{item.name}</span>
             {meals.length > 0 && <small>{meals.join(" · ")}</small>}
@@ -725,7 +783,7 @@ function ShoppingRow({
             {category.emoji}
           </span>
         </button>
-        <button className="shopping-delete" onClick={onDelete} aria-label={`Remove ${item.name}`}>
+        <button className="shopping-delete" onClick={onDelete} aria-label={tr(`Remove ${item.name}`, `Odstrani ${item.name}`)}>
           <XIcon width={14} height={14} />
         </button>
       </div>
@@ -757,10 +815,10 @@ function ShopPicker({
   const [name, setName] = useState("");
   return (
     <PickSheet
-      title="Buy at"
-      subtitle="What you add now goes on the list for this shop."
+      title={tr("Buy at", "Kupi v")}
+      subtitle={tr("What you add now goes on the list for this shop.", "Kar dodaš zdaj, gre na seznam za to trgovino.")}
       options={[
-        { value: "", label: "Any shop", icon: "🛒", count: countOf("") },
+        { value: "", label: tr("Any shop", "Katerakoli trgovina"), icon: "🛒", count: countOf("") },
         ...stores.map((s) => ({ value: s, label: s, icon: "🏪", count: countOf(s) })),
       ]}
       current={current}
@@ -777,13 +835,13 @@ function ShopPicker({
           >
             <input
               autoFocus
-              placeholder="Shop name, e.g. Mercator"
+              placeholder={tr("Shop name, e.g. Mercator", "Ime trgovine, npr. Mercator")}
               value={name}
               enterKeyHint="done"
               onChange={(e) => setName(e.target.value)}
             />
             <button type="submit" className="btn btn-primary" disabled={!name.trim()}>
-              Add
+              {tr("Add", "Dodaj")}
             </button>
           </form>
         ) : (
@@ -791,7 +849,7 @@ function ShopPicker({
             <span className="shop-picker-icon" aria-hidden="true">
               +
             </span>
-            <span className="shop-picker-name">New shop</span>
+            <span className="shop-picker-name">{tr("New shop", "Nova trgovina")}</span>
           </button>
         )
       }
@@ -839,10 +897,10 @@ function ItemEditor({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal item-editor" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Edit item">
+      <div className="modal item-editor" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Edit item", "Uredi artikel")}>
         <div className="item-editor-fields">
           <label>
-            Item
+            {tr("Item", "Artikel")}
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -852,7 +910,7 @@ function ItemEditor({
             />
           </label>
           <label className="item-editor-amount">
-            Amount
+            {tr("Amount", "Količina")}
             <input
               value={amount}
               placeholder="1 l, 4, 500 g"
@@ -862,17 +920,17 @@ function ItemEditor({
           </label>
         </div>
         <label className="item-editor-note">
-          Note
+          {tr("Note", "Opomba")}
           <textarea
             rows={2}
             value={note}
-            placeholder="e.g. the Alpsko yoghurt, or cheese if there's none"
+            placeholder={tr("e.g. the Alpsko yoghurt, or cheese if there's none", "npr. Alpski jogurt, ali sir, če ga ni")}
             onChange={(e) => setNote(e.target.value)}
           />
         </label>
-        <div className="item-editor-stores" role="group" aria-label="Shop">
+        <div className="item-editor-stores" role="group" aria-label={tr("Shop", "Trgovina")}>
           <button className={`store-chip ${!store ? "is-current" : ""}`} onClick={() => setStore(undefined)}>
-            Any shop
+            {tr("Any shop", "Katerakoli")}
           </button>
           {shops.map((s) => (
             <button key={s} className={`store-chip ${store === s ? "is-current" : ""}`} onClick={() => setStore(s)}>
@@ -881,13 +939,13 @@ function ItemEditor({
           ))}
           {newShop === null ? (
             <button className="store-chip is-add" onClick={() => setNewShop("")}>
-              + Shop
+              + {tr("Shop", "Trgovina")}
             </button>
           ) : (
             <input
               className="store-chip store-chip-input"
               autoFocus
-              placeholder="Shop name"
+              placeholder={tr("Shop name", "Ime trgovine")}
               value={newShop}
               enterKeyHint="done"
               onChange={(e) => setNewShop(e.target.value)}
@@ -920,13 +978,13 @@ function ItemEditor({
         </div>
         <div className="modal-actions">
           <button className="btn btn-text meal-danger" onClick={onDelete}>
-            Delete
+            {tr("Delete", "Izbriši")}
           </button>
           <button className="btn btn-text" onClick={onClose}>
-            Cancel
+            {tr("Cancel", "Prekliči")}
           </button>
           <button className="btn btn-primary" onClick={save} disabled={!name.trim()}>
-            Save
+            {tr("Save", "Shrani")}
           </button>
         </div>
       </div>
@@ -1000,7 +1058,7 @@ function MealPicker({
     try {
       const res = await callHelper(`/recipe?url=${encodeURIComponent(address.trim())}`);
       const body = (await res.json()) as { name?: string; ingredients?: string[]; servings?: string; error?: string };
-      if (!res.ok || !body.ingredients?.length) throw new Error(body.error || "No recipe found on that page");
+      if (!res.ok || !body.ingredients?.length) throw new Error(body.error || tr("No recipe found on that page", "Na tej strani ni recepta"));
       const people = Number(/\d+/.exec(body.servings ?? "")?.[0]) || 0;
       setForm((f) => ({
         emoji: f?.emoji ?? "🍽️",
@@ -1011,7 +1069,7 @@ function MealPicker({
       }));
       setReading("idle");
     } catch (e) {
-      setReading(e instanceof Error ? e.message : "Couldn't read that page");
+      setReading(e instanceof Error ? e.message : tr("Couldn't read that page", "Strani ni bilo mogoče prebrati"));
     }
   }
   useEffect(() => {
@@ -1023,7 +1081,7 @@ function MealPicker({
   const [showHidden, setShowHidden] = useState(false);
   const builtinIds = new Set(BUILTIN_MEALS.map((m) => m.id));
   const mineIds = new Set(mine.map((m) => m.id));
-  const all = [...mine.filter((m) => !builtinIds.has(m.id)), ...BUILTIN_MEALS.map((b) => mine.find((m) => m.id === b.id) ?? b)];
+  const all = allMeals(mine);
   const meals = all.filter((m) => !m.hidden);
   const hidden = all.filter((m) => m.hidden);
 
@@ -1101,7 +1159,7 @@ function MealPicker({
   }
 
   const icons = choosingIcon && (
-    <div className="meal-icons" role="listbox" aria-label="Icon">
+    <div className="meal-icons" role="listbox" aria-label={tr("Icon", "Ikona")}>
       {MEAL_EMOJI.map((e) => (
         <button
           key={e}
@@ -1117,21 +1175,21 @@ function MealPicker({
     </div>
   );
 
-  const title = form ? (form.id ? "Edit meal" : "New meal") : picked ? "" : "Meals";
+  const title = form ? (form.id ? tr("Edit meal", "Uredi obrok") : tr("New meal", "Nov obrok")) : picked ? "" : tr("Meals", "Obroki");
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal meal-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Meals">
+      <div className="modal meal-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Meals", "Obroki")}>
         <div className="settings-head">
           {picked && !form ? (
-            <button className="meal-back" onClick={() => open(null)} aria-label="All meals">
+            <button className="meal-back" onClick={() => open(null)} aria-label={tr("All meals", "Vsi obroki")}>
               <ChevronIcon width={18} height={18} />
-              Meals
+              {tr("Meals", "Obroki")}
             </button>
           ) : (
             <h3>{title}</h3>
           )}
-          <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
+          <button className="sidebar-icon-btn" onClick={onClose} aria-label={tr("Close", "Zapri")}>
             <XIcon width={18} height={18} />
           </button>
         </div>
@@ -1143,13 +1201,13 @@ function MealPicker({
                 type="button"
                 className="meal-icon-btn"
                 onClick={() => setChoosingIcon((c) => !c)}
-                aria-label="Change icon"
-                title="Change icon"
+                aria-label={tr("Change icon", "Spremeni ikono")}
+                title={tr("Change icon", "Spremeni ikono")}
               >
                 {form.emoji}
               </button>
               <input
-                placeholder="Name, e.g. Mamina juha"
+                placeholder={tr("Name, e.g. Mum's soup", "Ime, npr. Mamina juha")}
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 autoFocus={!form.id}
@@ -1161,39 +1219,42 @@ function MealPicker({
                 <input
                   type="url"
                   inputMode="url"
-                  placeholder="Or paste a recipe's web address"
+                  placeholder={tr("Or paste a recipe's web address", "Ali prilepi spletni naslov recepta")}
                   value={link}
                   onChange={(e) => setLink(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && void readLink()}
                 />
                 <button className="btn btn-secondary" onClick={() => void readLink()} disabled={!link.trim() || reading === "reading"}>
-                  {reading === "reading" ? "Reading…" : "Read"}
+                  {reading === "reading" ? tr("Reading…", "Berem …") : tr("Read", "Preberi")}
                 </button>
               </div>
             )}
             {reading !== "idle" && reading !== "reading" && <p className="settings-note meal-link-error">{reading}</p>}
             <label className="meal-servings-label">
-              The recipe is for
+              {tr("The recipe is for", "Recept je za")}
               <input
                 type="number"
                 min={1}
                 value={form.servings}
                 onChange={(e) => setForm({ ...form, servings: Math.max(1, +e.target.value || 1) })}
               />
-              people
+              {tr("people", "osebe")}
             </label>
             <textarea
               rows={8}
-              placeholder={"One ingredient per line (@ for a shop):\n250 g moke\n0,5 l mleka @Hofer\n3 jajca\nsol"}
+              placeholder={tr(
+                "One ingredient per line (@ for a shop):\n250 g flour\n0,5 l milk @Hofer\n3 eggs\nsalt",
+                "Ena sestavina na vrstico (@ za trgovino):\n250 g moke\n0,5 l mleka @Hofer\n3 jajca\nsol"
+              )}
               value={form.text}
               onChange={(e) => setForm({ ...form, text: e.target.value })}
             />
             <div className="modal-actions">
               <button className="btn btn-text" onClick={() => setForm(null)}>
-                Cancel
+                {tr("Cancel", "Prekliči")}
               </button>
               <button className="btn btn-primary" onClick={saveForm} disabled={!form.text.trim()}>
-                Save meal
+                {tr("Save meal", "Shrani obrok")}
               </button>
             </div>
           </div>
@@ -1204,30 +1265,31 @@ function MealPicker({
                 type="button"
                 className="meal-icon-btn is-big"
                 onClick={() => setChoosingIcon((c) => !c)}
-                aria-label="Change icon"
-                title="Change icon"
+                aria-label={tr("Change icon", "Spremeni ikono")}
+                title={tr("Change icon", "Spremeni ikono")}
               >
                 {picked.emoji}
               </button>
               <div className="meal-hero-text">
                 <h3>{picked.name}</h3>
                 <span>
-                  {picked.ingredients.length} ingredients{builtinIds.has(picked.id) && mineIds.has(picked.id) ? " · edited" : ""}
+                  {trn(picked.ingredients.length, ["# ingredient", "# ingredients"], ["# sestavina", "# sestavini", "# sestavine", "# sestavin"])}
+                  {builtinIds.has(picked.id) && mineIds.has(picked.id) ? tr(" · edited", " · urejeno") : ""}
                 </span>
               </div>
             </div>
             {icons}
             <div className="meal-servings">
-              <span>Servings</span>
-              <button className="btn btn-secondary" onClick={() => setServings((s) => Math.max(1, s - 1))} aria-label="Fewer">
+              <span>{tr("Servings", "Porcije")}</span>
+              <button className="btn btn-secondary" onClick={() => setServings((s) => Math.max(1, s - 1))} aria-label={tr("Fewer", "Manj")}>
                 −
               </button>
               <b>{servings}</b>
-              <button className="btn btn-secondary" onClick={() => setServings((s) => s + 1)} aria-label="More">
+              <button className="btn btn-secondary" onClick={() => setServings((s) => s + 1)} aria-label={tr("More", "Več")}>
                 +
               </button>
             </div>
-            <p className="meal-have-hint">Tap what you already have at home: it's left off the list.</p>
+            <p className="meal-have-hint">{tr("Tap what you already have at home: it's left off the list.", "Tapni, kar že imaš doma: ne gre na seznam.")}</p>
             <ul className="meal-ingredients is-pickable">
               {picked.ingredients.map((ing, n) => {
                 const it = scaled(ing, servings);
@@ -1252,17 +1314,17 @@ function MealPicker({
                         {!home && <CheckIcon width={14} height={14} />}
                       </span>
                       <span className="meal-ing-name">{it.name}</span>
-                      <span className="meal-ing-amount">{home ? "at home" : formatAmount(it.amount, it.unit)}</span>
+                      <span className="meal-ing-amount">{home ? tr("at home", "doma") : formatAmount(it.amount, it.unit)}</span>
                     </button>
-                    <label className={`meal-ing-store ${ing.store ? "is-set" : ""}`} title="Where it's bought">
-                      <span>{ing.store ?? "Any shop"}</span>
+                    <label className={`meal-ing-store ${ing.store ? "is-set" : ""}`} title={tr("Where it's bought", "Kje se kupi")}>
+                      <span>{ing.store ?? tr("Any shop", "Katerakoli")}</span>
                       <Select
                         value={ing.store ?? ""}
-                        sheetTitle={`Where do you buy ${ing.name}?`}
-                        aria-label={`Shop for ${ing.name}`}
+                        sheetTitle={tr(`Where do you buy ${ing.name}?`, `Kje kupiš: ${ing.name}?`)}
+                        aria-label={tr(`Shop for ${ing.name}`, `Trgovina za: ${ing.name}`)}
                         onChange={(e) => setIngredientStore(n, e.target.value)}
                       >
-                        <option value="">Any shop</option>
+                        <option value="">{tr("Any shop", "Katerakoli trgovina")}</option>
                         {shops.map((sh) => (
                           <option key={sh} value={sh}>
                             {sh}
@@ -1278,11 +1340,11 @@ function MealPicker({
               <div className="meal-actions-side">
                 {confirmDelete ? (
                   <button className="btn btn-text meal-danger" onClick={() => deleteMeal(picked)}>
-                    Yes, delete
+                    {tr("Yes, delete", "Da, izbriši")}
                   </button>
                 ) : (
                   <button className="btn btn-text meal-danger" onClick={() => setConfirmDelete(true)}>
-                    Delete
+                    {tr("Delete", "Izbriši")}
                   </button>
                 )}
                 <button
@@ -1291,11 +1353,11 @@ function MealPicker({
                     setForm({ id: picked.id, emoji: picked.emoji, name: picked.name, servings, text: mealToText(picked, servings) })
                   }
                 >
-                  Edit
+                  {tr("Edit", "Uredi")}
                 </button>
                 {builtinIds.has(picked.id) && mineIds.has(picked.id) && (
                   <button className="btn btn-text" onClick={() => reset(picked)}>
-                    Reset
+                    {tr("Reset", "Ponastavi")}
                   </button>
                 )}
               </div>
@@ -1307,8 +1369,10 @@ function MealPicker({
                   onAdd(picked, servings, have);
                 }}
               >
-                {have.size ? `Add ${picked.ingredients.length - have.size} of ${picked.ingredients.length}` : "Add"}
-                {servings === 1 ? " for 1" : ` for ${servings}`}
+                {have.size
+                  ? tr(`Add ${picked.ingredients.length - have.size} of ${picked.ingredients.length}`, `Dodaj ${picked.ingredients.length - have.size} od ${picked.ingredients.length}`)
+                  : tr("Add", "Dodaj")}
+                {tr(` for ${servings}`, ` za ${servings}`)}
               </button>
             </div>
           </>
@@ -1320,22 +1384,22 @@ function MealPicker({
                   <span className="meal-emoji">{m.emoji}</span>
                   <span className="meal-card-text">
                     <b>{m.name}</b>
-                    <small>{m.ingredients.length} ingredients</small>
+                    <small>{trn(m.ingredients.length, ["# ingredient", "# ingredients"], ["# sestavina", "# sestavini", "# sestavine", "# sestavin"])}</small>
                   </span>
                 </button>
               ))}
               <button className="meal-card is-new" onClick={() => setForm({ name: "", emoji: "🍽️", servings: 2, text: "" })}>
                 <span className="meal-emoji">＋</span>
                 <span className="meal-card-text">
-                  <b>My own meal</b>
-                  <small>Paste a recipe</small>
+                  <b>{tr("My own meal", "Moj obrok")}</b>
+                  <small>{tr("Paste a recipe", "Prilepi recept")}</small>
                 </span>
               </button>
             </div>
             {hidden.length > 0 && (
               <div className="meal-hidden">
                 <button className="btn btn-text" onClick={() => setShowHidden((v) => !v)}>
-                  {showHidden ? "Hide deleted" : `Deleted meals (${hidden.length})`}
+                  {showHidden ? tr("Hide deleted", "Skrij izbrisane") : tr(`Deleted meals (${hidden.length})`, `Izbrisani obroki (${hidden.length})`)}
                 </button>
                 {showHidden &&
                   hidden.map((m) => (
@@ -1344,7 +1408,7 @@ function MealPicker({
                         {m.emoji} {m.name}
                       </span>
                       <button className="btn btn-text" onClick={() => unhide(m)}>
-                        Bring back
+                        {tr("Bring back", "Vrni")}
                       </button>
                     </div>
                   ))}

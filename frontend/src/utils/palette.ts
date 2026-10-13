@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useSyncExternalStore } from "react";
 
 /**
@@ -8,12 +9,12 @@ import { useSyncExternalStore } from "react";
 export type Palette = "soca" | "triglav" | "paper" | "pokljuka" | "dusk" | "midnight";
 
 export const PALETTES: { id: Palette; name: string; blurb: string; swatch: [string, string, string] }[] = [
-  { id: "soca", name: "Soča", blurb: "Limestone grey and river turquoise.", swatch: ["#f3f4f2", "#16191b", "#0e8c7f"] },
-  { id: "triglav", name: "Triglav", blurb: "Snow white and glacier blue.", swatch: ["#f2f5f9", "#121a24", "#2563c9"] },
-  { id: "paper", name: "Paper", blurb: "Warm cream, terracotta and serif headings.", swatch: ["#f6f1e7", "#231d16", "#b8532e"] },
-  { id: "pokljuka", name: "Pokljuka", blurb: "Soft sage and moss green.", swatch: ["#eff2ec", "#172016", "#3f7d3a"] },
-  { id: "dusk", name: "Dusk", blurb: "Lavender and deep violet.", swatch: ["#f4f2f8", "#1c1726", "#7a4fd1"] },
-  { id: "midnight", name: "Midnight", blurb: "Always dark: near-black with amber.", swatch: ["#000000", "#f1efe9", "#f4b23e"] },
+  { id: "soca", name: "Soča", blurb: tr("Limestone grey and river turquoise.", "Apnenčasto siva in rečna turkizna."), swatch: ["#f3f4f2", "#16191b", "#0e8c7f"] },
+  { id: "triglav", name: "Triglav", blurb: tr("Snow white and glacier blue.", "Snežno bela in ledeniško modra."), swatch: ["#f2f5f9", "#121a24", "#2563c9"] },
+  { id: "paper", name: tr("Paper", "Papir"), blurb: tr("Warm cream, terracotta and serif headings.", "Topla krem, opečnata in naslovi s serifi."), swatch: ["#f6f1e7", "#231d16", "#b8532e"] },
+  { id: "pokljuka", name: "Pokljuka", blurb: tr("Soft sage and moss green.", "Nežna žajbljeva in mahovno zelena."), swatch: ["#eff2ec", "#172016", "#3f7d3a"] },
+  { id: "dusk", name: tr("Dusk", "Mrak"), blurb: tr("Lavender and deep violet.", "Sivka in temno vijolična."), swatch: ["#f4f2f8", "#1c1726", "#7a4fd1"] },
+  { id: "midnight", name: tr("Midnight", "Polnoč"), blurb: tr("Always dark: near-black with amber.", "Vedno temno: skoraj črna z jantarjem."), swatch: ["#000000", "#f1efe9", "#f4b23e"] },
 ];
 
 const STORAGE_KEY = "opravilko.palette";

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CheckIcon } from "./icons";
@@ -42,7 +43,7 @@ export default function PickSheet({
         onClose();
       }}
     >
-      <div className="shop-picker" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={title ?? "Choose"}>
+      <div className="shop-picker" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={title ?? tr("Choose", "Izberi")}>
         <div className="shop-picker-handle" aria-hidden="true" />
         {title && <h3>{title}</h3>}
         {subtitle && <p>{subtitle}</p>}

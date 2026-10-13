@@ -66,7 +66,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         task = data != null && taskId != null ? TaskLogic.findTask(data.optJSONArray("tasks"), taskId) : null;
         if (task == null) {
             done = true;
-            Toast.makeText(this, "That task isn't on the list any more.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("That task isn't on the list any more.", "Te naloge ni več na seznamu."), Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -110,7 +110,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         circle.setPadding(dp(2), dp(2), dp(2), dp(2));
         if (!event) circle.setOnClickListener(v -> completeIt());
         titleRow.addView(circle, clp);
-        name = bare(task.optString("content"), "Task name", 21, true);
+        name = bare(task.optString("content"), L.t("Task name", "Ime naloge"), 21, true);
         titleRow.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tlp.topMargin = dp(10);
@@ -118,7 +118,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
 
         html = task.optString("description", "");
         shownNotes = plain(html);
-        notes = bare(shownNotes, "Description", 15, false);
+        notes = bare(shownNotes, L.t("Description", "Opis"), 15, false);
         notes.setTextColor(color(R.color.widget_text_secondary));
         LinearLayout.LayoutParams nlp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         nlp.setMarginStart(dp(36));
@@ -138,18 +138,18 @@ public class TaskItemActivity extends WidgetSheetActivity {
 
         String projectId = task.optString("projectId");
         boolean inbox = "inbox".equals(projectId) || projectId.startsWith("inbox");
-        addRow(card, inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, "Project",
+        addRow(card, inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, L.t("Project", "Projekt"),
                 projectName(data, projectId), null, false);
-        dateValue = addRow(card, R.drawable.ic_w_calendar, "Date", "", v -> showCalendar(), true);
+        dateValue = addRow(card, R.drawable.ic_w_calendar, L.t("Date", "Datum"), "", v -> showCalendar(), true);
         showDate();
         if (due != null && due.optBoolean("isRecurring")) {
-            addRow(card, R.drawable.ic_w_repeat, "Repeat", due.optString("string", "Repeats"), null, true);
+            addRow(card, R.drawable.ic_w_repeat, L.t("Repeat", "Ponavljanje"), due.optString("string", L.t("Repeats", "Se ponavlja")), null, true);
         }
-        priorityValue = addRow(card, R.drawable.ic_qa_flag, "Priority", "", this::pickPriority, true);
+        priorityValue = addRow(card, R.drawable.ic_qa_flag, L.t("Priority", "Prednost"), "", this::pickPriority, true);
         showPriority();
         JSONArray shared = task.optJSONArray("sharedWith");
         if (shared != null && shared.length() > 0) {
-            addRow(card, R.drawable.ic_w_tick, "Midva", "Shared", null, true);
+            addRow(card, R.drawable.ic_w_tick, "Midva", L.t("Shared", "Skupno"), null, true);
         }
 
         // Its open sub-tasks, to tick off here too.
@@ -160,7 +160,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
                 JSONObject t = tasks.optJSONObject(i);
                 if (t == null || t.optBoolean("completed") || !task.optString("id").equals(t.optString("parentId"))) continue;
                 if (subs == null) {
-                    sheet.addView(caption("SUB-TASKS"));
+                    sheet.addView(caption(L.t("SUB-TASKS", "PODNALOGE")));
                     subs = new LinearLayout(this);
                     subs.setOrientation(LinearLayout.VERTICAL);
                     sheet.addView(subs);
@@ -170,7 +170,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         }
 
         TextView open = new TextView(this);
-        open.setText("Comments, files and more: open in the app");
+        open.setText(L.t("Comments, files and more: open in the app", "Komentarji, datoteke in več: odpri v aplikaciji"));
         open.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         open.setTextColor(color(R.color.widget_accent));
         open.setPadding(dp(4), dp(18), dp(4), dp(4));
@@ -288,13 +288,13 @@ public class TaskItemActivity extends WidgetSheetActivity {
 
     private void showDate() {
         if (date == null) {
-            dateValue.setText("No date");
+            dateValue.setText(L.t("No date", "Brez datuma"));
             dateValue.setTextColor(color(R.color.widget_text_muted));
             return;
         }
         String today = TaskLogic.todayStr();
-        String label = date.equals(today) ? "Today"
-                : date.equals(TaskLogic.addDaysStr(today, 1)) ? "Tomorrow"
+        String label = date.equals(today) ? L.t("Today", "Danes")
+                : date.equals(TaskLogic.addDaysStr(today, 1)) ? L.t("Tomorrow", "Jutri")
                 : dayLabel(date);
         JSONObject due = task.optJSONObject("due");
         if (due != null && date.equals(due.optString("date")) && due.has("datetime") && !due.isNull("datetime")) {
@@ -316,7 +316,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
             showDate();
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
         if (date != null) {
-            dialog.setButton(DatePickerDialog.BUTTON_NEUTRAL, "No date", (d, which) -> {
+            dialog.setButton(DatePickerDialog.BUTTON_NEUTRAL, L.t("No date", "Brez datuma"), (d, which) -> {
                 date = null;
                 showDate();
             });
@@ -327,7 +327,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
     /** "Thu 2 Oct". */
     private static String dayLabel(String day) {
         Calendar c = TaskLogic.calendarFor(day);
-        return c != null ? new SimpleDateFormat("EEE d MMM", Locale.ENGLISH).format(c.getTime()) : day;
+        return c != null ? L.date("EEE d MMM", "EEE, d. MMM", c.getTime()) : day;
     }
 
     /** The task's due moved to the picked day: its time and repeat rule stay. */
@@ -359,7 +359,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         PopupMenu menu = new PopupMenu(this, anchor, Gravity.END);
         // Stored 4..2, shown as P1..P3, and 1 as no priority (as in the app).
         for (int stored = 4; stored >= 1; stored--) {
-            menu.getMenu().add(0, stored, 5 - stored, stored == 1 ? "No priority" : "Priority " + (5 - stored));
+            menu.getMenu().add(0, stored, 5 - stored, stored == 1 ? L.t("No priority", "Brez prednosti") : L.t("Priority ", "Prednost ") + (5 - stored));
         }
         menu.setOnMenuItemClickListener(item -> {
             priority = item.getItemId();
@@ -371,7 +371,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
     }
 
     private void showPriority() {
-        priorityValue.setText(priority == 1 ? "No priority" : "Priority " + (5 - priority));
+        priorityValue.setText(priority == 1 ? L.t("No priority", "Brez prednosti") : L.t("Priority ", "Prednost ") + (5 - priority));
         priorityValue.setTextColor(color(priority == 1 ? R.color.widget_text_muted : R.color.widget_text));
     }
 
@@ -379,8 +379,8 @@ public class TaskItemActivity extends WidgetSheetActivity {
 
     private void showMore(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor, Gravity.END);
-        menu.getMenu().add(0, 1, 0, "Open in app");
-        menu.getMenu().add(0, 2, 1, "Delete");
+        menu.getMenu().add(0, 1, 0, L.t("Open in app", "Odpri v aplikaciji"));
+        menu.getMenu().add(0, 2, 1, L.t("Delete", "Izbriši"));
         menu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) openInApp();
             else delete();
@@ -438,7 +438,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
             }
             queue(data, op);
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't save that.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't save that.", "Tega ni bilo mogoče shraniti."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -450,9 +450,9 @@ public class TaskItemActivity extends WidgetSheetActivity {
                 String at = TaskLogic.nowIso();
                 queue(data, new JSONObject().put("id", "delete@" + task.optString("id")).put("op", WidgetStore.OP_DELETE)
                         .put("taskId", task.optString("id")).put("at", at));
-                Toast.makeText(this, "Deleted " + task.optString("content"), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, L.t("Deleted ", "Izbrisano: ") + task.optString("content"), Toast.LENGTH_SHORT).show();
             } catch (JSONException e) {
-                Toast.makeText(this, "Couldn't delete that.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, L.t("Couldn't delete that.", "Tega ni bilo mogoče izbrisati."), Toast.LENGTH_SHORT).show();
             }
         }
         finish();
@@ -472,10 +472,10 @@ public class TaskItemActivity extends WidgetSheetActivity {
     // ---- helpers ----
 
     private static String projectName(JSONObject data, String projectId) {
-        if (projectId == null || projectId.isEmpty() || "inbox".equals(projectId) || projectId.startsWith("inbox")) return "Inbox";
+        if (projectId == null || projectId.isEmpty() || "inbox".equals(projectId) || projectId.startsWith("inbox")) return L.t("Inbox", "Prejeto");
         JSONObject p = TaskLogic.findProject(data, projectId);
         if (p == null) return "Midva";
-        return p.optBoolean("isInboxProject") ? "Inbox" : p.optString("name");
+        return p.optBoolean("isInboxProject") ? L.t("Inbox", "Prejeto") : p.optString("name");
     }
 
     /** The app keeps notes as HTML; here they're edited as plain text. */

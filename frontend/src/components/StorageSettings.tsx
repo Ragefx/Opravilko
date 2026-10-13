@@ -1,10 +1,11 @@
+import { tr } from "../i18n";
 import { useEffect, useMemo, useState } from "react";
-import { useBootstrap, useRemoveAttachment, useRemoveProjectFile } from "../api/hooks";
+import { useBootstrap, useRemoveAttachment, useRemoveCommentAttachment, useRemoveProjectFile } from "../api/hooks";
 import { activeSession } from "../data/store";
 import { isNativeApp } from "../dropbox/auth";
 import { openFileNatively } from "../native/share";
 import { ATTACHMENT_BUDGET, WARN_AT, formatSize, loadAttachment, watchStorageUsed } from "../firebase/attachments";
-import type { Attachment, Project, Task } from "../api/types";
+import type { Attachment, Comment, Project, Task } from "../api/types";
 import { FileIcon, TrashIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 
@@ -19,6 +20,7 @@ const DATABASE_SIZE = 1024 * 1024 * 1024;
 export default function StorageSettings() {
   const { data } = useBootstrap();
   const removeAttachment = useRemoveAttachment();
+  const removeCommentAttachment = useRemoveCommentAttachment();
   const removeProjectFile = useRemoveProjectFile();
   const showToast = useToast();
   const [used, setUsed] = useState(0);
@@ -33,8 +35,10 @@ export default function StorageSettings() {
   }, []);
 
   const attachments = useMemo(() => {
-    const list: { att: Attachment; task?: Task; project?: Project }[] = [];
+    const list: { att: Attachment; task?: Task; project?: Project; comment?: Comment }[] = [];
     for (const task of data?.tasks || []) for (const att of task.attachments || []) list.push({ att, task });
+    for (const task of data?.tasks || [])
+      for (const comment of task.comments || []) for (const att of comment.attachments || []) list.push({ att, task, comment });
     for (const project of data?.projects || []) for (const att of project.attachments || []) list.push({ att, project });
     return list.sort((a, b) => b.att.size - a.att.size);
   }, [data]);
@@ -52,12 +56,15 @@ export default function StorageSettings() {
 
   return (
     <>
-      <h4>Storage</h4>
-      <div className="storage-meter" aria-label="Attachment storage used">
+      <h4>{tr("Storage", "Prostor")}</h4>
+      <div className="storage-meter" aria-label={tr("Attachment storage used", "Zaseden prostor za priponke")}>
         <div className="storage-meter-row">
-          <b>Attachments</b>
+          <b>{tr("Attachments", "Priponke")}</b>
           <span>
-            {formatSize(used)} of {formatSize(ATTACHMENT_BUDGET)} · {formatSize(Math.max(0, ATTACHMENT_BUDGET - used))} free
+            {tr(
+              `${formatSize(used)} of ${formatSize(ATTACHMENT_BUDGET)} · ${formatSize(Math.max(0, ATTACHMENT_BUDGET - used))} free`,
+              `${formatSize(used)} od ${formatSize(ATTACHMENT_BUDGET)} · prosto ${formatSize(Math.max(0, ATTACHMENT_BUDGET - used))}`
+            )}
           </span>
         </div>
         <div className={`storage-bar ${level}`}>
@@ -65,21 +72,23 @@ export default function StorageSettings() {
         </div>
         <p className="settings-note top">
           {level === "full"
-            ? "Attachments are full: new files can't be added until you remove some below. Tasks keep working as normal."
+            ? tr("Attachments are full: new files can't be added until you remove some below. Tasks keep working as normal.", "Priponke so polne: novih datotek ni mogoče dodati, dokler spodaj ne odstraniš nekaj. Naloge delujejo normalno.")
             : level === "warn"
-              ? "Attachments are almost full. Removing big or old files below frees space."
-              : "Shared by both of you. Photos are shrunk before upload, so they take little space."}{" "}
-          Tasks and everything else take about {formatSize(otherBytes)} of the free {formatSize(DATABASE_SIZE)} database; the
-          rest is kept free so tasks can always be saved.
+              ? tr("Attachments are almost full. Removing big or old files below frees space.", "Priponke so skoraj polne. Odstranjevanje velikih ali starih datotek spodaj sprosti prostor.")
+              : tr("Shared by both of you. Photos are shrunk before upload, so they take little space.", "Skupno za oba. Fotografije se pred nalaganjem pomanjšajo, zato zasedejo malo prostora.")}{" "}
+          {tr(
+            `Tasks and everything else take about ${formatSize(otherBytes)} of the free ${formatSize(DATABASE_SIZE)} database; the rest is kept free so tasks can always be saved.`,
+            `Naloge in vse ostalo zasedejo približno ${formatSize(otherBytes)} od brezplačne baze ${formatSize(DATABASE_SIZE)}; ostalo ostane prosto, da se naloge vedno lahko shranijo.`
+          )}
         </p>
       </div>
 
-      <h4>Attachments, biggest first</h4>
+      <h4>{tr("Attachments, biggest first", "Priponke, največje najprej")}</h4>
       {attachments.length === 0 && (
-        <p className="settings-note top">{loadingOlder ? "Loading…" : "No attachments yet."}</p>
+        <p className="settings-note top">{loadingOlder ? tr("Loading…", "Nalagam …") : tr("No attachments yet.", "Še ni priponk.")}</p>
       )}
       <div className="storage-list">
-        {attachments.map(({ att, task, project }) => (
+        {attachments.map(({ att, task, project, comment }) => (
           <div key={att.id} className="storage-item">
             {att.thumb ? <img src={att.thumb} alt="" /> : <FileIcon width={18} height={18} />}
             <span className="storage-item-text">
@@ -101,18 +110,22 @@ export default function StorageSettings() {
               </button>
               <span>
                 {task
-                  ? `on “${task.content}”${task.completed ? " · completed" : ""}`
-                  : `in the project “${project?.name ?? ""}”`}
+                  ? tr(
+                      `${comment ? "in a comment " : ""}on “${task.content}”${task.completed ? " · completed" : ""}`,
+                      `${comment ? "v komentarju " : ""}na »${task.content}«${task.completed ? " · opravljeno" : ""}`
+                    )
+                  : tr(`in the project “${project?.name ?? ""}”`, `v projektu »${project?.name ?? ""}«`)}
               </span>
             </span>
             <span className="attachment-size">{formatSize(att.size)}</span>
             <button
               className="attachment-remove inline"
-              aria-label={`Delete ${att.name}`}
+              aria-label={tr(`Delete ${att.name}`, `Izbriši ${att.name}`)}
               onClick={() => {
-                if (task) removeAttachment.mutate({ taskId: task.id, attachmentId: att.id });
+                if (task && comment) removeCommentAttachment.mutate({ taskId: task.id, commentId: comment.id, attachmentId: att.id });
+                else if (task) removeAttachment.mutate({ taskId: task.id, attachmentId: att.id });
                 else if (project) removeProjectFile.mutate({ projectId: project.id, attachmentId: att.id });
-                showToast({ message: `Deleted “${att.name}”. The space is freed in a few seconds.` });
+                showToast({ message: tr(`Deleted “${att.name}”. The space is freed in a few seconds.`, `»${att.name}« izbrisano. Prostor se sprosti v nekaj sekundah.`) });
               }}
             >
               <TrashIcon width={14} height={14} />

@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, parseISO } from "date-fns";
+import { format, tr, trn } from "../i18n";
 import type { Due, Reminder, Task } from "../api/types";
 
 /**
@@ -38,35 +39,37 @@ export function reminderTime(due: Due | null | undefined, r: Reminder): Date | n
 }
 
 function leadText(minutes: number): string {
-  if (minutes === 0) return "At the due time";
-  if (minutes % 1440 === 0) return minutes === 1440 ? "1 day before" : `${minutes / 1440} days before`;
-  if (minutes % 60 === 0) return `${minutes / 60} h before`;
-  return `${minutes} min before`;
+  if (minutes === 0) return tr("At the due time", "Ob času naloge");
+  if (minutes % 1440 === 0)
+    return trn(minutes / 1440, ["# day before", "# days before"], ["# dan prej", "# dni prej", "# dni prej", "# dni prej"]);
+  if (minutes % 60 === 0) return tr(`${minutes / 60} h before`, `${minutes / 60} h prej`);
+  return tr(`${minutes} min before`, `${minutes} min prej`);
 }
 
 /** "15 min before", "Day before at 18:00", "Fri 3 Oct, 14:30". */
 export function describeReminder(r: Reminder): string {
   if (r.type === "relative") return leadText(r.minutes);
   if (r.type === "day") {
-    if (r.days === 0) return `On the day at ${r.time}`;
-    if (r.days === 1) return `Day before at ${r.time}`;
-    return `${r.days} days before at ${r.time}`;
+    if (r.days === 0) return tr(`On the day at ${r.time}`, `Na dan ob ${r.time}`);
+    if (r.days === 1) return tr(`Day before at ${r.time}`, `Dan prej ob ${r.time}`);
+    return tr(`${r.days} days before at ${r.time}`, `${r.days} dni prej ob ${r.time}`);
   }
   const d = new Date(r.at);
-  return isNaN(d.getTime()) ? "Reminder" : format(d, "EEE d MMM, HH:mm");
+  return isNaN(d.getTime()) ? tr("Reminder", "Opomnik") : format(d, tr("EEE d MMM, HH:mm", "EEE, d. MMM, HH:mm"));
 }
 
 /** Short form for chips: "15m", "9:00", "3 Oct 14:30". */
 export function shortReminder(r: Reminder): string {
   if (r.type === "relative") {
-    if (r.minutes === 0) return "At time";
-    if (r.minutes % 1440 === 0) return `${r.minutes / 1440}d before`;
-    if (r.minutes % 60 === 0) return `${r.minutes / 60}h before`;
-    return `${r.minutes}m before`;
+    if (r.minutes === 0) return tr("At time", "Ob času");
+    if (r.minutes % 1440 === 0) return tr(`${r.minutes / 1440}d before`, `${r.minutes / 1440} d prej`);
+    if (r.minutes % 60 === 0) return tr(`${r.minutes / 60}h before`, `${r.minutes / 60} h prej`);
+    return tr(`${r.minutes}m before`, `${r.minutes} min prej`);
   }
-  if (r.type === "day") return r.days === 0 ? r.time : r.days === 1 ? `Day before ${r.time}` : `${r.days}d before ${r.time}`;
+  if (r.type === "day")
+    return r.days === 0 ? r.time : r.days === 1 ? tr(`Day before ${r.time}`, `Dan prej ${r.time}`) : tr(`${r.days}d before ${r.time}`, `${r.days} d prej ${r.time}`);
   const d = new Date(r.at);
-  return isNaN(d.getTime()) ? "Reminder" : format(d, "d MMM HH:mm");
+  return isNaN(d.getTime()) ? tr("Reminder", "Opomnik") : format(d, tr("d MMM HH:mm", "d. MMM HH:mm"));
 }
 
 export type ReminderPreset = { key: string; label: string; make: () => ReminderSpec };
@@ -78,9 +81,9 @@ export const TIMED_PRESETS: ReminderPreset[] = [0, 15, 30, 60, 120, 1440].map((m
 }));
 
 export const DAY_PRESETS: ReminderPreset[] = [
-  { key: "day:0:09:00", label: "On the day at 9:00", make: () => ({ type: "day", days: 0, time: "09:00" }) },
-  { key: "day:0:18:00", label: "On the day at 18:00", make: () => ({ type: "day", days: 0, time: "18:00" }) },
-  { key: "day:1:18:00", label: "Day before at 18:00", make: () => ({ type: "day", days: 1, time: "18:00" }) },
+  { key: "day:0:09:00", label: tr("On the day at 9:00", "Na dan ob 9:00"), make: () => ({ type: "day", days: 0, time: "09:00" }) },
+  { key: "day:0:18:00", label: tr("On the day at 18:00", "Na dan ob 18:00"), make: () => ({ type: "day", days: 0, time: "18:00" }) },
+  { key: "day:1:18:00", label: tr("Day before at 18:00", "Dan prej ob 18:00"), make: () => ({ type: "day", days: 1, time: "18:00" }) },
 ];
 
 /** The same reminder already on the list (so a preset isn't added twice). */
@@ -102,17 +105,17 @@ const DEFAULT_TIMED_KEY = "opravilko.reminders.defaultTimed";
 const DEFAULT_ALLDAY_KEY = "opravilko.reminders.defaultAllDay";
 
 export const TIMED_DEFAULT_OPTIONS: [string, string][] = [
-  ["none", "None"],
-  ["rel:0", "At the due time"],
-  ["rel:15", "15 min before"],
-  ["rel:30", "30 min before"],
-  ["rel:60", "1 h before"],
+  ["none", tr("None", "Brez")],
+  ["rel:0", tr("At the due time", "Ob času naloge")],
+  ["rel:15", tr("15 min before", "15 min prej")],
+  ["rel:30", tr("30 min before", "30 min prej")],
+  ["rel:60", tr("1 h before", "1 h prej")],
 ];
 
 export const ALLDAY_DEFAULT_OPTIONS: [string, string][] = [
-  ["none", "None"],
-  ["day:0:09:00", "On the day at 9:00"],
-  ["day:1:18:00", "Day before at 18:00"],
+  ["none", tr("None", "Brez")],
+  ["day:0:09:00", tr("On the day at 9:00", "Na dan ob 9:00")],
+  ["day:1:18:00", tr("Day before at 18:00", "Dan prej ob 18:00")],
 ];
 
 function read(key: string): string {

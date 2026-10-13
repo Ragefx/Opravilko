@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { format, isToday } from "date-fns";
+import { isToday } from "date-fns";
+import { tr, format, trn, localeTag } from "../i18n";
 import { useBootstrap } from "../api/hooks";
 import { colorHex } from "../utils/colors";
 import type { AppData } from "../api/types";
@@ -54,33 +55,36 @@ export default function StatsView() {
     <div className="content-scroll">
       <div className="page-header">
         <div>
-          <h1>Productivity</h1>
-          <div className="page-subtitle">What you've been getting done</div>
+          <h1>{tr("Productivity", "Produktivnost")}</h1>
+          <div className="page-subtitle">{tr("What you've been getting done", "Kaj vse si opravil(a)")}</div>
         </div>
       </div>
 
       <div className="stat-tiles">
         <div className="stat-tile">
-          <div className="stat-label">Current streak</div>
-          <div className="stat-value">
-            {streak} {streak === 1 ? "day" : "days"}
+          <div className="stat-label">{tr("Current streak", "Trenutni niz")}</div>
+          <div className="stat-value">{trn(streak, ["# day", "# days"], ["# dan", "# dneva", "# dnevi", "# dni"])}</div>
+          <div className="stat-note">
+            {tr("Best: ", "Najboljši: ")}
+            {trn(best, ["# day", "# days"], ["# dan", "# dneva", "# dnevi", "# dni"])}
           </div>
-          <div className="stat-note">Best: {best} {best === 1 ? "day" : "days"}</div>
         </div>
         <div className="stat-tile">
-          <div className="stat-label">Completed today</div>
+          <div className="stat-label">{tr("Completed today", "Opravljeno danes")}</div>
           <div className="stat-value">{today}</div>
         </div>
         <div className="stat-tile">
-          <div className="stat-label">Last 7 days</div>
+          <div className="stat-label">{tr("Last 7 days", "Zadnjih 7 dni")}</div>
           <div className="stat-value">{last7}</div>
           <div className={`stat-note ${delta > 0 ? "up" : delta < 0 ? "down" : ""}`}>
-            {delta === 0 ? "Same as" : `${delta > 0 ? "+" : "−"}${Math.abs(delta)} vs`} previous 7 days
+            {delta === 0
+              ? tr("Same as previous 7 days", "Enako kot prejšnjih 7 dni")
+              : tr(`${delta > 0 ? "+" : "−"}${Math.abs(delta)} vs previous 7 days`, `${delta > 0 ? "+" : "−"}${Math.abs(delta)} glede na prejšnjih 7 dni`)}
           </div>
         </div>
         <div className="stat-tile">
-          <div className="stat-label">All time</div>
-          <div className="stat-value">{entries.length.toLocaleString()}</div>
+          <div className="stat-label">{tr("All time", "Vse skupaj")}</div>
+          <div className="stat-value">{entries.length.toLocaleString(localeTag)}</div>
         </div>
       </div>
 
@@ -88,9 +92,9 @@ export default function StatsView() {
 
       <section className="stats-card">
         <div className="stats-card-header">
-          <h2>Completed per day</h2>
+          <h2>{tr("Completed per day", "Opravljeno na dan")}</h2>
           <button className="btn-text stats-table-toggle" onClick={() => setShowTable((v) => !v)}>
-            {showTable ? "Show chart" : "Show as table"}
+            {showTable ? tr("Show chart", "Pokaži graf") : tr("Show as table", "Pokaži kot tabelo")}
           </button>
         </div>
 
@@ -98,21 +102,21 @@ export default function StatsView() {
           <table className="stats-table">
             <thead>
               <tr>
-                <th>Day</th>
-                <th>Completed</th>
+                <th>{tr("Day", "Dan")}</th>
+                <th>{tr("Completed", "Opravljeno")}</th>
               </tr>
             </thead>
             <tbody>
               {[...days].reverse().map((d) => (
                 <tr key={d.key}>
-                  <td>{format(d.date, "EEE d MMM")}</td>
+                  <td>{format(d.date, tr("EEE d MMM", "EEE, d. MMM"))}</td>
                   <td>{d.count}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <div className="col-chart" role="img" aria-label={`Tasks completed per day over the last ${CHART_DAYS} days`}>
+          <div className="col-chart" role="img" aria-label={tr(`Tasks completed per day over the last ${CHART_DAYS} days`, `Opravljene naloge na dan v zadnjih ${CHART_DAYS} dneh`)}>
             <div className="col-chart-yaxis">
               {[...ticks].reverse().map((t) => (
                 <span key={t}>{t}</span>
@@ -142,8 +146,8 @@ export default function StatsView() {
                   />
                   {hovered === i && (
                     <div className={`col-chart-tooltip ${i > CHART_DAYS - 4 ? "align-right" : ""}`}>
-                      <strong>{format(d.date, "EEE d MMM")}</strong>
-                      {d.count} {d.count === 1 ? "task" : "tasks"} completed
+                      <strong>{format(d.date, tr("EEE d MMM", "EEE, d. MMM"))}</strong>
+                      {trn(d.count, ["# task completed", "# tasks completed"], ["# opravljena naloga", "# opravljeni nalogi", "# opravljene naloge", "# opravljenih nalog"])}
                     </div>
                   )}
                 </div>
@@ -151,7 +155,7 @@ export default function StatsView() {
             </div>
             <div className="col-chart-xaxis">
               {days.map((d, i) => (
-                <span key={d.key}>{isToday(d.date) ? "Today" : i % 2 === 1 ? format(d.date, "d") : ""}</span>
+                <span key={d.key}>{isToday(d.date) ? tr("Today", "Danes") : i % 2 === 1 ? format(d.date, "d") : ""}</span>
               ))}
             </div>
           </div>
@@ -160,10 +164,10 @@ export default function StatsView() {
 
       <section className="stats-card">
         <div className="stats-card-header">
-          <h2>By project, last 7 days</h2>
+          <h2>{tr("By project, last 7 days", "Po projektih, zadnjih 7 dni")}</h2>
         </div>
         {projectRows.length === 0 ? (
-          <p className="stats-empty">Nothing completed in the last 7 days yet.</p>
+          <p className="stats-empty">{tr("Nothing completed in the last 7 days yet.", "V zadnjih 7 dneh še nič opravljenega.")}</p>
         ) : (
           <ul className="stats-project-list">
             {projectRows.map(({ project, count }) => (
@@ -187,11 +191,11 @@ const PAIR_DAYS = 14;
 /** You and your partner side by side: who did most, day by day, and the shopping. */
 function TwoOfUs({ data }: { data: AppData }) {
   const [hovered, setHovered] = useState<number | null>(null);
-  const partnerName = data.partner!.name.split(" ")[0] || "Partner";
+  const partnerName = data.partner!.name.split(" ")[0] || tr("Partner", "Partner");
   const mine = totalsOf(activitySummary(data), PAIR_DAYS);
   const theirs = data.partnerActivity ? totalsOf(data.partnerActivity, PAIR_DAYS) : null;
   const people: { name: string; t: PersonTotals; cls: string }[] = [
-    { name: "You", t: mine, cls: "is-me" },
+    { name: tr("You", "Ti"), t: mine, cls: "is-me" },
     ...(theirs ? [{ name: partnerName, t: theirs, cls: "is-partner" }] : []),
   ];
 
@@ -200,7 +204,7 @@ function TwoOfUs({ data }: { data: AppData }) {
     const a = pick(mine);
     const b = pick(theirs);
     if (a === b) return a === 0 ? null : "tie";
-    return a > b ? "You" : partnerName;
+    return a > b ? tr("You", "Ti") : partnerName;
   };
   const weekLeader = leader((t) => t.week);
   const maxWeek = Math.max(1, ...people.map((p) => p.t.week));
@@ -218,20 +222,26 @@ function TwoOfUs({ data }: { data: AppData }) {
     <>
       <section className="stats-card us-card">
         <div className="stats-card-header">
-          <h2>The two of you, last 7 days</h2>
+          <h2>{tr("The two of you, last 7 days", "Vidva, zadnjih 7 dni")}</h2>
         </div>
         {!theirs && (
           <p className="stats-empty">
-            {partnerName}'s numbers show up here once their app has been opened after this update.
+            {tr(
+              `${partnerName}'s numbers show up here once their app has been opened after this update.`,
+              `Številke za ${partnerName} se pokažejo, ko po tej posodobitvi enkrat odpre aplikacijo.`
+            )}
           </p>
         )}
         {weekLeader && (
           <p className="us-leader">
             {weekLeader === "tie" ? (
-              <>Neck and neck this week 🤝</>
+              <>{tr("Neck and neck this week 🤝", "Ta teden sta izenačena 🤝")}</>
             ) : (
               <>
-                👑 <b>{weekLeader}</b> {weekLeader === "You" ? "were" : "was"} the most active this week
+                👑 <b>{weekLeader}</b>{" "}
+                {weekLeader === tr("You", "Ti")
+                  ? tr("were the most active this week", "si bil(a) ta teden najbolj dejaven(-na)")
+                  : tr("was the most active this week", "je bil(a) ta teden najbolj dejaven(-na)")}
               </>
             )}
           </p>
@@ -260,13 +270,13 @@ function TwoOfUs({ data }: { data: AppData }) {
           </thead>
           <tbody>
             <tr>
-              <td>Today</td>
+              <td>{tr("Today", "Danes")}</td>
               {people.map((p) => (
                 <td key={p.name}>{p.t.today}</td>
               ))}
             </tr>
             <tr>
-              <td>Last 7 days</td>
+              <td>{tr("Last 7 days", "Zadnjih 7 dni")}</td>
               {people.map((p) => (
                 <td key={p.name}>
                   {p.t.week}
@@ -275,7 +285,7 @@ function TwoOfUs({ data }: { data: AppData }) {
               ))}
             </tr>
             <tr>
-              <td>Last 30 days</td>
+              <td>{tr("Last 30 days", "Zadnjih 30 dni")}</td>
               {people.map((p) => (
                 <td key={p.name}>{p.t.month}</td>
               ))}
@@ -287,12 +297,12 @@ function TwoOfUs({ data }: { data: AppData }) {
       {theirs && (
         <section className="stats-card">
           <div className="stats-card-header">
-            <h2>Day by day</h2>
+            <h2>{tr("Day by day", "Dan za dnem")}</h2>
             <span className="us-legend">
-              <i className="is-me" /> You <i className="is-partner" /> {partnerName}
+              <i className="is-me" /> {tr("You", "Ti")} <i className="is-partner" /> {partnerName}
             </span>
           </div>
-          <div className="us-pairs" role="img" aria-label={`Completed per day over the last ${PAIR_DAYS} days, you and ${partnerName}`}>
+          <div className="us-pairs" role="img" aria-label={tr(`Completed per day over the last ${PAIR_DAYS} days, you and ${partnerName}`, `Opravljeno na dan v zadnjih ${PAIR_DAYS} dneh, ti in ${partnerName}`)}>
             {days.map((d, i) => (
               <div
                 key={d.key}
@@ -305,11 +315,11 @@ function TwoOfUs({ data }: { data: AppData }) {
                   <i className="is-me" style={{ height: `${(mine.perDay[i] / top) * 100}%` }} />
                   <i className="is-partner" style={{ height: `${(theirs.perDay[i] / top) * 100}%` }} />
                 </div>
-                <span className="us-pair-day">{isToday(d.date) ? "Today" : i % 2 === 1 ? format(d.date, "d") : ""}</span>
+                <span className="us-pair-day">{isToday(d.date) ? tr("Today", "Danes") : i % 2 === 1 ? format(d.date, "d") : ""}</span>
                 {hovered === i && (
                   <div className={`col-chart-tooltip ${i > PAIR_DAYS - 4 ? "align-right" : ""}`}>
-                    <strong>{format(d.date, "EEE d MMM")}</strong>
-                    You {mine.perDay[i]} · {partnerName} {theirs.perDay[i]}
+                    <strong>{format(d.date, tr("EEE d MMM", "EEE, d. MMM"))}</strong>
+                    {tr("You", "Ti")} {mine.perDay[i]} · {partnerName} {theirs.perDay[i]}
                   </div>
                 )}
               </div>
@@ -320,24 +330,26 @@ function TwoOfUs({ data }: { data: AppData }) {
 
       <section className="stats-card">
         <div className="stats-card-header">
-          <h2>Shopping, last 30 days</h2>
+          <h2>{tr("Shopping, last 30 days", "Nakupi, zadnjih 30 dni")}</h2>
         </div>
         <div className="us-shop-tiles">
           {people.map((p) => (
             <div key={p.name} className={`us-shop-tile ${p.cls}`}>
               <b>{p.name}</b>
               <span>
-                <em>{p.t.bought}</em> {p.t.bought === 1 ? "item" : "items"} bought
+                <em>{p.t.bought}</em>{" "}
+                {trn(p.t.bought, ["item bought", "items bought"], ["kupljen artikel", "kupljena artikla", "kupljeni artikli", "kupljenih artiklov"])}
               </span>
               <span>
-                <em>{p.t.trips}</em> {p.t.trips === 1 ? "trip" : "trips"} to the shop
+                <em>{p.t.trips}</em>{" "}
+                {trn(p.t.trips, ["trip to the shop", "trips to the shop"], ["obisk trgovine", "obiska trgovine", "obiski trgovine", "obiskov trgovine"])}
               </span>
             </div>
           ))}
         </div>
         {usual.length > 0 && (
           <>
-            <h3 className="us-sub">Bought most often</h3>
+            <h3 className="us-sub">{tr("Bought most often", "Najpogosteje kupljeno")}</h3>
             <ul className="us-usual">
               {usual.map((u) => (
                 <li key={u.name}>
@@ -360,7 +372,7 @@ function Change({ now, before }: { now: number; before: number }) {
   const d = now - before;
   if (d === 0) return null;
   return (
-    <span className={`us-change ${d > 0 ? "up" : "down"}`} title={`${before} the 7 days before`}>
+    <span className={`us-change ${d > 0 ? "up" : "down"}`} title={tr(`${before} the 7 days before`, `${before} v 7 dneh prej`)}>
       {d > 0 ? "▲" : "▼"}
       {Math.abs(d)}
     </span>

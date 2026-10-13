@@ -1,3 +1,4 @@
+import { tr, trn } from "../i18n";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { nanoid } from "nanoid";
@@ -60,18 +61,18 @@ export default function TemplatesModal({
 
   function save() {
     if (!editing || !editing.text.trim()) return;
-    const t: TaskTemplate = { id: editing.id || nanoid(), name: editing.name.trim() || "Template", text: editing.text };
+    const t: TaskTemplate = { id: editing.id || nanoid(), name: editing.name.trim() || tr("Template", "Predloga"), text: editing.text };
     const exists = templates.some((x) => x.id === t.id);
     saveTemplates.mutate(exists ? templates.map((x) => (x.id === t.id ? t : x)) : [...templates, t]);
     setEditing(null);
-    if (startWith && !exists) showToast({ message: `Saved “${t.name}” as a template` });
+    if (startWith && !exists) showToast({ message: tr(`Saved “${t.name}” as a template`, `»${t.name}« shranjeno kot predloga`) });
   }
 
   function remove(t: TaskTemplate) {
     saveTemplates.mutate(templates.filter((x) => x.id !== t.id));
     showToast({
-      message: `Deleted “${t.name}”`,
-      actionLabel: "Undo",
+      message: tr(`Deleted “${t.name}”`, `Izbrisano: »${t.name}«`),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () => saveTemplates.mutate([...(data?.templates ?? []).filter((x) => x.id !== t.id), t]),
     });
   }
@@ -96,7 +97,12 @@ export default function TemplatesModal({
     }
     setBusy(false);
     onClose();
-    showToast({ message: `Added ${count} task${count === 1 ? "" : "s"} from “${t.name}” to ${project.name}` });
+    showToast({
+      message: tr(
+        `Added ${count} task${count === 1 ? "" : "s"} from “${t.name}” to ${project.name}`,
+        `Iz »${t.name}« dodano v ${project.name}: ${trn(count, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"])}`
+      ),
+    });
   }
 
   return createPortal(
@@ -107,10 +113,10 @@ export default function TemplatesModal({
         onClose();
       }}
     >
-      <div className="modal templates-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Templates">
+      <div className="modal templates-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Templates", "Predloge")}>
         <div className="settings-head">
-          <h3>{editing ? (editing.id ? "Edit template" : "New template") : "Templates"}</h3>
-          <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
+          <h3>{editing ? (editing.id ? tr("Edit template", "Uredi predlogo") : tr("New template", "Nova predloga")) : tr("Templates", "Predloge")}</h3>
+          <button className="sidebar-icon-btn" onClick={onClose} aria-label={tr("Close", "Zapri")}>
             <XIcon width={18} height={18} />
           </button>
         </div>
@@ -118,27 +124,32 @@ export default function TemplatesModal({
         {editing ? (
           <div className="meal-new">
             <input
-              placeholder="Name, e.g. Pakiranje za potovanje"
+              placeholder={tr("Name, e.g. Packing for a trip", "Ime, npr. Pakiranje za potovanje")}
               value={editing.name}
               onChange={(e) => setEditing({ ...editing, name: e.target.value })}
               autoFocus
             />
             <textarea
               rows={10}
-              placeholder={"One task per line:\nPotni list\nPolnilec\n- za telefon\n- za uro\nRezerviraj parkirišče jutri"}
+              placeholder={tr(
+                "One task per line:\nPassport\nCharger\n- for the phone\n- for the watch\nBook parking tomorrow",
+                "Ena naloga na vrstico:\nPotni list\nPolnilec\n- za telefon\n- za uro\nRezerviraj parkirišče jutri"
+              )}
               value={editing.text}
               onChange={(e) => setEditing({ ...editing, text: e.target.value })}
             />
             <p className="settings-note">
-              A line starting with “-” is a sub-task of the line above. Dates and priorities work as in Add task
-              (“jutri”, “v petek”, “p1”) and are worked out when the template is used.
+              {tr(
+                "A line starting with “-” is a sub-task of the line above. Dates and priorities work as in Add task (“tomorrow”, “on Friday”, “p1”) and are worked out when the template is used.",
+                "Vrstica, ki se začne z »-«, je podnaloga vrstice nad njo. Datumi in prednosti delujejo kot pri dodajanju naloge (»jutri«, »v petek«, »p1«) in se izračunajo, ko predlogo uporabiš."
+              )}
             </p>
             <div className="modal-actions">
               <button className="btn btn-text" onClick={() => (startWith && !editing.id ? onClose() : setEditing(null))}>
-                {startWith && !editing.id ? "Cancel" : "Back"}
+                {startWith && !editing.id ? tr("Cancel", "Prekliči") : tr("Back", "Nazaj")}
               </button>
               <button className="btn btn-primary" onClick={save} disabled={!editing.text.trim()}>
-                Save template
+                {tr("Save template", "Shrani predlogo")}
               </button>
             </div>
           </div>
@@ -146,8 +157,10 @@ export default function TemplatesModal({
           <>
             {templates.length === 0 ? (
               <p className="settings-note top">
-                No templates yet. Make one here, or use “Save as template” in a project's ⋯ menu to turn its tasks into
-                one.
+                {tr(
+                  "No templates yet. Make one here, or use “Save as template” in a project's ⋯ menu to turn its tasks into one.",
+                  "Še ni predlog. Naredi jo tukaj ali uporabi »Shrani kot predlogo« v meniju ⋯ projekta, da iz njegovih nalog narediš predlogo."
+                )}
               </p>
             ) : (
               <ul className="template-list">
@@ -158,17 +171,17 @@ export default function TemplatesModal({
                       <div className="template-info">
                         <b>{t.name}</b>
                         <span>
-                          {n} task{n === 1 ? "" : "s"}
+                          {trn(n, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"])}
                         </span>
                       </div>
                       <button className="btn btn-text" onClick={() => setEditing(t)}>
-                        Edit
+                        {tr("Edit", "Uredi")}
                       </button>
                       <button className="btn btn-text meal-danger" onClick={() => remove(t)}>
-                        Delete
+                        {tr("Delete", "Izbriši")}
                       </button>
                       <button className="btn btn-primary" disabled={busy} onClick={() => void use(t)}>
-                        Add to {project.name}
+                        {tr(`Add to ${project.name}`, `Dodaj v ${project.name}`)}
                       </button>
                     </li>
                   );
@@ -176,7 +189,7 @@ export default function TemplatesModal({
               </ul>
             )}
             <button className="btn btn-secondary meal-new-btn" onClick={() => setEditing({ id: "", name: "", text: "" })}>
-              + New template
+              + {tr("New template", "Nova predloga")}
             </button>
           </>
         )}

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { AppData, Task } from "../api/types";
 
 /**
@@ -11,7 +12,7 @@ export function completedByName(task: Task, data: AppData | undefined): string |
   const project = data.projects.find((p) => p.id === task.projectId);
   const shared = (project?.members?.length ?? 0) > 1 || (task.sharedWith?.length ?? 0) > 0;
   if (!shared) return null;
-  if (by === data.me) return "You";
+  if (by === data.me) return tr("You", "Ti");
   const name = data.partner?.uid === by ? data.partner.name : project?.memberProfiles?.[by]?.name;
   return name?.split(" ")[0] || null;
 }
@@ -26,7 +27,7 @@ export function personName(by: string | undefined, task: Task, data: AppData | u
   const project = data.projects.find((p) => p.id === task.projectId);
   const shared = (project?.members?.length ?? 0) > 1 || (task.sharedWith?.length ?? 0) > 0 || Boolean(task.sharedBy);
   if (!shared) return null;
-  if (by === data.me) return "You";
+  if (by === data.me) return tr("You", "Ti");
   const name =
     data.partner?.uid === by
       ? data.partner.name

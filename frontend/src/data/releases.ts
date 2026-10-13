@@ -7,9 +7,71 @@ export interface Release {
   build: number;
   date: string;
   items: string[];
+  /** The same in Slovenian (from build 57 on), shown when the app is in Slovenian. */
+  itemsSl?: string[];
 }
 
 export const RELEASES: Release[] = [
+  {
+    build: 59,
+    date: "2026-10-08",
+    items: [
+      "Shopping: an \"On sale\" card with this week's deals at Hofer, Lidl, Spar and Tuš that fit your meals and the things you usually buy. \"+ Add\" puts a meal on the list with each deal's shop; \"All deals\" lets you search them all. It can be hidden in Simple.",
+    ],
+    itemsSl: [
+      "Nakupi: kartica »V akciji« s tedenskimi akcijami Hoferja, Lidla, Spara in Tuša, ki ustrezajo tvojim obrokom in stvarem, ki jih običajno kupuješ. »+ Dodaj« doda obrok na seznam s trgovino vsake akcije; v »Vse akcije« lahko iščeš med vsemi. Skrije se lahko v Preprostem.",
+    ],
+  },
+  {
+    build: 58,
+    date: "2026-10-07",
+    items: [
+      "Languages: English or Slovenian, chosen per device in Settings > Appearance > Language. The app, the widget, its add card, reminders and other notifications follow it.",
+      "Comments can have pictures: paste one into the comment box.",
+      "Simple can also hide Productivity in the menu.",
+      "No \"+ Add task\" lines in the Inbox, projects and Upcoming in the app: the + button adds.",
+      "Calendar day list and Upcoming: tasks under their own day show just the time, not \"Today\" again.",
+      "Menu: Weekly review has its own icon; no keyboard hint beside Search.",
+      "Task window: the Event row has a simple icon like the others; no \">\" arrows on the rows; no \"drop files\" hint on the phone.",
+    ],
+    itemsSl: [
+      "Jeziki: angleščina ali slovenščina, za vsako napravo posebej v Nastavitve > Videz > Jezik. Sledijo mu aplikacija, pripomoček, njegova kartica za dodajanje, opomniki in druga obvestila.",
+      "Komentarji imajo lahko slike: prilepi jo v polje za komentar.",
+      "Preprosto lahko skrije tudi Produktivnost v meniju.",
+      "V aplikaciji ni več vrstic »+ Dodaj nalogo« v Prejeto, projektih in Prihajajoče: dodaja gumb +.",
+      "Seznam dneva na koledarju in Prihajajoče: naloge pod svojim dnem kažejo le uro, ne še enkrat »Danes«.",
+      "Meni: Tedenski pregled ima svojo ikono; ob Iskanju ni več namiga za tipkovnico.",
+      "Okno naloge: vrstica Dogodek ima preprosto ikono kot ostale; brez puščic »>« v vrsticah; na telefonu brez namiga »spusti datoteke«.",
+    ],
+  },
+  {
+    build: 57,
+    date: "2026-10-05",
+    items: [
+      "Midva: the old \"+ Add task\" line is gone; the + button at the bottom adds tasks there already shared.",
+      "Simple can also hide Completed in the menu (hidden with Simple on; can be shown again).",
+      "Settings: Focus task, Weekly review and Completed tasks on the calendar are now on the Simple page.",
+      "Events: \"Until\" in the task window uses the app's own time picker, like Date.",
+    ],
+    itemsSl: [
+      "Midva: stare vrstice »+ Dodaj nalogo« ni več; gumb + spodaj tam doda že deljeno nalogo.",
+      "Preprosto lahko skrije tudi Opravljeno v meniju (s Preprosto vklopljenim skrito; lahko ga spet prikažeš).",
+      "Nastavitve: Glavna naloga, Tedenski pregled in Opravljene naloge na koledarju so zdaj na strani Preprosto.",
+      "Dogodki: »Do« v oknu naloge uporablja izbirnik ure aplikacije, kot Datum.",
+    ],
+  },
+  {
+    build: 56,
+    date: "2026-10-05",
+    items: [
+      "Simple has its own page in Settings (under Look & feel). With Simple on, the shopping add box, mic and Add share one row, the add card has no label or location icons, and the menu has no Labels or Filters.",
+      "Calendar (and widget): bought shopping items no longer show under Done.",
+    ],
+    itemsSl: [
+      "Preprosto ima svojo stran v Nastavitvah (pod Videz in občutek). S Preprosto vklopljenim so polje za nakupe, mikrofon in Dodaj v eni vrstici, kartica za dodajanje nima ikon za oznake in lokacijo, meni pa nima Oznak in Filtrov.",
+      "Koledar (in pripomoček): kupljeni artikli se ne kažejo več med Opravljeno.",
+    ],
+  },
   {
     build: 55,
     date: "2026-10-01",

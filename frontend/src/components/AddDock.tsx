@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Keyboard } from "@capacitor/keyboard";
@@ -68,13 +69,13 @@ function AddMenu({ onPick, onClose, className }: { onPick: (a: Action) => void; 
       <div className="add-menu-scrim" onClick={onClose} />
       <div className={`add-menu ${className}`} role="menu">
         <button role="menuitem" onClick={() => onPick("voice")}>
-          <MicIcon width={17} height={17} /> Voice
+          <MicIcon width={17} height={17} /> {tr("Voice", "Glas")}
         </button>
         <button role="menuitem" onClick={() => onPick("shop")}>
-          <CartIcon width={17} height={17} /> Shopping item
+          <CartIcon width={17} height={17} /> {tr("Shopping item", "Nakup")}
         </button>
         <button role="menuitem" onClick={() => onPick("task")}>
-          <CheckIcon width={16} height={16} /> Task
+          <CheckIcon width={16} height={16} /> {tr("Task", "Naloga")}
         </button>
       </div>
     </>
@@ -151,16 +152,16 @@ export default function AddDock({
       </NavLink>
     );
     return (
-      <nav className="add-tabs" aria-label="Main">
-        {tab("/app/home", "Now", <FocusIcon width={21} height={21} />)}
-        {tab("/app/calendar", "Calendar", <CalendarIcon width={21} height={21} />)}
-        <button className="add-tabs-plus" aria-label={onShopping ? "Add to shopping" : "Add task"} {...gestures}>
+      <nav className="add-tabs" aria-label={tr("Main", "Glavno")}>
+        {tab("/app/home", tr("Now", "Zdaj"), <FocusIcon width={21} height={21} />)}
+        {tab("/app/calendar", tr("Calendar", "Koledar"), <CalendarIcon width={21} height={21} />)}
+        <button className="add-tabs-plus" aria-label={onShopping ? tr("Add to shopping", "Dodaj v nakupe") : tr("Add task", "Dodaj nalogo")} {...gestures}>
           <PlusIcon width={26} height={26} strokeWidth={2.6} />
         </button>
-        {tab("/app/shopping", "Shopping", <CartIcon width={21} height={21} />)}
+        {tab("/app/shopping", tr("Shopping", "Nakupi"), <CartIcon width={21} height={21} />)}
         {data?.me
-          ? tab("/app/midva", "Midva", <ShareIcon width={21} height={21} />)
-          : tab("/app/inbox", "Inbox", <InboxIcon width={21} height={21} />)}
+          ? tab("/app/midva", tr("Midva", "Midva"), <ShareIcon width={21} height={21} />)
+          : tab("/app/inbox", tr("Inbox", "Prejeto"), <InboxIcon width={21} height={21} />)}
         {menuEl}
       </nav>
     );
@@ -171,12 +172,12 @@ export default function AddDock({
       <div className="add-bar-wrap">
         <div className="add-bar">
           <button className="add-bar-text" onClick={() => run("task")} onContextMenu={(e) => e.preventDefault()}>
-            {onShopping ? "Add to shopping…" : "Add a task…"}
+            {onShopping ? tr("Add to shopping…", "Dodaj v nakupe …") : tr("Add a task…", "Dodaj nalogo …")}
           </button>
-          <button className="add-bar-mic" onClick={() => run("voice")} aria-label="Add by voice">
+          <button className="add-bar-mic" onClick={() => run("voice")} aria-label={tr("Add by voice", "Dodaj z glasom")}>
             <MicIcon width={20} height={20} />
           </button>
-          <button className="add-bar-go" aria-label={onShopping ? "Add to shopping" : "Add task"} {...gestures}>
+          <button className="add-bar-go" aria-label={onShopping ? tr("Add to shopping", "Dodaj v nakupe") : tr("Add task", "Dodaj nalogo")} {...gestures}>
             <PlusIcon width={22} height={22} strokeWidth={2.6} />
           </button>
         </div>
@@ -190,7 +191,7 @@ export default function AddDock({
     <>
       <button
         className={`add-float add-${style} ${onHome ? "is-raised" : ""}`}
-        aria-label={onShopping ? "Add to shopping" : "Add task"}
+        aria-label={onShopping ? tr("Add to shopping", "Dodaj v nakupe") : tr("Add task", "Dodaj nalogo")}
         {...gestures}
       >
         {style === "dot" ? (

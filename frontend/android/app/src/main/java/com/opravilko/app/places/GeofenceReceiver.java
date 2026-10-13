@@ -1,5 +1,6 @@
 package com.opravilko.app.places;
 
+import com.opravilko.app.widget.L;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -28,6 +29,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        L.load(context);
         GeofencingEvent event = GeofencingEvent.fromIntent(intent);
         if (event == null || event.hasError()) return;
         if (event.getGeofenceTransition() != Geofence.GEOFENCE_TRANSITION_ENTER) return;
@@ -47,8 +49,8 @@ public class GeofenceReceiver extends BroadcastReceiver {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager nm = context.getSystemService(NotificationManager.class);
         if (nm == null || nm.getNotificationChannel(CHANNEL) != null) return;
-        NotificationChannel channel = new NotificationChannel(CHANNEL, "Arrival reminders", NotificationManager.IMPORTANCE_HIGH);
-        channel.setDescription("Tasks to do when you arrive at a place");
+        NotificationChannel channel = new NotificationChannel(CHANNEL, L.t("Arrival reminders", "Opomniki ob prihodu"), NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription(L.t("Tasks to do when you arrive at a place", "Naloge za ob prihodu na kraj"));
         nm.createNotificationChannel(channel);
     }
 
@@ -64,7 +66,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_opravilko)
-                .setContentTitle("📍 " + place.optString("placeName", "You've arrived"))
+                .setContentTitle("📍 " + place.optString("placeName", L.t("You've arrived", "Prispel(a) si")))
                 .setContentText(place.optString("title"))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(place.optString("title")))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

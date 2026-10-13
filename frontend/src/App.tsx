@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Layout from "./components/Layout";
@@ -72,7 +73,7 @@ function useOAuthCallback() {
         navigate("/app", { replace: true });
       })
       .catch((err) => {
-        setError(err?.message || "Failed to connect to Dropbox.");
+        setError(err?.message || tr("Failed to connect to Dropbox.", "Povezava z Dropboxom ni uspela."));
       })
       .finally(() => setReady(true));
   }, [navigate]);
@@ -108,14 +109,14 @@ function useNativeOAuthReturn(onError: (message: string) => void) {
       const params = new URL(url).searchParams;
       const code = params.get("code");
       if (!code) {
-        onError(params.get("error") || "Dropbox sign-in was cancelled.");
+        onError(params.get("error") || tr("Dropbox sign-in was cancelled.", "Prijava v Dropbox je bila preklicana."));
         return;
       }
       try {
         await completeConnect(code);
         navigate("/app", { replace: true });
       } catch (err: any) {
-        onError(err?.message || "Failed to connect to Dropbox.");
+        onError(err?.message || tr("Failed to connect to Dropbox.", "Povezava z Dropboxom ni uspela."));
       }
     });
     // Cold start from a widget tap: the link arrives as the launch URL instead.
@@ -147,9 +148,9 @@ function ReturnToApp({ url }: { url: string }) {
     <div className="login-page">
       <div className="login-card">
         <h1>Opravilko</h1>
-        <p>Dropbox is connected. Returning you to the app…</p>
+        <p>{tr("Dropbox is connected. Returning you to the app…", "Dropbox je povezan. Vračam te v aplikacijo …")}</p>
         <a className="btn btn-primary" href={url}>
-          Open Opravilko
+          {tr("Open Opravilko", "Odpri Opravilko")}
         </a>
       </div>
     </div>

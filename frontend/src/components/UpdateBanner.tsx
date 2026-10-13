@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { onAppResume } from "../native/android";
 import { checkForUpdate, installUpdate, type AppUpdate } from "../native/update";
@@ -67,24 +68,24 @@ export default function UpdateBanner() {
         ✨
       </span>
       <span className="update-banner-text">
-        <b>Build {update.build} is ready</b>
+        <b>{tr(`Build ${update.build} is ready`, `Različica ${update.build} je pripravljena`)}</b>
         <span>
           {state === "downloading"
-            ? `Downloading… ${percent}%`
+            ? tr(`Downloading… ${percent}%`, `Prenašam … ${percent} %`)
             : state === "permission"
-              ? "Allow Opravilko to install apps, then tap Update again."
+              ? tr("Allow Opravilko to install apps, then tap Update again.", "Dovoli Opravilku nameščanje aplikacij in znova tapni Posodobi.")
               : state === "failed"
-                ? "Download didn't work. Try again?"
-                : "Tap Update, then Install."}
+                ? tr("Download didn't work. Try again?", "Prenos ni uspel. Poskusiš znova?")
+                : tr("Tap Update, then Install.", "Tapni Posodobi, nato Namesti.")}
         </span>
       </span>
       {state !== "downloading" && (
         <>
           <button className="update-banner-later" onClick={later}>
-            Later
+            {tr("Later", "Pozneje")}
           </button>
           <button className="update-banner-go" onClick={() => void go()}>
-            Update
+            {tr("Update", "Posodobi")}
           </button>
         </>
       )}

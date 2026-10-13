@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { Component, type ReactNode } from "react";
 import { logError } from "../utils/errorLog";
 
@@ -22,11 +23,11 @@ export default class CrashScreen extends Component<{ children: ReactNode }, { er
     if (!error) return this.props.children;
     return (
       <div className="crash-screen" role="alert">
-        <b>Something went wrong</b>
-        <p>Opravilko hit an error. Your tasks are safe; reloading usually fixes it.</p>
+        <b>{tr("Something went wrong", "Nekaj je šlo narobe")}</b>
+        <p>{tr("Opravilko hit an error. Your tasks are safe; reloading usually fixes it.", "Opravilko je naletel na napako. Naloge so varne; ponovno nalaganje običajno pomaga.")}</p>
         <code>{error.message}</code>
         <button className="btn btn-primary" onClick={() => location.reload()}>
-          Reload
+          {tr("Reload", "Naloži znova")}
         </button>
       </div>
     );

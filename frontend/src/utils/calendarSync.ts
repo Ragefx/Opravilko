@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { HOLIDAYS_FEED_ID, holidayEvents, holidaysOn } from "./holidays";
 /**
  * Browsers block cross-origin fetches unless the server opts in (CORS), and
@@ -14,7 +15,7 @@ import { isNativeApp } from "../dropbox/auth";
 /** Our own relay (see cloudflare/calendar-relay.js). */
 const OWN_RELAY = "https://opravilko-calendar.cloudsan-29b.workers.dev/";
 
-export const CORS_PROXY_NAME = "Opravilko's own relay on Cloudflare";
+export const CORS_PROXY_NAME = tr("Opravilko's own relay on Cloudflare", "Opravilkov posrednik na Cloudflaru");
 
 /**
  * Relays tried in order, each named so a failure says which one refused.
@@ -48,13 +49,13 @@ export async function fetchIcsText(feedUrl: string): Promise<string> {
   // directly -- no third-party relay sees the URL.
   if (isNativeApp) {
     const res = await CapacitorHttp.get({ url: feedUrl, responseType: "text" });
-    if (res.status < 200 || res.status >= 300) throw new Error(`Feed request failed (HTTP ${res.status})`);
+    if (res.status < 200 || res.status >= 300) throw new Error(tr(`Feed request failed (HTTP ${res.status})`, `Prenos koledarja ni uspel (HTTP ${res.status})`));
     const text = typeof res.data === "string" ? res.data : String(res.data ?? "");
-    if (!text.includes("BEGIN:VCALENDAR")) throw new Error("That URL doesn't look like an iCal (.ics) feed");
+    if (!text.includes("BEGIN:VCALENDAR")) throw new Error(tr("That URL doesn't look like an iCal (.ics) feed", "Ta naslov ni videti kot koledar iCal (.ics)"));
     return text;
   }
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
-    throw new NoConnectionError("You're offline -- the calendar will refresh once you're back online.");
+    throw new NoConnectionError(tr("You're offline. The calendar will refresh once you're back online.", "Nisi povezan. Koledar se osveži, ko boš spet na spletu."));
   }
   const failures: string[] = [];
   let answered = false;
@@ -67,7 +68,7 @@ export async function fetchIcsText(feedUrl: string): Promise<string> {
         throw new Error(`HTTP ${res.status}${reason && proxy === PROXIES[0] ? ` (${reason})` : ""}`);
       }
       const text = await res.text();
-      if (!text.includes("BEGIN:VCALENDAR")) throw new Error("not an iCal feed");
+      if (!text.includes("BEGIN:VCALENDAR")) throw new Error(tr("not an iCal feed", "ni koledar iCal"));
       return text;
     } catch (e) {
       failures.push(`${proxy.name}: ${e instanceof Error ? e.message : "failed"}`);
@@ -75,10 +76,10 @@ export async function fetchIcsText(feedUrl: string): Promise<string> {
   }
   if (!answered) {
     throw new NoConnectionError(
-      "Couldn't connect to any relay -- check the internet connection (or an ad blocker blocking workers.dev)."
+      tr("Couldn't connect to any relay. Check the internet connection (or an ad blocker blocking workers.dev).", "Ni povezave z nobenim posrednikom. Preveri internet (ali blokator oglasov, ki blokira workers.dev).")
     );
   }
-  throw new Error(`All relays failed -- ${failures.join("; ")}`);
+  throw new Error(tr(`All relays failed: ${failures.join("; ")}`, `Noben posrednik ni uspel: ${failures.join("; ")}`));
 }
 
 /** Buckets events from enabled feeds by their "yyyy-MM-dd" date, sorted by start time. */

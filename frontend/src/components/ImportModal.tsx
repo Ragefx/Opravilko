@@ -1,3 +1,4 @@
+import { tr, trn } from "../i18n";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useImportProject } from "../api/hooks";
@@ -23,7 +24,7 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
       const text = await file.text();
       const parsed = parseTodoistCsv(text);
       if (parsed.tasks.length === 0 && parsed.sections.length === 0) {
-        setError("No tasks or sections found in that file.");
+        setError(tr("No tasks or sections found in that file.", "V datoteki ni nalog ali razdelkov."));
         setPreview(null);
         return;
       }
@@ -31,7 +32,7 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
       // Todoist names the export after the project, e.g. "Work.csv".
       setProjectName(file.name.replace(/\.csv$/i, ""));
     } catch (err: any) {
-      setError(err?.message || "Couldn't read that file.");
+      setError(err?.message || tr("Couldn't read that file.", "Datoteke ni bilo mogoče prebrati."));
       setPreview(null);
     }
   }
@@ -48,7 +49,10 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
       {
         onSuccess: (project) => {
           showToast({
-            message: `Imported ${preview.tasks.length} ${preview.tasks.length === 1 ? "task" : "tasks"} into “${project.name}”`,
+            message: tr(
+              `Imported ${preview.tasks.length} ${preview.tasks.length === 1 ? "task" : "tasks"} into “${project.name}”`,
+              `Uvoženo v »${project.name}«: ${trn(preview.tasks.length, ["# task", "# tasks"], ["# naloga", "# nalogi", "# naloge", "# nalog"])}`
+            ),
           });
           navigate(`/app/project/${project.id}`);
           onClose();
@@ -60,13 +64,16 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
   return (
     // Embedded: shown inside Settings, without its own dialog frame, title or close button.
     <Frame embedded={embedded} onClose={onClose}>
-        {!embedded && <h3>Import from Todoist</h3>}
+        {!embedded && <h3>{tr("Import from Todoist", "Uvoz iz Todoista")}</h3>}
 
         {!preview && (
           <>
             <p className="import-help">
-              In Todoist, open a project → ⋯ → <strong>Manage data</strong> → <strong>Export as CSV</strong>, then pick
-              that file here. Tasks, sub-tasks, sections, priorities and due dates come across.
+              {tr("In Todoist, open a project → ⋯ →", "V Todoistu odpri projekt → ⋯ →")} <strong>Manage data</strong> → <strong>Export as CSV</strong>
+              {tr(
+                ", then pick that file here. Tasks, sub-tasks, sections, priorities and due dates come across.",
+                ", nato tukaj izberi to datoteko. Prenesejo se naloge, podnaloge, razdelki, prednosti in datumi."
+              )}
             </p>
             <input
               ref={fileRef}
@@ -79,7 +86,7 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
               }}
             />
             <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => fileRef.current?.click()}>
-              Choose CSV file
+              {tr("Choose CSV file", "Izberi datoteko CSV")}
             </button>
           </>
         )}
@@ -90,27 +97,29 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
           <>
             <div className="import-summary">
               <div>
-                <strong>{preview.tasks.length}</strong> tasks
+                <strong>{preview.tasks.length}</strong> {tr("tasks", "nalog")}
               </div>
               <div>
-                <strong>{preview.sections.length}</strong> sections
+                <strong>{preview.sections.length}</strong> {tr("sections", "razdelkov")}
               </div>
               <div>
-                <strong>{preview.tasks.filter((t) => t.indent > 1).length}</strong> sub-tasks
+                <strong>{preview.tasks.filter((t) => t.indent > 1).length}</strong> {tr("sub-tasks", "podnalog")}
               </div>
               <div>
-                <strong>{preview.tasks.filter((t) => t.due).length}</strong> with dates
+                <strong>{preview.tasks.filter((t) => t.due).length}</strong> {tr("with dates", "z datumom")}
               </div>
             </div>
             {preview.skipped > 0 && (
               <p className="import-help">
-                {preview.skipped} row{preview.skipped === 1 ? "" : "s"} skipped (comments and attachments aren't
-                imported).
+                {tr(
+                  `${preview.skipped} row${preview.skipped === 1 ? "" : "s"} skipped (comments and attachments aren't imported).`,
+                  `Preskočenih vrstic: ${preview.skipped} (komentarji in priponke se ne uvozijo).`
+                )}
               </p>
             )}
 
             <label className="import-field">
-              Project name
+              {tr("Project name", "Ime projekta")}
               <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
             </label>
 
@@ -134,7 +143,7 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
                 </div>
               ))}
               {preview.tasks.length > 6 && (
-                <div className="import-preview-row muted">+{preview.tasks.length - 6} more…</div>
+                <div className="import-preview-row muted">{tr(`+${preview.tasks.length - 6} more…`, `+ še ${preview.tasks.length - 6} …`)}</div>
               )}
             </div>
           </>
@@ -143,12 +152,12 @@ export default function ImportModal({ onClose, embedded = false }: { onClose: ()
         <div className="modal-actions">
           {!embedded && (
             <button className="btn btn-text" onClick={onClose}>
-              Cancel
+              {tr("Cancel", "Prekliči")}
             </button>
           )}
           {preview && (
             <button className="btn btn-primary" onClick={runImport} disabled={!projectName.trim()}>
-              Import
+              {tr("Import", "Uvozi")}
             </button>
           )}
         </div>

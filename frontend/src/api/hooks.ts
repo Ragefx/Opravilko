@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { addDays, addMonths, differenceInCalendarDays, parseISO, subMonths } from "date-fns";
@@ -320,11 +321,17 @@ export function useRevertRecurringCompletion() {
 }
 
 export function useAddComment() {
-  return useLocalMutation<{ taskId: string; text: string }, Task | null>((data, { taskId, text }) => {
+  return useLocalMutation<{ taskId: string; text: string; attachments?: Attachment[] }, Task | null>((data, { taskId, text, attachments }) => {
     const task = data.tasks.find((t) => t.id === taskId);
     if (!task) return null;
     if (!task.comments) task.comments = [];
-    task.comments.push({ id: nanoid(), text, createdAt: new Date().toISOString(), ...(data.me ? { by: data.me } : {}) });
+    task.comments.push({
+      id: nanoid(),
+      text,
+      createdAt: new Date().toISOString(),
+      ...(data.me ? { by: data.me } : {}),
+      ...(attachments?.length ? { attachments } : {}),
+    });
     task.updatedAt = new Date().toISOString();
     return task;
   });
@@ -339,6 +346,21 @@ export function useEditComment() {
     comment.editedAt = new Date().toISOString();
     task.updatedAt = new Date().toISOString();
   });
+}
+
+/** Takes one picture off a comment (Settings > Storage); a comment left with nothing goes too. */
+export function useRemoveCommentAttachment() {
+  return useLocalMutation<{ taskId: string; commentId: string; attachmentId: string }, void>(
+    (data, { taskId, commentId, attachmentId }) => {
+      const task = data.tasks.find((t) => t.id === taskId);
+      const comment = task?.comments?.find((c) => c.id === commentId);
+      if (!task || !comment?.attachments) return;
+      comment.attachments = comment.attachments.filter((a) => a.id !== attachmentId);
+      if (comment.attachments.length === 0) delete comment.attachments;
+      if (!comment.text.trim() && !comment.attachments) task.comments = task.comments!.filter((c) => c.id !== commentId);
+      task.updatedAt = new Date().toISOString();
+    }
+  );
 }
 
 export function useDeleteComment() {
@@ -639,7 +661,7 @@ export function useDuplicateSection() {
     const newSection: Section = {
       id: nanoid(),
       projectId: section.projectId,
-      name: `${section.name} (copy)`,
+      name: tr(`${section.name} (copy)`, `${section.name} (kopija)`),
       order: nextOrder(data.sections.filter((s) => s.projectId === section.projectId)),
     };
     data.sections.push(newSection);
@@ -827,7 +849,7 @@ export function useDeleteCalendarFeed() {
 async function runFeedSync(qc: QueryClient, feedId: string, manual = true): Promise<void> {
   const current = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? (await fetchAppData());
   const feed = current.calendarFeeds?.find((f) => f.id === feedId);
-  if (!feed) throw new Error("Calendar not found");
+  if (!feed) throw new Error(tr("Calendar not found", "Koledarja ni"));
 
   const windowStart = subMonths(new Date(), 1);
   const windowEnd = addMonths(new Date(), 12);
@@ -842,7 +864,7 @@ async function runFeedSync(qc: QueryClient, feedId: string, manual = true): Prom
     // fine, so an automatic sync keeps its events and error as they were and
     // tries again later instead of saving a scary error.
     if (e instanceof NoConnectionError && !manual) throw e;
-    error = e instanceof Error ? e.message : "Sync failed";
+    error = e instanceof Error ? e.message : tr("Sync failed", "Usklajevanje ni uspelo");
   }
 
   const latest = qc.getQueryData<AppData>(BOOTSTRAP_KEY) ?? current;

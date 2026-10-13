@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import type { TaskLocation } from "../api/types";
 
 /**
@@ -25,7 +26,7 @@ interface PhotonFeature {
 function toLocation(f: PhotonFeature): TaskLocation {
   const p = f.properties;
   const street = [p.street, p.housenumber].filter(Boolean).join(" ");
-  const name = p.name || street || p.city || p.county || "Dropped pin";
+  const name = p.name || street || p.city || p.county || tr("Dropped pin", "Označena točka");
   const rest = [
     p.name && street ? street : null,
     [p.postcode, p.city || p.district].filter(Boolean).join(" ") || null,
@@ -46,7 +47,7 @@ export async function searchPlaces(
     params.set("lon", near.lng.toFixed(4));
   }
   const res = await fetch(`${PHOTON}/api/?${params}`, { signal });
-  if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
+  if (!res.ok) throw new Error(tr(`Search failed (HTTP ${res.status})`, `Iskanje ni uspelo (HTTP ${res.status})`));
   const json = (await res.json()) as { features: PhotonFeature[] };
   return json.features.map(toLocation);
 }

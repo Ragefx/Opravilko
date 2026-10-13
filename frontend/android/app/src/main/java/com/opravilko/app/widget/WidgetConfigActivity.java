@@ -70,11 +70,11 @@ public class WidgetConfigActivity extends Activity {
         current = store.getView(appWidgetId);
         List<Option> views = new ArrayList<>();
         List<Option> projectOptions = new ArrayList<>();
-        views.add(new Option(WidgetStore.VIEW_TODAY, "Today", R.drawable.ic_w_calendar));
-        views.add(new Option(WidgetStore.VIEW_UPCOMING, "Upcoming", R.drawable.ic_w_calendar));
-        views.add(new Option(WidgetStore.VIEW_CALENDAR, "Calendar: month", R.drawable.ic_w_calendar));
-        views.add(new Option(WidgetStore.VIEW_CALENDAR_TASKS, "Calendar: month + tasks", R.drawable.ic_w_calendar));
-        views.add(new Option(WidgetStore.VIEW_INBOX, "Inbox", R.drawable.ic_w_inbox));
+        views.add(new Option(WidgetStore.VIEW_TODAY, L.t("Today", "Danes"), R.drawable.ic_w_calendar));
+        views.add(new Option(WidgetStore.VIEW_UPCOMING, L.t("Upcoming", "Prihajajoče"), R.drawable.ic_w_calendar));
+        views.add(new Option(WidgetStore.VIEW_CALENDAR, L.t("Calendar: month", "Koledar: mesec"), R.drawable.ic_w_calendar));
+        views.add(new Option(WidgetStore.VIEW_CALENDAR_TASKS, L.t("Calendar: month + tasks", "Koledar: mesec + naloge"), R.drawable.ic_w_calendar));
+        views.add(new Option(WidgetStore.VIEW_INBOX, L.t("Inbox", "Prejeto"), R.drawable.ic_w_inbox));
 
         JSONObject data = store.getSnapshot();
         JSONArray projects = data != null ? data.optJSONArray("projects") : null;
@@ -88,7 +88,7 @@ public class WidgetConfigActivity extends Activity {
             for (JSONObject p : list) {
                 String value = WidgetStore.PROJECT_PREFIX + p.optString("id");
                 if ("shopping".equals(p.optString("viewStyle"))) {
-                    views.add(new Option(value, "Shopping list", R.drawable.ic_w_cart));
+                    views.add(new Option(value, L.t("Shopping list", "Nakupovalni seznam"), R.drawable.ic_w_cart));
                 } else {
                     projectOptions.add(new Option(value, p.optString("name"), R.drawable.ic_w_hash));
                 }
@@ -135,8 +135,8 @@ public class WidgetConfigActivity extends Activity {
 
         boolean inProjects = false;
         for (Option o : projectOptions) if (o.value.equals(current)) inProjects = true;
-        card.addView(group("Default views", views, !inProjects));
-        if (!projectOptions.isEmpty()) card.addView(group("Projects", projectOptions, inProjects));
+        card.addView(group(L.t("Default views", "Osnovni pogledi"), views, !inProjects));
+        if (!projectOptions.isEmpty()) card.addView(group(L.t("Projects", "Projekti"), projectOptions, inProjects));
 
         TextView cancel = new TextView(this);
         cancel.setText(android.R.string.cancel);

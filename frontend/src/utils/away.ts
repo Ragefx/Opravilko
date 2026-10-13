@@ -1,4 +1,5 @@
-import { differenceInCalendarDays, format, parseISO } from "date-fns";
+import { differenceInCalendarDays, parseISO } from "date-fns";
+import { format, tr, trn } from "../i18n";
 import type { AwayPeriod, Project, TripDates } from "../api/types";
 
 /** A trip's icon: 🚗 by car, 🏖️ off work, ✈️ otherwise. */
@@ -31,9 +32,9 @@ export function awayRange(a: TripDates): string {
   const e = parseISO(a.end);
   const st = a.startTime ? ` ${a.startTime}` : "";
   const et = a.endTime ? ` ${a.endTime}` : "";
-  if (a.start === a.end) return `${format(s, "EEE d MMM")}${st}${a.endTime ? `–${a.endTime}` : ""}`;
+  if (a.start === a.end) return `${format(s, tr("EEE d MMM", "EEE, d. MMM"))}${st}${a.endTime ? `–${a.endTime}` : ""}`;
   const sameMonth = format(s, "yyyy-MM") === format(e, "yyyy-MM") && !st;
-  return `${format(s, sameMonth ? "EEE d" : "EEE d MMM")}${st} – ${format(e, "EEE d MMM")}${et}`;
+  return `${format(s, sameMonth ? tr("EEE d", "EEE, d.") : tr("EEE d MMM", "EEE, d. MMM"))}${st} – ${format(e, tr("EEE d MMM", "EEE, d. MMM"))}${et}`;
 }
 
 /** The time that goes with this day of a trip: leaving on the first, back on the last. */
@@ -62,7 +63,7 @@ type TripSource = {
 
 /** Every trip to show: yours, projects' (everyone on the project sees them), your partner's. */
 export function tripsOf(data: TripSource | undefined): Trip[] {
-  const who = data?.partner?.name.split(" ")[0] || "Partner";
+  const who = data?.partner?.name.split(" ")[0] || tr("Partner", "Partner");
   return [
     ...(data?.away ?? []).map((period) => ({ period, mine: true })),
     ...(data?.projects ?? [])
@@ -77,12 +78,15 @@ export function projectRoute(projectId: string): string {
   return projectId === "inbox" ? "/app/inbox" : `/app/project/${encodeURIComponent(projectId)}`;
 }
 
+/** What tripWhen says for a trip under way ("now"). */
+export const TRIP_NOW = tr("now", "zdaj");
+
 /** "in 12 days", "tomorrow", "today", "now" (under way), or null once it's over. */
 export function tripWhen(a: TripDates, today: string): string | null {
   if (a.end < today) return null;
-  if (a.start <= today) return "now";
+  if (a.start <= today) return TRIP_NOW;
   const days = differenceInCalendarDays(parseISO(a.start), parseISO(today));
-  return days === 1 ? "tomorrow" : `in ${days} days`;
+  return days === 1 ? tr("tomorrow", "jutri") : trn(days, ["in # day", "in # days"], ["čez # dan", "čez # dneva", "čez # dni", "čez # dni"]);
 }
 
 /** The trips covering this day: yours (and the two of you's) first. */
@@ -94,6 +98,6 @@ export function tripsOn(trips: Trip[], day: string): Trip[] {
 
 /** "Athens", "Maruša · Rome" for just your partner's, "Rome · together" for the two of you. */
 export function tripName(t: Trip): string {
-  if (t.period.together) return `${t.period.title} · together`;
+  if (t.period.together) return `${t.period.title} · ${tr("together", "skupaj")}`;
   return t.mine ? t.period.title : `${t.who} · ${t.period.title}`;
 }

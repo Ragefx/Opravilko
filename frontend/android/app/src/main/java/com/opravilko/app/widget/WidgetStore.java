@@ -48,6 +48,7 @@ public final class WidgetStore {
     private final SharedPreferences prefs;
 
     public WidgetStore(Context context) {
+        L.load(context);
         prefs = context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 

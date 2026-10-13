@@ -1,3 +1,4 @@
+import { isSl, tr } from "../i18n";
 import type { Project } from "../api/types";
 
 /**
@@ -168,93 +169,180 @@ export interface Meal {
 
 const i = (name: string, amount?: number, unit?: Unit): Ingredient => ({ name, amount, unit });
 
-/** A starter set; amounts are per serving. */
-export const BUILTIN_MEALS: Meal[] = [
-  {
-    id: "palacinke",
-    name: "Palačinke",
-    emoji: "🥞",
-    ingredients: [i("Moka", 60, "g"), i("Mleko", 125, "ml"), i("Jajca", 1, "kos"), i("Sol"), i("Olje"), i("Marmelada")],
-  },
-  {
-    id: "bolognese",
-    name: "Špageti bolognese",
-    emoji: "🍝",
-    ingredients: [
-      i("Špageti", 100, "g"),
-      i("Mleto meso", 125, "g"),
-      i("Pasirani paradižnik", 150, "g"),
-      i("Čebula", 0.5, "kos"),
-      i("Česen", 1, "strok"),
-      i("Parmezan", 20, "g"),
-      i("Olivno olje"),
-    ],
-  },
-  {
-    id: "omleta",
-    name: "Omleta",
-    emoji: "🍳",
-    ingredients: [i("Jajca", 3, "kos"), i("Mleko", 30, "ml"), i("Sir", 30, "g"), i("Šunka", 30, "g"), i("Sol")],
-  },
-  {
-    id: "golaz",
-    name: "Golaž",
-    emoji: "🍲",
-    ingredients: [
-      i("Govedina za golaž", 200, "g"),
-      i("Čebula", 1, "kos"),
-      i("Česen", 1, "strok"),
-      i("Paradižnikova mezga", 1, "žlica"),
-      i("Mleta paprika"),
-      i("Lovorjev list"),
-      i("Kruh", 1, "kos"),
-    ],
-  },
-  {
-    id: "piscanec-krompir",
-    name: "Piščanec s krompirjem",
-    emoji: "🍗",
-    ingredients: [i("Piščančja bedra", 250, "g"), i("Krompir", 250, "g"), i("Česen", 1, "strok"), i("Olivno olje"), i("Rožmarin")],
-  },
-  {
-    id: "cezar",
-    name: "Cezarjeva solata",
-    emoji: "🥗",
-    ingredients: [
-      i("Piščančji file", 120, "g"),
-      i("Rimska solata", 0.5, "glava"),
-      i("Parmezan", 20, "g"),
-      i("Toast kruh", 1, "kos"),
-      i("Cezarjev preliv", 30, "ml"),
-    ],
-  },
-  {
-    id: "tortilje",
-    name: "Tortilje s piščancem",
-    emoji: "🌯",
-    ingredients: [
-      i("Tortilje", 2, "kos"),
-      i("Piščančji file", 120, "g"),
-      i("Paprika", 0.5, "kos"),
-      i("Nariban sir", 40, "g"),
-      i("Kisla smetana", 50, "g"),
-      i("Zelena solata"),
-    ],
-  },
-  {
-    id: "rizota",
-    name: "Gobova rižota",
-    emoji: "🍄",
-    ingredients: [
-      i("Riž za rižoto", 80, "g"),
-      i("Šampinjoni", 100, "g"),
-      i("Čebula", 0.5, "kos"),
-      i("Parmezan", 20, "g"),
-      i("Maslo", 10, "g"),
-      i("Jušna kocka", 0.5, "kocka"),
-    ],
-  },
-];
+/** A starter set; amounts are per serving. Named in the app's language (the items they add too). */
+export const BUILTIN_MEALS: Meal[] = isSl
+  ? [
+      {
+        id: "palacinke",
+        name: "Palačinke",
+        emoji: "🥞",
+        ingredients: [i("Moka", 60, "g"), i("Mleko", 125, "ml"), i("Jajca", 1, "kos"), i("Sol"), i("Olje"), i("Marmelada")],
+      },
+      {
+        id: "bolognese",
+        name: "Špageti bolognese",
+        emoji: "🍝",
+        ingredients: [
+          i("Špageti", 100, "g"),
+          i("Mleto meso", 125, "g"),
+          i("Pasirani paradižnik", 150, "g"),
+          i("Čebula", 0.5, "kos"),
+          i("Česen", 1, "strok"),
+          i("Parmezan", 20, "g"),
+          i("Olivno olje"),
+        ],
+      },
+      {
+        id: "omleta",
+        name: "Omleta",
+        emoji: "🍳",
+        ingredients: [i("Jajca", 3, "kos"), i("Mleko", 30, "ml"), i("Sir", 30, "g"), i("Šunka", 30, "g"), i("Sol")],
+      },
+      {
+        id: "golaz",
+        name: "Golaž",
+        emoji: "🍲",
+        ingredients: [
+          i("Govedina za golaž", 200, "g"),
+          i("Čebula", 1, "kos"),
+          i("Česen", 1, "strok"),
+          i("Paradižnikova mezga", 1, "žlica"),
+          i("Mleta paprika"),
+          i("Lovorjev list"),
+          i("Kruh", 1, "kos"),
+        ],
+      },
+      {
+        id: "piscanec-krompir",
+        name: "Piščanec s krompirjem",
+        emoji: "🍗",
+        ingredients: [i("Piščančja bedra", 250, "g"), i("Krompir", 250, "g"), i("Česen", 1, "strok"), i("Olivno olje"), i("Rožmarin")],
+      },
+      {
+        id: "cezar",
+        name: "Cezarjeva solata",
+        emoji: "🥗",
+        ingredients: [
+          i("Piščančji file", 120, "g"),
+          i("Rimska solata", 0.5, "glava"),
+          i("Parmezan", 20, "g"),
+          i("Toast kruh", 1, "kos"),
+          i("Cezarjev preliv", 30, "ml"),
+        ],
+      },
+      {
+        id: "tortilje",
+        name: "Tortilje s piščancem",
+        emoji: "🌯",
+        ingredients: [
+          i("Tortilje", 2, "kos"),
+          i("Piščančji file", 120, "g"),
+          i("Paprika", 0.5, "kos"),
+          i("Nariban sir", 40, "g"),
+          i("Kisla smetana", 50, "g"),
+          i("Zelena solata"),
+        ],
+      },
+      {
+        id: "rizota",
+        name: "Gobova rižota",
+        emoji: "🍄",
+        ingredients: [
+          i("Riž za rižoto", 80, "g"),
+          i("Šampinjoni", 100, "g"),
+          i("Čebula", 0.5, "kos"),
+          i("Parmezan", 20, "g"),
+          i("Maslo", 10, "g"),
+          i("Jušna kocka", 0.5, "kocka"),
+        ],
+      },
+    ]
+  : [
+      {
+        id: "palacinke",
+        name: "Pancakes",
+        emoji: "🥞",
+        ingredients: [i("Flour", 60, "g"), i("Milk", 125, "ml"), i("Eggs", 1, "kos"), i("Salt"), i("Oil"), i("Jam")],
+      },
+      {
+        id: "bolognese",
+        name: "Spaghetti bolognese",
+        emoji: "🍝",
+        ingredients: [
+          i("Spaghetti", 100, "g"),
+          i("Minced meat", 125, "g"),
+          i("Passata", 150, "g"),
+          i("Onion", 0.5, "kos"),
+          i("Garlic", 1, "kos"),
+          i("Parmesan", 20, "g"),
+          i("Olive oil"),
+        ],
+      },
+      {
+        id: "omleta",
+        name: "Omelette",
+        emoji: "🍳",
+        ingredients: [i("Eggs", 3, "kos"), i("Milk", 30, "ml"), i("Cheese", 30, "g"), i("Ham", 30, "g"), i("Salt")],
+      },
+      {
+        id: "golaz",
+        name: "Goulash",
+        emoji: "🍲",
+        ingredients: [
+          i("Stewing beef", 200, "g"),
+          i("Onion", 1, "kos"),
+          i("Garlic", 1, "kos"),
+          i("Tomato paste", 15, "g"),
+          i("Paprika powder"),
+          i("Bay leaves"),
+          i("Bread", 1, "kos"),
+        ],
+      },
+      {
+        id: "piscanec-krompir",
+        name: "Chicken with potatoes",
+        emoji: "🍗",
+        ingredients: [i("Chicken thighs", 250, "g"), i("Potatoes", 250, "g"), i("Garlic", 1, "kos"), i("Olive oil"), i("Rosemary")],
+      },
+      {
+        id: "cezar",
+        name: "Caesar salad",
+        emoji: "🥗",
+        ingredients: [
+          i("Chicken breast", 120, "g"),
+          i("Romaine lettuce", 0.5, "kos"),
+          i("Parmesan", 20, "g"),
+          i("Toast bread", 1, "kos"),
+          i("Caesar dressing", 30, "ml"),
+        ],
+      },
+      {
+        id: "tortilje",
+        name: "Chicken tortillas",
+        emoji: "🌯",
+        ingredients: [
+          i("Tortillas", 2, "kos"),
+          i("Chicken breast", 120, "g"),
+          i("Bell pepper", 0.5, "kos"),
+          i("Grated cheese", 40, "g"),
+          i("Sour cream", 50, "g"),
+          i("Lettuce"),
+        ],
+      },
+      {
+        id: "rizota",
+        name: "Mushroom risotto",
+        emoji: "🍄",
+        ingredients: [
+          i("Risotto rice", 80, "g"),
+          i("Mushrooms", 100, "g"),
+          i("Onion", 0.5, "kos"),
+          i("Parmesan", 20, "g"),
+          i("Butter", 10, "g"),
+          i("Stock cube", 0.5, "kos"),
+        ],
+      },
+    ];
 
 /** Scales a per-serving amount and rounds it to what you'd actually buy. */
 export function scaled(ing: Ingredient, servings: number): Item {
@@ -313,7 +401,7 @@ export function mealFromText(
     });
   return {
     id: keep?.id ?? `custom-${Date.now().toString(36)}`,
-    name: name.trim() || "Moj obrok",
+    name: name.trim() || tr("My meal", "Moj obrok"),
     emoji: keep?.emoji ?? "🍽️",
     ingredients,
     custom: true,
@@ -340,19 +428,19 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: "veg", emoji: "🥦", name: "Sadje in zelenjava" },
-  { id: "bread", emoji: "🥖", name: "Kruh in pecivo" },
-  { id: "dairy", emoji: "🥛", name: "Mlečni izdelki in jajca" },
-  { id: "meat", emoji: "🥩", name: "Meso in ribe" },
-  { id: "pantry", emoji: "🍝", name: "Shramba" },
-  { id: "spices", emoji: "🧂", name: "Začimbe, olja, omake" },
-  { id: "frozen", emoji: "🧊", name: "Zamrznjeno" },
-  { id: "sweets", emoji: "🍫", name: "Sladkarije in prigrizki" },
-  { id: "drinks", emoji: "🥤", name: "Pijače" },
-  { id: "household", emoji: "🧽", name: "Gospodinjstvo" },
-  { id: "care", emoji: "🧴", name: "Drogerija" },
-  { id: "pets", emoji: "🐾", name: "Živali" },
-  { id: "other", emoji: "🛒", name: "Drugo" },
+  { id: "veg", emoji: "🥦", name: tr("Fruit & veg", "Sadje in zelenjava") },
+  { id: "bread", emoji: "🥖", name: tr("Bread & pastries", "Kruh in pecivo") },
+  { id: "dairy", emoji: "🥛", name: tr("Dairy & eggs", "Mlečni izdelki in jajca") },
+  { id: "meat", emoji: "🥩", name: tr("Meat & fish", "Meso in ribe") },
+  { id: "pantry", emoji: "🍝", name: tr("Pantry", "Shramba") },
+  { id: "spices", emoji: "🧂", name: tr("Spices, oils & sauces", "Začimbe, olja, omake") },
+  { id: "frozen", emoji: "🧊", name: tr("Frozen", "Zamrznjeno") },
+  { id: "sweets", emoji: "🍫", name: tr("Sweets & snacks", "Sladkarije in prigrizki") },
+  { id: "drinks", emoji: "🥤", name: tr("Drinks", "Pijače") },
+  { id: "household", emoji: "🧽", name: tr("Household", "Gospodinjstvo") },
+  { id: "care", emoji: "🧴", name: tr("Toiletries", "Drogerija") },
+  { id: "pets", emoji: "🐾", name: tr("Pets", "Živali") },
+  { id: "other", emoji: "🛒", name: tr("Other", "Drugo") },
 ];
 
 export function categoryById(id: string | undefined): Category {
@@ -384,6 +472,28 @@ const STEMS: Record<string, string[]> = {
   sweets: ["čokolad", "bonbon", "piškot", "čips", "smoki", "kreker", "grisin", "napolitank", "žvečil", "keks", "tort", "gumi", "bombon", "ploščic"],
   drinks: ["voda", "vode", "sok", "sokov", "pivo", "piv", "vino", "vin", "kava", "kav", "čaj", "mineral", "radensk", "cola", "kola", "sirup", "energijsk", "žgan", "radler", "tonik"],
 };
+/** The same in English, for lists kept in English. */
+const EN_STEMS: Record<string, string[]> = {
+  care: ["shampoo", "conditioner", "soap", "toothpaste", "toothbrush", "deodorant", "hand cream", "lotion", "tampon", "nappies", "diaper", "razor", "tissues", "toilet"],
+  household: ["detergent", "washing", "softener", "cleaner", "bleach", "sponge", "foil", "bin bag", "kitchen roll", "paper towel", "napkin", "candle", "batter", "bulb", "dishwasher"],
+  pets: ["cat", "dog", "litter", "kibble"],
+  frozen: ["ice cream", "frozen", "ice"],
+  veg: ["apple", "pear", "banana", "orange", "mandarin", "lemon", "lime", "grape", "strawberr", "raspberr", "blueberr", "cherr", "peach", "apricot", "plum", "kiwi", "pineapple", "mango", "avocado", "melon", "watermelon", "tomato", "cucumber", "lettuce", "salad", "cabbage", "broccoli", "cauliflower", "carrot", "potato", "onion", "garlic", "leek", "celery", "courgette", "zucchini", "aubergine", "mushroom", "spinach", "rocket", "radish", "beetroot", "parsley", "basil", "chive", "dill", "ginger", "fruit", "veg", "rosemary"],
+  bread: ["bread", "roll", "baguette", "croissant", "toast", "bun", "pastry", "tortilla", "pita", "bagel"],
+  dairy: ["milk", "yoghurt", "yogurt", "cheese", "cream", "butter", "kefir", "egg", "mozzarella", "parmesan", "mascarpone", "feta", "cheddar", "margarine", "pudding"],
+  meat: ["meat", "mince", "chicken", "turkey", "pork", "beef", "veal", "steak", "fillet", "sausage", "salami", "ham", "bacon", "fish", "tuna", "salmon", "sardine", "prawn", "shrimp", "squid", "trout", "liver", "chop", "ribs"],
+  pantry: ["flour", "pasta", "spaghetti", "macaroni", "penne", "lasagne", "gnocchi", "rice", "couscous", "bulgur", "quinoa", "oat", "muesli", "cereal", "sugar", "yeast", "baking", "beans", "chickpea", "lentil", "tin", "passata", "stock", "breadcrumb", "nut", "almond", "hazelnut", "peanut", "honey", "jam", "nutella", "spread", "polenta", "cocoa"],
+  spices: ["salt", "pepper", "oil", "vinegar", "ketchup", "mayo", "mustard", "spice", "oregano", "thyme", "cinnamon", "vanilla", "bay", "curry", "balsamic", "chilli", "chili", "nutmeg", "clove", "dressing", "paprika"],
+  sweets: ["chocolate", "sweets", "candy", "biscuit", "cookie", "crisps", "chips", "cracker", "gum", "cake", "snack"],
+  drinks: ["water", "juice", "beer", "wine", "coffee", "tea", "cola", "syrup", "soda", "tonic", "lemonade"],
+};
+const EN_PHRASES: [string, string][] = [
+  ["paprika powder", "spices"], ["sour cream", "dairy"], ["toilet paper", "care"], ["peanut butter", "pantry"],
+  ["ice tea", "drinks"], ["iced tea", "drinks"], ["tomato paste", "pantry"], ["stock cube", "pantry"], ["soy sauce", "spices"],
+  ["bin bags", "household"], ["kitchen roll", "household"], ["caesar dressing", "spices"], ["risotto rice", "pantry"],
+  ["toast bread", "bread"], ["olive oil", "spices"], ["bell pepper", "veg"], ["minced meat", "meat"], ["ice cream", "frozen"],
+  ["cat food", "pets"], ["dog food", "pets"],
+];
 const STEM_ORDER = ["care", "household", "pets", "frozen", "veg", "bread", "dairy", "meat", "pantry", "spices", "sweets", "drinks"];
 
 function stemMatches(word: string, stem: string): boolean {
@@ -418,9 +528,14 @@ export function guessCategory(name: string): string {
   const mine = learned()[lower];
   if (mine) return mine;
   for (const [phrase, id] of PHRASES) if (lower.includes(phrase)) return id;
+  for (const [phrase, id] of EN_PHRASES) if (lower.includes(phrase)) return id;
   const words = lower.split(/[^\p{L}-]+/u).filter(Boolean);
   for (const w of words) {
     for (const id of STEM_ORDER) if (STEMS[id].some((s) => stemMatches(w, s))) return id;
+  }
+  // English words: whole word or its start ("apples", "eggs").
+  for (const w of words) {
+    for (const id of STEM_ORDER) if (EN_STEMS[id].some((s) => !s.includes(" ") && (w === s || (s.length > 3 && w.startsWith(s))))) return id;
   }
   return "other";
 }

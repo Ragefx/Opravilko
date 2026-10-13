@@ -35,6 +35,9 @@ public class WidgetBridgePlugin extends Plugin {
             return;
         }
         WidgetStore store = new WidgetStore(getContext());
+        // The app's language, for the widget and the phone's own screens.
+        String lang = call.getString("lang");
+        if (lang != null) L.set(getContext(), lang);
         JSONObject before = store.getSnapshot();
         try {
             JSONObject data = WidgetSyncJob.stripForWidget(new JSONObject(json));

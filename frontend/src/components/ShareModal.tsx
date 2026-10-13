@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useState } from "react";
 import type { Project } from "../api/types";
 import { activeSession } from "../data/store";
@@ -32,10 +33,10 @@ export default function ShareModal({ project, onClose }: { project: Project; onC
     setError(null);
     try {
       const profile = await session!.shareProject(project.id, email);
-      showToast({ message: `Shared “${project.name}” with ${profile.name}` });
+      showToast({ message: tr(`Shared “${project.name}” with ${profile.name}`, `»${project.name}« deljeno z ${profile.name}`) });
       setEmail("");
     } catch (err) {
-      setError(err instanceof ShareError ? err.message : "Couldn't share. Check your connection and try again.");
+      setError(err instanceof ShareError ? err.message : tr("Couldn't share. Check your connection and try again.", "Deljenje ni uspelo. Preveri povezavo in poskusi znova."));
     } finally {
       setBusy(false);
     }
@@ -44,9 +45,9 @@ export default function ShareModal({ project, onClose }: { project: Project; onC
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal share-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Share “{project.name}”</h3>
+        <h3>{tr(`Share “${project.name}”`, `Deli »${project.name}«`)}</h3>
         <p className="share-note">
-          Everyone here sees and edits the project's tasks, and changes show up for all of them right away.
+          {tr("Everyone here sees and edits the project's tasks, and changes show up for all of them right away.", "Vsi tukaj vidijo in urejajo naloge projekta, spremembe pa se vsem takoj pokažejo.")}
         </p>
 
         <div className="share-members">
@@ -57,17 +58,17 @@ export default function ShareModal({ project, onClose }: { project: Project; onC
               </span>
               <span className="share-member-text">
                 <b>
-                  {uid === me ? "You" : profile?.name || "Someone"}
-                  {uid === project.ownerId && <span className="share-owner"> · owner</span>}
+                  {uid === me ? tr("You", "Ti") : profile?.name || tr("Someone", "Nekdo")}
+                  {uid === project.ownerId && <span className="share-owner">{tr(" · owner", " · lastnik")}</span>}
                 </b>
                 {profile?.email && <span>{profile.email}</span>}
               </span>
               {isOwner && uid !== me && (
                 <button
                   className="btn btn-text"
-                  onClick={() => void session.unshareProject(project.id, uid).catch(() => setError("Couldn't remove them."))}
+                  onClick={() => void session.unshareProject(project.id, uid).catch(() => setError(tr("Couldn't remove them.", "Odstranitev ni uspela.")))}
                 >
-                  Remove
+                  {tr("Remove", "Odstrani")}
                 </button>
               )}
             </div>
@@ -83,15 +84,15 @@ export default function ShareModal({ project, onClose }: { project: Project; onC
               setError(null);
               try {
                 await session.shareProject(project.id, partner.email);
-                showToast({ message: `Shared “${project.name}” with ${partner.name}` });
+                showToast({ message: tr(`Shared “${project.name}” with ${partner.name}`, `»${project.name}« deljeno z ${partner.name}`) });
               } catch (err) {
-                setError(err instanceof ShareError ? err.message : "Couldn't share. Check your connection and try again.");
+                setError(err instanceof ShareError ? err.message : tr("Couldn't share. Check your connection and try again.", "Deljenje ni uspelo. Preveri povezavo in poskusi znova."));
               } finally {
                 setBusy(false);
               }
             }}
           >
-            Share with {partner.name.split(" ")[0]}
+            {tr(`Share with ${partner.name.split(" ")[0]}`, `Deli z ${partner.name.split(" ")[0]}`)}
           </button>
         )}
 
@@ -107,23 +108,23 @@ export default function ShareModal({ project, onClose }: { project: Project; onC
               type="text"
               inputMode="email"
               autoComplete="email"
-              placeholder="Their Google email address"
+              placeholder={tr("Their Google email address", "Njihov Googlov e-poštni naslov")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              aria-label="Email to share with"
+              aria-label={tr("Email to share with", "E-pošta za deljenje")}
             />
             <button className="btn btn-primary" type="submit" disabled={busy || !email.trim()}>
-              {busy ? "Sharing…" : "Share"}
+              {busy ? tr("Sharing…", "Delim …") : tr("Share", "Deli")}
             </button>
           </form>
         ) : (
-          <p className="share-note">Only the owner can add or remove people.</p>
+          <p className="share-note">{tr("Only the owner can add or remove people.", "Ljudi lahko doda ali odstrani le lastnik.")}</p>
         )}
         {error && <div className="login-error">{error}</div>}
 
         <div className="modal-actions">
           <button className="btn btn-text" onClick={onClose}>
-            Done
+            {tr("Done", "Končano")}
           </button>
         </div>
       </div>

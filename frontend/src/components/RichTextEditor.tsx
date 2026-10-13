@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { LinkIcon } from "./icons";
@@ -17,7 +18,7 @@ export default function RichTextEditor({
   html,
   onChange,
   onBlur,
-  placeholder = "Description",
+  placeholder = tr("Description", "Opis"),
 }: {
   html: string;
   onChange: (html: string) => void;
@@ -105,7 +106,7 @@ export default function RichTextEditor({
   }
 
   function handleAddLink() {
-    const url = window.prompt("Link URL");
+    const url = window.prompt(tr("Link URL", "Naslov povezave"));
     if (!url) return;
     const el = ref.current;
     el?.focus();
@@ -211,38 +212,38 @@ export default function RichTextEditor({
             // Clicking the bar mustn't lose the selection it acts on.
             onMouseDown={(e) => e.preventDefault()}
             role="toolbar"
-            aria-label="Format"
+            aria-label={tr("Format", "Oblika")}
           >
-            <BarButton title="Bold (Ctrl+B)" active={on("bold")} onClick={() => exec("bold")}>
+            <BarButton title={tr("Bold (Ctrl+B)", "Krepko (Ctrl+B)")} active={on("bold")} onClick={() => exec("bold")}>
               <b>B</b>
             </BarButton>
-            <BarButton title="Italic (Ctrl+I)" active={on("italic")} onClick={() => exec("italic")}>
+            <BarButton title={tr("Italic (Ctrl+I)", "Ležeče (Ctrl+I)")} active={on("italic")} onClick={() => exec("italic")}>
               <i style={{ fontFamily: "Georgia, serif" }}>I</i>
             </BarButton>
-            <BarButton title="Strikethrough" active={on("strikeThrough")} onClick={() => exec("strikeThrough")}>
+            <BarButton title={tr("Strikethrough", "Prečrtano")} active={on("strikeThrough")} onClick={() => exec("strikeThrough")}>
               <s>S</s>
             </BarButton>
-            <BarButton title="Heading 1" active={block() === "h1"} onClick={() => toggleBlock("h1")}>
+            <BarButton title={tr("Heading 1", "Naslov 1")} active={block() === "h1"} onClick={() => toggleBlock("h1")}>
               H<sub>1</sub>
             </BarButton>
-            <BarButton title="Heading 2" active={block() === "h2"} onClick={() => toggleBlock("h2")}>
+            <BarButton title={tr("Heading 2", "Naslov 2")} active={block() === "h2"} onClick={() => toggleBlock("h2")}>
               H<sub>2</sub>
             </BarButton>
-            <BarButton title="Quote" active={block() === "blockquote"} onClick={() => toggleBlock("blockquote")}>
+            <BarButton title={tr("Quote", "Citat")} active={block() === "blockquote"} onClick={() => toggleBlock("blockquote")}>
               <QuoteIcon />
             </BarButton>
-            <BarButton title="Code" onClick={toggleCode}>
+            <BarButton title={tr("Code", "Koda")} onClick={toggleCode}>
               <CodeIcon />
             </BarButton>
-            <BarButton title="Bulleted list" active={on("insertUnorderedList")} onClick={() => exec("insertUnorderedList")}>
+            <BarButton title={tr("Bulleted list", "Seznam z oznakami")} active={on("insertUnorderedList")} onClick={() => exec("insertUnorderedList")}>
               <BulletsIcon />
             </BarButton>
-            <BarButton title="Numbered list" active={on("insertOrderedList")} onClick={() => exec("insertOrderedList")}>
+            <BarButton title={tr("Numbered list", "Oštevilčen seznam")} active={on("insertOrderedList")} onClick={() => exec("insertOrderedList")}>
               <NumbersIcon />
             </BarButton>
             <span className="rt-bar-sep" aria-hidden="true" />
-            <button type="button" className="rt-bar-btn rt-bar-link" title="Add link" onClick={handleAddLink}>
-              <LinkIcon width={15} height={15} /> Link
+            <button type="button" className="rt-bar-btn rt-bar-link" title={tr("Add link", "Dodaj povezavo")} onClick={handleAddLink}>
+              <LinkIcon width={15} height={15} /> {tr("Link", "Povezava")}
             </button>
           </div>,
           document.body

@@ -334,15 +334,15 @@ public final class TaskLogic {
     }
 
     public static String viewTitle(JSONObject data, String view) {
-        if (WidgetStore.VIEW_TODAY.equals(view)) return "Today";
-        if (WidgetStore.VIEW_UPCOMING.equals(view)) return "Upcoming";
-        if (WidgetStore.VIEW_INBOX.equals(view)) return "Inbox";
-        if (WidgetStore.VIEW_CALENDAR.equals(view) || WidgetStore.VIEW_CALENDAR_TASKS.equals(view)) return "Calendar";
+        if (WidgetStore.VIEW_TODAY.equals(view)) return L.t("Today", "Danes");
+        if (WidgetStore.VIEW_UPCOMING.equals(view)) return L.t("Upcoming", "Prihajajoče");
+        if (WidgetStore.VIEW_INBOX.equals(view)) return L.t("Inbox", "Prejeto");
+        if (WidgetStore.VIEW_CALENDAR.equals(view) || WidgetStore.VIEW_CALENDAR_TASKS.equals(view)) return L.t("Calendar", "Koledar");
         if (view.startsWith(WidgetStore.PROJECT_PREFIX) && data != null) {
             JSONObject p = findProject(data, view.substring(WidgetStore.PROJECT_PREFIX.length()));
             if (p != null) return p.optString("name");
         }
-        return "Today";
+        return L.t("Today", "Danes");
     }
 
     /** The project a view is scoped to (new tasks from the widget go here). */
@@ -391,7 +391,7 @@ public final class TaskLogic {
             if (!include) continue;
             JSONObject project = byDate ? findProject(data, t.optString("projectId")) : null;
             String name = project != null ? project.optString("name") : null;
-            if (byDate && name == null && t.optString("projectId").startsWith("inbox")) name = "Inbox";
+            if (byDate && name == null && t.optString("projectId").startsWith("inbox")) name = L.t("Inbox", "Prejeto");
             rows.add(new Row(t, name));
         }
 
@@ -436,13 +436,13 @@ public final class TaskLogic {
         DueKind kind = dueKind(row.dueDate);
         String today = todayStr();
         Calendar c = calendarFor(row.dueDate);
-        if (kind == DueKind.TODAY) label = "Today";
-        else if (kind == DueKind.TOMORROW) label = "Tomorrow";
-        else if (row.dueDate.equals(addDaysStr(today, -1))) label = "Yesterday";
+        if (kind == DueKind.TODAY) label = L.t("Today", "Danes");
+        else if (kind == DueKind.TOMORROW) label = L.t("Tomorrow", "Jutri");
+        else if (row.dueDate.equals(addDaysStr(today, -1))) label = L.t("Yesterday", "Včeraj");
         else if (c == null) label = row.dueDate;
         else {
             boolean thisYear = row.dueDate.substring(0, 4).equals(today.substring(0, 4));
-            label = new SimpleDateFormat(thisYear ? "d MMM" : "d MMM yyyy", Locale.ENGLISH).format(c.getTime());
+            label = L.date(thisYear ? "d MMM" : "d MMM yyyy", thisYear ? "d. MMM" : "d. MMM yyyy", c.getTime());
         }
         String time = dueTime(row);
         if (time != null && row.endTime != null) time += "–" + row.endTime;
@@ -459,11 +459,11 @@ public final class TaskLogic {
     /** "Wednesday, 23 Sep", with " · Today" / " · Tomorrow" when asked. */
     public static String dayHeading(String day, boolean relative) {
         Calendar c = calendarFor(day);
-        String label = c != null ? new SimpleDateFormat("EEEE, d MMM", Locale.ENGLISH).format(c.getTime()) : day;
+        String label = c != null ? L.cap(L.date("EEEE, d MMM", "EEEE, d. MMM", c.getTime())) : day;
         if (!relative) return label;
         DueKind kind = dueKind(day);
-        if (kind == DueKind.TODAY) return label + " \u00b7 Today";
-        if (kind == DueKind.TOMORROW) return label + " \u00b7 Tomorrow";
+        if (kind == DueKind.TODAY) return label + " \u00b7 " + L.t("Today", "Danes");
+        if (kind == DueKind.TOMORROW) return label + " \u00b7 " + L.t("Tomorrow", "Jutri");
         return label;
     }
 

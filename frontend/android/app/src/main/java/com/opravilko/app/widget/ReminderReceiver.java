@@ -82,8 +82,8 @@ public class ReminderReceiver extends BroadcastReceiver {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager nm = context.getSystemService(NotificationManager.class);
         if (nm == null || nm.getNotificationChannel(CHANNEL) != null) return;
-        NotificationChannel channel = new NotificationChannel(CHANNEL, "Task reminders", NotificationManager.IMPORTANCE_HIGH);
-        channel.setDescription("Reminders you add to tasks");
+        NotificationChannel channel = new NotificationChannel(CHANNEL, L.t("Task reminders", "Opomniki nalog"), NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription(L.t("Reminders you add to tasks", "Opomniki, ki jih dodaš nalogam"));
         nm.createNotificationChannel(channel);
     }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
+import { tr, format, isSl } from "../i18n";
 import { App } from "@capacitor/app";
 import { isNativeApp } from "../dropbox/auth";
 import { RELEASES } from "../data/releases";
@@ -47,7 +48,7 @@ export default function AboutSection() {
   }
   const built = (() => {
     try {
-      return format(parseISO(__BUILD_TIME__), "d MMM yyyy, HH:mm");
+      return format(parseISO(__BUILD_TIME__), tr("d MMM yyyy, HH:mm", "d. MMM yyyy, HH:mm"));
     } catch {
       return "";
     }
@@ -63,11 +64,11 @@ export default function AboutSection() {
           <b>Opravilko</b>
           <span>
             {isNativeApp
-              ? `Android app · build ${installed ?? latest.build}`
-              : `Website · latest Android app is build ${latest.build}`}
+              ? tr(`Android app · build ${installed ?? latest.build}`, `Aplikacija za Android · različica ${installed ?? latest.build}`)
+              : tr(`Website · latest Android app is build ${latest.build}`, `Spletna stran · zadnja aplikacija za Android je različica ${latest.build}`)}
           </span>
           <span className="about-meta">
-            {built && `Built ${built}`}
+            {built && tr(`Built ${built}`, `Zgrajeno ${built}`)}
             {__COMMIT__ && ` · ${__COMMIT__}`}
           </span>
         </div>
@@ -76,28 +77,28 @@ export default function AboutSection() {
         <div className="about-update">
           {check.state === "found" ? (
             <button className="btn btn-primary" onClick={() => void updateNow(check.update)}>
-              Update to build {check.update.build}
+              {tr(`Update to build ${check.update.build}`, `Posodobi na različico ${check.update.build}`)}
             </button>
           ) : (
             <button className="btn btn-secondary" disabled={check.state === "checking" || check.state === "downloading"} onClick={() => void checkNow()}>
-              {check.state === "checking" ? "Checking…" : "Check for updates"}
+              {check.state === "checking" ? tr("Checking…", "Preverjam …") : tr("Check for updates", "Preveri posodobitve")}
             </button>
           )}
           <span>
-            {check.state === "current" && "You have the newest build."}
-            {check.state === "offline" && "Couldn't reach GitHub. Try again later."}
-            {check.state === "found" && "Tap it, then Install."}
-            {check.state === "downloading" && `Downloading… ${check.percent ?? 0}%`}
-            {check.state === "permission" && "Allow Opravilko to install apps, then check again."}
-            {check.state === "failed" && "The download didn't work. Try again?"}
+            {check.state === "current" && tr("You have the newest build.", "Imaš najnovejšo različico.")}
+            {check.state === "offline" && tr("Couldn't reach GitHub. Try again later.", "GitHub ni dosegljiv. Poskusi pozneje.")}
+            {check.state === "found" && tr("Tap it, then Install.", "Tapni ga, nato Namesti.")}
+            {check.state === "downloading" && tr(`Downloading… ${check.percent ?? 0}%`, `Prenašam … ${check.percent ?? 0} %`)}
+            {check.state === "permission" && tr("Allow Opravilko to install apps, then check again.", "Dovoli Opravilku nameščanje aplikacij in preveri znova.")}
+            {check.state === "failed" && tr("The download didn't work. Try again?", "Prenos ni uspel. Poskusiš znova?")}
           </span>
         </div>
       )}
       {!isNativeApp && (
         <p className="settings-note">
-          The website updates by itself. The Android app:{" "}
+          {tr("The website updates by itself. The Android app:", "Spletna stran se posodablja sama. Aplikacija za Android:")}{" "}
           <a className="about-link" href={`${RELEASE_URL}${latest.build}`} target="_blank" rel="noreferrer">
-            download build {latest.build}
+            {tr(`download build ${latest.build}`, `prenesi različico ${latest.build}`)}
           </a>
           .
         </p>
@@ -106,17 +107,18 @@ export default function AboutSection() {
       <ErrorLog />
       <NudgeLog />
 
-      <h4>What's new, build by build</h4>
+      <h4>{tr("What's new, build by build", "Kaj je novega, po različicah")}</h4>
+      {isSl && <p className="settings-note top">Različice pred 56 so opisane le v angleščini.</p>}
       <div className="about-releases">
         {RELEASES.map((r, i) => (
           <details key={r.build} className="about-release" open={i < 3}>
             <summary>
-              <b>Build {r.build}</b>
-              <span>{format(parseISO(r.date), "d MMM yyyy")}</span>
-              {installed === r.build && <em>installed</em>}
+              <b>{tr(`Build ${r.build}`, `Različica ${r.build}`)}</b>
+              <span>{format(parseISO(r.date), tr("d MMM yyyy", "d. MMM yyyy"))}</span>
+              {installed === r.build && <em>{tr("installed", "nameščena")}</em>}
             </summary>
             <ul>
-              {r.items.map((item, j) => (
+              {(isSl && r.itemsSl ? r.itemsSl : r.items).map((item, j) => (
                 <li key={j}>{item}</li>
               ))}
             </ul>
@@ -150,18 +152,24 @@ function NudgeLog() {
   if (!lines.length) {
     return (
       <>
-        <h4>Instant updates</h4>
+        <h4>{tr("Instant updates", "Takojšnje posodobitve")}</h4>
         <p className="settings-note">
-          Nothing yet: this phone hasn't registered for nudges, sent one or got one. Opening the app with the
-          internet on registers it; if this stays empty, check that Google Play services are up to date.
+          {tr(
+            "Nothing yet: this phone hasn't registered for nudges, sent one or got one. Opening the app with the internet on registers it; if this stays empty, check that Google Play services are up to date.",
+            "Še nič: ta telefon se še ni prijavil za obvestila, ni nobenega poslal ne prejel. Odpiranje aplikacije z vklopljenim internetom ga prijavi; če ostane prazno, preveri, ali so storitve Google Play posodobljene."
+          )}
         </p>
       </>
     );
   }
   return (
     <>
-      <h4>Instant updates</h4>
-      <p className="settings-note">What this {isNativeApp ? "phone" : "browser"} sent to and got from the other phone lately.</p>
+      <h4>{tr("Instant updates", "Takojšnje posodobitve")}</h4>
+      <p className="settings-note">
+        {isNativeApp
+          ? tr("What this phone sent to and got from the other phone lately.", "Kaj je ta telefon nedavno poslal drugemu telefonu in od njega prejel.")
+          : tr("What this browser sent to and got from the other phone lately.", "Kaj je ta brskalnik nedavno poslal drugemu telefonu in od njega prejel.")}
+      </p>
       <pre className="about-nudges">{lines.join("\n")}</pre>
       <div className="about-update">
         <button
@@ -173,7 +181,7 @@ function NudgeLog() {
             )
           }
         >
-          {copied ? "Copied" : "Copy"}
+          {copied ? tr("Copied", "Kopirano") : tr("Copy", "Kopiraj")}
         </button>
       </div>
     </>
@@ -193,14 +201,18 @@ function ErrorLog() {
     .join("\n\n");
   return (
     <>
-      <h4>Problems</h4>
+      <h4>{tr("Problems", "Težave")}</h4>
       <p className="settings-note">
-        Errors the app ran into lately. If something went wrong, copy these and send them along; they say where it happened.
+        {tr(
+          "Errors the app ran into lately. If something went wrong, copy these and send them along; they say where it happened.",
+          "Napake, na katere je aplikacija nedavno naletela. Če je šlo kaj narobe, jih kopiraj in pošlji; povedo, kje se je zgodilo."
+        )}
       </p>
       <ul className="about-errors">
         {entries.slice(0, 5).map((e) => (
           <li key={e.id}>
-            <b>{e.kind === "crash" ? "Crash" : "Error"}</b> · {format(parseISO(e.at), "d MMM, HH:mm")} · {e.device === "android" ? "phone" : "website"}
+            <b>{e.kind === "crash" ? tr("Crash", "Sesutje") : tr("Error", "Napaka")}</b> · {format(parseISO(e.at), tr("d MMM, HH:mm", "d. MMM, HH:mm"))} ·{" "}
+            {e.device === "android" ? tr("phone", "telefon") : tr("website", "spletna stran")}
             <span>{e.message}</span>
           </li>
         ))}
@@ -215,7 +227,7 @@ function ErrorLog() {
             )
           }
         >
-          {copied ? "Copied" : `Copy all (${entries.length})`}
+          {copied ? tr("Copied", "Kopirano") : tr(`Copy all (${entries.length})`, `Kopiraj vse (${entries.length})`)}
         </button>
         <button
           className="btn btn-text"
@@ -224,7 +236,7 @@ function ErrorLog() {
             setEntries([]);
           }}
         >
-          Clear
+          {tr("Clear", "Počisti")}
         </button>
       </div>
     </>

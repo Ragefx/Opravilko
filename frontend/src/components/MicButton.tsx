@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { listen, voiceAvailable } from "../native/voice";
 import { useToast } from "./ToastProvider";
@@ -37,7 +38,7 @@ export default function MicButton({
       if (text) onText(text);
     } catch (e) {
       const message = (e as Error)?.message || "";
-      if (!/cancel/i.test(message)) showToast({ message: message || "Voice input failed." });
+      if (!/cancel/i.test(message)) showToast({ message: message || tr("Voice input failed.", "Glasovni vnos ni uspel.") });
     } finally {
       setListening(false);
     }
@@ -48,8 +49,8 @@ export default function MicButton({
       type="button"
       className={`${className} ${listening ? "is-listening" : ""}`}
       onClick={() => void start()}
-      aria-label={listening ? "Listening…" : "Say it"}
-      title={listening ? "Listening…" : "Say it (Slovenian)"}
+      aria-label={listening ? tr("Listening…", "Poslušam …") : tr("Say it", "Povej")}
+      title={listening ? tr("Listening…", "Poslušam …") : tr("Say it (Slovenian)", "Povej (slovensko)")}
     >
       <MicIcon width={17} height={17} />
     </button>

@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { registerPlugin } from "@capacitor/core";
 import { isNativeApp } from "../dropbox/auth";
 
@@ -36,7 +37,7 @@ export function voiceAvailable(): boolean {
 export async function listen(prompt?: string): Promise<string> {
   if (isNativeApp) return (await OpravilkoVoice.listen({ language: LANGUAGE, prompt })).text;
   const Ctor = webRecognition();
-  if (!Ctor) throw new Error("This browser has no speech recognition (try Chrome or Edge).");
+  if (!Ctor) throw new Error(tr("This browser has no speech recognition (try Chrome or Edge).", "Ta brskalnik ne pozna prepoznavanja govora (poskusi Chrome ali Edge)."));
   return new Promise((resolve, reject) => {
     const rec = new Ctor();
     let heard = "";
@@ -53,10 +54,10 @@ export async function listen(prompt?: string): Promise<string> {
       reject(
         new Error(
           e.error === "not-allowed"
-            ? "The microphone is blocked for this site."
+            ? tr("The microphone is blocked for this site.", "Mikrofon je za to stran blokiran.")
             : e.error === "no-speech"
-              ? "Didn't hear anything."
-              : "Voice input failed."
+              ? tr("Didn't hear anything.", "Nič nisem slišal.")
+              : tr("Voice input failed.", "Glasovni vnos ni uspel.")
         )
       );
     rec.onend = () => resolve(heard);

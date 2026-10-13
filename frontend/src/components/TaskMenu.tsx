@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Project, Task } from "../api/types";
@@ -92,7 +93,7 @@ export default function TaskMenu({
       },
       {
         onSuccess: (created) => {
-          showToast({ message: "Task duplicated" });
+          showToast({ message: tr("Task duplicated", "Naloga podvojena") });
           onOpenTask?.(created);
         },
       }
@@ -105,8 +106,8 @@ export default function TaskMenu({
     const url = `${window.location.origin}${window.location.pathname}#${path}?open=${task.id}`;
     navigator.clipboard
       ?.writeText(url)
-      .then(() => showToast({ message: "Link copied" }))
-      .catch(() => showToast({ message: "Couldn't copy the link" }));
+      .then(() => showToast({ message: tr("Link copied", "Povezava kopirana") }))
+      .catch(() => showToast({ message: tr("Couldn't copy the link", "Povezave ni bilo mogoče kopirati") }));
     close();
   }
 
@@ -114,8 +115,8 @@ export default function TaskMenu({
     deleteTask.mutate(task.id, {
       onSuccess: (removed) => {
         showToast({
-          message: `"${task.content}" deleted`,
-          actionLabel: "Undo",
+          message: tr(`"${task.content}" deleted`, `»${task.content}« izbrisano`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreTasks.mutate(removed),
         });
       },
@@ -128,7 +129,7 @@ export default function TaskMenu({
       <button
         ref={triggerRef}
         className="row-menu-trigger"
-        aria-label="Task options"
+        aria-label={tr("Task options", "Možnosti naloge")}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={toggle}
       >
@@ -155,11 +156,11 @@ export default function TaskMenu({
                     }}
                   >
                     <ChevronIcon width={14} height={14} style={{ transform: "rotate(90deg)" }} />
-                    Back
+                    {tr("Back", "Nazaj")}
                   </button>
                   {projects.length === 0 ? (
                     <div className="row-menu-item" style={{ opacity: 0.6, cursor: "default" }}>
-                      No other projects
+                      {tr("No other projects", "Ni drugih projektov")}
                     </div>
                   ) : (
                     projects.map((p) => (
@@ -189,15 +190,15 @@ export default function TaskMenu({
                     }}
                   >
                     <EditIcon width={14} height={14} />
-                    Edit
+                    {tr("Edit", "Uredi")}
                   </button>
 
-                  <div className="task-menu-section-label">Date</div>
+                  <div className="task-menu-section-label">{tr("Date", "Datum")}</div>
                   <div className="task-menu-inline-row">
                     <DateQuickIcons onPick={setDueOffset} onMore={() => setShowDatePicker(true)} />
                   </div>
 
-                  <div className="task-menu-section-label">Priority</div>
+                  <div className="task-menu-section-label">{tr("Priority", "Prednost")}</div>
                   <div className="task-menu-inline-row">
                     {PRIORITY_ORDER.map((p) => (
                       <button
@@ -226,7 +227,7 @@ export default function TaskMenu({
                         }}
                       >
                         <MoveIcon width={14} height={14} />
-                        Move to…
+                        {tr("Move to…", "Premakni v …")}
                       </button>
                       <button
                         className="row-menu-item"
@@ -237,7 +238,7 @@ export default function TaskMenu({
                         }}
                       >
                         <CopyIcon width={14} height={14} />
-                        Duplicate
+                        {tr("Duplicate", "Podvoji")}
                       </button>
                     </>
                   )}
@@ -250,7 +251,7 @@ export default function TaskMenu({
                     }}
                   >
                     <LinkIcon width={14} height={14} />
-                    Copy link to task
+                    {tr("Copy link to task", "Kopiraj povezavo do naloge")}
                   </button>
 
                   <div className="row-menu-divider" />
@@ -264,7 +265,7 @@ export default function TaskMenu({
                     }}
                   >
                     <TrashIcon width={14} height={14} />
-                    Delete
+                    {tr("Delete", "Izbriši")}
                   </button>
                 </>
               )}

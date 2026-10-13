@@ -55,6 +55,24 @@ After a change to `firestore.rules`, tell the owner to paste the whole file
 (https://github.com/Ragefx/Opravilko/blob/main/firestore.rules) into
 https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 
+## Languages (English / Slovenian)
+
+- Settings > Appearance > Language, per device (`localStorage["opravilko.lang"]`,
+  English by default; switching reloads). `src/i18n.ts`.
+- Every bit of text is written in place as `tr("English", "Slovensko")`;
+  counts use `trn(n, [one, other], [1, 2, 3–4, 5+])` with `#` for the number.
+- Dates: import `format` from `src/i18n.ts` (not date-fns) so day and month
+  names follow the language; Slovenian patterns differ (`tr("EEE d MMM",
+  "EEE, d. MMM")`), standalone months are `LLLL`, and `cap()` capitalises a
+  heading that starts with a day or month.
+- The Inbox is stored as "Inbox" and shown as "Prejeto" (`assemble` in sync.ts,
+  WidgetSyncJob). Built-in meals and shopping categories follow the language.
+- Android: `widget/L.java` does the same (`L.t(en, sl)`, `L.date`, `L.res` for
+  res/values strings); the language reaches it with the widget data
+  (`lang` in `OpravilkoWidget.update`).
+- New text, new release notes (`itemsSl` in releases.ts) and new toasts need
+  both languages.
+
 ## Checking changes
 
 - Type check: `cd frontend && npx tsc -b`. Build: `npm run build`.
@@ -76,7 +94,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 ## Where things are
 
 - Now page: `src/pages/Home.tsx`. Its focus card can be switched off:
-  `utils/focusCard.ts`, Settings > Appearance.
+  `utils/focusCard.ts`, Settings > Simple (with Weekly review and completed-on-calendar).
 - Add task card: `src/components/QuickAddSheet.tsx`.
   - In the app it has tokens plus one row of icons, which can be reordered by
     dragging (order in `localStorage["opravilko.addTools"]`).
@@ -105,7 +123,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   from the partner go here (`useHidden("…")`).
 - Calendars: `CalendarView.tsx` (website: month with a day panel on wide
   windows, week view) and `MobileCalendar.tsx` (phone). Completed tasks
-  (Settings > Appearance, `utils/calendarDone.ts`; shopping excluded) and
+  (Settings > Simple, `utils/calendarDone.ts`; shopping excluded) and
   Slovenian holidays (`utils/holidays.ts`) show on them. The + adds on the
   picked day (`utils/calendarDay.ts`).
 - Widget calendar views: `widget/CalendarWidget.java` (Month; Month + tasks);
@@ -116,6 +134,13 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 - Shopping: `components/ShoppingView.tsx`, `utils/shopping.ts`.
   - Meals, a shop per item, "@shop" in a typed line.
   - The widget has matching logic in `widget/ShoppingLogic.java`.
+- Shop deals ("On sale" card on Shopping, `components/DealsCard.tsx`,
+  `utils/deals.ts`): `.github/workflows/deals.yml` runs `deals/fetch.py`
+  twice a day on GitHub (the shops block this container; GitHub's machines
+  can read them with curl_cffi's Chrome look) and saves `deals/current` in
+  Firestore. Hofer (special offers), Lidl (food tiles' JSON), Tuš (akcijska
+  ponudba + katalog), Spar (online shop's "Iz letaka" category through its
+  Instaleap GraphQL service, with the website's own headers). Matching: word stems, English names mapped (`EN_SL`).
 - Widget add card (task and shopping): `widget/QuickAddActivity.java`,
   `res/layout/widget_quick_add.xml`.
 - Sync with Firestore: `src/firebase/sync.ts`.

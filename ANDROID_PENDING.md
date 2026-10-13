@@ -7,21 +7,20 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 55** (commit `3cfe965`, Oct 1 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-55
+Last build: **build 59** (commit `3b9aadb`, Oct 8 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-59
 (Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 55: a time typed on its own goes on the day already chosen, not today.
+Build 59: Shopping "On sale" card with this week's deals at Hofer, Lidl, Spar and Tuš.
 
 ## In the code, not in the app yet
 
-- Simple has its own page in Settings (under Look & feel); with Simple on, the shopping add box, mic and Add share one row, the add card has no label or location icons, and the menu has no Labels or Filters
-- Calendar (and widget): bought shopping items no longer show under Done
-- Shopping add box: no example text in the app
-- Widget month: tapping a day's empty space opens the add card on that day (tapping its number opens the app's calendar)
-- Widget month: holidays as plain text (red for days off), no red block behind them
-- App calendar: Dots or Squares (tasks written in day boxes, like the widget), Settings > Appearance > Calendar in the app
-- Widget: tapping a task opens a card laid out like the app's task window, over the home screen (no app opening)
+- Shopping: no example text in the add box. / Nakupi: brez primera v polju za dodajanje.
+- Widget month: tap a day's empty space to add on that day (its number opens the app's calendar). / Pripomoček mesec: dotik praznega dela dneva doda nalogo na ta dan (številka odpre koledar v aplikaciji).
+- Widget month: holidays as plain text, red for days off, no red block. / Pripomoček mesec: prazniki kot navadno besedilo, prosti dnevi rdeče, brez rdečega ozadja.
+- Calendar: Dots or Squares (tasks written in day boxes, like the widget), in Settings > Appearance. / Koledar: pike ali kvadratki (naloge vpisane v dneve, kot na pripomočku), v Nastavitve > Videz.
+- Widget: a tapped task opens a card like the app's task window, over the home screen. / Pripomoček: dotik naloge odpre kartico kot okno naloge v aplikaciji, nad začetnim zaslonom.
+- Shopping: when shop deals can't be shown, a short line says why. / Nakupi: ko akcij ni mogoče prikazati, kratka vrstica pove zakaj.
 
 ## Known gaps
 

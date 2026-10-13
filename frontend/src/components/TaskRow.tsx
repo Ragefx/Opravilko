@@ -1,8 +1,9 @@
+import { tr } from "../i18n";
 import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
-import { taskDueClass, taskDueLabel } from "../utils/events";
-import { BellIcon, CalendarIcon, CheckIcon, ChevronIcon, HourglassIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
+import { taskDueClass, taskDueLabel, taskTimeLabel } from "../utils/events";
+import { BellIcon, CalendarIcon, CheckIcon, ClockIcon, ChevronIcon, HourglassIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
 import { remindersOf } from "../utils/reminders";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
@@ -25,6 +26,7 @@ export default function TaskRow({
   subtaskCount,
   collapsed,
   onToggleCollapse,
+  day,
 }: {
   task: Task;
   onOpen: (task: Task) => void;
@@ -33,12 +35,16 @@ export default function TaskRow({
   subtaskCount?: { done: number; total: number };
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  /** The day the list shows it under ("yyyy-MM-dd"): on that day only the time is shown, not the date again. */
+  day?: string;
 }) {
   const completeTask = useCompleteTask();
   const revertRecurring = useRevertRecurringCompletion();
   const tick = useCompleteAnimation();
   const recurring = !!task.due?.isRecurring;
   const hasReminders = !task.completed && remindersOf(task).length > 0;
+  // Under its own day's heading, a task without a time (or repeat or reminder) needs no date line.
+  const dueShown = Boolean(task.due && (task.due.date !== day || task.due.datetime || task.due.isRecurring || hasReminders));
   const showToast = useToast();
   const { data } = useBootstrap();
   const doneBy = completedByName(task, data);
@@ -55,8 +61,8 @@ export default function TaskRow({
     deleteTask.mutate(task.id, {
       onSuccess: (removed) =>
         showToast({
-          message: `"${task.content}" deleted`,
-          actionLabel: "Undo",
+          message: tr(`"${task.content}" deleted`, `»${task.content}« izbrisano`),
+          actionLabel: tr("Undo", "Razveljavi"),
           onAction: () => restoreTasks.mutate(removed),
         }),
     });
@@ -66,8 +72,8 @@ export default function TaskRow({
     const previousDue = task.due;
     tick.play(() => completeTask.mutate({ id: task.id, completed: true }), { fold: !recurring });
     showToast({
-      message: task.due?.isRecurring ? "Moved to next occurrence" : "Task completed",
-      actionLabel: "Undo",
+      message: task.due?.isRecurring ? tr("Moved to next occurrence", "Prestavljeno na naslednjič") : tr("Task completed", "Naloga opravljena"),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () =>
         task.due?.isRecurring
           ? revertRecurring.mutate({ id: task.id, due: previousDue })
@@ -89,11 +95,11 @@ export default function TaskRow({
         <div className={`task-swipe-bg ${swipe.armed ? "armed" : ""}`}>
           {swipeDir === "right" ? (
             <>
-              <CheckIcon width={18} height={18} /> Complete
+              <CheckIcon width={18} height={18} /> {tr("Complete", "Opravi")}
             </>
           ) : (
             <>
-              Delete <TrashIcon width={18} height={18} />
+              {tr("Delete", "Izbriši")} <TrashIcon width={18} height={18} />
             </>
           )}
         </div>
@@ -112,7 +118,7 @@ export default function TaskRow({
             className="task-collapse-toggle"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={onToggleCollapse}
-            aria-label={collapsed ? "Expand sub-tasks" : "Collapse sub-tasks"}
+            aria-label={collapsed ? tr("Expand sub-tasks", "Razširi podnaloge") : tr("Collapse sub-tasks", "Strni podnaloge")}
           >
             <ChevronIcon width={14} height={14} style={{ transform: collapsed ? "rotate(-90deg)" : undefined }} />
           </button>
@@ -142,25 +148,35 @@ export default function TaskRow({
               </span>
             )}
           </div>
-          {(doneBy || deadline || task.due || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
+          {(doneBy || deadline || dueShown || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
             <div className="task-meta">
               {doneBy && <span className="task-done-by">✓ {doneBy}</span>}
-              {task.due && (
+              {dueShown && task.due && (
                 <span className={`due ${taskDueClass(task)}`}>
-                  <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {taskDueLabel(task)}
+                  {task.due.date === day ? (
+                    task.due.datetime ? (
+                      <>
+                        <ClockIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {taskTimeLabel(task)}
+                      </>
+                    ) : null
+                  ) : (
+                    <>
+                      <CalendarIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {taskDueLabel(task)}
+                    </>
+                  )}
                   {task.due.isRecurring && (
                     <RepeatIcon width={12} height={12} style={{ verticalAlign: "-2px", marginLeft: 2 }} />
                   )}
-                  {hasReminders && <BellIcon width={12} height={12} aria-label="Has reminders" style={{ verticalAlign: "-2px", marginLeft: 2 }} />}
+                  {hasReminders && <BellIcon width={12} height={12} aria-label={tr("Has reminders", "Ima opomnike")} style={{ verticalAlign: "-2px", marginLeft: 2 }} />}
                 </span>
               )}
               {deadline && (
-                <span className={`chip task-deadline is-${deadline.kind}`} title="Deadline">
+                <span className={`chip task-deadline is-${deadline.kind}`} title={tr("Deadline", "Rok")}>
                   <HourglassIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {deadline.label}
                 </span>
               )}
               {!task.due && hasReminders && (
-                <span className="chip" title="Reminders">
+                <span className="chip" title={tr("Reminders", "Opomniki")}>
                   <BellIcon width={12} height={12} style={{ verticalAlign: "-2px" }} />
                 </span>
               )}

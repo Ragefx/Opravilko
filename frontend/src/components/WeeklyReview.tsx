@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { addDays, differenceInCalendarDays, format, formatDistanceToNowStrict, nextMonday, parseISO } from "date-fns";
+import { addDays, differenceInCalendarDays, formatDistanceToNowStrict, nextMonday, parseISO } from "date-fns";
+import { tr, format, trn, dateLocale } from "../i18n";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useUpdateTask } from "../api/hooks";
 import type { AppData, Due, Task } from "../api/types";
 import { isOverdue } from "../utils/date";
@@ -105,10 +106,10 @@ export default function WeeklyReview({ onClose }: { onClose: () => void }) {
   return createPortal(
     <>
       <div className={`modal-backdrop over-modal ${opened ? "review-under-task" : ""}`} onClick={onClose}>
-        <div className="modal review-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Weekly review">
+        <div className="modal review-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Weekly review", "Tedenski pregled")}>
           <div className="settings-head">
-            <h3>Weekly review</h3>
-            <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close">
+            <h3>{tr("Weekly review", "Tedenski pregled")}</h3>
+            <button className="sidebar-icon-btn" onClick={onClose} aria-label={tr("Close", "Zapri")}>
               <XIcon width={18} height={18} />
             </button>
           </div>
@@ -116,21 +117,22 @@ export default function WeeklyReview({ onClose }: { onClose: () => void }) {
           {queue.length === 0 ? (
             <div className="review-done">
               <span aria-hidden="true">🎉</span>
-              <b>Nothing to sort</b>
-              <p>No overdue tasks and none without a date.</p>
+              <b>{tr("Nothing to sort", "Ni česa urejati")}</b>
+              <p>{tr("No overdue tasks and none without a date.", "Ni zamujenih nalog in nobene brez datuma.")}</p>
               <button className="btn btn-primary" onClick={onClose}>
-                Close
+                {tr("Close", "Zapri")}
               </button>
             </div>
           ) : finished ? (
             <div className="review-done">
               <span aria-hidden="true">✨</span>
-              <b>All sorted</b>
+              <b>{tr("All sorted", "Vse urejeno")}</b>
               <p>
-                {sorted} {sorted === 1 ? "task" : "tasks"} gone through. See you next week.
+                {trn(sorted, ["# task gone through.", "# tasks gone through."], ["Pregledana # naloga.", "Pregledani # nalogi.", "Pregledane # naloge.", "Pregledanih # nalog."])}{" "}
+                {tr("See you next week.", "Se vidiva naslednji teden.")}
               </p>
               <button className="btn btn-primary" onClick={onClose}>
-                Done
+                {tr("Done", "Končano")}
               </button>
             </div>
           ) : (
@@ -139,33 +141,33 @@ export default function WeeklyReview({ onClose }: { onClose: () => void }) {
                 <span style={{ width: `${(i / queue.length) * 100}%` }} />
               </div>
               <div className="review-count">
-                {i + 1} of {queue.length} · {overdue ? "overdue" : "no date"}
+                {tr(`${i + 1} of ${queue.length}`, `${i + 1} od ${queue.length}`)} · {overdue ? tr("overdue", "zamujeno") : tr("no date", "brez datuma")}
               </div>
               <button className="review-card" onClick={() => setOpened(task)}>
                 <b>{task.content}</b>
                 <span>
-                  {project?.isInboxProject || task.projectId === "inbox" ? "Inbox" : `# ${project?.name ?? "Project"}`}
+                  {project?.isInboxProject || task.projectId === "inbox" ? tr("Inbox", "Prejeto") : `# ${project?.name ?? tr("Project", "Projekt")}`}
                   {overdue && task.due
-                    ? ` · was due ${format(parseISO(task.due.date), "d MMM")}`
-                    : ` · added ${formatDistanceToNowStrict(new Date(task.createdAt), { addSuffix: true })}`}
+                    ? tr(` · was due ${format(parseISO(task.due.date), "d MMM")}`, ` · rok je bil ${format(parseISO(task.due.date), "d. MMM")}`)
+                    : tr(" · added ", " · dodano ") + formatDistanceToNowStrict(new Date(task.createdAt), { addSuffix: true, locale: dateLocale })}
                 </span>
               </button>
               <div className="review-grid">
                 <button onClick={() => moveTo(today, "today")}>
-                  <b>Today</b>
+                  <b>{tr("Today", "Danes")}</b>
                   <span>{format(today, "EEE")}</span>
                 </button>
                 <button onClick={() => moveTo(addDays(today, 1), "tomorrow")}>
-                  <b>Tomorrow</b>
+                  <b>{tr("Tomorrow", "Jutri")}</b>
                   <span>{format(addDays(today, 1), "EEE")}</span>
                 </button>
                 <button onClick={() => moveTo(weekend, "this weekend")}>
-                  <b>Weekend</b>
-                  <span>{format(weekend, "EEE d")}</span>
+                  <b>{tr("Weekend", "Vikend")}</b>
+                  <span>{format(weekend, tr("EEE d", "EEE d."))}</span>
                 </button>
                 <button onClick={() => moveTo(monday, "next week")}>
-                  <b>Next week</b>
-                  <span>{format(monday, "EEE d")}</span>
+                  <b>{tr("Next week", "Naslednji teden")}</b>
+                  <span>{format(monday, tr("EEE d", "EEE d."))}</span>
                 </button>
               </div>
               <div className="review-actions">
@@ -174,13 +176,13 @@ export default function WeeklyReview({ onClose }: { onClose: () => void }) {
                   onClick={() =>
                     deleteTask.mutate(task.id, {
                       onSuccess: (removed) => {
-                        showToast({ message: `Deleted “${task.content}”`, actionLabel: "Undo", onAction: () => restoreTasks.mutate(removed) });
+                        showToast({ message: tr(`Deleted “${task.content}”`, `Izbrisano: »${task.content}«`), actionLabel: tr("Undo", "Razveljavi"), onAction: () => restoreTasks.mutate(removed) });
                         next();
                       },
                     })
                   }
                 >
-                  Delete
+                  {tr("Delete", "Izbriši")}
                 </button>
                 <button
                   className="btn btn-text"
@@ -189,11 +191,11 @@ export default function WeeklyReview({ onClose }: { onClose: () => void }) {
                     next();
                   }}
                 >
-                  ✓ Done
+                  ✓ {tr("Done", "Opravljeno")}
                 </button>
                 <span style={{ flex: 1 }} />
                 <button className="btn btn-secondary" onClick={next}>
-                  {overdue ? "Leave it" : "Keep, no date"}
+                  {overdue ? tr("Leave it", "Pusti") : tr("Keep, no date", "Obdrži brez datuma")}
                 </button>
               </div>
             </>

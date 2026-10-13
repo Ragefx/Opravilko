@@ -1,4 +1,5 @@
-import { addDays, format, isToday, isTomorrow, parseISO } from "date-fns";
+import { addDays, isToday, isTomorrow, parseISO } from "date-fns";
+import { tr, format } from "../i18n";
 import { useBootstrap } from "../api/hooks";
 import TaskListView, { type DateGroup } from "../components/TaskListView";
 import RescheduleButton from "../components/RescheduleButton";
@@ -6,13 +7,13 @@ import { isDueWithinDays, isOverdue } from "../utils/date";
 import { groupEventsByDate } from "../utils/calendarSync";
 
 const DAYS_AHEAD = 14;
-const OVERDUE = "Overdue";
+const OVERDUE = tr("Overdue", "Zamujeno");
 
 /** "22 Sep · Today · Tuesday", matching Todoist's Upcoming headers. */
 function dayLabel(dateStr: string): string {
   const d = parseISO(dateStr);
-  const relative = isToday(d) ? " · Today" : isTomorrow(d) ? " · Tomorrow" : "";
-  return `${format(d, "d MMM")}${relative} · ${format(d, "EEEE")}`;
+  const relative = isToday(d) ? tr(" · Today", " · Danes") : isTomorrow(d) ? tr(" · Tomorrow", " · Jutri") : "";
+  return `${format(d, tr("d MMM", "d. MMM"))}${relative} · ${format(d, "EEEE")}`;
 }
 
 export default function Upcoming() {
@@ -40,9 +41,9 @@ export default function Upcoming() {
 
   return (
     <TaskListView
-      title="Upcoming"
+      title={tr("Upcoming", "Prihajajoče")}
       tasks={tasks}
-      groupLabel={(t) => (isOverdue(t.due) ? OVERDUE : t.due ? dayLabel(t.due.date) : "No date")}
+      groupLabel={(t) => (isOverdue(t.due) ? OVERDUE : t.due ? dayLabel(t.due.date) : tr("No date", "Brez datuma"))}
       showProjectChip
       projectNameById={projectNameById}
       eventsByDate={eventsByDate}

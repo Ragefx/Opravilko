@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAddAttachments, useBootstrap, useCreateTask } from "../api/hooks";
@@ -41,7 +42,7 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
   const showToast = useToast();
   const navigate = useNavigate();
   const initial = titleAndNotes(shared);
-  const [title, setTitle] = useState(initial.title || (shared.images?.length ? "Photo" : ""));
+  const [title, setTitle] = useState(initial.title || (shared.images?.length ? tr("Photo", "Fotografija") : ""));
   const [notes, setNotes] = useState(initial.notes);
   const [busy, setBusy] = useState(false);
 
@@ -80,7 +81,7 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
         try {
           added.push(await uploadAttachment(task.id, await sharedImageFile(image)));
         } catch (err) {
-          failed = (err as Error).message || "A photo couldn't be attached.";
+          failed = (err as Error).message || tr("A photo couldn't be attached.", "Fotografije ni bilo mogoče pripeti.");
         }
       }
       if (added.length) addAttachments.mutate({ id: task.id, attachments: added });
@@ -88,40 +89,40 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
     setBusy(false);
     onClose();
     showToast({
-      message: failed || `Added to ${target?.name ?? "Inbox"}`,
-      actionLabel: "Open",
+      message: failed || tr(`Added to ${target?.name ?? "Inbox"}`, `Dodano v ${target?.name ?? "Prejeto"}`),
+      actionLabel: tr("Open", "Odpri"),
       onAction: () => navigate(`${routeTo(projectId)}?open=${encodeURIComponent(task.id)}`),
     });
   }
 
   return (
     <div className="modal-backdrop" onClick={() => !busy && onClose()}>
-      <div className="modal share-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Add to Opravilko">
+      <div className="modal share-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Add to Opravilko", "Dodaj v Opravilko")}>
         <div className="settings-head">
-          <h3>Add to Opravilko</h3>
-          <button className="sidebar-icon-btn" onClick={onClose} aria-label="Close" disabled={busy}>
+          <h3>{tr("Add to Opravilko", "Dodaj v Opravilko")}</h3>
+          <button className="sidebar-icon-btn" onClick={onClose} aria-label={tr("Close", "Zapri")} disabled={busy}>
             <XIcon width={18} height={18} />
           </button>
         </div>
         <label className="share-field">
-          <span>Add to</span>
-          <Select sheetTitle="Add to" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+          <span>{tr("Add to", "Dodaj v")}</span>
+          <Select sheetTitle={tr("Add to", "Dodaj v")} value={projectId} onChange={(e) => setProjectId(e.target.value)}>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
-                {p.viewStyle === "shopping" ? " (shopping list)" : ""}
+                {p.viewStyle === "shopping" ? tr(" (shopping list)", " (nakupovalni seznam)") : ""}
               </option>
             ))}
           </Select>
         </label>
         {shopping && !toShopping && (
           <button className="btn btn-text share-shopping-hint" onClick={() => setProjectId(shopping.id)}>
-            🛒 Put it on {shopping.name} instead
+            🛒 {tr(`Put it on ${shopping.name} instead`, `Raje na ${shopping.name}`)}
           </button>
         )}
         {toShopping ? (
           <label className="share-field">
-            <span>Items (one per line or comma)</span>
+            <span>{tr("Items (one per line or comma)", "Artikli (eden na vrstico ali z vejico)")}</span>
             <textarea rows={5} value={[title, notes].filter(Boolean).join("\n")} onChange={(e) => {
               setTitle(e.target.value);
               setNotes("");
@@ -130,11 +131,11 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
         ) : (
           <>
             <label className="share-field">
-              <span>Task</span>
+              <span>{tr("Task", "Naloga")}</span>
               <input value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
             </label>
             <label className="share-field">
-              <span>Notes</span>
+              <span>{tr("Notes", "Zapiski")}</span>
               <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </label>
             {images.length > 0 && (
@@ -142,17 +143,17 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
                 {images.map((img, i) => (
                   <img key={i} src={img.dataUrl} alt={img.name} />
                 ))}
-                {!canAttach && <p className="settings-note">Photos can be attached with Google sign-in only.</p>}
+                {!canAttach && <p className="settings-note">{tr("Photos can be attached with Google sign-in only.", "Fotografije lahko pripneš le s prijavo z Googlom.")}</p>}
               </div>
             )}
           </>
         )}
         <div className="modal-actions">
           <button className="btn btn-text" onClick={onClose} disabled={busy}>
-            Cancel
+            {tr("Cancel", "Prekliči")}
           </button>
           <button className="btn btn-primary" onClick={() => void add()} disabled={busy || !title.trim()}>
-            {busy ? "Adding…" : toShopping ? "Add to list" : "Add task"}
+            {busy ? tr("Adding…", "Dodajam …") : toShopping ? tr("Add to list", "Dodaj na seznam") : tr("Add task", "Dodaj nalogo")}
           </button>
         </div>
       </div>

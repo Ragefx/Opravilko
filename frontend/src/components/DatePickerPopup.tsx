@@ -1,19 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  addDays,
-  addMonths,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  isToday as isTodayFn,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-} from "date-fns";
+import { addDays, addMonths, endOfMonth, endOfWeek, isSameDay, isSameMonth, isToday as isTodayFn, parseISO, startOfMonth, startOfWeek, subMonths } from "date-fns";
+import { tr, format, isSl, cap } from "../i18n";
 import { useBootstrap, useUpdateTask } from "../api/hooks";
 import { makeDue, makeDueFromDateString, parseNaturalDate } from "../utils/date";
 import type { Due } from "../api/types";
@@ -23,6 +11,11 @@ import { CalendarIcon, ChevronIcon, ClockIcon, CouchIcon, RepeatIcon, SkipForwar
 import TimePickerPopup from "./TimePickerPopup";
 
 const WEEK_OPTS = { weekStartsOn: 1 as const };
+
+/** "ponedeljek", "sredo": the weekday as it follows "v" in Slovenian. */
+function slDayAcc(d: Date): string {
+  return ["nedeljo", "ponedeljek", "torek", "sredo", "četrtek", "petek", "soboto"][d.getDay()];
+}
 const touchScreen = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
 
 /**
@@ -93,7 +86,7 @@ export default function DatePickerPopup({
     const date = addDays(new Date(), days);
     const dateStr = format(date, "yyyy-MM-dd");
     const timeStr = currentTimeStr();
-    const label = days === 0 ? "Today" : days === 1 ? "Tomorrow" : format(date, "EEE d MMM");
+    const label = days === 0 ? tr("Today", "Danes") : days === 1 ? tr("Tomorrow", "Jutri") : format(date, tr("EEE d MMM", "EEE, d. MMM"));
     setDue(timeStr ? makeDueFromDateString(dateStr, timeStr) : makeDue(date, label));
     onClose();
   }
@@ -161,7 +154,7 @@ export default function DatePickerPopup({
           // Straight into typing with a mouse; on a phone that would pop the
           // keyboard up over the picker, so there you tap the field to type.
           autoFocus={!touchScreen}
-          placeholder="Type a date"
+          placeholder={tr("Type a date", "Vpiši datum")}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submitTypedDate()}
@@ -171,53 +164,53 @@ export default function DatePickerPopup({
           <span className="date-picker-quick-icon today">
             <CalendarIcon width={15} height={15} />
           </span>
-          Today
+          {tr("Today", "Danes")}
           <span className="date-picker-quick-day">{format(today, "EEE")}</span>
         </button>
         <button className="date-picker-quick-row" onClick={() => applyDateOffset(1)}>
           <span className="date-picker-quick-icon tomorrow">
             <SunIcon width={15} height={15} />
           </span>
-          Tomorrow
+          {tr("Tomorrow", "Jutri")}
           <span className="date-picker-quick-day">{format(addDays(today, 1), "EEE")}</span>
         </button>
         <button className="date-picker-quick-row" onClick={() => applyDateOffset(weekendOffsetDays())}>
           <span className="date-picker-quick-icon weekend">
             <CouchIcon width={15} height={15} />
           </span>
-          This weekend
+          {tr("This weekend", "Ta vikend")}
           <span className="date-picker-quick-day">{format(weekend, "EEE")}</span>
         </button>
         <button className="date-picker-quick-row" onClick={() => applyDateOffset(7)}>
           <span className="date-picker-quick-icon nextweek">
             <SkipForwardIcon width={15} height={15} />
           </span>
-          Next week
-          <span className="date-picker-quick-day">{format(nextWeek, "EEE d MMM")}</span>
+          {tr("Next week", "Naslednji teden")}
+          <span className="date-picker-quick-day">{format(nextWeek, tr("EEE d MMM", "EEE, d. MMM"))}</span>
         </button>
         {due && (
           <button className="date-picker-quick-row" onClick={clearDate}>
             <span className="date-picker-quick-icon">
               <XIcon width={15} height={15} />
             </span>
-            No date
+            {tr("No date", "Brez datuma")}
           </button>
         )}
 
         <div className="date-picker-calendar">
           <div className="date-picker-cal-header">
-            <span>{format(viewMonth, "MMMM yyyy")}</span>
+            <span>{cap(format(viewMonth, "LLLL yyyy"))}</span>
             <div>
-              <button onClick={() => setViewMonth((m) => subMonths(m, 1))} aria-label="Previous month">
+              <button onClick={() => setViewMonth((m) => subMonths(m, 1))} aria-label={tr("Previous month", "Prejšnji mesec")}>
                 <ChevronIcon width={14} height={14} style={{ transform: "rotate(90deg)" }} />
               </button>
-              <button onClick={() => setViewMonth((m) => addMonths(m, 1))} aria-label="Next month">
+              <button onClick={() => setViewMonth((m) => addMonths(m, 1))} aria-label={tr("Next month", "Naslednji mesec")}>
                 <ChevronIcon width={14} height={14} style={{ transform: "rotate(-90deg)" }} />
               </button>
             </div>
           </div>
           <div className="date-picker-cal-weekdays">
-            {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+            {(isSl ? ["P", "T", "S", "Č", "P", "S", "N"] : ["M", "T", "W", "T", "F", "S", "S"]).map((d, i) => (
               <span key={i}>{d}</span>
             ))}
           </div>
@@ -244,12 +237,12 @@ export default function DatePickerPopup({
         {!dateOnly && (
           <div className="date-picker-time-row">
             <button ref={timeBtnRef} className="date-picker-action-btn" onClick={() => setShowTime(true)}>
-              <ClockIcon width={14} height={14} /> {currentTimeStr() || "Time"}
+              <ClockIcon width={14} height={14} /> {currentTimeStr() || tr("Time", "Ura")}
             </button>
             {/* A set time comes off in one tap; the day (and any repeat) stays. */}
             {currentTimeStr() && (
-              <button className="date-picker-time-clear" onClick={() => saveTime("")} aria-label="Remove the time" title="Remove the time">
-                <XIcon width={14} height={14} /> No time
+              <button className="date-picker-time-clear" onClick={() => saveTime("")} aria-label={tr("Remove the time", "Odstrani uro")} title={tr("Remove the time", "Odstrani uro")}>
+                <XIcon width={14} height={14} /> {tr("No time", "Brez ure")}
               </button>
             )}
           </div>
@@ -262,17 +255,25 @@ export default function DatePickerPopup({
             onMouseLeave={() => setShowRepeat(false)}
           >
             <button className="date-picker-action-btn">
-              <RepeatIcon width={14} height={14} /> Repeat
+              <RepeatIcon width={14} height={14} /> {tr("Repeat", "Ponavljanje")}
             </button>
             {showRepeat && (
               <div ref={repeatRef} className="date-picker-repeat-flyout">
-                <button onClick={() => setRepeat("daily")}>Every day</button>
-                <button onClick={() => setRepeat("weekdays")}>Every weekday (Mon - Fri)</button>
-                <button onClick={() => setRepeat("weekly")}>Every week on {format(selectedDate || today, "EEEE")}</button>
-                <button onClick={() => setRepeat("biweekly")}>Every 2 weeks on {format(selectedDate || today, "EEEE")}</button>
-                <button onClick={() => setRepeat("monthly")}>Every month on the {format(selectedDate || today, "do")}</button>
-                <button onClick={() => setRepeat("monthly_last")}>Every month on the last day</button>
-                <button onClick={() => setRepeat("yearly")}>Every year on {format(selectedDate || today, "MMM d")}</button>
+                <button onClick={() => setRepeat("daily")}>{tr("Every day", "Vsak dan")}</button>
+                <button onClick={() => setRepeat("weekdays")}>{tr("Every weekday (Mon - Fri)", "Vsak delavnik (pon–pet)")}</button>
+                <button onClick={() => setRepeat("weekly")}>
+                  {tr(`Every week on ${format(selectedDate || today, "EEEE")}`, `Vsak teden v ${slDayAcc(selectedDate || today)}`)}
+                </button>
+                <button onClick={() => setRepeat("biweekly")}>
+                  {tr(`Every 2 weeks on ${format(selectedDate || today, "EEEE")}`, `Vsaka 2 tedna v ${slDayAcc(selectedDate || today)}`)}
+                </button>
+                <button onClick={() => setRepeat("monthly")}>
+                  {tr(`Every month on the ${format(selectedDate || today, "do")}`, `Vsak mesec, ${format(selectedDate || today, "d.")}`)}
+                </button>
+                <button onClick={() => setRepeat("monthly_last")}>{tr("Every month on the last day", "Vsak mesec, zadnji dan")}</button>
+                <button onClick={() => setRepeat("yearly")}>
+                  {tr(`Every year on ${format(selectedDate || today, "MMM d")}`, `Vsako leto, ${format(selectedDate || today, "d. MMMM")}`)}
+                </button>
               </div>
             )}
           </div>

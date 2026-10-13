@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { XIcon } from "./icons";
@@ -89,9 +90,9 @@ export default function TimePickerPopup({
       >
         <div className="tp-typed">
           <input
-            aria-label="Time"
+            aria-label={tr("Time", "Ura")}
             inputMode="numeric"
-            placeholder="Type a time, e.g. 16:30"
+            placeholder={tr("Type a time, e.g. 16:30", "Vpiši uro, npr. 16:30")}
             value={typed}
             onChange={(e) => type(e.target.value)}
             onKeyDown={(e) => {
@@ -99,13 +100,13 @@ export default function TimePickerPopup({
             }}
           />
           {time && (
-            <button className="tp-clear" aria-label="Remove the time" title="Remove the time" onClick={() => onSave("")}>
+            <button className="tp-clear" aria-label={tr("Remove the time", "Odstrani uro")} title={tr("Remove the time", "Odstrani uro")} onClick={() => onSave("")}>
               <XIcon width={16} height={16} />
             </button>
           )}
         </div>
 
-        <div className="tp-label">Quick</div>
+        <div className="tp-label">{tr("Quick", "Hitro")}</div>
         <div className="tp-quick">
           {QUICK.map((q) => (
             <button key={q} className={`tp-chip ${current === q ? "is-on" : ""}`} onClick={() => onSave(q)}>
@@ -114,7 +115,7 @@ export default function TimePickerPopup({
           ))}
         </div>
 
-        <div className="tp-label">Hour</div>
+        <div className="tp-label">{tr("Hour", "Ura")}</div>
         <div className="tp-hours">
           {(early ? EARLY_HOURS : DAY_HOURS).map((h) => (
             <button key={h} className={`tp-cell ${hour === h ? "is-on" : ""}`} onClick={() => pickHour(h)}>
@@ -126,7 +127,7 @@ export default function TimePickerPopup({
           </button>
         </div>
 
-        <div className="tp-label">Minutes</div>
+        <div className="tp-label">{tr("Minutes", "Minute")}</div>
         <div className="tp-minutes">
           {MINUTES.map((m) => (
             <button key={m} className={`tp-cell ${hour !== null && minute === m ? "is-on" : ""}`} onClick={() => pickMinute(m)}>
@@ -138,7 +139,7 @@ export default function TimePickerPopup({
 
         <div className="time-picker-actions">
           <button className="btn btn-text" onClick={onCancel}>
-            Cancel
+            {tr("Cancel", "Prekliči")}
           </button>
           <button className="btn btn-primary" disabled={!current} onClick={() => onSave(current)}>
             Save{current ? ` ${current}` : ""}

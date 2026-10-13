@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, parseISO } from "date-fns";
+import { tr, format, trn, cap } from "../i18n";
 import { useBootstrap, useCompleteTask, useRevertRecurringCompletion, useUpdateTask } from "../api/hooks";
 import type { CalendarEvent, Due, Task } from "../api/types";
 import TaskRow from "../components/TaskRow";
@@ -14,7 +15,7 @@ import { groupEventsByDate } from "../utils/calendarSync";
 import { isDueToday, isOverdue, todayISO } from "../utils/date";
 import { EVENT_COLOR, eventEnd, isEvent } from "../utils/events";
 import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "../components/WeeklyReview";
-import { awayRange, projectRoute, tripsOf, tripWhen, tripIcon } from "../utils/away";
+import { TRIP_NOW, awayRange, projectRoute, tripsOf, tripWhen, tripIcon } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 
 type Pane = "now" | "next" | "later";
@@ -40,10 +41,10 @@ const AGENDA_ROWS = 3;
 /** "in 25 min", "in 1 h 35 min", "in 4 h" (minutes dropped from 3 h on). */
 function untilText(iso: string): string {
   const mins = Math.max(1, Math.round((new Date(iso).getTime() - Date.now()) / 60_000));
-  if (mins < 60) return `in ${mins} min`;
+  if (mins < 60) return tr(`in ${mins} min`, `čez ${mins} min`);
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return m && h < 3 ? `in ${h} h ${m} min` : `in ${h} h`;
+  return m && h < 3 ? tr(`in ${h} h ${m} min`, `čez ${h} h ${m} min`) : tr(`in ${h} h`, `čez ${h} h`);
 }
 
 /** Moves a due date to tomorrow, keeping its time and repeat rule. */
@@ -152,8 +153,8 @@ export default function Home() {
     const previousDue = task.due;
     completeTask.mutate({ id: task.id, completed: true });
     showToast({
-      message: task.due?.isRecurring ? "Moved to next occurrence" : "Task completed",
-      actionLabel: "Undo",
+      message: task.due?.isRecurring ? tr("Moved to next occurrence", "Prestavljeno na naslednjič") : tr("Task completed", "Naloga opravljena"),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () =>
         task.due?.isRecurring
           ? revertRecurring.mutate({ id: task.id, due: previousDue })
@@ -165,8 +166,8 @@ export default function Home() {
     const previousDue = task.due;
     updateTask.mutate({ id: task.id, due: dueTomorrow(task.due) });
     showToast({
-      message: "Moved to tomorrow",
-      actionLabel: "Undo",
+      message: tr("Moved to tomorrow", "Prestavljeno na jutri"),
+      actionLabel: tr("Undo", "Razveljavi"),
       onAction: () => updateTask.mutate({ id: task.id, due: previousDue }),
     });
   }
@@ -195,17 +196,17 @@ export default function Home() {
       <div className="home-date">
         <span className="home-day">{format(new Date(), "d")}</span>
         <span className="home-date-text">
-          <b>{format(new Date(), "EEEE")}</b>
+          <b>{cap(format(new Date(), "EEEE"))}</b>
           <span>
-            {format(new Date(), "MMMM")} · {view.nowTasks.length} for today
-            {view.lateCount > 0 && `, ${view.lateCount} late`}
+            {format(new Date(), "LLLL")} · {tr(`${view.nowTasks.length} for today`, `danes ${view.nowTasks.length}`)}
+            {view.lateCount > 0 && tr(`, ${view.lateCount} late`, `, zamujenih ${view.lateCount}`)}
           </span>
         </span>
       </div>
 
       {view.allDay.map((e) => (
         <div key={e.id} className="home-allday">
-          <span className="home-mono">ALL DAY</span> {e.title}
+          <span className="home-mono">{tr("ALL DAY", "VES DAN")}</span> {e.title}
         </div>
       ))}
 
@@ -221,25 +222,34 @@ export default function Home() {
             <span className="home-focus-meta">
               {view.projectNameById[focus.projectId]}
               {focus.due?.datetime && ` · ${timeOf(focus.due.datetime)}`}
-              {lateDays > 0 && <span className="home-late"> · {lateDays === 1 ? "1 day late" : `${lateDays} days late`}</span>}
+              {lateDays > 0 && (
+                <span className="home-late">
+                  {" · "}
+                  {trn(lateDays, ["# day late", "# days late"], ["# dan zamude", "# dneva zamude", "# dni zamude", "# dni zamude"])}
+                </span>
+              )}
             </span>
             <span className="home-focus-actions">
               <button className="btn btn-text" onClick={() => moveToTomorrow(focus)}>
-                Tomorrow
+                {tr("Tomorrow", "Jutri")}
               </button>
               <button className="btn btn-text" onClick={() => complete(focus)}>
-                Done
+                {tr("Done", "Opravljeno")}
               </button>
               <button className="btn btn-primary" onClick={() => setFocusTask(focus)}>
-                Start focus
+                {tr("Start focus", "Začni fokus")}
               </button>
             </span>
           </div>
         </div>
       ) : view.nowTasks.length > 0 ? null : (
         <div className="home-clear">
-          <b>Nothing due today.</b>
-          <span>{plainEmpty ? "Enjoy the free day." : "Pick something from Next, or enjoy the free day."}</span>
+          <b>{tr("Nothing due today.", "Danes ni nič na sporedu.")}</b>
+          <span>
+            {plainEmpty
+              ? tr("Enjoy the free day.", "Uživaj v prostem dnevu.")
+              : tr("Pick something from Next, or enjoy the free day.", "Izberi kaj iz Naslednje ali uživaj v prostem dnevu.")}
+          </span>
         </div>
       )}
 
@@ -257,16 +267,20 @@ export default function Home() {
           <span className="home-trip-text">
             <b>
               {nextTrip.trip.period.by === "off"
-                ? nextTrip.when === "now" ? "Off work · " : "Time off · "
-                : nextTrip.when === "now" ? "Away · " : "Next trip · "}
+                ? nextTrip.when === TRIP_NOW
+                  ? tr("Off work · ", "Dopust · ")
+                  : tr("Time off · ", "Prosti dnevi · ")
+                : nextTrip.when === TRIP_NOW
+                  ? tr("Away · ", "Odsoten · ")
+                  : tr("Next trip · ", "Naslednje potovanje · ")}
               {nextTrip.trip.period.title}
             </b>
             <span>
               {awayRange(nextTrip.trip.period)}
-              {nextTrip.todo > 0 ? ` · ${nextTrip.todo} to do` : ""}
+              {nextTrip.todo > 0 ? tr(` · ${nextTrip.todo} to do`, ` · še ${nextTrip.todo}`) : ""}
             </span>
           </span>
-          <span className="home-trip-when">{nextTrip.when === "now" ? "now" : nextTrip.when}</span>
+          <span className="home-trip-when">{nextTrip.when}</span>
         </button>
       )}
 
@@ -274,19 +288,23 @@ export default function Home() {
         <button className="home-review" onClick={() => window.dispatchEvent(new Event(OPEN_WEEKLY_REVIEW))}>
           <span aria-hidden="true">🗂️</span>
           <span className="home-review-text">
-            <b>Weekly review</b>
+            <b>{tr("Weekly review", "Tedenski pregled")}</b>
             <span>
-              {reviewCount} {reviewCount === 1 ? "task" : "tasks"} to sort: overdue or without a date
+              {trn(
+                reviewCount,
+                ["# task to sort: overdue or without a date", "# tasks to sort: overdue or without a date"],
+                ["# naloga za urediti: zamujena ali brez datuma", "# nalogi za urediti: zamujeni ali brez datuma", "# naloge za urediti: zamujene ali brez datuma", "# nalog za urediti: zamujene ali brez datuma"]
+              )}
             </span>
           </span>
-          <span className="home-review-go">Start</span>
+          <span className="home-review-go">{tr("Start", "Začni")}</span>
         </button>
       )}
 
       {view.clock.length > 0 && (
         <div className="home-agenda">
           <div className="home-agenda-head">
-            <span>Later today</span>
+            <span>{tr("Later today", "Pozneje danes")}</span>
             <span>{view.clock.length}</span>
           </div>
           {(agendaOpen ? view.clock : view.clock.slice(0, AGENDA_ROWS)).map((c) => {
@@ -301,7 +319,7 @@ export default function Home() {
             const now = Date.now();
             const state = start > now ? "ahead" : end > now ? "on" : "late";
             const title = c.kind === "event" ? c.event.title : c.task.content;
-            const rel = state === "ahead" ? untilText(c.at) : state === "on" ? "now" : "late";
+            const rel = state === "ahead" ? untilText(c.at) : state === "on" ? tr("now", "zdaj") : tr("late", "zamuja");
             const body = (
               <>
                 <span className="home-agenda-time">
@@ -330,7 +348,7 @@ export default function Home() {
           })}
           {view.clock.length > AGENDA_ROWS && (
             <button type="button" className="home-agenda-more" onClick={() => setAgendaOpen((o) => !o)}>
-              {agendaOpen ? "Show less" : `+ ${view.clock.length - AGENDA_ROWS} more`}
+              {agendaOpen ? tr("Show less", "Pokaži manj") : tr(`+ ${view.clock.length - AGENDA_ROWS} more`, `+ še ${view.clock.length - AGENDA_ROWS}`)}
             </button>
           )}
         </div>
@@ -339,7 +357,7 @@ export default function Home() {
       {view.anytime.length > 0 && (
         <div className="home-group">
           <div className="home-label">
-            <span>Also today</span>
+            <span>{tr("Also today", "Tudi danes")}</span>
             <span>{view.anytime.length}</span>
           </div>
           {view.anytime.map((t) => (
@@ -361,26 +379,26 @@ export default function Home() {
       dayBlocks.push({ kind: "day", day });
     }
   }
-  const dayName = (d: string) => format(parseISO(d), "EEE d").toUpperCase();
+  const dayName = (d: string) => format(parseISO(d), tr("EEE d", "EEE d.")).toUpperCase();
 
   const nextPane = (
     <section className="home-next">
       <div className="home-label">
-        <span>Next · this week</span>
+        <span>{tr("Next · this week", "Naslednje · ta teden")}</span>
         <span>{nextCount}</span>
       </div>
       {dayBlocks.map((b) =>
         b.kind === "empty" ? (
           <div key={b.from} className="home-day-empty">
             <span className="home-mono">{b.from === b.to ? dayName(b.from) : `${dayName(b.from)} – ${dayName(b.to)}`}</span>
-            <span>Nothing planned</span>
+            <span>{tr("Nothing planned", "Nič načrtovanega")}</span>
           </div>
         ) : (
           <div key={b.day.date} className="home-day-block">
-            <div className="home-day-label home-mono">{format(parseISO(b.day.date), "EEE d").toUpperCase()}</div>
+            <div className="home-day-label home-mono">{dayName(b.day.date)}</div>
             {b.day.events.map((e) => (
               <div key={e.id} className="home-event compact" style={{ ["--event-color" as string]: e.color }}>
-                <span className="home-mono">{e.allDay || !e.start ? "all day" : timeOf(e.start)}</span>
+                <span className="home-mono">{e.allDay || !e.start ? tr("all day", "ves dan") : timeOf(e.start)}</span>
                 <span className="home-event-title">{e.title}</span>
               </div>
             ))}
@@ -396,17 +414,17 @@ export default function Home() {
   const laterPane = (
     <section className="home-later">
       <div className="home-label">
-        <span>Later</span>
+        <span>{tr("Later", "Pozneje")}</span>
         <span>{view.later.length}</span>
       </div>
       {view.later.length === 0 ? (
         <div className="home-day-empty">
-          <span>Nothing scheduled beyond this week.</span>
+          <span>{tr("Nothing scheduled beyond this week.", "Po tem tednu ni nič načrtovano.")}</span>
         </div>
       ) : (
         view.later.map((t, i) => {
-          const month = format(parseISO(t.due!.date), "MMMM yyyy");
-          const showMonth = i === 0 || format(parseISO(view.later[i - 1].due!.date), "MMMM yyyy") !== month;
+          const month = format(parseISO(t.due!.date), "LLLL yyyy");
+          const showMonth = i === 0 || format(parseISO(view.later[i - 1].due!.date), "LLLL yyyy") !== month;
           return (
             <div key={t.id}>
               {showMonth && <div className="home-day-label home-mono">{month.toUpperCase()}</div>}
@@ -428,12 +446,12 @@ export default function Home() {
         </div>
       </div>
 
-      <nav className="home-segments" aria-label="Horizon">
+      <nav className="home-segments" aria-label={tr("Horizon", "Obzorje")}>
         {(
           [
-            ["now", "Now", view.nowTasks.length],
-            ["next", "Next", nextCount],
-            ["later", "Later", view.later.length],
+            ["now", tr("Now", "Zdaj"), view.nowTasks.length],
+            ["next", tr("Next", "Naslednje"), nextCount],
+            ["later", tr("Later", "Pozneje"), view.later.length],
           ] as const
         ).map(([id, label, n]) => (
           <button key={id} className={pane === id ? "is-active" : ""} onClick={() => setPane(id)}>

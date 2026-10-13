@@ -1,3 +1,4 @@
+import { tr, localeTag } from "../i18n";
 import { useEffect, useState } from "react";
 import {
   useBootstrap,
@@ -51,9 +52,9 @@ export default function CalendarFeedsModal({ onClose, embedded = false }: { onCl
     setSyncingId(id);
     try {
       await syncFeed.mutateAsync(id);
-      showToast({ message: "Calendar synced" });
+      showToast({ message: tr("Calendar synced", "Koledar usklajen") });
     } catch (err) {
-      showToast({ message: err instanceof Error ? err.message : "Sync failed" });
+      showToast({ message: err instanceof Error ? err.message : tr("Sync failed", "Usklajevanje ni uspelo") });
     } finally {
       setSyncingId(null);
     }
@@ -62,19 +63,22 @@ export default function CalendarFeedsModal({ onClose, embedded = false }: { onCl
   return (
     // Embedded: shown inside Settings, without its own dialog frame, title or close button.
     <Frame embedded={embedded} onClose={onClose}>
-        {!embedded && <h3>Calendars</h3>}
+        {!embedded && <h3>{tr("Calendars", "Koledarji")}</h3>}
         <p className="import-help">
-          Subscribe to a read-only .ics feed (a TV listing calendar, a Gmail holiday or birthday
-          calendar's "Secret address in iCal format", ...). These show up as events alongside your
-          tasks in Today, Upcoming and Calendar view -- they're never turned into tasks, and there's
-          nothing here to check off.{" "}
+          {tr(
+            'Subscribe to a read-only .ics feed (a TV listing calendar, a Gmail holiday or birthday calendar\'s "Secret address in iCal format", ...). These show up as events alongside your tasks in Today, Upcoming and Calendar view: they\'re never turned into tasks, and there\'s nothing here to check off.',
+            "Naroči se na koledar .ics samo za branje (TV spored, Gmailov koledar praznikov ali rojstnih dni z »Skrivnim naslovom v obliki iCal« ...). Prikažejo se kot dogodki ob tvojih nalogah v Danes, Prihajajoče in Koledarju: nikoli ne postanejo naloge in tu ni ničesar za odkljukati."
+          )}{" "}
           {isNativeApp ? (
-            <>The app fetches feeds directly from their source.</>
+            <>{tr("The app fetches feeds directly from their source.", "Aplikacija koledarje prenaša neposredno z vira.")}</>
           ) : (
             <>
-              Browsers can't fetch most feeds directly, so the website fetches them through{" "}
-              <strong>{CORS_PROXY_NAME}</strong>, with free public relays only as a backup if it's ever
-              unreachable. The Android app fetches directly.
+              {tr("Browsers can't fetch most feeds directly, so the website fetches them through", "Brskalniki večine koledarjev ne morejo prenesti neposredno, zato jih spletna stran prenaša prek")}{" "}
+              <strong>{CORS_PROXY_NAME}</strong>
+              {tr(
+                ", with free public relays only as a backup if it's ever unreachable. The Android app fetches directly.",
+                ", javni posredniki so le rezerva, če ta ni dosegljiv. Aplikacija za Android jih prenaša neposredno."
+              )}
             </>
           )}
         </p>
@@ -96,11 +100,11 @@ export default function CalendarFeedsModal({ onClose, embedded = false }: { onCl
         )}
 
         <div className="import-help" style={{ fontWeight: 700, color: "var(--color-text)", marginBottom: 8 }}>
-          Add a calendar
+          {tr("Add a calendar", "Dodaj koledar")}
         </div>
         <input
           type="text"
-          placeholder="Name, e.g. TV Shows"
+          placeholder={tr("Name, e.g. TV Shows", "Ime, npr. TV oddaje")}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
@@ -125,11 +129,11 @@ export default function CalendarFeedsModal({ onClose, embedded = false }: { onCl
         <div className="modal-actions">
           {!embedded && (
             <button className="btn btn-text" onClick={onClose}>
-              Close
+              {tr("Close", "Zapri")}
             </button>
           )}
           <button className="btn btn-primary" onClick={addFeed} disabled={!name.trim() || !url.trim()}>
-            Add calendar
+            {tr("Add calendar", "Dodaj koledar")}
           </button>
         </div>
     </Frame>
@@ -191,7 +195,7 @@ function CalendarFeedRow({
           <div
             onClick={() => setRenaming(true)}
             style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", cursor: "text" }}
-            title="Click to rename"
+            title={tr("Click to rename", "Klikni za preimenovanje")}
           >
             {feed.name}
           </div>
@@ -200,8 +204,8 @@ function CalendarFeedRow({
           {feed.lastError
             ? feed.lastError
             : feed.lastSyncedAt
-              ? `Synced ${new Date(feed.lastSyncedAt).toLocaleString()}`
-              : "Not synced yet"}
+              ? tr("Synced ", "Usklajeno ") + new Date(feed.lastSyncedAt).toLocaleString(localeTag)
+              : tr("Not synced yet", "Še ni usklajeno")}
         </div>
       </div>
       <button
@@ -209,8 +213,8 @@ function CalendarFeedRow({
         style={{ opacity: 1 }}
         onClick={onRefresh}
         disabled={syncing}
-        aria-label="Refresh"
-        title="Refresh now"
+        aria-label={tr("Refresh", "Osveži")}
+        title={tr("Refresh now", "Osveži zdaj")}
       >
         <RefreshIcon width={14} height={14} style={syncing ? { animation: "spin 1s linear infinite" } : undefined} />
       </button>
@@ -219,8 +223,8 @@ function CalendarFeedRow({
         className="row-menu-trigger"
         style={{ opacity: 1, color: "var(--color-danger)" }}
         onClick={onDelete}
-        aria-label="Remove calendar"
-        title="Remove"
+        aria-label={tr("Remove calendar", "Odstrani koledar")}
+        title={tr("Remove", "Odstrani")}
       >
         <TrashIcon width={14} height={14} />
       </button>

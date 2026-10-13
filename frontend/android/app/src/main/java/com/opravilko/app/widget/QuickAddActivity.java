@@ -171,7 +171,7 @@ public class QuickAddActivity extends AppCompatActivity {
     private void setUp(Intent intent) {
         JSONObject data = store.getSnapshot();
         if (data == null || !store.hasAuth()) {
-            Toast.makeText(this, R.string.widget_empty_signed_out, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, L.res(this, R.string.widget_empty_signed_out), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -190,7 +190,7 @@ public class QuickAddActivity extends AppCompatActivity {
         if (askedDay != null && askedDay.matches("\\d{4}-\\d{2}-\\d{2}")) day = askedDay;
         resetExtras();
         text.setText("");
-        text.setHint(shopping ? R.string.qa_shop_hint : R.string.qa_task_hint);
+        text.setHint(L.res(this, shopping ? R.string.qa_shop_hint : R.string.qa_task_hint));
         // Shopping items stay exactly as typed: no capital letter from the keyboard.
         text.setInputType(shopping ? android.text.InputType.TYPE_CLASS_TEXT
                 : android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
@@ -264,7 +264,7 @@ public class QuickAddActivity extends AppCompatActivity {
     private void updateSendButton() {
         boolean empty = text.getText().toString().trim().isEmpty();
         send.setImageResource(empty ? R.drawable.ic_qa_mic : R.drawable.ic_qa_send);
-        send.setContentDescription(getString(empty ? R.string.widget_add_by_voice : R.string.widget_add_task));
+        send.setContentDescription(L.res(this, empty ? R.string.widget_add_by_voice : R.string.widget_add_task));
     }
 
     // ---- chips ----
@@ -275,11 +275,11 @@ public class QuickAddActivity extends AppCompatActivity {
         JSONObject data = store.getSnapshot();
         if (shopping) {
             // Left: the shop what's added now is for.
-            setWhere("\uD83C\uDFEA " + (shopStore != null ? shopStore : "Any shop"), null,
+            setWhere("\uD83C\uDFEA " + (shopStore != null ? shopStore : L.t("Any shop", "Katerakoli trgovina")), null,
                     shopStore != null ? R.color.widget_accent : R.color.widget_text_secondary);
             where.setOnClickListener(v -> pickStore());
             // A meal: its ingredients, for so many servings, like the app's Meal button.
-            TextView meal = toolText("\uD83C\uDF73 Meal");
+            TextView meal = toolText("\uD83C\uDF73 " + L.t("Meal", "Obrok"));
             meal.setOnClickListener(v -> pickMeal());
             tools.addView(meal);
             // Your usual items, one tap each.
@@ -483,7 +483,7 @@ public class QuickAddActivity extends AppCompatActivity {
             x.setTextColor(color);
             x.setAlpha(0.6f);
             x.setPadding(dp(5), 0, dp(9), 0);
-            x.setContentDescription("Clear " + label);
+            x.setContentDescription(L.t("Clear ", "Odstrani ") + label);
             x.setOnClickListener(v -> {
                 clear.run();
                 buildChips();
@@ -529,9 +529,9 @@ public class QuickAddActivity extends AppCompatActivity {
         popup.setElevation(dp(10));
         popup.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         Object[][] rows = {
-                { "Description", R.drawable.ic_qa_notes, (Runnable) this::showDescription },
-                { "Labels", R.drawable.ic_qa_label, (Runnable) this::pickLabels },
-                { "Location", R.drawable.ic_qa_pin, (Runnable) this::pickLocation },
+                { L.t("Description", "Opis"), R.drawable.ic_qa_notes, (Runnable) this::showDescription },
+                { L.t("Labels", "Oznake"), R.drawable.ic_qa_label, (Runnable) this::pickLabels },
+                { L.t("Location", "Lokacija"), R.drawable.ic_qa_pin, (Runnable) this::pickLocation },
         };
         for (Object[] r : rows) {
             TextView row = new TextView(this);
@@ -570,7 +570,7 @@ public class QuickAddActivity extends AppCompatActivity {
         List<JSONObject> list = new ArrayList<>();
         if (all != null) for (int i = 0; i < all.length(); i++) if (all.optJSONObject(i) != null) list.add(all.optJSONObject(i));
         if (list.isEmpty()) {
-            Toast.makeText(this, "No labels yet: make them in the app.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("No labels yet: make them in the app.", "Še ni oznak: naredi jih v aplikaciji."), Toast.LENGTH_SHORT).show();
             return;
         }
         list.sort((a, b) -> Double.compare(a.optDouble("order", 0), b.optDouble("order", 0)));
@@ -581,14 +581,14 @@ public class QuickAddActivity extends AppCompatActivity {
             checked[i] = labels.contains(names[i]);
         }
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Labels")
+                .setTitle(L.t("Labels", "Oznake"))
                 .setMultiChoiceItems(names, checked, (d, which, on) -> checked[which] = on)
-                .setPositiveButton("Done", (d, w) -> {
+                .setPositiveButton(L.t("Done", "Končano"), (d, w) -> {
                     labels.clear();
                     for (int i = 0; i < names.length; i++) if (checked[i]) labels.add(names[i]);
                     buildChips();
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(L.t("Cancel", "Prekliči"), null)
                 .show();
     }
 
@@ -606,11 +606,11 @@ public class QuickAddActivity extends AppCompatActivity {
             }
         }
         List<String> labelsList = new ArrayList<>();
-        labelsList.add("\uD83D\uDCCD Current location");
+        labelsList.add("\uD83D\uDCCD " + L.t("Current location", "Trenutna lokacija"));
         for (JSONObject p : places) labelsList.add(p.optString("name"));
-        if (location != null) labelsList.add("No location");
+        if (location != null) labelsList.add(L.t("No location", "Brez lokacije"));
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Location")
+                .setTitle(L.t("Location", "Lokacija"))
                 .setItems(labelsList.toArray(new String[0]), (d, which) -> {
                     if (which == 0) {
                         currentLocation();
@@ -639,19 +639,19 @@ public class QuickAddActivity extends AppCompatActivity {
                     android.Manifest.permission.ACCESS_COARSE_LOCATION }, REQUEST_LOCATION);
             return;
         }
-        Toast.makeText(this, "Finding where you are\u2026", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, L.t("Finding where you are\u2026", "Iščem, kje si \u2026"), Toast.LENGTH_SHORT).show();
         try {
             com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(this)
                     .getCurrentLocation(com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
                     .addOnSuccessListener(loc -> {
                         if (loc == null) {
-                            Toast.makeText(this, "Couldn't find your location.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, L.t("Couldn't find your location.", "Lokacije ni bilo mogoče najti."), Toast.LENGTH_SHORT).show();
                             return;
                         }
                         nameLocation(loc.getLatitude(), loc.getLongitude());
                     });
         } catch (SecurityException e) {
-            Toast.makeText(this, "Location access is off.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Location access is off.", "Dostop do lokacije je izklopljen."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -695,14 +695,14 @@ public class QuickAddActivity extends AppCompatActivity {
                 return;
             }
         }
-        Toast.makeText(this, "Location access is needed for that.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, L.t("Location access is needed for that.", "Za to je potreben dostop do lokacije."), Toast.LENGTH_SHORT).show();
     }
 
     // ---- priority and attachment ----
 
     private void pickPriority(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
-        String[] names = { "Priority 1", "Priority 2", "Priority 3", "No priority" };
+        String[] names = { L.t("Priority 1", "Prednost 1"), L.t("Priority 2", "Prednost 2"), L.t("Priority 3", "Prednost 3"), L.t("No priority", "Brez prednosti") };
         int[] colors = { R.color.widget_due_overdue, R.color.widget_due_tomorrow, R.color.widget_accent, R.color.widget_text_secondary };
         for (int i = 0; i < 4; i++) {
             android.text.SpannableString s = new android.text.SpannableString("\u2691  " + names[i]);
@@ -725,7 +725,7 @@ public class QuickAddActivity extends AppCompatActivity {
         try {
             startActivityForResult(intent, REQUEST_FILE);
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "No file picker on this phone.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("No file picker on this phone.", "Ta telefon nima izbirnika datotek."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -766,7 +766,7 @@ public class QuickAddActivity extends AppCompatActivity {
                     buildChips();
                 });
             } catch (java.io.IOException | SecurityException e) {
-                runOnUiThread(() -> Toast.makeText(this, "Couldn't attach that file (up to 10 MB).", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(this, L.t("Couldn't attach that file (up to 10 MB).", "Datoteke ni bilo mogoče pripeti (do 10 MB)."), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
@@ -838,7 +838,7 @@ public class QuickAddActivity extends AppCompatActivity {
                 out.add(new String[] { pid, s.optString("id"), name + " / " + s.optString("name"), s.optString("name") });
             }
         }
-        if (out.isEmpty()) out.add(new String[] { "inbox", null, "Inbox", "Inbox" });
+        if (out.isEmpty()) out.add(new String[] { "inbox", null, L.t("Inbox", "Prejeto"), L.t("Inbox", "Prejeto") });
         return out;
     }
 
@@ -937,7 +937,7 @@ public class QuickAddActivity extends AppCompatActivity {
                 TaskLogic.addDaysStr(today, toMonday == 0 ? 7 : toMonday),
                 null,
         };
-        String[] labels = { "Today", "Tomorrow", "This weekend", "Next week", "No date" };
+        String[] labels = { L.t("Today", "Danes"), L.t("Tomorrow", "Jutri"), L.t("This weekend", "Ta vikend"), L.t("Next week", "Naslednji teden"), L.t("No date", "Brez datuma") };
         PopupMenu menu = new PopupMenu(this, anchor);
         for (int i = 0; i < labels.length; i++) menu.getMenu().add(0, i, i, labels[i]);
         menu.setOnMenuItemClickListener(item -> {
@@ -949,7 +949,7 @@ public class QuickAddActivity extends AppCompatActivity {
     }
 
     private String dayLabel(String d) {
-        if (d == null) return "Date";
+        if (d == null) return L.t("Date", "Datum");
         TaskLogic.Row row = rowFor(d);
         return TaskLogic.dueLabel(row);
     }
@@ -1007,14 +1007,14 @@ public class QuickAddActivity extends AppCompatActivity {
     private void pickStore() {
         List<String> stores = ShoppingLogic.stores(store.getSnapshot(), projectId);
         String[] names = new String[stores.size() + 1];
-        names[0] = "Any shop";
+        names[0] = L.t("Any shop", "Katerakoli trgovina");
         int checked = 0;
         for (int i = 0; i < stores.size(); i++) {
             names[i + 1] = stores.get(i);
             if (stores.get(i).equals(shopStore)) checked = i + 1;
         }
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Buy in")
+                .setTitle(L.t("Buy in", "Kupi v"))
                 .setSingleChoiceItems(names, checked, (d, which) -> {
                     shopStore = which == 0 ? null : stores.get(which - 1);
                     d.dismiss();
@@ -1028,7 +1028,7 @@ public class QuickAddActivity extends AppCompatActivity {
     private void pickMeal() {
         List<JSONObject> meals = ShoppingLogic.meals(store.getSnapshot(), projectId);
         if (meals.isEmpty()) {
-            Toast.makeText(this, "Open the app once to load the meals.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Open the app once to load the meals.", "Enkrat odpri aplikacijo, da se naložijo obroki."), Toast.LENGTH_SHORT).show();
             return;
         }
         String[] names = new String[meals.size()];
@@ -1037,9 +1037,9 @@ public class QuickAddActivity extends AppCompatActivity {
             names[i] = m.optString("emoji", "\uD83C\uDF7D") + "  " + m.optString("name");
         }
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Add a meal")
+                .setTitle(L.t("Add a meal", "Dodaj obrok"))
                 .setItems(names, (d, which) -> pickServings(meals.get(which)))
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(L.t("Cancel", "Prekliči"), null)
                 .show();
     }
 
@@ -1063,7 +1063,7 @@ public class QuickAddActivity extends AppCompatActivity {
         body.addView(stepper);
 
         TextView hint = new TextView(this);
-        hint.setText("Untick what you already have at home.");
+        hint.setText(L.t("Untick what you already have at home.", "Odkljukaj, kar že imaš doma."));
         hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         hint.setTextColor(getColor(R.color.widget_text_secondary));
         hint.setPadding(0, dp(10), 0, dp(2));
@@ -1080,7 +1080,7 @@ public class QuickAddActivity extends AppCompatActivity {
         final boolean[] skip = new boolean[ings != null ? ings.length() : 0];
 
         Runnable refresh = () -> {
-            count.setText(servings[0] + (servings[0] == 1 ? " serving" : " servings"));
+            count.setText(servings[0] + (L.sl() ? (servings[0] == 1 ? " porcija" : servings[0] == 2 ? " porciji" : servings[0] <= 4 ? " porcije" : " porcij") : (servings[0] == 1 ? " serving" : " servings")));
             list.removeAllViews();
             List<ShoppingLogic.Item> items = ingredients(meal, servings[0]);
             for (int i = 0; i < items.size() && i < skip.length; i++) {
@@ -1108,8 +1108,8 @@ public class QuickAddActivity extends AppCompatActivity {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(meal.optString("emoji", "") + "  " + meal.optString("name"))
                 .setView(body)
-                .setPositiveButton("Add to list", (d, w) -> addMeal(meal, servings[0], skip))
-                .setNegativeButton("Back", (d, w) -> pickMeal())
+                .setPositiveButton(L.t("Add to list", "Dodaj na seznam"), (d, w) -> addMeal(meal, servings[0], skip))
+                .setNegativeButton(L.t("Back", "Nazaj"), (d, w) -> pickMeal())
                 .show();
     }
 
@@ -1146,9 +1146,9 @@ public class QuickAddActivity extends AppCompatActivity {
                         .put("newId", id).put("at", at).putOpt("store", own.isEmpty() ? shopStore : own));
                 added++;
             }
-            confirm("\u2713 " + name + " (" + servings + "): " + added + " ingredients");
+            confirm("\u2713 " + name + " (" + servings + "): " + added + L.t(" ingredients", " sestavin"));
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't add that meal.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't add that meal.", "Obroka ni bilo mogoče dodati."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1198,7 +1198,7 @@ public class QuickAddActivity extends AppCompatActivity {
             String where = targetLabel(data);
             confirm("✓ " + parsed.content + " → " + where);
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't add that task.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't add that task.", "Naloge ni bilo mogoče dodati."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1221,7 +1221,7 @@ public class QuickAddActivity extends AppCompatActivity {
             }
             confirm("✓ " + android.text.TextUtils.join(", ", names));
         } catch (JSONException e) {
-            Toast.makeText(this, "Couldn't add that.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("Couldn't add that.", "Tega ni bilo mogoče dodati."), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1246,11 +1246,11 @@ public class QuickAddActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "sl-SI");
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "sl-SI");
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, shopping ? "Kaj dodam na seznam?" : "Kaj je treba narediti?");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, shopping ? L.t("What should I add to the list?", "Kaj dodam na seznam?") : L.t("What needs doing?", "Kaj je treba narediti?"));
         try {
             startActivityForResult(intent, REQUEST_VOICE);
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "This phone has no voice input.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, L.t("This phone has no voice input.", "Ta telefon nima glasovnega vnosa."), Toast.LENGTH_SHORT).show();
         }
     }
 

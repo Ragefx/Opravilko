@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { useBootstrap, useCreateTask } from "../api/hooks";
 import { parseQuickAddInput } from "../utils/quickAddParse";
@@ -104,7 +105,7 @@ export default function QuickAdd({
           setOpen(true);
         }}
       >
-        <span className="plus">+</span> Add task
+        <span className="plus">+</span> {tr("Add task", "Dodaj nalogo")}
       </button>
     );
   }
@@ -114,7 +115,7 @@ export default function QuickAdd({
       <div className="quick-add-input-row">
         <input
           autoFocus
-          placeholder="e.g. Draft proposal every monday p1 @work"
+          placeholder={tr("e.g. Draft proposal every monday p1 @work", "npr. Pripravi ponudbo vsak ponedeljek p1 @služba")}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
@@ -130,7 +131,7 @@ export default function QuickAdd({
       {preview && (previewDue || preview.deadline || preview.labels.length > 0 || preview.priority !== 1) && (
         <div className="quick-add-preview">
           {preview.deadline && (
-            <span className="chip" title="Deadline">
+            <span className="chip" title={tr("Deadline", "Rok")}>
               ⏳ {deadlineInfo(preview.deadline)?.label}
             </span>
           )}
@@ -166,10 +167,10 @@ export default function QuickAdd({
             setText("");
           }}
         >
-          Cancel
+          {tr("Cancel", "Prekliči")}
         </button>
         <button className="btn btn-primary" onClick={submit} disabled={!preview?.content}>
-          Add task
+          {tr("Add task", "Dodaj nalogo")}
         </button>
       </div>
     </div>

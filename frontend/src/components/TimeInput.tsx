@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import Select from "./Select";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
@@ -13,7 +14,7 @@ export default function TimeInput({
   onChange,
   optional = false,
   idPrefix,
-  label = "Time",
+  label = tr("Time", "Ura"),
 }: {
   value: string;
   onChange: (next: string) => void;
@@ -29,8 +30,8 @@ export default function TimeInput({
       <Select
         id={idPrefix ? `${idPrefix}-h` : undefined}
         value={h}
-        aria-label={`${label}: hour`}
-        sheetTitle="Hour"
+        aria-label={tr(`${label}: hour`, `${label}: ura`)}
+        sheetTitle={tr("Hour", "Ura")}
         onChange={(e) => {
           const hour = e.target.value;
           onChange(hour ? `${hour}:${m || "00"}` : "");
@@ -48,8 +49,8 @@ export default function TimeInput({
         id={idPrefix ? `${idPrefix}-m` : undefined}
         value={m}
         disabled={!h}
-        aria-label={`${label}: minute`}
-        sheetTitle="Minute"
+        aria-label={tr(`${label}: minute`, `${label}: minuta`)}
+        sheetTitle={tr("Minute", "Minuta")}
         onChange={(e) => onChange(`${h || "00"}:${e.target.value}`)}
       >
         {!h && <option value="">--</option>}

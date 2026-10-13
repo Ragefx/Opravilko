@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { useEffect, useState } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import { shoppingListOf } from "../utils/shopping";
@@ -84,7 +85,7 @@ export default function ProjectView() {
     if (wanted && data.tasks.some((t) => t.id === wanted)) {
       return <Navigate to={`/app/midva?open=${encodeURIComponent(wanted)}`} replace />;
     }
-    return <div className="empty-state">Project not found.</div>;
+    return <div className="empty-state">{tr("Project not found.", "Projekta ni.")}</div>;
   }
   if (shoppingListOf(data.projects)?.id === project.id) {
     // An item opened from elsewhere (the widget) opens on the list's own page.
@@ -137,7 +138,7 @@ export default function ProjectView() {
       {/* On its own line, so the buttons stay top right next to the name. */}
       {project.trip && (
         <div className="project-trip-line">
-          <button className="project-trip-chip" onClick={() => setTripOpen(true)} title="Trip dates">
+          <button className="project-trip-chip" onClick={() => setTripOpen(true)} title={tr("Trip dates", "Datumi potovanja")}>
             {tripIcon(project.trip)} {awayRange(project.trip)}
             {tripWhen(project.trip, todayISO()) && <b>{tripWhen(project.trip, todayISO())}</b>}
           </button>
@@ -197,7 +198,7 @@ export default function ProjectView() {
 
   const sectionNameById = new Map(sections.map((s) => [s.id, s.name]));
   const groupLabel = groupBySection
-    ? (t: (typeof sorted)[number]) => (t.sectionId ? sectionNameById.get(t.sectionId) ?? "Other" : "No section")
+    ? (t: (typeof sorted)[number]) => (t.sectionId ? sectionNameById.get(t.sectionId) ?? tr("Other", "Drugo") : tr("No section", "Brez razdelka"))
     : display.grouping !== "none"
       ? (t: (typeof sorted)[number]) => groupKeyFor(t, display.grouping)
       : undefined;

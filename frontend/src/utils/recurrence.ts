@@ -1,4 +1,5 @@
-import { addDays, addMonths, addYears, endOfMonth, format, getDay, getDaysInMonth, parseISO, startOfDay } from "date-fns";
+import { addDays, addMonths, addYears, endOfMonth, getDay, getDaysInMonth, parseISO, startOfDay } from "date-fns";
+import { format, tr, isSl } from "../i18n";
 import type { Due } from "../api/types";
 import { WEEKDAY_PATTERN } from "./date";
 
@@ -31,41 +32,49 @@ export function parseRecurrenceString(str: string | undefined): RecurrenceRule |
 }
 
 function ordinal(n: number): string {
+  if (isSl) return `${n}.`;
   const s = n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th";
   return `${n}${s}`;
 }
+
+/** "vsak ponedeljek", "vsako sredo": Slovenian's accusative for each weekday (0 = Sunday). */
+const SL_EVERY_DAY = ["vsako nedeljo", "vsak ponedeljek", "vsak torek", "vsako sredo", "vsak četrtek", "vsak petek", "vsako soboto"];
 
 export function describeRecurrence(rule: RecurrenceRule | null): string {
   if (!rule) return "";
   if (rule.afterDone) {
     // Pinned days don't apply when counting from the day it's done.
     const base = describeRecurrence({ freq: rule.freq, interval: rule.interval });
-    return base ? `${base} after done` : "";
+    return base ? tr(`${base} after done`, `${base} po opravljeni`) : "";
   }
   const n = Math.max(1, rule.interval || 1);
   switch (rule.freq) {
     case "daily":
-      return "Every day";
+      return tr("Every day", "Vsak dan");
     case "weekdays":
-      return "Every weekday";
+      return tr("Every weekday", "Vsak delavnik");
     case "weekly": {
-      const every = n === 1 ? "Every week" : `Every ${n} weeks`;
+      const every = n === 1 ? tr("Every week", "Vsak teden") : tr(`Every ${n} weeks`, `Vsakih ${n} tednov`);
       if (rule.byDay && rule.byDay.length === 1) {
         const day = format(new Date(2026, 0, 4 + rule.byDay[0]), "EEEE");
+        if (isSl) {
+          const each = SL_EVERY_DAY[rule.byDay[0]] ?? day;
+          return n === 1 ? each.charAt(0).toUpperCase() + each.slice(1) : `${every}, ${day}`;
+        }
         return n === 1 ? `Every ${day}` : `${every} on ${day}`;
       }
       return every;
     }
     case "monthly": {
-      const every = n === 1 ? "Every month" : `Every ${n} months`;
-      if (rule.byMonthDay === -1) return `${every} on the last day`;
-      if (rule.byMonthDay) return `${every} on the ${ordinal(rule.byMonthDay)}`;
+      const every = n === 1 ? tr("Every month", "Vsak mesec") : tr(`Every ${n} months`, `Vsakih ${n} mesecev`);
+      if (rule.byMonthDay === -1) return tr(`${every} on the last day`, `${every}, zadnji dan`);
+      if (rule.byMonthDay) return tr(`${every} on the ${ordinal(rule.byMonthDay)}`, `${every}, ${ordinal(rule.byMonthDay)}`);
       return every;
     }
     case "yearly":
-      return n === 1 ? "Every year" : `Every ${n} years`;
+      return n === 1 ? tr("Every year", "Vsako leto") : tr(`Every ${n} years`, `Vsakih ${n} let`);
     case "every_n_days":
-      return `Every ${n} days`;
+      return tr(`Every ${n} days`, `Vsakih ${n} dni`);
     default:
       return "";
   }
@@ -144,13 +153,13 @@ export function initialDueForRecurrence(rule: RecurrenceRule): string {
  * moves the date to the end of its month.
  */
 export const REPEAT_PRESETS = [
-  { key: "daily", label: "Every day" },
-  { key: "weekdays", label: "Every weekday" },
-  { key: "weekly", label: "Every week" },
-  { key: "biweekly", label: "Every 2 weeks" },
-  { key: "monthly", label: "Every month" },
-  { key: "monthly_last", label: "Every month, last day" },
-  { key: "yearly", label: "Every year" },
+  { key: "daily", label: tr("Every day", "Vsak dan") },
+  { key: "weekdays", label: tr("Every weekday", "Vsak delavnik") },
+  { key: "weekly", label: tr("Every week", "Vsak teden") },
+  { key: "biweekly", label: tr("Every 2 weeks", "Vsaka 2 tedna") },
+  { key: "monthly", label: tr("Every month", "Vsak mesec") },
+  { key: "monthly_last", label: tr("Every month, last day", "Vsak mesec, zadnji dan") },
+  { key: "yearly", label: tr("Every year", "Vsako leto") },
 ] as const;
 export type RepeatPreset = (typeof REPEAT_PRESETS)[number]["key"];
 

@@ -1,4 +1,5 @@
-import { addMinutes, endOfDay, format, parseISO } from "date-fns";
+import { addMinutes, endOfDay, parseISO } from "date-fns";
+import { format, tr } from "../i18n";
 import { dueDateClass, formatDueLabel } from "./date";
 import type { Task } from "../api/types";
 
@@ -57,7 +58,7 @@ export function eventOver(t: Task, now = new Date()): boolean {
 
 /** "19:30–23:00", "19:30", or "All day". */
 export function eventTimeLabel(t: Task): string {
-  if (!t.due?.datetime) return "All day";
+  if (!t.due?.datetime) return tr("All day", "Ves dan");
   const start = format(new Date(t.due.datetime), "HH:mm");
   return t.endTime ? `${start}–${t.endTime}` : start;
 }
@@ -66,6 +67,12 @@ export function eventTimeLabel(t: Task): string {
 export function taskDueLabel(t: Task): string {
   const label = formatDueLabel(t.due);
   return isEvent(t) && t.due?.datetime && t.endTime ? `${label}–${t.endTime}` : label;
+}
+
+/** Just the time ("15:00", or "15:00–16:30" for an event), for a list already under that day. */
+export function taskTimeLabel(t: Task): string {
+  const time = t.due?.datetime ? format(new Date(t.due.datetime), "HH:mm") : "";
+  return isEvent(t) && time && t.endTime ? `${time}–${t.endTime}` : time;
 }
 
 /** The date's colour class: an event is never late, just violet. */

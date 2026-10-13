@@ -21,6 +21,7 @@
         android:paddingEnd="8dp">
 
         <TextView
+            android:fontFamily="@font/google_sans_medium"
             android:id="@+id/cal_month"
             android:layout_width="0dp"
             android:layout_height="match_parent"

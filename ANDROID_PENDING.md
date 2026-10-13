@@ -15,7 +15,7 @@ Build 60: Squares calendar option, smaller calendar text, Today/This week/This m
 
 ## In the code, not in the app yet
 
-- Calendar squares (app) and the widget month: Google Calendar's font (Google Sans). / Kvadratki koledarja (aplikacija) in mesec na pripomočku: pisava Google Koledarja (Google Sans).
+- Calendar (app, both styles) and the widget's calendar views: Google Calendar's font (Google Sans). / Koledar (aplikacija, oba sloga) in koledarski pogledi pripomočka: pisava Google Koledarja (Google Sans).
 
 ## Known gaps
 

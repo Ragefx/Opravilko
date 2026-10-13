@@ -6,8 +6,10 @@ import "@fontsource/schibsted-grotesk/400.css";
 import "@fontsource/schibsted-grotesk/500.css";
 import "@fontsource/schibsted-grotesk/600.css";
 import "@fontsource/schibsted-grotesk/700.css";
-// Google Calendar's font, for the calendar squares (as on the widget).
+// Google Calendar's font, for the phone calendar (as on the widget).
+import "@fontsource/google-sans/400.css";
 import "@fontsource/google-sans/500.css";
+import "@fontsource/google-sans/700.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/600.css";
 import "./styles/global.css";

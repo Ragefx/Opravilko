@@ -11,6 +11,7 @@
     android:orientation="vertical">
 
     <TextView
+        android:fontFamily="@font/google_sans_medium"
         android:id="@+id/ag_num"
         android:layout_width="22dp"
         android:layout_height="22dp"
@@ -19,6 +20,7 @@
         android:textSize="12sp" />
 
     <TextView
+        android:fontFamily="@font/google_sans_medium"
         android:id="@+id/ag_dots"
         android:layout_width="wrap_content"
         android:layout_height="6dp"

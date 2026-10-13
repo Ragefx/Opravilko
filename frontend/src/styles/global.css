@@ -8430,8 +8430,8 @@ button.sidebar-link {
   gap: 1px;
   min-width: 0;
 }
-/* The squares and their text in Google Calendar's font (Google Sans, medium). */
-.mcal-grid.is-squares {
+/* The phone's calendar in Google Calendar's font (Google Sans, medium), like the widget. */
+.mcal {
   font-family: "Google Sans", var(--font-sans, sans-serif);
 }
 .mcal-sq-chip {

@@ -7,20 +7,15 @@ the work branch). Changes are collected here and built together when asked.
 Before each build, copy this list into `frontend/src/data/releases.ts` as the
 new build's entry (newest first), so Settings > About in that build lists it.
 
-Last build: **build 59** (commit `3b9aadb`, Oct 8 2026), signed with the
-release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-59
+Last build: **build 60** (commit `457935c`, Oct 13 2026), signed with the
+release key; https://github.com/Ragefx/Opravilko/releases/tag/android-build-60
 (Run 50 was stopped before it finished, so there is no build 50.)
 
-Build 59: Shopping "On sale" card with this week's deals at Hofer, Lidl, Spar and Tuš.
+Build 60: Squares calendar option, smaller calendar text, Today/This week/This month names, widget follows Simple, back to this month, app-like task card, tap a day to add, plain holidays.
 
 ## In the code, not in the app yet
 
-- Shopping: no example text in the add box. / Nakupi: brez primera v polju za dodajanje.
-- Widget month: tap a day's empty space to add on that day (its number opens the app's calendar). / Pripomoček mesec: dotik praznega dela dneva doda nalogo na ta dan (številka odpre koledar v aplikaciji).
-- Widget month: holidays as plain text, red for days off, no red block. / Pripomoček mesec: prazniki kot navadno besedilo, prosti dnevi rdeče, brez rdečega ozadja.
-- Calendar: Dots or Squares (tasks written in day boxes, like the widget), in Settings > Appearance. / Koledar: pike ali kvadratki (naloge vpisane v dneve, kot na pripomočku), v Nastavitve > Videz.
-- Widget: a tapped task opens a card like the app's task window, over the home screen. / Pripomoček: dotik naloge odpre kartico kot okno naloge v aplikaciji, nad začetnim zaslonom.
-- Shopping: when shop deals can't be shown, a short line says why. / Nakupi: ko akcij ni mogoče prikazati, kratka vrstica pove zakaj.
+(nothing yet)
 
 ## Known gaps
 

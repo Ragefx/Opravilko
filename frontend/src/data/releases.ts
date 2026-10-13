@@ -13,6 +13,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 61,
+    date: "2026-10-13",
+    items: [
+      "Calendar (both styles) and the widget's calendar views in Google Calendar's font (Google Sans).",
+    ],
+    itemsSl: [
+      "Koledar (oba sloga) in koledarski pogledi pripomočka v pisavi Google Koledarja (Google Sans).",
+    ],
+  },
+  {
     build: 60,
     date: "2026-10-13",
     items: [

@@ -169,6 +169,9 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 
 ## Open items
 
+- **Next up (owner's plan):** fix the widget's add card for events: picking
+  the date and time (`widget/QuickAddActivity.java`). Ask for a screenshot of
+  what's wrong if it isn't clear.
 - **Vanished shared task.** The partner ticked off a task the owner shared and
   got "That change isn't allowed"; the task couldn't be found afterwards.
   Not reproduced. The error message now names the task and what was being

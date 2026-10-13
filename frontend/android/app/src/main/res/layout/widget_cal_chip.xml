@@ -14,4 +14,5 @@
     android:paddingEnd="1dp"
     android:paddingBottom="1dp"
     android:textColor="@color/widget_cal_task_text"
+    android:fontFamily="@font/google_sans_medium"
     android:textSize="8.5dp" />

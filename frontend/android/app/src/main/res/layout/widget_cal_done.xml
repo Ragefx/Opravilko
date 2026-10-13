@@ -12,4 +12,5 @@
     android:paddingEnd="1dp"
     android:paddingBottom="1dp"
     android:textColor="@color/widget_text_muted"
+    android:fontFamily="@font/google_sans_medium"
     android:textSize="8.5dp" />

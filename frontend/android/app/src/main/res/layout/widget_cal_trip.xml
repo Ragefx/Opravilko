@@ -12,5 +12,6 @@
     android:paddingTop="1dp"
     android:paddingBottom="1dp"
     android:textColor="@color/widget_cal_away_text"
+    android:fontFamily="@font/google_sans_medium"
     android:textSize="8dp"
     android:textStyle="bold" />

@@ -40,6 +40,7 @@ import SyncIndicator from "./SyncIndicator";
 import { ToastProvider } from "./ToastProvider";
 import { MenuIcon, PlusIcon, SearchIcon } from "./icons";
 import WeeklyReview, { OPEN_WEEKLY_REVIEW } from "./WeeklyReview";
+import { startRoute } from "../utils/startPage";
 
 /** True when focus is in a text field, where single-letter shortcuts must not fire. */
 function isTyping(target: EventTarget | null): boolean {
@@ -205,12 +206,14 @@ export default function Layout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Android's back button, with nothing open on top: to Now, or out of the app from there.
+  // Android's back button, with nothing open on top: to the start page (Now
+  // unless changed in Settings), or out of the app from there.
   useEffect(() => {
     const onBack = (e: Event) => {
-      if (/^\/app\/?(home)?$/.test(location.pathname)) return; // on Now: leave the app
+      const start = startRoute();
+      if (location.pathname === start || location.pathname === start + "/" || /^\/app\/?$/.test(location.pathname)) return; // leave the app
       (e as CustomEvent<{ handled: boolean }>).detail.handled = true;
-      navigate("/app/home", { replace: true });
+      navigate(start, { replace: true });
     };
     window.addEventListener(BACK_HOME, onBack);
     return () => window.removeEventListener(BACK_HOME, onBack);

@@ -110,11 +110,13 @@ export const TIMED_DEFAULT_OPTIONS: [string, string][] = [
   ["rel:15", tr("15 min before", "15 min prej")],
   ["rel:30", tr("30 min before", "30 min prej")],
   ["rel:60", tr("1 h before", "1 h prej")],
+  ["rel:1440", tr("1 day before", "1 dan prej")],
 ];
 
 export const ALLDAY_DEFAULT_OPTIONS: [string, string][] = [
   ["none", tr("None", "Brez")],
   ["day:0:09:00", tr("On the day at 9:00", "Na dan ob 9:00")],
+  ["day:1:09:00", tr("Day before at 9:00", "Dan prej ob 9:00")],
   ["day:1:18:00", tr("Day before at 18:00", "Dan prej ob 18:00")],
 ];
 

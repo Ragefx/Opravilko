@@ -25,6 +25,7 @@ import {
   isNativeApp,
 } from "./dropbox/auth";
 import { parseWidgetLink, requestQuickAdd, requestRoute } from "./native/widget";
+import { getStartPage } from "./utils/startPage";
 
 /**
  * Dropbox redirects back to the site root with ?code=... (or ?error=...) in the
@@ -158,8 +159,9 @@ function ReturnToApp({ url }: { url: string }) {
 }
 
 /** /app opens on the look's home: Now / Next / Later in Soča, Today in classic. */
+/** Opening the app: the start page picked in Settings (Now unless changed). */
 function HomeRedirect() {
-  return <Navigate to="home" replace />;
+  return <Navigate to={getStartPage()} replace />;
 }
 
 export default function App() {

@@ -13,6 +13,22 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 62,
+    date: "2026-10-13",
+    items: [
+      "Settings > Appearance > Opens on: the app opens on Now, Calendar, Shopping or Midva; the phone's back button returns there.",
+      "Default reminders: \"1 day before\" for tasks with a time, and \"Day before at 9:00\" for all-day tasks.",
+      "Widget add card: a typed time (\"13:00\") or day (\"jutri\") shows next to the date as soon as you type a space, and a time alone stays on the tapped day.",
+      "Calendar squares (widget and app): whole names cut at the edge, no \"…\".",
+    ],
+    itemsSl: [
+      "Nastavitve > Videz > Ob odprtju: aplikacija se odpre na Zdaj, Koledar, Nakupi ali Midva; tipka nazaj na telefonu se vrne tja.",
+      "Privzeti opomniki: »1 dan prej« za naloge z uro in »Dan prej ob 9:00« za celodnevne naloge.",
+      "Kartica za dodajanje na pripomočku: vpisan čas (»13:00«) ali dan (»jutri«) se pokaže ob datumu takoj po presledku, sam čas pa ostane na izbranem dnevu.",
+      "Kvadratki koledarja (pripomoček in aplikacija): cela imena, odrezana ob robu, brez »…«.",
+    ],
+  },
+  {
     build: 61,
     date: "2026-10-13",
     items: [

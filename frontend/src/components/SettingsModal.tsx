@@ -10,7 +10,8 @@ import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { setSwipeTasks, useSwipeTasks } from "../utils/swipeTasks";
 import { setCalendarStyle, useCalendarStyle } from "../utils/calendarStyle";
-import { setHomeNames, useHomeNames } from "../utils/homeNames";
+import { homeLabels, setHomeNames, useHomeNames } from "../utils/homeNames";
+import { START_PAGES, setStartPage, useStartPage } from "../utils/startPage";
 import { SIMPLE_ITEMS, setSimple, setSimpleShown, useSimple } from "../utils/simple";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
 import { setHolidaysOn, useHolidays } from "../utils/holidays";
@@ -345,6 +346,7 @@ function Appearance() {
   const holidays = useHolidays();
   const calStyle = useCalendarStyle();
   const homeNames = useHomeNames();
+  const startPage = useStartPage();
   const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
@@ -441,6 +443,16 @@ function Appearance() {
           </button>
         ))}
       </div>
+
+      <h4>{tr("Opens on", "Ob odprtju")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Opens on", "Ob odprtju")}>
+        {START_PAGES.map((p) => (
+          <button key={p} role="radio" aria-checked={startPage === p} className={startPage === p ? "active" : ""} onClick={() => setStartPage(p)}>
+            {p === "home" ? homeLabels(homeNames).now : p === "calendar" ? tr("Calendar", "Koledar") : p === "shopping" ? tr("Shopping", "Nakupi") : "Midva"}
+          </button>
+        ))}
+      </div>
+      <p className="settings-hint">{tr("The page the app opens on; the phone's back button returns there.", "Stran, na kateri se aplikacija odpre; tipka nazaj na telefonu se vrne nanjo.")}</p>
 
       <h4>{tr("Calendar", "Koledar")}</h4>
       {appUi && (

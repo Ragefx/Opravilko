@@ -11,5 +11,5 @@
     android:paddingTop="1dp"
     android:paddingBottom="1dp"
     android:textColor="@color/widget_text_secondary"
-    android:textSize="9.5sp"
+    android:textSize="8dp"
     android:textStyle="italic" />

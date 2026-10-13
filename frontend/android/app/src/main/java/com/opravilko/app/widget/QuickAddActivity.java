@@ -274,16 +274,20 @@ public class QuickAddActivity extends AppCompatActivity {
         tools.removeAllViews();
         JSONObject data = store.getSnapshot();
         if (shopping) {
-            // Left: the shop what's added now is for.
+            // Left: the shop what's added now is for (not with Simple, as in the app).
             setWhere("\uD83C\uDFEA " + (shopStore != null ? shopStore : L.t("Any shop", "Katerakoli trgovina")), null,
                     shopStore != null ? R.color.widget_accent : R.color.widget_text_secondary);
             where.setOnClickListener(v -> pickStore());
+            where.setVisibility(WidgetStore.hidden(data, "shops") && shopStore == null ? View.INVISIBLE : View.VISIBLE);
             // A meal: its ingredients, for so many servings, like the app's Meal button.
-            TextView meal = toolText("\uD83C\uDF73 " + L.t("Meal", "Obrok"));
-            meal.setOnClickListener(v -> pickMeal());
-            tools.addView(meal);
-            // Your usual items, one tap each.
-            for (String name : usualItems(data)) {
+            if (!WidgetStore.hidden(data, "meals")) {
+                TextView meal = toolText("\uD83C\uDF73 " + L.t("Meal", "Obrok"));
+                meal.setOnClickListener(v -> pickMeal());
+                tools.addView(meal);
+            }
+            // Your usual items, one tap each (Simple hides these suggestions).
+            List<String> usual = WidgetStore.hidden(data, "suggestions") ? new ArrayList<>() : usualItems(data);
+            for (String name : usual) {
                 View t = token("+ " + name, R.color.widget_text_secondary, null);
                 t.setOnClickListener(v -> {
                     addShopLines(java.util.Collections.singletonList(name));
@@ -300,6 +304,7 @@ public class QuickAddActivity extends AppCompatActivity {
         boolean inbox = "inbox".equals(projectId) || project == null || project.optBoolean("isInboxProject");
         setWhere(projectName(data), inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, R.color.widget_text_secondary);
         where.setOnClickListener(this::pickProject);
+        where.setVisibility(View.VISIBLE);
 
         // One row of same-size icons, tinted when that thing is set, in the
         // order they were dragged into (hold one, then slide it).
@@ -307,8 +312,13 @@ public class QuickAddActivity extends AppCompatActivity {
         byId.put("date", tool(R.drawable.ic_w_calendar, "Date", day != null, dayColor(day), this::pickDay));
         byId.put("priority", tool(R.drawable.ic_qa_flag, "Priority", priority > 0,
                 priority > 0 ? priorityColor(priority) : R.color.widget_text_secondary, this::pickPriority));
-        byId.put("labels", tool(R.drawable.ic_qa_label, "Labels", !labels.isEmpty(), R.color.widget_accent, v -> pickLabels()));
-        byId.put("location", tool(R.drawable.ic_qa_pin, "Location", location != null, R.color.widget_accent, v -> pickLocation()));
+        // Simple hides labels and location until one is set (as in the app).
+        if (!WidgetStore.hidden(data, "labels") || !labels.isEmpty()) {
+            byId.put("labels", tool(R.drawable.ic_qa_label, "Labels", !labels.isEmpty(), R.color.widget_accent, v -> pickLabels()));
+        }
+        if (!WidgetStore.hidden(data, "location") || location != null) {
+            byId.put("location", tool(R.drawable.ic_qa_pin, "Location", location != null, R.color.widget_accent, v -> pickLocation()));
+        }
         // Attachments live in Firebase, so only with Google sign-in (as in the app).
         if (store.isFirebase()) {
             byId.put("attach", tool(R.drawable.ic_qa_attach, "Attachment", attachment != null, R.color.widget_accent, v -> pickFile()));
@@ -528,12 +538,14 @@ public class QuickAddActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true);
         popup.setElevation(dp(10));
         popup.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        JSONObject snapshot = store.getSnapshot();
         Object[][] rows = {
                 { L.t("Description", "Opis"), R.drawable.ic_qa_notes, (Runnable) this::showDescription },
-                { L.t("Labels", "Oznake"), R.drawable.ic_qa_label, (Runnable) this::pickLabels },
-                { L.t("Location", "Lokacija"), R.drawable.ic_qa_pin, (Runnable) this::pickLocation },
+                WidgetStore.hidden(snapshot, "labels") ? null : new Object[] { L.t("Labels", "Oznake"), R.drawable.ic_qa_label, (Runnable) this::pickLabels },
+                WidgetStore.hidden(snapshot, "location") ? null : new Object[] { L.t("Location", "Lokacija"), R.drawable.ic_qa_pin, (Runnable) this::pickLocation },
         };
         for (Object[] r : rows) {
+            if (r == null) continue;
             TextView row = new TextView(this);
             row.setText((String) r[0]);
             row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);

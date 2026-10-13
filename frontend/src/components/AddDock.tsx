@@ -1,4 +1,5 @@
 import { tr } from "../i18n";
+import { useHomeName } from "../utils/homeNames";
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Keyboard } from "@capacitor/keyboard";
@@ -94,6 +95,7 @@ export default function AddDock({
 }) {
   const { data } = useBootstrap();
   const navigate = useNavigate();
+  const homeName = useHomeName();
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
   const onShopping = pathname.startsWith("/app/shopping");
@@ -153,7 +155,7 @@ export default function AddDock({
     );
     return (
       <nav className="add-tabs" aria-label={tr("Main", "Glavno")}>
-        {tab("/app/home", tr("Now", "Zdaj"), <FocusIcon width={21} height={21} />)}
+        {tab("/app/home", homeName, <FocusIcon width={21} height={21} />)}
         {tab("/app/calendar", tr("Calendar", "Koledar"), <CalendarIcon width={21} height={21} />)}
         <button className="add-tabs-plus" aria-label={onShopping ? tr("Add to shopping", "Dodaj v nakupe") : tr("Add task", "Dodaj nalogo")} {...gestures}>
           <PlusIcon width={26} height={26} strokeWidth={2.6} />

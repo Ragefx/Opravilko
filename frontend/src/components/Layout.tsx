@@ -1,4 +1,5 @@
 import { tr } from "../i18n";
+import { useSimple } from "../utils/simple";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncArrivalPlaces } from "../native/places";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -129,6 +130,9 @@ export default function Layout() {
   const goChord = useRef(false);
 
   const [remindersVersion, setRemindersVersion] = useState(0);
+  // Simple switched on or off: the widget follows it.
+  const simple = useSimple();
+  const simpleKey = `${simple.on}:${simple.shown.join()}`;
   useEffect(() => {
     const bump = () => setRemindersVersion((v) => v + 1);
     window.addEventListener(REMINDERS_CHANGED, bump);
@@ -168,7 +172,7 @@ export default function Layout() {
     if (!isNativeApp || !appData) return;
     const t = window.setTimeout(() => pushWidgetData(appData), 800);
     return () => window.clearTimeout(t);
-  }, [appData, remindersVersion]);
+  }, [appData, remindersVersion, simpleKey]);
   useEffect(
     () =>
       onWidgetDataChanged(() => {

@@ -1,4 +1,5 @@
 import { tr } from "../i18n";
+import { useHomeName } from "../utils/homeNames";
 import { useMemo } from "react";
 import { shoppingListOf } from "../utils/shopping";
 import { openThisMonth } from "../utils/calendarTasks";
@@ -25,6 +26,7 @@ export default function SocaTopBar({
 }) {
   const { data } = useBootstrap();
 
+  const homeName = useHomeName();
   const chips = useMemo(() => {
     if (!data) return [];
     const open = data.tasks.filter((t) => !t.completed);
@@ -38,7 +40,7 @@ export default function SocaTopBar({
     return [
       {
         to: "/app/home",
-        label: tr("Now", "Zdaj"),
+        label: homeName,
         count: open.filter((t) => isDueToday(t.due) || isOverdue(t.due)).length,
       },
       { to: "/app/inbox", label: tr("Inbox", "Prejeto"), count: count("inbox") },
@@ -56,7 +58,7 @@ export default function SocaTopBar({
         .filter((f) => f.isFavorite)
         .map((f) => ({ to: `/app/filter/${f.id}`, label: f.name, count: undefined })),
     ] as { to: string; label: string; count?: number; color?: string }[];
-  }, [data]);
+  }, [data, homeName]);
 
   return (
     <header className="soca-top">

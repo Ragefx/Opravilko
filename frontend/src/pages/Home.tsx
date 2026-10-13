@@ -9,6 +9,7 @@ import FocusMode from "../components/FocusMode";
 import { useFocusCard } from "../utils/focusCard";
 import { useWeeklyReview } from "../utils/weeklyReview";
 import { useHidden } from "../utils/simple";
+import { homeLabels, useHomeNames } from "../utils/homeNames";
 import PriorityMark from "../components/PriorityMark";
 import { useToast } from "../components/ToastProvider";
 import { groupEventsByDate } from "../utils/calendarSync";
@@ -96,6 +97,9 @@ export default function Home() {
   const reviewOn = useWeeklyReview();
   // Simple (Settings): a free day is just a free day.
   const plainEmpty = useHidden("nowNext");
+  // Settings: Now / Next / Later, or Today / This week / This month.
+  const names = useHomeNames();
+  const labels = homeLabels(names);
   const view = useMemo(() => {
     if (!data) return null;
     const today = todayISO();
@@ -138,11 +142,14 @@ export default function Home() {
     const later = open
       .filter((t) => t.due!.date > weekEnd)
       .sort((a, b) => a.due!.date.localeCompare(b.due!.date) || focusRank(a, b));
+    // "This month": the coming month; what's beyond it is listed after it.
+    const monthEnd = format(addDays(new Date(), 31), "yyyy-MM-dd");
+    const laterCount = names === "calendar" ? later.filter((t) => t.due!.date <= monthEnd).length : later.length;
 
     const lateCount = nowTasks.filter((t) => isOverdue(t.due)).length;
     const projectNameById = Object.fromEntries(data.projects.map((p) => [p.id, p.name]));
-    return { nowTasks, focus, clock, allDay, anytime, nextDays, later, lateCount, projectNameById };
-  }, [data, focusOn]);
+    return { nowTasks, focus, clock, allDay, anytime, nextDays, later, laterCount, lateCount, projectNameById };
+  }, [data, focusOn, names]);
 
   if (isLoading || !data || !view) return null;
 
@@ -248,7 +255,9 @@ export default function Home() {
           <span>
             {plainEmpty
               ? tr("Enjoy the free day.", "Uživaj v prostem dnevu.")
-              : tr("Pick something from Next, or enjoy the free day.", "Izberi kaj iz Naslednje ali uživaj v prostem dnevu.")}
+              : names === "calendar"
+                ? tr("Pick something from this week, or enjoy the free day.", "Izberi kaj iz tega tedna ali uživaj v prostem dnevu.")
+                : tr("Pick something from Next, or enjoy the free day.", "Izberi kaj iz Naslednje ali uživaj v prostem dnevu.")}
           </span>
         </div>
       )}
@@ -384,7 +393,7 @@ export default function Home() {
   const nextPane = (
     <section className="home-next">
       <div className="home-label">
-        <span>{tr("Next · this week", "Naslednje · ta teden")}</span>
+        <span>{names === "calendar" ? labels.next : tr("Next · this week", "Naslednje · ta teden")}</span>
         <span>{nextCount}</span>
       </div>
       {dayBlocks.map((b) =>
@@ -414,8 +423,8 @@ export default function Home() {
   const laterPane = (
     <section className="home-later">
       <div className="home-label">
-        <span>{tr("Later", "Pozneje")}</span>
-        <span>{view.later.length}</span>
+        <span>{labels.later}</span>
+        <span>{view.laterCount}</span>
       </div>
       {view.later.length === 0 ? (
         <div className="home-day-empty">
@@ -425,8 +434,16 @@ export default function Home() {
         view.later.map((t, i) => {
           const month = format(parseISO(t.due!.date), "LLLL yyyy");
           const showMonth = i === 0 || format(parseISO(view.later[i - 1].due!.date), "LLLL yyyy") !== month;
+          // With the calendar names, a line where the coming month ends.
+          const further = names === "calendar" && i === view.laterCount;
           return (
             <div key={t.id}>
+              {further && i === 0 && (
+                <div className="home-day-empty">
+                  <span>{tr("Nothing else this month.", "Ta mesec ni nič drugega.")}</span>
+                </div>
+              )}
+              {further && <div className="home-label home-further"><span>{tr("Further ahead", "Kasneje")}</span></div>}
               {showMonth && <div className="home-day-label home-mono">{month.toUpperCase()}</div>}
               <TaskRow task={t} onOpen={setOpenTask} projectLabel={projectLabel(t)} />
             </div>
@@ -449,9 +466,9 @@ export default function Home() {
       <nav className="home-segments" aria-label={tr("Horizon", "Obzorje")}>
         {(
           [
-            ["now", tr("Now", "Zdaj"), view.nowTasks.length],
-            ["next", tr("Next", "Naslednje"), nextCount],
-            ["later", tr("Later", "Pozneje"), view.later.length],
+            ["now", labels.now, view.nowTasks.length],
+            ["next", labels.next, nextCount],
+            ["later", labels.later, view.laterCount],
           ] as const
         ).map(([id, label, n]) => (
           <button key={id} className={pane === id ? "is-active" : ""} onClick={() => setPane(id)}>

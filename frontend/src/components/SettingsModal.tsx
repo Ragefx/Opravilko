@@ -10,6 +10,7 @@ import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { setSwipeTasks, useSwipeTasks } from "../utils/swipeTasks";
 import { setCalendarStyle, useCalendarStyle } from "../utils/calendarStyle";
+import { setHomeNames, useHomeNames } from "../utils/homeNames";
 import { SIMPLE_ITEMS, setSimple, setSimpleShown, useSimple } from "../utils/simple";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
 import { setHolidaysOn, useHolidays } from "../utils/holidays";
@@ -343,6 +344,7 @@ function Appearance() {
   const swipeTasks = useSwipeTasks();
   const holidays = useHolidays();
   const calStyle = useCalendarStyle();
+  const homeNames = useHomeNames();
   const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
@@ -427,6 +429,15 @@ function Appearance() {
               <b>{a.name}</b>
               <span>{a.blurb}</span>
             </span>
+          </button>
+        ))}
+      </div>
+
+      <h4>{tr("Home page", "Začetna stran")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Home page", "Začetna stran")}>
+        {(["horizon", "calendar"] as const).map((n) => (
+          <button key={n} role="radio" aria-checked={homeNames === n} className={homeNames === n ? "active" : ""} onClick={() => setHomeNames(n)}>
+            {n === "horizon" ? tr("Now · Next · Later", "Zdaj · Naslednje · Pozneje") : tr("Today · This week · This month", "Danes · Ta teden · Ta mesec")}
           </button>
         ))}
       </div>

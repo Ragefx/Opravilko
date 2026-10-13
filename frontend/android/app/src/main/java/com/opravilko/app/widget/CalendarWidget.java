@@ -1,11 +1,13 @@
 package com.opravilko.app.widget;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.widget.RemoteViews;
 
 import com.opravilko.app.R;
@@ -414,6 +416,25 @@ final class CalendarWidget {
         store.setCalendarMonth(id, delta == 0 ? 0 : store.getCalendarMonth(id) + delta);
         if (delta == 0) store.setCalendarDay(id, null);
         AppWidgetManager.getInstance(context).updateAppWidget(id, TaskWidgetProvider.buildViews(context, id));
+        if (delta != 0) scheduleBackToNow(context, id);
+    }
+
+    /**
+     * After browsing to another month, the widget goes back to this month by
+     * itself a while after the last tap, so it shows now when you come back
+     * to the home screen. (The stored month also counts as stale after that,
+     * should this alarm come late.)
+     */
+    static void scheduleBackToNow(Context context, int appWidgetId) {
+        Intent intent = new Intent(context, TaskWidgetProvider.class).setAction(ACTION_MONTH);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        intent.putExtra(EXTRA_DELTA, 0);
+        intent.setData(Uri.parse("opravilko-widget://month-reset/" + appWidgetId));
+        PendingIntent pi = PendingIntent.getBroadcast(context, appWidgetId * 8 + 7, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+        am.setWindow(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + WidgetStore.CAL_BROWSE_MS, 30_000, pi);
     }
 
     /** A day tapped in the small month: its tasks in the list under it. */
@@ -423,6 +444,7 @@ final class CalendarWidget {
         if (id == AppWidgetManager.INVALID_APPWIDGET_ID || day == null) return;
         new WidgetStore(context).setCalendarDay(id, day.equals(TaskLogic.todayStr()) ? null : day);
         AppWidgetManager.getInstance(context).updateAppWidget(id, TaskWidgetProvider.buildViews(context, id));
+        if (!day.equals(TaskLogic.todayStr())) scheduleBackToNow(context, id);
     }
 
     private static PendingIntent monthIntent(Context context, int appWidgetId, int delta) {

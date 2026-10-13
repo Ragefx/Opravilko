@@ -54,6 +54,20 @@ public final class WidgetStore {
 
     // ---- task data ----
 
+    /**
+     * Whether Settings > Simple hides this extra ("meals", "shops",
+     * "suggestions", "labels", "location", ...) on this phone; the app sends
+     * the list with the data.
+     */
+    public static boolean hidden(JSONObject data, String item) {
+        JSONArray list = data != null ? data.optJSONArray("simpleHidden") : null;
+        if (list == null) return false;
+        for (int i = 0; i < list.length(); i++) {
+            if (item.equals(list.optString(i))) return true;
+        }
+        return false;
+    }
+
     public JSONObject getSnapshot() {
         String raw = prefs.getString(KEY_SNAPSHOT, null);
         if (raw == null) return null;
@@ -326,23 +340,35 @@ public final class WidgetStore {
         prefs.edit().remove("view_" + appWidgetId).remove("calMonth_" + appWidgetId).remove("calDay_" + appWidgetId).apply();
     }
 
-    /** The month view's month, as months from this one (‹ and › move it; 0 is now). */
+    /** How long a month moved to with ‹ › (or a picked day) stays before the widget goes back to now. */
+    static final long CAL_BROWSE_MS = 90_000;
+
+    /** The month view's month, as months from this one (‹ and › move it; 0 is now).
+     *  Back to 0 once nobody has moved it for a while (left and come back). */
     public int getCalendarMonth(int appWidgetId) {
+        if (browseStale(appWidgetId)) return 0;
         return prefs.getInt("calMonth_" + appWidgetId, 0);
     }
 
     public void setCalendarMonth(int appWidgetId, int offset) {
-        prefs.edit().putInt("calMonth_" + appWidgetId, offset).apply();
+        prefs.edit().putInt("calMonth_" + appWidgetId, offset)
+                .putLong("calAt_" + appWidgetId, System.currentTimeMillis()).apply();
+    }
+
+    private boolean browseStale(int appWidgetId) {
+        return System.currentTimeMillis() - prefs.getLong("calAt_" + appWidgetId, 0) > CAL_BROWSE_MS + 30_000;
     }
 
     /** The day tapped in the small month ("yyyy-MM-dd"), or null for today. */
     public String getCalendarDay(int appWidgetId) {
+        if (browseStale(appWidgetId)) return null;
         return prefs.getString("calDay_" + appWidgetId, null);
     }
 
     public void setCalendarDay(int appWidgetId, String day) {
         if (day == null) prefs.edit().remove("calDay_" + appWidgetId).apply();
-        else prefs.edit().putString("calDay_" + appWidgetId, day).apply();
+        else prefs.edit().putString("calDay_" + appWidgetId, day)
+                .putLong("calAt_" + appWidgetId, System.currentTimeMillis()).apply();
     }
 
     static String optStringOrNull(JSONObject o, String key) {

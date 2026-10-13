@@ -1,4 +1,5 @@
 import { tr } from "../i18n";
+import { useHomeName } from "../utils/homeNames";
 import { useHidden } from "../utils/simple";
 import { appUi } from "../utils/appUi";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
@@ -138,6 +139,7 @@ export default function Sidebar({
   // On the weekend, until done: how many tasks the weekly review has to sort.
   const reviewOn = useWeeklyReview();
   const reviewCount = reviewOn ? reviewDueToday(data) : 0;
+  const homeName = useHomeName();
   const counts = useMemo(() => {
     if (!data) return { today: 0, inbox: 0, midva: 0, calendar: 0, shopping: 0 };
     const active = data.tasks.filter((t) => !t.completed);
@@ -302,7 +304,7 @@ export default function Sidebar({
       <nav className="sidebar-nav">
         <NavLink to="/app/home" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <FocusIcon className="icon" />
-          {tr("Now", "Zdaj")}
+          {homeName}
           {counts.today > 0 && <span className="badge">{counts.today}</span>}
         </NavLink>
         <NavLink to="/app/inbox" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>

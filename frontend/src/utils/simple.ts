@@ -87,6 +87,12 @@ export function useSimple(): { on: boolean; shown: SimpleItem[] } {
   return read();
 }
 
+/** Everything hidden right now (for the phone's widget, which follows Simple too). */
+export function simpleHidden(): SimpleItem[] {
+  const { on, shown } = read();
+  return on ? SIMPLE_ITEMS.map((i) => i.key).filter((k) => !shown.includes(k)) : [];
+}
+
 /** Whether this thing is hidden right now (Simple on, and not brought back). */
 export function useHidden(item: SimpleItem): boolean {
   const { on, shown } = useSimple();

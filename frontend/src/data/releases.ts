@@ -13,6 +13,34 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 60,
+    date: "2026-10-13",
+    items: [
+      "App calendar: Dots or Squares, in Settings > Appearance. Squares shows the month as boxes with the tasks written in them, like the widget, in small text.",
+      "Home page names: Now · Next · Later, or Today · This week · This month (Settings > Appearance). This month lists the coming month, then what's further ahead.",
+      "Widget month: smaller text in the days, so more of each name fits.",
+      "Widget month: tap a day's empty space to add a task on that day (its number still opens the app's calendar).",
+      "Widget month: holidays as plain text, red for days off, no red block behind them.",
+      "Widget month: goes back to this month by itself a minute and a half after you last moved it.",
+      "Widget: tapping a task opens a card like the app's task window, over the home screen, without opening the app.",
+      "Widget follows Simple: no Meal button, shop or suggested items in its shopping card, no labels or location in its task card.",
+      "Shopping: no example text in the add box.",
+      "Shopping: when shop deals can't be shown, a short line says why.",
+    ],
+    itemsSl: [
+      "Koledar v aplikaciji: pike ali kvadratki, v Nastavitve > Videz. Kvadratki pokažejo mesec kot okvirčke z vpisanimi nalogami, kot na pripomočku, z drobno pisavo.",
+      "Imena začetne strani: Zdaj · Naslednje · Pozneje ali Danes · Ta teden · Ta mesec (Nastavitve > Videz). Ta mesec pokaže prihodnji mesec, nato kar je kasneje.",
+      "Pripomoček mesec: manjša pisava v dnevih, da se vidi več imena.",
+      "Pripomoček mesec: dotik praznega dela dneva doda nalogo na ta dan (številka še vedno odpre koledar v aplikaciji).",
+      "Pripomoček mesec: prazniki kot navadno besedilo, prosti dnevi rdeče, brez rdečega ozadja.",
+      "Pripomoček mesec: se sam vrne na tekoči mesec minuto in pol po zadnjem premiku.",
+      "Pripomoček: dotik naloge odpre kartico kot okno naloge v aplikaciji, nad začetnim zaslonom, brez odpiranja aplikacije.",
+      "Pripomoček sledi Preprostemu: v kartici za nakupe ni gumba Obrok, trgovine ali predlogov, v kartici za naloge ni oznak ali lokacije.",
+      "Nakupi: brez primera v polju za dodajanje.",
+      "Nakupi: ko akcij ni mogoče prikazati, kratka vrstica pove zakaj.",
+    ],
+  },
+  {
     build: 59,
     date: "2026-10-08",
     items: [

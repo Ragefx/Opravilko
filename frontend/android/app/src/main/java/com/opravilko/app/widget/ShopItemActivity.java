@@ -82,9 +82,12 @@ public class ShopItemActivity extends WidgetSheetActivity {
         ((LinearLayout.LayoutParams) noteBox.getLayoutParams()).topMargin = dp(12);
         sheet.addView(noteBox);
 
-        sheet.addView(caption(L.t("Shop", "Trgovina")));
-        shopChips = chipRow(sheet);
-        buildShopChips(data);
+        // Simple hides the shop until one is set (as in the app).
+        if (!WidgetStore.hidden(data, "shops") || shop != null) {
+            sheet.addView(caption(L.t("Shop", "Trgovina")));
+            shopChips = chipRow(sheet);
+            buildShopChips(data);
+        }
 
         sheet.addView(caption(L.t("Category", "Kategorija")));
         categoryChips = chipRow(sheet);

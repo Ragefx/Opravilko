@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A task in a day: a blue chip (red when overdue). -->
+<!-- A task in a day: a blue chip (red when overdue). Small fixed-size text (dp,
+     not sp), so a large phone font doesn't cut the names to two letters. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/cal_chip"
     android:layout_width="match_parent"
@@ -8,9 +9,9 @@
     android:background="@drawable/widget_cal_task_bg"
     android:ellipsize="end"
     android:maxLines="1"
-    android:paddingStart="3dp"
+    android:paddingStart="2dp"
     android:paddingTop="1dp"
-    android:paddingEnd="2dp"
+    android:paddingEnd="1dp"
     android:paddingBottom="1dp"
     android:textColor="@color/widget_cal_task_text"
-    android:textSize="10sp" />
+    android:textSize="8.5dp" />

@@ -2,6 +2,7 @@ import { subDays } from "date-fns";
 import { format, lang } from "../i18n";
 import { calendarDoneOn, doneByDay } from "../utils/calendarDone";
 import { holidaysOn } from "../utils/holidays";
+import { simpleHidden } from "../utils/simple";
 import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import { getWidgetAuth, isNativeApp } from "../dropbox/auth";
 import { DATA_PATH } from "../dropbox/store";
@@ -122,6 +123,8 @@ export function pushWidgetData(data: AppData): void {
     holidays: holidaysOn(),
     calendarDone: calendarDoneOn(),
     done,
+    // Settings > Simple: the widget's add card and item window hide the same extras.
+    simpleHidden: simpleHidden(),
   };
   const { appKey, refreshToken } = getWidgetAuth();
   const firebase = firebaseWidgetAuth();

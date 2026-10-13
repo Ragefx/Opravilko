@@ -189,6 +189,18 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
+    /** The add card over the home screen, with this day already set (a day tapped in the calendar). */
+    static PendingIntent quickAddOn(Context context, int appWidgetId, int requestCode, String day) {
+        Intent intent = new Intent(context, QuickAddActivity.class);
+        intent.putExtra(QuickAddActivity.EXTRA_VIEW, WidgetStore.VIEW_CALENDAR);
+        intent.putExtra(QuickAddActivity.EXTRA_DAY, day);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        intent.setData(Uri.parse("opravilko-widget://add-on/" + appWidgetId + "/" + day));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return PendingIntent.getActivity(context, requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
     static PendingIntent openApp(Context context, int requestCode, String uri) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri), context, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -8,6 +8,7 @@ import { PALETTES, setPalette, usePalette } from "../utils/palette";
 import { setAddStyle, useAddStyle, type AddStyle } from "../utils/addStyle";
 import { setFocusCard, useFocusCard } from "../utils/focusCard";
 import { setSwipeTasks, useSwipeTasks } from "../utils/swipeTasks";
+import { setCalendarStyle, useCalendarStyle } from "../utils/calendarStyle";
 import { SIMPLE_ITEMS, setSimple, setSimpleShown, useSimple } from "../utils/simple";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
 import { setHolidaysOn, useHolidays } from "../utils/holidays";
@@ -305,6 +306,7 @@ function Appearance() {
   const weeklyReview = useWeeklyReview();
   const holidays = useHolidays();
   const calendarDone = useCalendarDone();
+  const calStyle = useCalendarStyle();
   const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
@@ -399,6 +401,24 @@ function Appearance() {
           <span>Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.</span>
         </span>
       </label>
+
+      {appUi && (
+        <>
+          <h4>Calendar in the app</h4>
+          <div className="segmented" role="radiogroup" aria-label="Calendar in the app">
+            {(["dots", "squares"] as const).map((c) => (
+              <button key={c} role="radio" aria-checked={calStyle === c} className={calStyle === c ? "active" : ""} onClick={() => setCalendarStyle(c)}>
+                {c === "dots" ? "Dots" : "Squares"}
+              </button>
+            ))}
+          </div>
+          <p className="settings-hint">
+            {calStyle === "dots"
+              ? "Day numbers with a dot per task; the picked day's tasks below."
+              : "The whole month as boxes with the tasks written in them, like the widget."}
+          </p>
+        </>
+      )}
 
       <label className="settings-switch">
         <input

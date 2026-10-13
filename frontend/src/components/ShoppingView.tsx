@@ -432,7 +432,8 @@ export default function ShoppingView({
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && void submit()}
-            placeholder="Add: mleko 1 l, 2x jajca, kruh"
+            // The app: no example text in the box (the website keeps it).
+            placeholder={appUi ? "" : "Add: mleko 1 l, 2x jajca, kruh"}
             aria-label="Add items"
             // Kept exactly as typed: no capital letter from the keyboard either.
             autoCapitalize="off"

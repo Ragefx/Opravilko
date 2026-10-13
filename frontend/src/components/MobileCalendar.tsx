@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { dayFromParam } from "../utils/calendarTasks";
 import { setCalendarDay } from "../utils/calendarDay";
+import { shortLabel, useCalendarStyle } from "../utils/calendarStyle";
 import { appUi } from "../utils/appUi";
 import {
   doneByDay,
@@ -101,7 +102,10 @@ export default function MobileCalendar({
     setSelected(d);
     setCursor(d);
   }, [dayParam, location.key]);
-  const [monthOpen, setMonthOpenState] = useState(storedOpen);
+  const [monthOpenStored, setMonthOpenState] = useState(storedOpen);
+  // Squares (Settings > Appearance): always the whole month, tasks written in the days.
+  const squares = useCalendarStyle() === "squares";
+  const monthOpen = squares || monthOpenStored;
   const touch = useRef<{ x: number; y: number } | null>(null);
 
   function setMonthOpen(open: boolean) {
@@ -208,13 +212,15 @@ export default function MobileCalendar({
         <div className="mcal-head">
           <button
             className="mcal-title"
-            onClick={() => setMonthOpen(!monthOpen)}
+            onClick={() => !squares && setMonthOpen(!monthOpen)}
             aria-expanded={monthOpen}
           >
             {format(cursor, "MMMM yyyy")}
+            {/* Squares always show the whole month: nothing to fold. */}
             <ChevronIcon
               width={16}
               height={16}
+              style={squares ? { display: "none" } : undefined}
               className={monthOpen ? "open" : ""}
             />
           </button>
@@ -253,7 +259,7 @@ export default function MobileCalendar({
             </button>
           </div>
         </div>
-        <div className="mcal-grid">
+        <div className={`mcal-grid ${squares ? "is-squares" : ""}`}>
           {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
             <span key={i} className="mcal-wd">
               {d}
@@ -297,6 +303,20 @@ export default function MobileCalendar({
                 aria-label={`${format(d, "EEEE d MMMM")}: ${list.length} ${list.length === 1 ? "task" : "tasks"}`}
               >
                 <span className="mcal-num">{format(d, "d")}</span>
+                {squares ? (
+                  <span className="mcal-sq-items">
+                    {events[0] && <i className="mcal-sq-hol">{events[0].title}</i>}
+                    {[...list]
+                      .sort((a, b) => (a.due?.datetime ?? "~").localeCompare(b.due?.datetime ?? "~") || b.priority - a.priority)
+                      .slice(0, events[0] ? 2 : 3)
+                      .map((t) => (
+                        <span key={t.id} className={`mcal-sq-chip ${isEvent(t) ? "is-event" : ""} ${isOverdue(t.due) && !isEvent(t) ? "is-late" : ""}`}>
+                          {shortLabel(t.content)}
+                        </span>
+                      ))}
+                    {list.length > (events[0] ? 2 : 3) && <b>+{list.length - (events[0] ? 2 : 3)}</b>}
+                  </span>
+                ) : (
                 <span className="mcal-dots">
                   {dots.map((c, i) => (
                     <i key={i} style={{ background: c }} />
@@ -309,15 +329,18 @@ export default function MobileCalendar({
                     )}
                   {more > 0 && <b>+{more}</b>}
                 </span>
+                )}
               </button>
             );
           })}
         </div>
+        {!squares && (
         <button
           className="mcal-handle"
           onClick={() => setMonthOpen(!monthOpen)}
           aria-label={monthOpen ? "Show one week" : "Show the whole month"}
         />
+        )}
       </div>
       {awayEdit && (
         <AwaySheet

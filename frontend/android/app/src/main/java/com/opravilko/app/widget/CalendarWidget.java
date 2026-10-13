@@ -167,7 +167,7 @@ final class CalendarWidget {
                 if (holiday != null) {
                     RemoteViews label = new RemoteViews(context.getPackageName(), R.layout.widget_cal_holiday);
                     label.setTextViewText(R.id.cal_holiday, holiday.name);
-                    if (!holiday.free) label.setInt(R.id.cal_holiday, "setBackgroundResource", R.drawable.widget_cal_hol_bg);
+                    if (holiday.free) label.setTextColor(R.id.cal_holiday, context.getColor(R.color.widget_due_overdue));
                     cell.addView(R.id.cal_day_items, label);
                     room = Math.max(1, room - 1);
                     if (holiday.free && !isToday) cell.setTextColor(R.id.cal_day_num, context.getColor(R.color.widget_due_overdue));
@@ -214,7 +214,11 @@ final class CalendarWidget {
                         cell.addView(R.id.cal_day_items, more);
                     }
                 }
-                cell.setOnClickPendingIntent(R.id.cal_day, TaskWidgetProvider.openApp(context, appWidgetId * 64 + w * 7 + d,
+                // The day's empty space adds a task on it (the add card, over the home
+                // screen); its number opens the app's calendar on it.
+                cell.setOnClickPendingIntent(R.id.cal_day, TaskWidgetProvider.quickAddOn(context, appWidgetId,
+                        appWidgetId * 64 + w * 7 + d, key));
+                cell.setOnClickPendingIntent(R.id.cal_day_num, TaskWidgetProvider.openApp(context, appWidgetId * 64 + w * 7 + d,
                         "opravilko://open?view=calendar&day=" + key));
                 week.addView(R.id.cal_week, cell);
                 c.add(Calendar.DAY_OF_MONTH, 1);

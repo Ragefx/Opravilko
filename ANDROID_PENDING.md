@@ -17,6 +17,11 @@ Build 55: a time typed on its own goes on the day already chosen, not today.
 
 - Simple has its own page in Settings (under Look & feel); with Simple on, the shopping add box, mic and Add share one row, the add card has no label or location icons, and the menu has no Labels or Filters
 - Calendar (and widget): bought shopping items no longer show under Done
+- Shopping add box: no example text in the app
+- Widget month: tapping a day's empty space opens the add card on that day (tapping its number opens the app's calendar)
+- Widget month: holidays as plain text (red for days off), no red block behind them
+- App calendar: Dots or Squares (tasks written in day boxes, like the widget), Settings > Appearance > Calendar in the app
+- Widget: tapping a task opens a card laid out like the app's task window, over the home screen (no app opening)
 
 ## Known gaps
 

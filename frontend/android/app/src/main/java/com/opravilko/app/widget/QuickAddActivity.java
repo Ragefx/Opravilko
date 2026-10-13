@@ -45,6 +45,8 @@ import java.util.Set;
 public class QuickAddActivity extends AppCompatActivity {
     static final String EXTRA_VIEW = "com.opravilko.app.widget.VIEW";
     static final String EXTRA_VOICE = "com.opravilko.app.widget.VOICE";
+    /** A day tapped in the calendar widget ("yyyy-MM-dd"): the new task goes on it. */
+    static final String EXTRA_DAY = "com.opravilko.app.widget.DAY";
     private static final int REQUEST_VOICE = 7;
 
     private WidgetStore store;
@@ -184,6 +186,8 @@ public class QuickAddActivity extends AppCompatActivity {
         // Start in the view's project itself; a section is picked from its chip.
         sectionId = null;
         day = WidgetStore.VIEW_TODAY.equals(view) ? TaskLogic.todayStr() : null;
+        String askedDay = intent.getStringExtra(EXTRA_DAY);
+        if (askedDay != null && askedDay.matches("\\d{4}-\\d{2}-\\d{2}")) day = askedDay;
         resetExtras();
         text.setText("");
         text.setHint(shopping ? R.string.qa_shop_hint : R.string.qa_task_hint);

@@ -8092,3 +8092,103 @@ button.sidebar-link {
 .shopping-add.is-compact .btn {
   flex: 0 0 auto;
 }
+
+/* The app's calendar as squares (Settings > Appearance): the month as boxes with the tasks written in them. */
+.mcal-grid.is-squares {
+  row-gap: 0;
+  border-top: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+}
+.mcal-grid.is-squares .mcal-wd {
+  padding: 4px 0;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.mcal-grid.is-squares .mcal-day {
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 1px;
+  min-height: 74px;
+  padding: 2px 2px 3px;
+  min-width: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+}
+.mcal-grid.is-squares .mcal-num {
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  align-self: flex-start;
+}
+.mcal-grid.is-squares .mcal-day.is-today {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+.mcal-grid.is-squares .mcal-day.is-selected {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+.mcal-grid.is-squares .mcal-day.is-selected .mcal-num {
+  background: var(--color-accent);
+}
+/* Trips: a coloured strip along the top of their days, not the dots' round band. */
+.mcal-grid.is-squares .mcal-day.is-away,
+.mcal-grid.is-squares .mcal-day.is-away-start,
+.mcal-grid.is-squares .mcal-day.is-away-end {
+  background: linear-gradient(var(--away-band), var(--away-band)) 0 0 / 100% 4px no-repeat;
+}
+.mcal-grid.is-squares .mcal-day.is-away-start .mcal-num,
+.mcal-grid.is-squares .mcal-day.is-away-end .mcal-num {
+  background: none;
+}
+.mcal-grid.is-squares .mcal-day.is-away.is-selected .mcal-num {
+  background: var(--color-accent);
+}
+.mcal-sq-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.mcal-sq-chip {
+  display: block;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: color-mix(in srgb, #3a6fd8 16%, var(--color-surface));
+  color: color-mix(in srgb, #3a6fd8 80%, var(--color-text));
+  font-size: 10px;
+  line-height: 1.3;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mcal-sq-chip.is-event {
+  background: color-mix(in srgb, var(--color-event) 16%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-event) 80%, var(--color-text));
+}
+.mcal-sq-chip.is-late {
+  background: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface));
+  color: var(--color-danger);
+}
+.mcal-sq-hol {
+  font-size: 9.5px;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mcal-sq-items b {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: left;
+  padding-left: 3px;
+}
+.settings-hint {
+  margin: 6px 0 4px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}

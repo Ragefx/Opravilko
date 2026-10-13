@@ -744,13 +744,8 @@ final class CalendarWidget {
         return byDay;
     }
 
-    /** A task's first word, or its first two when they're short ("Nejc žur"), for a day square. */
+    /** A task's name for a day square: all of it, cut off at the square's edge (no "…"). */
     static String shortLabel(String content) {
-        String[] words = content.trim().split("\\s+");
-        if (words.length == 0 || words[0].isEmpty()) return content.trim();
-        String label = words[0];
-        // A second word when both fit, but not a little one ("Predstava v" reads as "Predstava").
-        if (words.length > 1 && words[1].length() >= 3 && label.length() + 1 + words[1].length() <= 12) label += " " + words[1];
-        return label;
+        return content.trim().replaceAll("\\s+", " ");
     }
 }

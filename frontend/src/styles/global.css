@@ -8446,7 +8446,7 @@ button.sidebar-link {
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
 }
 .mcal-sq-chip.is-event {
   background: color-mix(in srgb, var(--color-event) 16%, var(--color-surface));
@@ -8463,7 +8463,7 @@ button.sidebar-link {
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
 }
 .mcal-sq-items b {
   font-size: 8px;

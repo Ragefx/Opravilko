@@ -37,11 +37,7 @@ export function useCalendarStyle(): CalendarStyle {
   );
 }
 
-/** A task's first word, or its first two when they're short ("Nejc žur"), for a day square (as in the widget). */
+/** A task's name for a day square: all of it, cut off at the square's edge with no "…" (as in the widget). */
 export function shortLabel(content: string): string {
-  const words = content.trim().split(/\s+/);
-  if (!words[0]) return content.trim();
-  let label = words[0];
-  if (words.length > 1 && words[1].length >= 3 && label.length + 1 + words[1].length <= 12) label += " " + words[1];
-  return label;
+  return content.trim().replace(/\s+/g, " ");
 }

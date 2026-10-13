@@ -66,6 +66,9 @@ public class QuickAddActivity extends AppCompatActivity {
     private String sectionId;
     /** The date chip: a day, or null for none. Typed dates win over it. */
     private String day;
+    /** A time picked up from the typed text ("13:00", "ob 9h"), shown with the day. */
+    private String time;
+    private boolean lifting;
     /** From the chips and the + menu, for the next task. */
     private int priority;
     private final List<String> labels = new ArrayList<>();
@@ -100,6 +103,7 @@ public class QuickAddActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {
                 updateSendButton();
                 updatePreview();
+                liftTokens(s);
             }
         });
         text.setOnEditorActionListener((v, actionId, event) -> {
@@ -334,7 +338,10 @@ public class QuickAddActivity extends AppCompatActivity {
 
         // What's set, as tokens: tap to change, × to clear.
         if (day != null) {
-            View t = token(dayLabel(day), dayColor(day), () -> day = null);
+            View t = token(dayLabel(day) + (time != null ? " " + time : ""), dayColor(day), () -> {
+                day = null;
+                time = null;
+            });
             t.setOnClickListener(this::pickDay);
             tokens.addView(t);
         }
@@ -509,6 +516,7 @@ public class QuickAddActivity extends AppCompatActivity {
 
     private void resetExtras() {
         priority = 0;
+        time = null;
         labels.clear();
         location = null;
         if (attachment != null) attachment.delete();
@@ -936,6 +944,29 @@ public class QuickAddActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Like the app: a day, time or priority typed into the name ("13:00",
+     * "jutri", "p1") becomes a token as soon as it's followed by a space, and
+     * leaves the name.
+     */
+    private void liftTokens(Editable s) {
+        if (shopping || lifting) return;
+        String typed = s.toString();
+        if (typed.isEmpty() || !Character.isWhitespace(typed.charAt(typed.length() - 1))) return;
+        QuickParse parsed = QuickParse.parse(typed);
+        if (parsed.time == null && !parsed.dayTyped && parsed.priority == 0) return;
+        if (parsed.time != null) time = parsed.time;
+        if (parsed.dayTyped) day = parsed.day;
+        else if (parsed.time != null && day == null) day = TaskLogic.todayStr();
+        if (parsed.priority > 0) priority = parsed.priority;
+        lifting = true;
+        String rest = parsed.content.isEmpty() ? "" : parsed.content + " ";
+        text.setText(rest);
+        text.setSelection(rest.length());
+        lifting = false;
+        buildChips();
+    }
+
     private void pickDay(View anchor) {
         String today = TaskLogic.todayStr();
         Calendar c = TaskLogic.calendarFor(today);
@@ -954,6 +985,7 @@ public class QuickAddActivity extends AppCompatActivity {
         for (int i = 0; i < labels.length; i++) menu.getMenu().add(0, i, i, labels[i]);
         menu.setOnMenuItemClickListener(item -> {
             day = days[item.getItemId()];
+            if (day == null) time = null;
             buildChips();
             return true;
         });
@@ -1184,8 +1216,12 @@ public class QuickAddActivity extends AppCompatActivity {
         if (data == null) return;
         try {
             String at = TaskLogic.nowIso();
-            String taskDay = parsed.day != null ? parsed.day : day;
-            JSONObject due = taskDay != null ? TaskLogic.makeDue(taskDay, parsed.time) : null;
+            // A time typed on its own goes on the day already picked (a tapped
+            // calendar day), not today.
+            String taskTime = parsed.time != null ? parsed.time : time;
+            String taskDay = parsed.dayTyped ? parsed.day : day != null ? day : parsed.day;
+            if (taskDay == null && taskTime != null) taskDay = TaskLogic.todayStr();
+            JSONObject due = taskDay != null ? TaskLogic.makeDue(taskDay, taskTime) : null;
             int prio = parsed.priority > 0 ? parsed.priority : priority > 0 ? priority : 1;
             JSONObject task = TaskLogic.newTask(TaskLogic.newId(), parsed.content, projectId, prio, due,
                     TaskLogic.nextOrder(data, projectId, sectionId), at);

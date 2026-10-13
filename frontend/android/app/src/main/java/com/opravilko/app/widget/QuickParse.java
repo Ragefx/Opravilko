@@ -19,10 +19,13 @@ final class QuickParse {
     final String day;
     /** "HH:mm" or null. */
     final String time;
+    /** Whether a day was typed ("jutri", "friday"), not just filled in for a time. */
+    final boolean dayTyped;
     /** Stored priority 2..4 (p3..p1), or 0 if none typed. */
     final int priority;
 
-    private QuickParse(String content, String day, String time, int priority) {
+    private QuickParse(String content, String day, String time, int priority, boolean dayTyped) {
+        this.dayTyped = dayTyped;
         this.content = content;
         this.day = day;
         this.time = time;
@@ -94,7 +97,8 @@ final class QuickParse {
                 }
             }
         }
+        boolean dayTyped = day != null;
         if (time != null && day == null) day = today;
-        return new QuickParse(text.trim().replaceAll("\\s+", " "), day, time, priority);
+        return new QuickParse(text.trim().replaceAll("\\s+", " "), day, time, priority, dayTyped);
     }
 }

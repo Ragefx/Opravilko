@@ -74,6 +74,8 @@ public final class L {
         SL_RES.put("widget_bought", "Kupljeno");
         SL_RES.put("widget_shopping_empty", "Nakupovalni seznam je prazen");
         SL_RES.put("qa_task_hint", "Ime naloge");
+        SL_RES.put("qa_event_hint", "Ime dogodka");
+        SL_RES.put("qa_kind_event", "Naloga ali dogodek");
         SL_RES.put("qa_shop_hint", "Dodaj: mleko 1 l, 2x jajca");
         SL_RES.put("qa_description_hint", "Opis");
         SL_RES.put("widget_cal_prev", "Prejšnji mesec");

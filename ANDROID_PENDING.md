@@ -15,7 +15,7 @@ Build 62: Start page setting, 1-day-before reminders, widget typed time, squares
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Widget add card: a Task / Event switch in the name's corner, and the date menu has "Pick a day…" and "Add a time…". / Kartica za dodajanje na pripomočku: stikalo Naloga / Dogodek v kotu imena, meni datuma pa ima »Izberi dan …« in »Dodaj uro …«.
 
 ## Known gaps
 

@@ -16,6 +16,8 @@
     <string name="widget_bought">Bought</string>
     <string name="widget_shopping_empty">The shopping list is empty</string>
     <string name="qa_task_hint">Task name</string>
+    <string name="qa_event_hint">Event name</string>
+    <string name="qa_kind_event">Task or event</string>
     <string name="qa_shop_hint">Add: milk 1 l, 2x eggs</string>
     <string name="qa_description_hint">Description</string>
     <string name="widget_cal_prev">Previous month</string>

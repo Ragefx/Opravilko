@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -66,6 +67,9 @@ public class QuickAddActivity extends AppCompatActivity {
     private String sectionId;
     /** The date chip: a day, or null for none. Typed dates win over it. */
     private String day;
+    /** Adding an event (no tick, violet on the calendars) rather than a task. */
+    private boolean event;
+    private ImageView kind;
     /** A time picked up from the typed text ("13:00", "ob 9h"), shown with the day. */
     private String time;
     private boolean lifting;
@@ -94,6 +98,14 @@ public class QuickAddActivity extends AppCompatActivity {
         where = findViewById(R.id.qa_where);
         added = findViewById(R.id.qa_added);
         description = findViewById(R.id.qa_description);
+        kind = findViewById(R.id.qa_kind);
+        // Task or event, like the corner icon in the app's add card. The
+        // keyboard stays up (the name keeps its focus).
+        kind.setOnClickListener(v -> {
+            event = !event;
+            showKind();
+            buildChips();
+        });
         preview = findViewById(R.id.qa_preview);
 
         findViewById(R.id.qa_scrim).setOnClickListener(v -> finish());
@@ -193,8 +205,9 @@ public class QuickAddActivity extends AppCompatActivity {
         String askedDay = intent.getStringExtra(EXTRA_DAY);
         if (askedDay != null && askedDay.matches("\\d{4}-\\d{2}-\\d{2}")) day = askedDay;
         resetExtras();
+        event = false;
         text.setText("");
-        text.setHint(L.res(this, shopping ? R.string.qa_shop_hint : R.string.qa_task_hint));
+        showKind();
         // Shopping items stay exactly as typed: no capital letter from the keyboard.
         text.setInputType(shopping ? android.text.InputType.TYPE_CLASS_TEXT
                 : android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
@@ -967,6 +980,48 @@ public class QuickAddActivity extends AppCompatActivity {
         buildChips();
     }
 
+    /** The Task / Event switch: its icon, and the name's hint to match. */
+    private void showKind() {
+        kind.setVisibility(shopping ? View.GONE : View.VISIBLE);
+        kind.setImageResource(event ? R.drawable.ic_w_event : R.drawable.ic_w_tick);
+        kind.setImageTintList(ColorStateList.valueOf(getColor(event ? R.color.widget_accent : R.color.widget_text_muted)));
+        kind.setContentDescription(event ? L.t("Event (tap for a task)", "Dogodek (dotakni se za nalogo)")
+                : L.t("Task (tap for an event)", "Naloga (dotakni se za dogodek)"));
+        text.setHint(shopping ? L.res(this, R.string.qa_shop_hint)
+                : event ? L.res(this, R.string.qa_event_hint) : L.res(this, R.string.qa_task_hint));
+    }
+
+    /** A time for the task or event, on its day (today if none is picked yet). */
+    private void pickTime() {
+        int h = 9, m = 0;
+        if (time != null) {
+            h = Integer.parseInt(time.substring(0, 2));
+            m = Integer.parseInt(time.substring(3, 5));
+        }
+        android.app.TimePickerDialog dialog = new android.app.TimePickerDialog(this, (tp, hour, minute) -> {
+            time = String.format(java.util.Locale.US, "%02d:%02d", hour, minute);
+            if (day == null) day = TaskLogic.todayStr();
+            buildChips();
+        }, h, m, true);
+        if (time != null) {
+            dialog.setButton(android.app.TimePickerDialog.BUTTON_NEUTRAL, L.t("No time", "Brez ure"), (d, which) -> {
+                time = null;
+                buildChips();
+            });
+        }
+        dialog.show();
+    }
+
+    /** Any day, from a calendar. */
+    private void pickDate() {
+        Calendar c = day != null ? TaskLogic.calendarFor(day) : null;
+        if (c == null) c = Calendar.getInstance();
+        new android.app.DatePickerDialog(this, (dp, y, mo, d) -> {
+            day = String.format(java.util.Locale.US, "%04d-%02d-%02d", y, mo + 1, d);
+            buildChips();
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
     private void pickDay(View anchor) {
         String today = TaskLogic.todayStr();
         Calendar c = TaskLogic.calendarFor(today);
@@ -983,7 +1038,18 @@ public class QuickAddActivity extends AppCompatActivity {
         String[] labels = { L.t("Today", "Danes"), L.t("Tomorrow", "Jutri"), L.t("This weekend", "Ta vikend"), L.t("Next week", "Naslednji teden"), L.t("No date", "Brez datuma") };
         PopupMenu menu = new PopupMenu(this, anchor);
         for (int i = 0; i < labels.length; i++) menu.getMenu().add(0, i, i, labels[i]);
+        // Any other day, and a time (an event usually has one).
+        menu.getMenu().add(0, 100, 100, L.t("Pick a day…", "Izberi dan …"));
+        menu.getMenu().add(0, 101, 101, time != null ? L.t("Time: ", "Ura: ") + time : L.t("Add a time…", "Dodaj uro …"));
         menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 100) {
+                pickDate();
+                return true;
+            }
+            if (item.getItemId() == 101) {
+                pickTime();
+                return true;
+            }
             day = days[item.getItemId()];
             if (day == null) time = null;
             buildChips();
@@ -1225,6 +1291,7 @@ public class QuickAddActivity extends AppCompatActivity {
             int prio = parsed.priority > 0 ? parsed.priority : priority > 0 ? priority : 1;
             JSONObject task = TaskLogic.newTask(TaskLogic.newId(), parsed.content, projectId, prio, due,
                     TaskLogic.nextOrder(data, projectId, sectionId), at);
+            if (event) task.put("kind", "event");
             if (sectionId != null) task.put("sectionId", sectionId);
             String notes = description.getText().toString().trim();
             if (!notes.isEmpty()) task.put("description", notes);

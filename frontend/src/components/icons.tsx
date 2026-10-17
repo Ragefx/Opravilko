@@ -326,6 +326,13 @@ export const PaperclipIcon = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** A speech bubble: a task's comments. */
+export const CommentIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.8A8 8 0 1 1 21 12z" />
+  </svg>
+);
+
 /** A clipboard with a tick: going through tasks (Weekly review). */
 export const ReviewIcon = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>

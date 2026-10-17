@@ -32,6 +32,7 @@ import { CalendarIcon, RepeatIcon } from "./icons";
 import { stripHtml } from "../utils/html";
 import { DEFAULT_DISPLAY_OPTIONS, filterTasks, sortTasks, type DisplayOptions } from "../utils/displayOptions";
 import LabelChip from "./LabelChip";
+import TaskCounts, { hasCounts } from "./TaskCounts";
 
 const UNSECTIONED = "__none__";
 
@@ -418,7 +419,7 @@ function BoardCard({
             {task.description && (
               <div className="board-card-description">{stripHtml(task.description)}</div>
             )}
-            {(task.due || task.labels.length > 0) && (
+            {(task.due || task.labels.length > 0 || hasCounts(task)) && (
               <div className="task-meta">
                 {task.due && (
                   <span className={`due ${taskDueClass(task)}`}>
@@ -432,6 +433,7 @@ function BoardCard({
                 {task.labels.map((l) => (
                   <LabelChip key={l} name={l} />
                 ))}
+                <TaskCounts task={task} />
               </div>
             )}
           </div>

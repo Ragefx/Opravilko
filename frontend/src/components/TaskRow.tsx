@@ -3,7 +3,7 @@ import type { Task } from "../api/types";
 import { useBootstrap, useCompleteTask, useDeleteTask, useRestoreTasks, useRevertRecurringCompletion } from "../api/hooks";
 import { PRIORITY_META } from "../utils/priority";
 import { taskDueClass, taskDueLabel, taskTimeLabel } from "../utils/events";
-import { BellIcon, CalendarIcon, CheckIcon, ClockIcon, ChevronIcon, HourglassIcon, PaperclipIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BellIcon, CalendarIcon, CheckIcon, ClockIcon, ChevronIcon, HourglassIcon, MapPinIcon, RepeatIcon, TrashIcon } from "./icons";
 import { remindersOf } from "../utils/reminders";
 import TaskCheckbox from "./TaskCheckbox";
 import { useCompleteAnimation } from "./useCompleteAnimation";
@@ -17,6 +17,7 @@ import { useToast } from "./ToastProvider";
 import { completedByName } from "../utils/completedBy";
 import { deadlineInfo } from "../utils/deadline";
 import LabelChip from "./LabelChip";
+import TaskCounts, { hasCounts } from "./TaskCounts";
 
 export default function TaskRow({
   task,
@@ -148,7 +149,7 @@ export default function TaskRow({
               </span>
             )}
           </div>
-          {(doneBy || deadline || dueShown || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || task.attachments?.length || task.location) && (
+          {(doneBy || deadline || dueShown || hasReminders || task.labels.length > 0 || projectLabel || task.sharedWith?.length || hasCounts(task) || task.location) && (
             <div className="task-meta">
               {doneBy && <span className="task-done-by">✓ {doneBy}</span>}
               {dueShown && task.due && (
@@ -190,11 +191,7 @@ export default function TaskRow({
                   <MapPinIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {task.location.name}
                 </span>
               )}
-              {task.attachments?.length ? (
-                <span className="chip" title={`${task.attachments.length} attachment${task.attachments.length === 1 ? "" : "s"}`}>
-                  <PaperclipIcon width={12} height={12} style={{ verticalAlign: "-2px" }} /> {task.attachments.length}
-                </span>
-              ) : null}
+              <TaskCounts task={task} />
             </div>
           )}
         </div>

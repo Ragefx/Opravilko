@@ -17,6 +17,7 @@ Build 63: add card closes after adding, widget add card matches the app's, Setti
 
 - In Slovenian, the Inbox is now called "Moje naloge" (was "Prejeto"). / V slovenščini se Prejeto zdaj imenuje »Moje naloge«.
 - Date picker: today is a filled green circle; the day already picked is a green ring. / Izbirnik datuma: današnji dan je poln zelen krog, že izbrani dan pa zelen obroč.
+- Sidebar projects: just tap to open (no star or menu on a long press), and their task counts line up with Inbox, Calendar and the rest. / Projekti v stranskem meniju: samo tapni za odprtje (brez zvezdice in menija ob dolgem pritisku), število nalog pa je poravnano z Mojimi nalogami, Koledarjem in ostalimi.
 
 ## Known gaps
 

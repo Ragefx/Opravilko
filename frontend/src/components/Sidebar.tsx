@@ -222,7 +222,9 @@ export default function Sidebar({
       <Fragment key={p.id}>
         <NavLink
           to={`/app/project/${p.id}`}
-          className={({ isActive }) => `sidebar-link sidebar-project-link ${isActive ? "active" : ""}`}
+          // The app: a plain row that opens the project (no star or ⋯ menu), its
+          // count in line with the rows above.
+          className={({ isActive }) => `sidebar-link sidebar-project-link ${appUi ? "is-plain" : ""} ${isActive ? "active" : ""}`}
           style={depth > 0 ? { paddingLeft: 8 + depth * 18 } : undefined}
         >
           {children.length > 0 ? (
@@ -250,11 +252,15 @@ export default function Sidebar({
             </span>
           )}
           {projectTaskCounts[p.id] > 0 && <span className="badge sidebar-project-count">{projectTaskCounts[p.id]}</span>}
-          <StarToggle
-            active={p.isFavorite}
-            onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}
-          />
-          <ProjectMenu project={p} />
+          {!appUi && (
+            <>
+              <StarToggle
+                active={p.isFavorite}
+                onClick={() => updateProject.mutate({ id: p.id, isFavorite: !p.isFavorite })}
+              />
+              <ProjectMenu project={p} />
+            </>
+          )}
         </NavLink>
         {!collapsed && children.map((c) => renderProject(c, depth + 1))}
       </Fragment>

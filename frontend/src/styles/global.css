@@ -7557,6 +7557,17 @@ button.sidebar-link {
     margin-right: 6px;
   }
 }
+/* The app's project rows: no star or ⋯, the count at the right edge like the rows above. */
+.sidebar-project-link.is-plain .sidebar-project-count {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+}
+.sidebar-project-link.is-plain .sidebar-shared.has-count {
+  margin-right: 30px;
+}
 
 /* ---------- Remind me at the shop: a pinned shop opens to move or rename it ---------- */
 .shop-places-edit {

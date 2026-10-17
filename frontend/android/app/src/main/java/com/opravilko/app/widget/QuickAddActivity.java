@@ -852,7 +852,7 @@ public class QuickAddActivity extends AppCompatActivity {
         for (JSONObject p : list) {
             String pid = p.optString("id");
             boolean inbox = p.optBoolean("isInboxProject") || "inbox".equals(pid);
-            String name = inbox ? L.t("Inbox", "Prejeto") : p.optString("name");
+            String name = inbox ? L.t("Inbox", "Moje naloge") : p.optString("name");
             List<JSONObject> secs = new ArrayList<>();
             if (sections != null) {
                 for (int i = 0; i < sections.length(); i++) {
@@ -866,7 +866,7 @@ public class QuickAddActivity extends AppCompatActivity {
                 out.add(new String[] { pid, s.optString("id"), name + " / " + s.optString("name"), s.optString("name") });
             }
         }
-        if (out.isEmpty()) out.add(new String[] { "inbox", null, L.t("Inbox", "Prejeto"), L.t("Inbox", "Prejeto") });
+        if (out.isEmpty()) out.add(new String[] { "inbox", null, L.t("Inbox", "Moje naloge"), L.t("Inbox", "Moje naloge") });
         return out;
     }
 
@@ -875,13 +875,13 @@ public class QuickAddActivity extends AppCompatActivity {
             if (t[0].equals(projectId) && (t[1] == null ? sectionId == null : t[1].equals(sectionId))) return t[2];
         }
         JSONObject project = TaskLogic.findProject(data, projectId);
-        return project == null || project.optBoolean("isInboxProject") ? L.t("Inbox", "Prejeto") : project.optString("name");
+        return project == null || project.optBoolean("isInboxProject") ? L.t("Inbox", "Moje naloge") : project.optString("name");
     }
 
     /** The chip shows just the project; its section is in the list it opens. */
     private String projectName(JSONObject data) {
         JSONObject project = TaskLogic.findProject(data, projectId);
-        return project == null || project.optBoolean("isInboxProject") ? L.t("Inbox", "Prejeto") : project.optString("name");
+        return project == null || project.optBoolean("isInboxProject") ? L.t("Inbox", "Moje naloge") : project.optString("name");
     }
 
     /** Where it goes: each project with its sections under it, over the card like the + menu. */

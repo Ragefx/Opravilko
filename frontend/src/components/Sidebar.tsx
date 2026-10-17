@@ -309,7 +309,7 @@ export default function Sidebar({
         </NavLink>
         <NavLink to="/app/inbox" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
           <InboxIcon className="icon" />
-          {tr("Inbox", "Prejeto")}
+          {tr("Inbox", "Moje naloge")}
           {counts.inbox > 0 && <span className="badge">{counts.inbox}</span>}
         </NavLink>
         <NavLink to="/app/calendar" className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>

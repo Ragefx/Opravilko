@@ -497,7 +497,7 @@ export class FirestoreSync {
 
   async shareProject(appProjectId: string, email: string): Promise<MemberProfile> {
     const pid = this.toStoredProjectId(appProjectId)!;
-    if (pid === inboxId(this.uid)) throw new Error(tr("The Inbox can't be shared.", "Prejetega ni mogoče deliti."));
+    if (pid === inboxId(this.uid)) throw new Error(tr("The Inbox can't be shared.", "Mojih nalog ni mogoče deliti."));
     const db = firestore();
     const key = email.trim().toLowerCase();
     const found = await getDoc(doc(db, "userEmails", key));
@@ -567,7 +567,7 @@ export class FirestoreSync {
       projects.push({
         ...(p as Project),
         // The Inbox is stored as "Inbox"; it's shown in the app's language.
-        ...(p.isInboxProject ? { name: tr("Inbox", "Prejeto") } : {}),
+        ...(p.isInboxProject ? { name: tr("Inbox", "Moje naloge") } : {}),
         id: this.toAppProjectId(id)!,
         parentId: this.toAppProjectId(p.parentId),
       });

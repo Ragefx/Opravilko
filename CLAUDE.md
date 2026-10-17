@@ -65,7 +65,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   names follow the language; Slovenian patterns differ (`tr("EEE d MMM",
   "EEE, d. MMM")`), standalone months are `LLLL`, and `cap()` capitalises a
   heading that starts with a day or month.
-- The Inbox is stored as "Inbox" and shown as "Prejeto" (`assemble` in sync.ts,
+- The Inbox is stored as "Inbox" and shown as "Moje naloge" (`assemble` in sync.ts,
   WidgetSyncJob). Built-in meals and shopping categories follow the language.
 - Android: `widget/L.java` does the same (`L.t(en, sl)`, `L.date`, `L.res` for
   res/values strings); the language reaches it with the widget data

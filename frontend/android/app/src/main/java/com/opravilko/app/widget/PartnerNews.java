@@ -86,7 +86,7 @@ final class PartnerNews {
     }
 
     static String projectName(JSONObject data, String projectId) {
-        if ("inbox".equals(projectId)) return L.t("Inbox", "Prejeto");
+        if ("inbox".equals(projectId)) return L.t("Inbox", "Moje naloge");
         JSONObject project = TaskLogic.findProject(data, projectId);
         return project != null ? project.optString("name", L.t("the list", "seznam")) : L.t("the list", "seznam");
     }

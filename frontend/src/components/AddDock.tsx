@@ -163,7 +163,7 @@ export default function AddDock({
         {tab("/app/shopping", tr("Shopping", "Nakupi"), <CartIcon width={21} height={21} />)}
         {data?.me
           ? tab("/app/midva", tr("Midva", "Midva"), <ShareIcon width={21} height={21} />)
-          : tab("/app/inbox", tr("Inbox", "Prejeto"), <InboxIcon width={21} height={21} />)}
+          : tab("/app/inbox", tr("Inbox", "Moje naloge"), <InboxIcon width={21} height={21} />)}
         {menuEl}
       </nav>
     );

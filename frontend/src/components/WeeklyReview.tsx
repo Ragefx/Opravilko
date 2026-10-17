@@ -146,7 +146,7 @@ export default function WeeklyReview({ onClose }: { onClose: () => void }) {
               <button className="review-card" onClick={() => setOpened(task)}>
                 <b>{task.content}</b>
                 <span>
-                  {project?.isInboxProject || task.projectId === "inbox" ? tr("Inbox", "Prejeto") : `# ${project?.name ?? tr("Project", "Projekt")}`}
+                  {project?.isInboxProject || task.projectId === "inbox" ? tr("Inbox", "Moje naloge") : `# ${project?.name ?? tr("Project", "Projekt")}`}
                   {overdue && task.due
                     ? tr(` · was due ${format(parseISO(task.due.date), "d MMM")}`, ` · rok je bil ${format(parseISO(task.due.date), "d. MMM")}`)
                     : tr(" · added ", " · dodano ") + formatDistanceToNowStrict(new Date(task.createdAt), { addSuffix: true, locale: dateLocale })}

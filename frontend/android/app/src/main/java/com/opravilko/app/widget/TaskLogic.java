@@ -336,7 +336,7 @@ public final class TaskLogic {
     public static String viewTitle(JSONObject data, String view) {
         if (WidgetStore.VIEW_TODAY.equals(view)) return L.t("Today", "Danes");
         if (WidgetStore.VIEW_UPCOMING.equals(view)) return L.t("Upcoming", "Prihajajoče");
-        if (WidgetStore.VIEW_INBOX.equals(view)) return L.t("Inbox", "Prejeto");
+        if (WidgetStore.VIEW_INBOX.equals(view)) return L.t("Inbox", "Moje naloge");
         if (WidgetStore.VIEW_CALENDAR.equals(view) || WidgetStore.VIEW_CALENDAR_TASKS.equals(view)) return L.t("Calendar", "Koledar");
         if (view.startsWith(WidgetStore.PROJECT_PREFIX) && data != null) {
             JSONObject p = findProject(data, view.substring(WidgetStore.PROJECT_PREFIX.length()));
@@ -391,7 +391,7 @@ public final class TaskLogic {
             if (!include) continue;
             JSONObject project = byDate ? findProject(data, t.optString("projectId")) : null;
             String name = project != null ? project.optString("name") : null;
-            if (byDate && name == null && t.optString("projectId").startsWith("inbox")) name = L.t("Inbox", "Prejeto");
+            if (byDate && name == null && t.optString("projectId").startsWith("inbox")) name = L.t("Inbox", "Moje naloge");
             rows.add(new Row(t, name));
         }
 

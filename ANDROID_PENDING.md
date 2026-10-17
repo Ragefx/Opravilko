@@ -23,6 +23,7 @@ Build 62: Start page setting, 1-day-before reminders, widget typed time, squares
 - Settings regrouped: Look & feel (Appearance, What's shown), Pages (Home page, Calendar), Tasks (Adding & lists, Reminders), Together, Data, App. / Nastavitve na novo urejene: Videz in občutek (Videz, Kaj je prikazano), Strani (Začetna stran, Koledar), Naloge (Dodajanje in seznami, Opomniki), Skupaj, Podatki, Aplikacija.
 - Bebek / Bebika: asked once on each device and in Settings > What's shown. Bebek has everything on, Bebika is the simplest app; each extra can still be shown or hidden on its own. / Bebek / Bebika: vprašanje enkrat na vsaki napravi in v Nastavitve > Kaj je prikazano. Bebek ima vse vklopljeno, Bebika je najpreprostejša aplikacija; vsak dodatek lahko še vedno posebej prikažeš ali skriješ.
 - Tasks show how many comments they have (a speech bubble and the number), next to the attachments' clip; board cards show both too. / Naloge kažejo, koliko komentarjev imajo (oblaček in število), ob sponki za priponke; kartice na tabli kažejo oboje.
+- In Slovenian, the Inbox is now called "Moje naloge" (was "Prejeto"). / V slovenščini se Prejeto zdaj imenuje »Moje naloge«.
 
 ## Known gaps
 

@@ -89,7 +89,7 @@ function ShareDialog({ shared, onClose }: { shared: SharedContent; onClose: () =
     setBusy(false);
     onClose();
     showToast({
-      message: failed || tr(`Added to ${target?.name ?? "Inbox"}`, `Dodano v ${target?.name ?? "Prejeto"}`),
+      message: failed || tr(`Added to ${target?.name ?? "Inbox"}`, `Dodano v ${target?.name ?? "Moje naloge"}`),
       actionLabel: tr("Open", "Odpri"),
       onAction: () => navigate(`${routeTo(projectId)}?open=${encodeURIComponent(task.id)}`),
     });

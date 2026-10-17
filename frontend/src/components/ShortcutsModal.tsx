@@ -5,7 +5,7 @@ const SHORTCUTS: { keys: string; label: string }[] = [
   { keys: "⌘K / Ctrl+K", label: tr("Search", "Iskanje") },
   { keys: tr("g then t", "g nato t"), label: tr("Go to Today", "Pojdi na Danes") },
   { keys: tr("g then u", "g nato u"), label: tr("Go to Upcoming", "Pojdi na Prihajajoče") },
-  { keys: tr("g then i", "g nato i"), label: tr("Go to Inbox", "Pojdi na Prejeto") },
+  { keys: tr("g then i", "g nato i"), label: tr("Go to Inbox", "Pojdi na Moje naloge") },
   { keys: tr("g then c", "g nato c"), label: tr("Go to Completed", "Pojdi na Opravljeno") },
   { keys: "?", label: tr("Show this list", "Pokaži ta seznam") },
   { keys: "Esc", label: tr("Close whatever is open", "Zapri, kar je odprto") },

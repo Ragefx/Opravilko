@@ -86,8 +86,9 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   - The colours are `localStorage["opravilko.palette"]` (`utils/palette.ts`,
     `styles/palettes.css`; unset = the look's own).
 - The Java code can't be run here. Compile-check it with `javac` against
-  `android-all.jar` plus small stubs (Capacitor and R ids); ask for them to
-  be re-created if needed.
+  `android-all.jar` plus small stubs (Capacitor and R ids). They live in the
+  session's scratchpad, so a new session has to re-create them (see "Java
+  compile check" below) before the first Java change.
 - In the app, UI that is app-only uses `appUi` (`src/utils/appUi.ts`), native
   behaviour uses `isNativeApp`, and phone-size layouts use `useNarrowScreen()`.
 
@@ -95,6 +96,11 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 
 - Now page: `src/pages/Home.tsx`. Its focus card can be switched off:
   `utils/focusCard.ts`, Settings > Simple (with Weekly review and completed-on-calendar).
+  - Pane names Now / Next / Later or Today / This week / This month
+    (`utils/homeNames.ts`, Settings > Appearance > Home page; "This month" is
+    the next 31 days, then "Further ahead").
+  - The page the app opens on (and Back returns to): `utils/startPage.ts`,
+    Settings > Appearance > Opens on (Now, Calendar, Shopping, Midva).
 - Add task card: `src/components/QuickAddSheet.tsx`.
   - In the app it has tokens plus one row of icons, which can be reordered by
     dragging (order in `localStorage["opravilko.addTools"]`).
@@ -122,12 +128,28 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   the menu). Each item can be shown anyway. New "please remove X" requests
   from the partner go here (`useHidden("…")`).
 - Calendars: `CalendarView.tsx` (website: month with a day panel on wide
-  windows, week view) and `MobileCalendar.tsx` (phone). Completed tasks
+  windows, week view) and `MobileCalendar.tsx` (phone; Dots or Squares,
+  `utils/calendarStyle.ts`, Settings > Appearance > Calendar; Squares write
+  whole names cut at the edge, no "…"; the phone calendar uses Google Sans,
+  `@fontsource/google-sans`). Completed tasks
   (Settings > Simple, `utils/calendarDone.ts`; shopping excluded) and
   Slovenian holidays (`utils/holidays.ts`) show on them. The + adds on the
   picked day (`utils/calendarDay.ts`).
-- Widget calendar views: `widget/CalendarWidget.java` (Month; Month + tasks);
-  a tapped day opens the app's calendar on it.
+- Widget calendar views: `widget/CalendarWidget.java` (Month; Month + tasks).
+  - A tapped day's empty space opens the add card on that day
+    (`TaskWidgetProvider.quickAddOn`, `QuickAddActivity.EXTRA_DAY`); its
+    number opens the app's calendar on it.
+  - Month moved with ‹ › goes back to this month ~90 s after the last tap
+    (`scheduleBackToNow`, `WidgetStore.CAL_BROWSE_MS`).
+  - Day text: Google Sans (`res/font/google_sans_medium.ttf`, a Latin subset
+    made with fonttools; licence `frontend/android/GoogleSans-OFL.txt`), small
+    fixed dp sizes, `singleLine` with no ellipsis; holidays plain text (red for
+    days off).
+- Widget task tap: `widget/TaskItemActivity.java`, a card like the app's
+  task window over the home screen (saves on close).
+- The widget follows Simple: the app sends `simpleHidden` with the widget
+  data; `WidgetStore.hidden(data, "meals")` etc. in QuickAddActivity and
+  ShopItemActivity.
 - Settings switches kept per device in localStorage: swipe tasks (off by
   default, `utils/swipeTasks.ts`), focus card, weekly review, holidays,
   completed on calendar, Simple.
@@ -143,6 +165,11 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   Instaleap GraphQL service, with the website's own headers). Matching: word stems, English names mapped (`EN_SL`).
 - Widget add card (task and shopping): `widget/QuickAddActivity.java`,
   `res/layout/widget_quick_add.xml`.
+  - Task / Event switch in the name's corner (`qa_kind`).
+  - A typed time/day/priority ("13:00", "jutri", "p1") becomes a token after
+    a space (`liftTokens`); a time alone keeps the picked day.
+  - Date menu: Today, Tomorrow, This weekend, Next week, No date, Pick a day…,
+    Add a time….
 - Sync with Firestore: `src/firebase/sync.ts`.
 - Rules: `firestore.rules`.
 

@@ -1205,13 +1205,21 @@ kbd {
 .date-picker-cal-day.outside {
   color: var(--color-text-muted);
 }
+/* Today: a filled circle (as on the phone calendar), easy to spot. */
 .date-picker-cal-day.is-today {
+  background: var(--color-accent);
+  color: var(--color-on-accent, #fff);
+  font-weight: 700;
+}
+/* The day the task is on now: a ring (filled too when that's today). */
+.date-picker-cal-day.selected {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
   color: var(--color-accent);
   font-weight: 700;
 }
-.date-picker-cal-day.selected {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+.date-picker-cal-day.selected.is-today {
+  box-shadow: inset 0 0 0 2px var(--color-accent), inset 0 0 0 4px var(--color-surface, #fff);
+  color: var(--color-on-accent, #fff);
 }
 .date-picker-action-btn {
   display: flex;

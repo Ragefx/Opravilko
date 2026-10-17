@@ -75,6 +75,9 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 
 ## Checking changes
 
+- **No screenshots unless the owner asks for them** (they fill the chat's
+  memory). Check changes with the type check, build and lint; browser tests
+  without screenshots are fine when needed.
 - Type check: `cd frontend && npx tsc -b`. Build: `npm run build`.
 - Browser tests: Firebase emulators (firestore 8080, auth 9099) plus
   `VITE_FIREBASE_EMULATOR=1 vite --port 5174`, driven with Playwright

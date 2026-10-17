@@ -13,6 +13,30 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    build: 63,
+    date: "2026-10-17",
+    items: [
+      "Widget add card: a Task",
+      "The add task card closes once the task is added (app and widget), with a short \"Added to …\" note; the widget's shopping card stays open for more.",
+      "Widget add card has the same icons as the app's: reminders, repeat and share with your partner too; it uses your default reminders, and an event without a date goes on today.",
+      "Widget task window: the date has the same menu as the add card (with a time), and a Reminders row.",
+      "Reminders window closes once you pick one; \"Day before at 9:00\" is among the quick choices.",
+      "Settings regrouped: Look & feel (Appearance, What's shown), Pages (Home page, Calendar), Tasks (Adding & lists, Reminders), Together, Data, App.",
+      "Bebek",
+      "Tasks show how many comments they have (a speech bubble and the number), next to the attachments' clip; board cards show both too.",
+    ],
+    itemsSl: [
+      "Event switch in the name's corner, and the date menu has \"Pick a day…\" and \"Add a time…\". / Kartica za dodajanje na pripomočku: stikalo Naloga / Dogodek v kotu imena, meni datuma pa ima »Izberi dan …« in »Dodaj uro …«.",
+      "Kartica za dodajanje naloge se po dodajanju zapre (aplikacija in pripomoček), s kratkim obvestilom »Dodano v …«; kartica za nakupe na pripomočku ostane odprta za nove artikle.",
+      "Kartica za dodajanje na pripomočku ima enake ikone kot v aplikaciji: tudi opomnike, ponavljanje in deljenje s partnerjem; uporabi privzete opomnike, dogodek brez datuma pa gre na danes.",
+      "Okno naloge na pripomočku: datum ima enak meni kot kartica za dodajanje (z uro), in vrstico Opomniki.",
+      "Okno opomnikov se zapre, ko izbereš opomnik; »Dan prej ob 9:00« je med hitrimi izbirami.",
+      "Nastavitve na novo urejene: Videz in občutek (Videz, Kaj je prikazano), Strani (Začetna stran, Koledar), Naloge (Dodajanje in seznami, Opomniki), Skupaj, Podatki, Aplikacija.",
+      "Bebika: asked once on each device and in Settings > What's shown. Bebek has everything on, Bebika is the simplest app; each extra can still be shown or hidden on its own. / Bebek / Bebika: vprašanje enkrat na vsaki napravi in v Nastavitve > Kaj je prikazano. Bebek ima vse vklopljeno, Bebika je najpreprostejša aplikacija; vsak dodatek lahko še vedno posebej prikažeš ali skriješ.",
+      "Naloge kažejo, koliko komentarjev imajo (oblaček in število), ob sponki za priponke; kartice na tabli kažejo oboje.",
+    ],
+  },
+  {
     build: 62,
     date: "2026-10-13",
     items: [

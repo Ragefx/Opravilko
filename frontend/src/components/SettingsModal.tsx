@@ -12,7 +12,9 @@ import { setSwipeTasks, useSwipeTasks } from "../utils/swipeTasks";
 import { setCalendarStyle, useCalendarStyle } from "../utils/calendarStyle";
 import { homeLabels, setHomeNames, useHomeNames } from "../utils/homeNames";
 import { START_PAGES, setStartPage, useStartPage } from "../utils/startPage";
-import { SIMPLE_ITEMS, setSimple, setSimpleShown, useSimple } from "../utils/simple";
+import { SIMPLE_ITEMS, setShown, useHiddenItems } from "../utils/simple";
+import ModePicker from "./ModePicker";
+import { MODES, useMode } from "../utils/mode";
 import { setWeeklyReview, useWeeklyReview } from "../utils/weeklyReview";
 import { setHolidaysOn, useHolidays } from "../utils/holidays";
 import { setCalendarDoneOn, useCalendarDone } from "../utils/calendarDone";
@@ -109,7 +111,8 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const palette = usePalette();
   const partnerName = data?.partner?.name.split(" ")[0];
   const feeds = data?.calendarFeeds?.length ?? 0;
-  const simpleState = useSimple();
+  const hiddenItems = useHiddenItems();
+  const mode = useMode();
   const homeNames = useHomeNames();
   const startPage = useStartPage();
   const calStyle = useCalendarStyle();
@@ -123,9 +126,12 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
       theme === "dark" ? tr("Dark", "Temno") : theme === "light" ? tr("Light", "Svetlo") : tr("Match device", "Kot naprava"),
       lang === "sl" ? "Slovenščina" : "English",
     ].join(" · "),
-    simple: simpleState.on
-      ? `${tr("Simple", "Preprosto")} · ${trn(SIMPLE_ITEMS.length - simpleState.shown.length, ["# thing hidden", "# things hidden"], ["# stvar skrita", "# stvari skriti", "# stvari skrite", "# stvari skritih"])}`
-      : tr("Everything shown · or hide the extras", "Vse prikazano · ali skrij dodatke"),
+    simple: [
+      MODES.find((m) => m.id === mode)?.name ?? tr("Bebek or Bebika", "Bebek ali Bebika"),
+      hiddenItems.length
+        ? trn(hiddenItems.length, ["# extra hidden", "# extras hidden"], ["# dodatek skrit", "# dodatka skrita", "# dodatki skriti", "# dodatkov skritih"])
+        : tr("everything shown", "vse prikazano"),
+    ].join(" · "),
     home: [
       tr("Opens on ", "Odpre se na ") + startPageName(startPage, homeNames),
       ...(focusOn ? [] : [tr("no focus task", "brez glavne naloge")]),
@@ -307,29 +313,29 @@ function Switch({ on, onChange, title, children }: { on: boolean; onChange: (on:
   );
 }
 
-/** Settings > What's shown: one switch that hides the extras, each can be shown anyway. */
+/** Settings > What's shown: Bebek or Bebika, then each extra on its own. */
 function SimpleSection() {
-  const simple = useSimple();
+  const hidden = useHiddenItems();
   return (
     <>
-      <Switch on={simple.on} onChange={setSimple} title={tr("Simple", "Preprosto")}>
-        {tr("Hides the extras on this device: fewer buttons, a calmer app. Each one can be brought back below.", "Na tej napravi skrije dodatke: manj gumbov, mirnejša aplikacija. Vsakega lahko spodaj vrneš nazaj.")}
-      </Switch>
-      {simple.on && (
-        <div className="simple-items" role="group" aria-label={tr("Shown anyway", "Vseeno prikazano")}>
-          <span className="simple-items-head">{tr("Show anyway", "Vseeno prikaži")}</span>
-          {SIMPLE_ITEMS.map((it) => (
-            <label key={it.key} className="simple-item">
-              <input
-                type="checkbox"
-                checked={simple.shown.includes(it.key)}
-                onChange={(e) => setSimpleShown(it.key, e.target.checked)}
-              />
-              <span>{it.label}</span>
-            </label>
-          ))}
-        </div>
-      )}
+      <h4>{tr("Mode", "Način")}</h4>
+      <ModePicker />
+      <p className="settings-hint">
+        {tr(
+          "Picking a mode sets the extras below, and on Home page and Calendar the focus task, weekly review, completed tasks and swiping. Change any of them afterwards.",
+          "Izbira načina nastavi spodnje dodatke, na Začetni strani in Koledarju pa glavno nalogo, tedenski pregled, opravljene naloge in poteg. Vsakega lahko nato spremeniš."
+        )}
+      </p>
+
+      <h4>{tr("Extras", "Dodatki")}</h4>
+      <div className="simple-items" role="group" aria-label={tr("Extras", "Dodatki")}>
+        {SIMPLE_ITEMS.map((it) => (
+          <label key={it.key} className="simple-item">
+            <input type="checkbox" checked={!hidden.includes(it.key)} onChange={(e) => setShown(it.key, e.target.checked)} />
+            <span>{it.label}</span>
+          </label>
+        ))}
+      </div>
     </>
   );
 }

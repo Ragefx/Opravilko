@@ -1,5 +1,5 @@
 import { tr } from "../i18n";
-import { useSimple } from "../utils/simple";
+import { useHiddenItems } from "../utils/simple";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncArrivalPlaces } from "../native/places";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -28,6 +28,8 @@ import QuickAddSheet from "./QuickAddSheet";
 import ShortcutsModal from "./ShortcutsModal";
 import CommandPalette from "./CommandPalette";
 import SettingsModal from "./SettingsModal";
+import { ModeQuestion } from "./ModePicker";
+import { getMode } from "../utils/mode";
 import SocaTopBar from "./SocaTopBar";
 import AddDock from "./AddDock";
 import { calendarDay } from "../utils/calendarDay";
@@ -86,6 +88,8 @@ export default function Layout() {
     setNavOpen(false);
   }, [location.pathname]);
   const appData = useBootstrap().data;
+  // Bebek or Bebika: asked once on each device, when its tasks are in.
+  const [askMode, setAskMode] = useState(() => getMode() === null);
   const tasks = appData?.tasks;
   const syncAllCalendarFeeds = useSyncAllCalendarFeeds();
 
@@ -131,9 +135,8 @@ export default function Layout() {
   const goChord = useRef(false);
 
   const [remindersVersion, setRemindersVersion] = useState(0);
-  // Simple switched on or off: the widget follows it.
-  const simple = useSimple();
-  const simpleKey = `${simple.on}:${simple.shown.join()}`;
+  // Extras shown or hidden: the widget follows them.
+  const simpleKey = useHiddenItems().join();
   useEffect(() => {
     const bump = () => setRemindersVersion((v) => v + 1);
     window.addEventListener(REMINDERS_CHANGED, bump);
@@ -357,6 +360,7 @@ export default function Layout() {
             <SearchModal onClose={closeSearch} />
           ))}
         {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+        {askMode && appData && <ModeQuestion onDone={() => setAskMode(false)} />}
         {reviewOpen && <WeeklyReview onClose={() => setReviewOpen(false)} />}
         {/* The app: the card on top of the keyboard; the website: the same card as a window. */}
         {quickAddOpen && (

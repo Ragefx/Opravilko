@@ -21,6 +21,7 @@ Build 62: Start page setting, 1-day-before reminders, widget typed time, squares
 - Widget task window: the date has the same menu as the add card (with a time), and a Reminders row. / Okno naloge na pripomočku: datum ima enak meni kot kartica za dodajanje (z uro), in vrstico Opomniki.
 - Reminders window closes once you pick one; "Day before at 9:00" is among the quick choices. / Okno opomnikov se zapre, ko izbereš opomnik; »Dan prej ob 9:00« je med hitrimi izbirami.
 - Settings regrouped: Look & feel (Appearance, What's shown), Pages (Home page, Calendar), Tasks (Adding & lists, Reminders), Together, Data, App. / Nastavitve na novo urejene: Videz in občutek (Videz, Kaj je prikazano), Strani (Začetna stran, Koledar), Naloge (Dodajanje in seznami, Opomniki), Skupaj, Podatki, Aplikacija.
+- Bebek / Bebika: asked once on each device and in Settings > What's shown. Bebek has everything on, Bebika is the simplest app; each extra can still be shown or hidden on its own. / Bebek / Bebika: vprašanje enkrat na vsaki napravi in v Nastavitve > Kaj je prikazano. Bebek ima vse vklopljeno, Bebika je najpreprostejša aplikacija; vsak dodatek lahko še vedno posebej prikažeš ali skriješ.
 
 ## Known gaps
 

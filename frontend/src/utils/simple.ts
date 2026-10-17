@@ -2,9 +2,9 @@ import { tr } from "../i18n";
 import { useSyncExternalStore } from "react";
 
 /**
- * Simple (Settings > Appearance): one switch that hides the extras someone
- * new to task apps doesn't need, each of which can be brought back on its
- * own. Kept per device, like the other look settings, so one phone can be
+ * The extras someone new to task apps doesn't need (Settings > What's
+ * shown): the mode (utils/mode.ts) hides all of them or none, and each can
+ * be shown or hidden on its own. Kept per device, so one phone can be
  * simple and the other not.
  */
 export type SimpleItem =
@@ -36,17 +36,27 @@ export const SIMPLE_ITEMS: { key: SimpleItem; label: string }[] = [
   { key: "productivity", label: tr("Menu: Productivity", "Meni: Produktivnost") },
 ];
 
-const ON_KEY = "opravilko.simple";
-const SHOWN_KEY = "opravilko.simpleShown";
+/** What's hidden on this device (a JSON list); set by the mode, changed one by one. */
+const HIDDEN_KEY = "opravilko.hidden";
+// Before the modes: one Simple switch, plus what was brought back while it was on.
+const OLD_ON_KEY = "opravilko.simple";
+const OLD_SHOWN_KEY = "opravilko.simpleShown";
+const ALL = SIMPLE_ITEMS.map((i) => i.key);
 const listeners = new Set<() => void>();
 let version = 0;
 
-function read(): { on: boolean; shown: SimpleItem[] } {
+function read(): SimpleItem[] {
   try {
-    const shown = JSON.parse(localStorage.getItem(SHOWN_KEY) || "[]");
-    return { on: localStorage.getItem(ON_KEY) === "1", shown: Array.isArray(shown) ? shown : [] };
+    const saved = localStorage.getItem(HIDDEN_KEY);
+    if (saved !== null) {
+      const list = JSON.parse(saved);
+      return Array.isArray(list) ? list.filter((k): k is SimpleItem => ALL.includes(k)) : [];
+    }
+    if (localStorage.getItem(OLD_ON_KEY) !== "1") return [];
+    const shown = JSON.parse(localStorage.getItem(OLD_SHOWN_KEY) || "[]");
+    return ALL.filter((k) => !(Array.isArray(shown) && shown.includes(k)));
   } catch {
-    return { on: false, shown: [] };
+    return [];
   }
 }
 
@@ -55,25 +65,29 @@ function changed() {
   listeners.forEach((l) => l());
 }
 
-export function setSimple(on: boolean): void {
+/** Hides exactly these (a mode picked), showing the rest. */
+export function setHiddenItems(items: SimpleItem[]): void {
   try {
-    localStorage.setItem(ON_KEY, on ? "1" : "0");
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify(items));
   } catch {
     /* ignore */
   }
   changed();
 }
 
-/** Brings one hidden thing back (or hides it again) while Simple is on. */
-export function setSimpleShown(item: SimpleItem, shown: boolean): void {
-  const { shown: list } = read();
-  const next = shown ? [...new Set([...list, item])] : list.filter((k) => k !== item);
+/** Shows one thing again, or hides it. */
+export function setShown(item: SimpleItem, shown: boolean): void {
+  const list = read();
+  setHiddenItems(shown ? list.filter((k) => k !== item) : [...new Set([...list, item])]);
+}
+
+/** Whether Simple was on before the modes came (to pick Bebika for this device). */
+export function wasSimple(): boolean {
   try {
-    localStorage.setItem(SHOWN_KEY, JSON.stringify(next));
+    return localStorage.getItem(HIDDEN_KEY) === null && localStorage.getItem(OLD_ON_KEY) === "1";
   } catch {
-    /* ignore */
+    return false;
   }
-  changed();
 }
 
 function subscribe(l: () => void) {
@@ -81,20 +95,18 @@ function subscribe(l: () => void) {
   return () => listeners.delete(l);
 }
 
-/** Simple's state: whether it's on, and what's been brought back. */
-export function useSimple(): { on: boolean; shown: SimpleItem[] } {
+/** Everything hidden on this device right now. */
+export function useHiddenItems(): SimpleItem[] {
   useSyncExternalStore(subscribe, () => version, () => version);
   return read();
 }
 
-/** Everything hidden right now (for the phone's widget, which follows Simple too). */
+/** Everything hidden right now (for the phone's widget, which follows it too). */
 export function simpleHidden(): SimpleItem[] {
-  const { on, shown } = read();
-  return on ? SIMPLE_ITEMS.map((i) => i.key).filter((k) => !shown.includes(k)) : [];
+  return read();
 }
 
-/** Whether this thing is hidden right now (Simple on, and not brought back). */
+/** Whether this thing is hidden right now. */
 export function useHidden(item: SimpleItem): boolean {
-  const { on, shown } = useSimple();
-  return on && !shown.includes(item);
+  return useHiddenItems().includes(item);
 }

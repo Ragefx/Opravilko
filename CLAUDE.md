@@ -109,7 +109,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   - The website shows it as a window.
 - Bottom add button, 5 styles: `src/components/AddDock.tsx`, `utils/addStyle.ts`.
 - Settings: `src/components/SettingsModal.tsx`. Groups: Look & feel
-  (Appearance: theme, look, colours, language; What's shown: Simple), Pages
+  (Appearance: theme, look, colours, language; What's shown: mode + extras), Pages
   (Home page; Calendar, with subscribed calendars), Tasks (Adding & lists;
   Reminders), Together (Partner), Data (Storage; Import, backup & Gmail), App.
   - On the phone it's a grouped page with a page per section; on wide screens, a side nav.
@@ -124,12 +124,17 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   repeating one rolls on) by `useFinishEvents` in Layout, and stay greyed on
   the calendars. Task/Event switch: the corner icon in the add card, and a
   row in the task window.
-- Simple (Settings > What's shown, `utils/simple.ts`): one per-device switch that
-  hides extras for the partner (shopping Meal/Shop/reminders/suggestions,
-  task deadline/labels/location until set, Midva "from", Now's "pick from
-  Next", plus labels/location icons in the add card and Labels/Filters in
-  the menu). Each item can be shown anyway. New "please remove X" requests
-  from the partner go here (`useHidden("…")`).
+- Bebek / Bebika (`utils/mode.ts`, `components/ModePicker.tsx`): a per-device
+  mode, asked once on each device (`ModeQuestion` in Layout) and in Settings >
+  What's shown. Bebek: everything on. Bebika: every extra hidden, no focus
+  task, weekly review, completed-on-calendar or swiping (holidays stay).
+  Picking a mode sets those switches; each can be changed afterwards.
+- Extras (`utils/simple.ts`, list in `localStorage["opravilko.hidden"]`; the
+  old Simple switch is read once for migration): shopping
+  Meal/Shop/reminders/suggestions/deals, task deadline/labels/location until
+  set, Midva "from", Now's "pick from Next", Completed/Productivity in the
+  menu. Settings > What's shown has a Show tick for each. New "please remove
+  X" requests from the partner go here (`useHidden("…")`).
 - Calendars: `CalendarView.tsx` (website: month with a day panel on wide
   windows, week view) and `MobileCalendar.tsx` (phone; Dots or Squares,
   `utils/calendarStyle.ts`, Settings > Calendar; Squares write
@@ -150,12 +155,12 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
     days off).
 - Widget task tap: `widget/TaskItemActivity.java`, a card like the app's
   task window over the home screen (saves on close).
-- The widget follows Simple: the app sends `simpleHidden` with the widget
+- The widget follows the hidden extras: the app sends `simpleHidden` with the widget
   data; `WidgetStore.hidden(data, "meals")` etc. in QuickAddActivity and
   ShopItemActivity.
 - Settings switches kept per device in localStorage: swipe tasks (off by
   default, `utils/swipeTasks.ts`), focus card, weekly review, holidays,
-  completed on calendar, Simple.
+  completed on calendar, mode, hidden extras.
 - Shopping: `components/ShoppingView.tsx`, `utils/shopping.ts`.
   - Meals, a shop per item, "@shop" in a typed line.
   - The widget has matching logic in `widget/ShoppingLogic.java`.

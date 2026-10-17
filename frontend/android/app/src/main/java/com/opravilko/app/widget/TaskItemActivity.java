@@ -46,6 +46,11 @@ public class TaskItemActivity extends WidgetSheetActivity {
     private JSONObject task;
     /** The date picked ("yyyy-MM-dd"), or null for none. */
     private String date;
+    /** Its time of day ("HH:mm"), or null for all day. */
+    private String time;
+    /** Its reminders as changed here (null: left as they were). */
+    private JSONArray reminders;
+    private TextView remindersValue;
     private int priority;
     private EditText name;
     private EditText notes;
@@ -72,6 +77,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         }
         JSONObject due = task.optJSONObject("due");
         date = due != null ? due.optString("date", null) : null;
+        time = timeOf(due);
         priority = task.optInt("priority", 1);
         boolean event = TaskLogic.isEvent(task);
 
@@ -140,13 +146,15 @@ public class TaskItemActivity extends WidgetSheetActivity {
         boolean inbox = "inbox".equals(projectId) || projectId.startsWith("inbox");
         addRow(card, inbox ? R.drawable.ic_w_inbox : R.drawable.ic_w_hash, L.t("Project", "Projekt"),
                 projectName(data, projectId), null, false);
-        dateValue = addRow(card, R.drawable.ic_w_calendar, L.t("Date", "Datum"), "", v -> showCalendar(), true);
+        dateValue = addRow(card, R.drawable.ic_w_calendar, L.t("Date", "Datum"), "", this::pickDay, true);
         showDate();
         if (due != null && due.optBoolean("isRecurring")) {
             addRow(card, R.drawable.ic_w_repeat, L.t("Repeat", "Ponavljanje"), due.optString("string", L.t("Repeats", "Se ponavlja")), null, true);
         }
         priorityValue = addRow(card, R.drawable.ic_qa_flag, L.t("Priority", "Prednost"), "", this::pickPriority, true);
         showPriority();
+        remindersValue = addRow(card, R.drawable.ic_qa_bell, L.t("Reminders", "Opomniki"), "", v -> pickReminders(), true);
+        showReminders();
         JSONArray shared = task.optJSONArray("sharedWith");
         if (shared != null && shared.length() > 0) {
             addRow(card, R.drawable.ic_w_tick, "Midva", L.t("Shared", "Skupno"), null, true);
@@ -170,7 +178,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
         }
 
         TextView open = new TextView(this);
-        open.setText(L.t("Comments, files and more: open in the app", "Komentarji, datoteke in več: odpri v aplikaciji"));
+        open.setText(L.t("Labels, comments, files and more: open in the app", "Oznake, komentarji, datoteke in več: odpri v aplikaciji"));
         open.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         open.setTextColor(color(R.color.widget_accent));
         open.setPadding(dp(4), dp(18), dp(4), dp(4));
@@ -296,32 +304,111 @@ public class TaskItemActivity extends WidgetSheetActivity {
         String label = date.equals(today) ? L.t("Today", "Danes")
                 : date.equals(TaskLogic.addDaysStr(today, 1)) ? L.t("Tomorrow", "Jutri")
                 : dayLabel(date);
-        JSONObject due = task.optJSONObject("due");
-        if (due != null && date.equals(due.optString("date")) && due.has("datetime") && !due.isNull("datetime")) {
-            Date dt = ReminderLogic.parseIso(due.optString("datetime"));
-            if (dt != null) label += " · " + new SimpleDateFormat("HH:mm", Locale.US).format(dt);
-        }
+        if (time != null) label += " · " + time;
         dateValue.setText(label);
         boolean late = date.compareTo(today) < 0 && !TaskLogic.isEvent(task);
         dateValue.setTextColor(color(late ? R.color.widget_due_overdue : R.color.widget_accent));
     }
 
+    /** "09:00" from a due date with a time, else null. */
+    private static String timeOf(JSONObject due) {
+        if (due == null || !due.has("datetime") || due.isNull("datetime")) return null;
+        Date dt = TaskLogic.parseIso(due.optString("datetime"));
+        return dt != null ? new SimpleDateFormat("HH:mm", Locale.US).format(dt) : null;
+    }
+
+    /** The same date menu as the add card's: quick days, any day, and a time. */
+    private void pickDay(View anchor) {
+        String today = TaskLogic.todayStr();
+        Calendar c = TaskLogic.calendarFor(today);
+        int dow = c.get(Calendar.DAY_OF_WEEK);
+        int toSaturday = (Calendar.SATURDAY - dow + 7) % 7;
+        int toMonday = (Calendar.MONDAY - dow + 7) % 7;
+        final String[] days = {
+                today,
+                TaskLogic.addDaysStr(today, 1),
+                TaskLogic.addDaysStr(today, toSaturday == 0 ? 7 : toSaturday),
+                TaskLogic.addDaysStr(today, toMonday == 0 ? 7 : toMonday),
+                null,
+        };
+        String[] labels = { L.t("Today", "Danes"), L.t("Tomorrow", "Jutri"), L.t("This weekend", "Ta vikend"), L.t("Next week", "Naslednji teden"), L.t("No date", "Brez datuma") };
+        PopupMenu menu = new PopupMenu(this, anchor, Gravity.END);
+        for (int i = 0; i < labels.length; i++) menu.getMenu().add(0, i, i, labels[i]);
+        menu.getMenu().add(0, 100, 100, L.t("Pick a day…", "Izberi dan …"));
+        menu.getMenu().add(0, 101, 101, time != null ? L.t("Time: ", "Ura: ") + time : L.t("Add a time…", "Dodaj uro …"));
+        menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 100) showCalendar();
+            else if (item.getItemId() == 101) pickTime();
+            else {
+                date = days[item.getItemId()];
+                if (date == null) time = null;
+                showDate();
+                showReminders();
+            }
+            return true;
+        });
+        menu.show();
+    }
+
     private void showCalendar() {
         Calendar c = date != null ? TaskLogic.calendarFor(date) : null;
         if (c == null) c = Calendar.getInstance();
-        DatePickerDialog dialog = new DatePickerDialog(this, (view, y, m, d) -> {
+        new DatePickerDialog(this, (view, y, m, d) -> {
             Calendar picked = Calendar.getInstance();
             picked.set(y, m, d);
             date = TaskLogic.dayFormat().format(picked.getTime());
             showDate();
-        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-        if (date != null) {
-            dialog.setButton(DatePickerDialog.BUTTON_NEUTRAL, L.t("No date", "Brez datuma"), (d, which) -> {
-                date = null;
+            showReminders();
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    /** A time on its day (today if it has none yet); "No time" takes it off. */
+    private void pickTime() {
+        int h = 9, m = 0;
+        if (time != null) {
+            h = Integer.parseInt(time.substring(0, 2));
+            m = Integer.parseInt(time.substring(3, 5));
+        }
+        android.app.TimePickerDialog dialog = new android.app.TimePickerDialog(this, (tp, hour, minute) -> {
+            time = String.format(Locale.US, "%02d:%02d", hour, minute);
+            if (date == null) date = TaskLogic.todayStr();
+            showDate();
+            showReminders();
+        }, h, m, true);
+        if (time != null) {
+            dialog.setButton(android.app.TimePickerDialog.BUTTON_NEUTRAL, L.t("No time", "Brez ure"), (d, which) -> {
+                time = null;
                 showDate();
+                showReminders();
             });
         }
         dialog.show();
+    }
+
+    // ---- reminders ----
+
+    private JSONArray currentReminders() {
+        return reminders != null ? reminders : ReminderLogic.remindersOf(task);
+    }
+
+    private void showReminders() {
+        JSONArray list = currentReminders();
+        remindersValue.setText(list.length() > 0 ? Extras.shortText(list) : L.t("None", "Brez"));
+        remindersValue.setTextColor(color(list.length() > 0 ? R.color.widget_text : R.color.widget_text_muted));
+    }
+
+    private void pickReminders() {
+        JSONObject data = store.getSnapshot();
+        JSONObject due;
+        try {
+            due = newDue();
+        } catch (JSONException e) {
+            due = null;
+        }
+        Extras.pick(this, due, currentReminders(), data != null ? data.optString("me", null) : null, next -> {
+            reminders = next;
+            showReminders();
+        });
     }
 
     /** "Thu 2 Oct". */
@@ -330,26 +417,16 @@ public class TaskItemActivity extends WidgetSheetActivity {
         return c != null ? L.date("EEE d MMM", "EEE, d. MMM", c.getTime()) : day;
     }
 
-    /** The task's due moved to the picked day: its time and repeat rule stay. */
+    /** The task's due on the picked day and time: its repeat rule stays. */
     private JSONObject newDue() throws JSONException {
         if (date == null) return null;
         JSONObject old = task.optJSONObject("due");
         JSONObject due = old != null ? new JSONObject(old.toString()) : new JSONObject().put("isRecurring", false);
-        String was = old != null ? old.optString("date", date) : date;
+        JSONObject made = TaskLogic.makeDue(date, time);
         due.put("date", date);
-        Calendar day = TaskLogic.calendarFor(date);
-        String label = day != null ? new SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH).format(day.getTime()) : date;
-        if (due.has("datetime") && !due.isNull("datetime")) {
-            Date dt = TaskLogic.parseIso(due.optString("datetime"));
-            if (dt != null) {
-                Calendar c = Calendar.getInstance();
-                c.setTime(dt);
-                c.add(Calendar.DAY_OF_MONTH, TaskLogic.daysBetween(was, date));
-                due.put("datetime", TaskLogic.isoFormat().format(c.getTime()));
-                label += " at " + new SimpleDateFormat("HH:mm", Locale.US).format(c.getTime());
-            }
-        }
-        if (!due.optBoolean("isRecurring")) due.put("string", label);
+        if (made.has("datetime")) due.put("datetime", made.getString("datetime"));
+        else due.remove("datetime");
+        if (!due.optBoolean("isRecurring")) due.put("string", made.optString("string"));
         return due;
     }
 
@@ -418,9 +495,10 @@ public class TaskItemActivity extends WidgetSheetActivity {
         String oldDate = oldDue != null ? oldDue.optString("date", null) : null;
         boolean nameChanged = !newName.isEmpty() && !newName.equals(task.optString("content"));
         boolean notesChanged = !newNotes.equals(shownNotes.trim());
-        boolean dateChanged = !TextUtils.equals(oldDate, date);
+        boolean dateChanged = !TextUtils.equals(oldDate, date) || !TextUtils.equals(timeOf(oldDue), time);
+        boolean remindersChanged = reminders != null && !reminders.toString().equals(ReminderLogic.remindersOf(task).toString());
         boolean priorityChanged = priority != task.optInt("priority", 1);
-        if (!nameChanged && !notesChanged && !dateChanged && !priorityChanged) return;
+        if (!nameChanged && !notesChanged && !dateChanged && !priorityChanged && !remindersChanged) return;
         JSONObject data = store.getSnapshot();
         if (data == null) return;
         try {
@@ -432,6 +510,7 @@ public class TaskItemActivity extends WidgetSheetActivity {
                     .put("description", notesChanged ? toHtml(newNotes) : html)
                     .put("at", at);
             if (priorityChanged) op.put("priority", priority);
+            if (remindersChanged) op.put("reminders", reminders);
             if (dateChanged) {
                 JSONObject due = newDue();
                 op.put("dueSet", true).put("due", due != null ? due : JSONObject.NULL);

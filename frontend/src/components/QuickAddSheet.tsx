@@ -77,11 +77,12 @@ async function taskSaved(): Promise<void> {
  * #project are read from it as usual), a description when asked for, and a
  * row of chips that scrolls sideways: + (description, labels, location,
  * repeat, share), where it goes, the date, an attachment and the priority.
- * It stays open for the next task.
  *
  * On the website the same card is a window near the top of the screen
  * (Todoist-like): name, description, a row of small buttons, and a footer
- * with where it goes, Cancel and Add task; it closes once the task is added.
+ * with where it goes, Cancel and Add task.
+ *
+ * Both close once the task is added, with a short "Added to …" message.
  */
 export default function QuickAddSheet({
   onClose,
@@ -132,7 +133,6 @@ export default function QuickAddSheet({
   const [repeat, setRepeat] = useState<RepeatPreset | "none">("none");
   const [shared, setShared] = useState(defaultShared);
   const [file, setFile] = useState<File | null>(null);
-  const [added, setAdded] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
   const [where, setWhere] = useState(false);
   const [picking, setPicking] = useState<null | "date" | "labels" | "location" | "reminders">(null);
@@ -240,26 +240,13 @@ export default function QuickAddSheet({
       reminders,
       sharedWith: isShared && partner ? [partner.uid] : undefined,
     });
-    if (dialog) {
-      showToast({
-        message: tr(
-          `Added to ${target.label}${isShared && partner ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
-          `Dodano v ${target.label}${isShared && partner ? `, deljeno z ${partner.name.split(" ")[0]}` : ""}`
-        ),
-      });
-      onClose();
-    } else {
-      setAdded(`✓ ${preview.content} → ${target.label}`);
-    }
-    // Ready for the next one: the name and the extras go, where and when stay.
-    setText("");
-    setDescription("");
-    setPriority(null);
-    setLabels([]);
-    setLocation(null);
-    setReminders(undefined);
-    setRepeat("none");
-    title.current?.focus();
+    showToast({
+      message: tr(
+        `Added to ${target.label}${isShared && partner ? `, shared with ${partner.name.split(" ")[0]}` : ""}`,
+        `Dodano v ${target.label}${isShared && partner ? `, deljeno z ${partner.name.split(" ")[0]}` : ""}`
+      ),
+    });
+    onClose();
     if (file) {
       const f = file;
       setFile(null);
@@ -467,7 +454,6 @@ export default function QuickAddSheet({
   return createPortal(
     <div className={`qas-scrim ${dialog ? "qas-dialog-scrim" : ""}`} onClick={onClose}>
       <div className={`qas-card ${dialog ? "qas-dialog" : `qab ${addStyle === "tabs" ? "qab-anim-grow" : "qab-anim-rise"}`}`} style={dialog ? undefined : { marginBottom: keyboard }} onClick={(e) => e.stopPropagation()} onPointerDownCapture={() => (lastTouch.current = Date.now())} role="dialog" aria-label={event ? tr("Add event", "Dodaj dogodek") : tr("Add task", "Dodaj nalogo")}>
-        {added && <div className="qas-added">{added}</div>}
         {/* What was read as a date, time, p1, #project... shows highlighted: the
             text is drawn by the copy behind the (see-through) field. */}
         <div className="qas-head">

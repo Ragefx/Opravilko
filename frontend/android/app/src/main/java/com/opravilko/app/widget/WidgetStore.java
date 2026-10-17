@@ -119,6 +119,7 @@ public final class WidgetStore {
                 t.put("content", p.optString("content")).put("description", p.optString("description"))
                         .put("updatedAt", p.optString("at"));
                 if (p.has("priority")) t.put("priority", p.optInt("priority", 1));
+                if (p.has("reminders")) t.put("reminders", p.get("reminders"));
                 if (p.optBoolean("dueSet")) t.put("due", p.has("due") && !p.isNull("due") ? p.get("due") : JSONObject.NULL);
             } catch (JSONException e) {
                 return false;

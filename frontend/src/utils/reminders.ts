@@ -83,6 +83,7 @@ export const TIMED_PRESETS: ReminderPreset[] = [0, 15, 30, 60, 120, 1440].map((m
 export const DAY_PRESETS: ReminderPreset[] = [
   { key: "day:0:09:00", label: tr("On the day at 9:00", "Na dan ob 9:00"), make: () => ({ type: "day", days: 0, time: "09:00" }) },
   { key: "day:0:18:00", label: tr("On the day at 18:00", "Na dan ob 18:00"), make: () => ({ type: "day", days: 0, time: "18:00" }) },
+  { key: "day:1:09:00", label: tr("Day before at 9:00", "Dan prej ob 9:00"), make: () => ({ type: "day", days: 1, time: "09:00" }) },
   { key: "day:1:18:00", label: tr("Day before at 18:00", "Dan prej ob 18:00"), make: () => ({ type: "day", days: 1, time: "18:00" }) },
 ];
 

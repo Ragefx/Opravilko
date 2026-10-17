@@ -16,6 +16,10 @@ Build 62: Start page setting, 1-day-before reminders, widget typed time, squares
 ## In the code, not in the app yet
 
 - Widget add card: a Task / Event switch in the name's corner, and the date menu has "Pick a day…" and "Add a time…". / Kartica za dodajanje na pripomočku: stikalo Naloga / Dogodek v kotu imena, meni datuma pa ima »Izberi dan …« in »Dodaj uro …«.
+- The add task card closes once the task is added (app and widget), with a short "Added to …" note; the widget's shopping card stays open for more. / Kartica za dodajanje naloge se po dodajanju zapre (aplikacija in pripomoček), s kratkim obvestilom »Dodano v …«; kartica za nakupe na pripomočku ostane odprta za nove artikle.
+- Widget add card has the same icons as the app's: reminders, repeat and share with your partner too; it uses your default reminders, and an event without a date goes on today. / Kartica za dodajanje na pripomočku ima enake ikone kot v aplikaciji: tudi opomnike, ponavljanje in deljenje s partnerjem; uporabi privzete opomnike, dogodek brez datuma pa gre na danes.
+- Widget task window: the date has the same menu as the add card (with a time), and a Reminders row. / Okno naloge na pripomočku: datum ima enak meni kot kartica za dodajanje (z uro), in vrstico Opomniki.
+- Reminders window closes once you pick one; "Day before at 9:00" is among the quick choices. / Okno opomnikov se zapre, ko izbereš opomnik; »Dan prej ob 9:00« je med hitrimi izbirami.
 
 ## Known gaps
 

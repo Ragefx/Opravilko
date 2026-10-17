@@ -206,6 +206,7 @@ public class WidgetSyncJob extends JobService {
                             .put("content", p.optString("content")).put("description", p.optString("description"))
                             .put("updatedAt", TaskLogic.nowIso());
                     if (p.has("priority")) fields.put("priority", p.optInt("priority", 1));
+                    if (p.has("reminders")) fields.put("reminders", p.get("reminders"));
                     if (p.optBoolean("dueSet")) fields.put("due", p.has("due") && !p.isNull("due") ? p.get("due") : JSONObject.NULL);
                     firestore.updateTask(p.optString("taskId"), fields);
                     processed.add(p.optString("id"));

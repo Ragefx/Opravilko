@@ -25,7 +25,7 @@ function whenText(at: Date | null): string {
 
 /**
  * A task's reminders: the ones set (✕ to remove), quick ones to add for its
- * date, and a specific day and time. A sheet from the bottom in the app, a
+ * date, and a specific day and time. Picking one closes it. A sheet from the bottom in the app, a
  * small window on the website (the same frame as the app's pickers).
  */
 export default function ReminderSheet({
@@ -54,6 +54,8 @@ export default function ReminderSheet({
     // The phone needs notification permission to ring (asked once).
     if (isNativeApp) void enableReminders();
     onChange([...reminders, newReminder(spec, me)]);
+    // One tap and it's set: the sheet closes (open it again for another).
+    onClose();
   }
 
   return createPortal(

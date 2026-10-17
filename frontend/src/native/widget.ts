@@ -3,6 +3,7 @@ import { format, lang } from "../i18n";
 import { calendarDoneOn, doneByDay } from "../utils/calendarDone";
 import { holidaysOn } from "../utils/holidays";
 import { simpleHidden } from "../utils/simple";
+import { reminderDefaults } from "../utils/reminders";
 import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
 import { getWidgetAuth, isNativeApp } from "../dropbox/auth";
 import { DATA_PATH } from "../dropbox/store";
@@ -105,6 +106,14 @@ function firebaseWidgetAuth() {
   return { apiKey: firebaseConfig.apiKey, projectId: firebaseConfig.projectId, refreshToken: user.refreshToken, uid: user.uid };
 }
 
+/** Your name, email and photo, for "shared by" on a task shared from the widget. */
+function meProfile() {
+  const user = currentUser();
+  if (!usingFirebase() || !user) return null;
+  const email = (user.email || "").toLowerCase();
+  return { uid: user.uid, name: user.displayName || email.split("@")[0] || "Me", email, photo: user.photoURL || null };
+}
+
 /** Hands the current tasks (and sign-in) to the home-screen widget. */
 export function pushWidgetData(data: AppData): void {
   if (!isNativeApp) return;
@@ -125,6 +134,10 @@ export function pushWidgetData(data: AppData): void {
     done,
     // Settings > Simple: the widget's add card and item window hide the same extras.
     simpleHidden: simpleHidden(),
+    // The add card's reminders, as this phone's Settings > Reminders defaults.
+    reminderDefaults: reminderDefaults(),
+    // Who a task shared from the widget is from (as the app stamps it).
+    meProfile: meProfile(),
   };
   const { appKey, refreshToken } = getWidgetAuth();
   const firebase = firebaseWidgetAuth();

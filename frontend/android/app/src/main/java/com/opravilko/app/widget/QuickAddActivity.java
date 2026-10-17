@@ -77,6 +77,12 @@ public class QuickAddActivity extends AppCompatActivity {
     private int priority;
     private final List<String> labels = new ArrayList<>();
     private JSONObject location;
+    /** Picked here; null until then, when this phone's default reminders apply (as in the app). */
+    private JSONArray reminders;
+    /** A repeat choice (Extras.REPEAT_KEYS), or null. */
+    private String repeat;
+    /** Shared with your partner. */
+    private boolean shared;
     private java.io.File attachment;
     private String attachmentName, attachmentType, attachmentId;
     private EditText description;
@@ -326,19 +332,31 @@ public class QuickAddActivity extends AppCompatActivity {
         // One row of same-size icons, tinted when that thing is set, in the
         // order they were dragged into (hold one, then slide it).
         java.util.Map<String, View> byId = new java.util.HashMap<>();
-        byId.put("date", tool(R.drawable.ic_w_calendar, "Date", day != null, dayColor(day), this::pickDay));
-        byId.put("priority", tool(R.drawable.ic_qa_flag, "Priority", priority > 0,
+        byId.put("date", tool(R.drawable.ic_w_calendar, L.t("Date", "Datum"), day != null, dayColor(day), this::pickDay));
+        byId.put("priority", tool(R.drawable.ic_qa_flag, L.t("Priority", "Prednost"), priority > 0,
                 priority > 0 ? priorityColor(priority) : R.color.widget_text_secondary, this::pickPriority));
+        JSONObject dueNow = dueNow();
+        JSONArray rem = reminders != null ? reminders : Extras.defaults(data, dueNow);
+        byId.put("reminders", tool(R.drawable.ic_qa_bell, L.t("Reminders", "Opomniki"), rem.length() > 0, R.color.widget_accent, v -> pickReminders()));
+        byId.put("repeat", tool(R.drawable.ic_w_repeat, L.t("Repeat", "Ponavljanje"), repeat != null, R.color.widget_accent, this::pickRepeat));
+        JSONObject partner = data != null ? data.optJSONObject("partner") : null;
+        if (partner != null && store.isFirebase()) {
+            String first = partner.optString("name").split(" ")[0];
+            byId.put("share", tool(R.drawable.ic_qa_share, L.t("Share with ", "Deli z ") + first, shared, R.color.widget_accent, v -> {
+                shared = !shared;
+                buildChips();
+            }));
+        }
         // Simple hides labels and location until one is set (as in the app).
         if (!WidgetStore.hidden(data, "labels") || !labels.isEmpty()) {
-            byId.put("labels", tool(R.drawable.ic_qa_label, "Labels", !labels.isEmpty(), R.color.widget_accent, v -> pickLabels()));
+            byId.put("labels", tool(R.drawable.ic_qa_label, L.t("Labels", "Oznake"), !labels.isEmpty(), R.color.widget_accent, v -> pickLabels()));
         }
         if (!WidgetStore.hidden(data, "location") || location != null) {
-            byId.put("location", tool(R.drawable.ic_qa_pin, "Location", location != null, R.color.widget_accent, v -> pickLocation()));
+            byId.put("location", tool(R.drawable.ic_qa_pin, L.t("Location", "Lokacija"), location != null, R.color.widget_accent, v -> pickLocation()));
         }
         // Attachments live in Firebase, so only with Google sign-in (as in the app).
         if (store.isFirebase()) {
-            byId.put("attach", tool(R.drawable.ic_qa_attach, "Attachment", attachment != null, R.color.widget_accent, v -> pickFile()));
+            byId.put("attach", tool(R.drawable.ic_qa_attach, L.t("Attachment", "Priponka"), attachment != null, R.color.widget_accent, v -> pickFile()));
         }
         for (String id : toolOrder()) {
             View v = byId.get(id);
@@ -363,6 +381,16 @@ public class QuickAddActivity extends AppCompatActivity {
             t.setOnClickListener(this::pickPriority);
             tokens.addView(t);
         }
+        if (repeat != null) {
+            View t = token(Extras.repeatLabel(repeat), R.color.widget_accent, () -> repeat = null);
+            t.setOnClickListener(this::pickRepeat);
+            tokens.addView(t);
+        }
+        if (rem.length() > 0) {
+            View t = token("\uD83D\uDD14 " + Extras.shortText(rem), R.color.widget_accent, () -> reminders = new JSONArray());
+            t.setOnClickListener(v -> pickReminders());
+            tokens.addView(t);
+        }
         if (!labels.isEmpty()) {
             View t = token("@" + android.text.TextUtils.join(" @", labels), R.color.widget_accent, labels::clear);
             t.setOnClickListener(v -> pickLabels());
@@ -381,10 +409,19 @@ public class QuickAddActivity extends AppCompatActivity {
             t.setOnClickListener(v -> pickFile());
             tokens.addView(t);
         }
+        if (shared && partner != null) {
+            View t = token(L.t("With ", "Z ") + partner.optString("name").split(" ")[0], R.color.widget_accent, () -> shared = false);
+            t.setOnClickListener(v -> {
+                shared = false;
+                buildChips();
+            });
+            tokens.addView(t);
+        }
         tokensScroll.setVisibility(tokens.getChildCount() > 0 ? View.VISIBLE : View.GONE);
     }
 
-    private static final String[] TOOLS = { "date", "priority", "labels", "location", "attach" };
+    /** The same icons, in the same first order, as the app's add card. */
+    private static final String[] TOOLS = { "date", "priority", "reminders", "labels", "location", "repeat", "attach", "share" };
 
     /** The icons' order: as last dragged (kept on this phone), new ones at the end. */
     private List<String> toolOrder() {
@@ -532,6 +569,9 @@ public class QuickAddActivity extends AppCompatActivity {
         time = null;
         labels.clear();
         location = null;
+        reminders = null;
+        repeat = null;
+        shared = false;
         if (attachment != null) attachment.delete();
         attachment = null;
         description.setText("");
@@ -545,51 +585,6 @@ public class QuickAddActivity extends AppCompatActivity {
             case 2: return R.color.widget_accent;
             default: return R.color.widget_text;
         }
-    }
-
-    // ---- the + menu: description, labels, location ----
-
-    private void showMore(View anchor) {
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setBackgroundResource(R.drawable.qa_menu_bg);
-        box.setElevation(dp(10));
-        box.setPadding(0, dp(8), 0, dp(8));
-        android.widget.PopupWindow popup = new android.widget.PopupWindow(box,
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true);
-        popup.setElevation(dp(10));
-        popup.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
-        JSONObject snapshot = store.getSnapshot();
-        Object[][] rows = {
-                { L.t("Description", "Opis"), R.drawable.ic_qa_notes, (Runnable) this::showDescription },
-                WidgetStore.hidden(snapshot, "labels") ? null : new Object[] { L.t("Labels", "Oznake"), R.drawable.ic_qa_label, (Runnable) this::pickLabels },
-                WidgetStore.hidden(snapshot, "location") ? null : new Object[] { L.t("Location", "Lokacija"), R.drawable.ic_qa_pin, (Runnable) this::pickLocation },
-        };
-        for (Object[] r : rows) {
-            if (r == null) continue;
-            TextView row = new TextView(this);
-            row.setText((String) r[0]);
-            row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-            row.setTextColor(getColor(R.color.widget_text));
-            row.setGravity(Gravity.CENTER_VERTICAL);
-            row.setMinHeight(dp(48));
-            row.setMinWidth(dp(200));
-            row.setPadding(dp(20), 0, dp(28), 0);
-            Drawable d = getDrawable((Integer) r[1]);
-            if (d != null) {
-                d.setBounds(0, 0, dp(22), dp(22));
-                row.setCompoundDrawables(d, null, null, null);
-                row.setCompoundDrawablePadding(dp(16));
-                row.setCompoundDrawableTintList(ColorStateList.valueOf(getColor(R.color.widget_text_secondary)));
-            }
-            row.setOnClickListener(v -> {
-                popup.dismiss();
-                ((Runnable) r[2]).run();
-            });
-            box.addView(row);
-        }
-        box.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        popup.showAsDropDown(anchor, 0, -anchor.getHeight() - box.getMeasuredHeight() - dp(8));
     }
 
     private void showDescription() {
@@ -857,7 +852,7 @@ public class QuickAddActivity extends AppCompatActivity {
         for (JSONObject p : list) {
             String pid = p.optString("id");
             boolean inbox = p.optBoolean("isInboxProject") || "inbox".equals(pid);
-            String name = inbox ? "Inbox" : p.optString("name");
+            String name = inbox ? L.t("Inbox", "Prejeto") : p.optString("name");
             List<JSONObject> secs = new ArrayList<>();
             if (sections != null) {
                 for (int i = 0; i < sections.length(); i++) {
@@ -880,13 +875,13 @@ public class QuickAddActivity extends AppCompatActivity {
             if (t[0].equals(projectId) && (t[1] == null ? sectionId == null : t[1].equals(sectionId))) return t[2];
         }
         JSONObject project = TaskLogic.findProject(data, projectId);
-        return project == null || project.optBoolean("isInboxProject") ? "Inbox" : project.optString("name");
+        return project == null || project.optBoolean("isInboxProject") ? L.t("Inbox", "Prejeto") : project.optString("name");
     }
 
     /** The chip shows just the project; its section is in the list it opens. */
     private String projectName(JSONObject data) {
         JSONObject project = TaskLogic.findProject(data, projectId);
-        return project == null || project.optBoolean("isInboxProject") ? "Inbox" : project.optString("name");
+        return project == null || project.optBoolean("isInboxProject") ? L.t("Inbox", "Prejeto") : project.optString("name");
     }
 
     /** Where it goes: each project with its sections under it, over the card like the + menu. */
@@ -956,6 +951,43 @@ public class QuickAddActivity extends AppCompatActivity {
         return out.resourceId;
     }
 
+
+    /** The date and time as picked so far (for the reminders' quick choices). */
+    private JSONObject dueNow() {
+        try {
+            String d = day != null ? day : time != null || event ? TaskLogic.todayStr() : null;
+            return d != null ? TaskLogic.makeDue(d, time) : null;
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    private void pickReminders() {
+        JSONObject data = store.getSnapshot();
+        JSONObject due = dueNow();
+        JSONArray now = reminders != null ? reminders : Extras.defaults(data, due);
+        Extras.pick(this, due, now, data != null ? data.optString("me", null) : null, next -> {
+            reminders = next;
+            buildChips();
+        });
+    }
+
+    private void pickRepeat(View anchor) {
+        PopupMenu menu = new PopupMenu(this, anchor);
+        menu.getMenu().add(0, 0, 0, L.t("Doesn't repeat", "Se ne ponavlja"));
+        for (int i = 0; i < Extras.REPEAT_KEYS.length; i++) {
+            String key = Extras.REPEAT_KEYS[i];
+            menu.getMenu().add(0, i + 1, i + 1, (key.equals(repeat) ? "\u2713 " : "") + Extras.repeatLabel(key));
+        }
+        menu.setOnMenuItemClickListener(item -> {
+            repeat = item.getItemId() == 0 ? null : Extras.REPEAT_KEYS[item.getItemId() - 1];
+            // A repeat needs a day to start from: today, unless one is picked.
+            if (repeat != null && day == null) day = TaskLogic.todayStr();
+            buildChips();
+            return true;
+        });
+        menu.show();
+    }
 
     /**
      * Like the app: a day, time or priority typed into the name ("13:00",
@@ -1286,8 +1318,10 @@ public class QuickAddActivity extends AppCompatActivity {
             // calendar day), not today.
             String taskTime = parsed.time != null ? parsed.time : time;
             String taskDay = parsed.dayTyped ? parsed.day : day != null ? day : parsed.day;
-            if (taskDay == null && taskTime != null) taskDay = TaskLogic.todayStr();
+            // An event always has a day: today unless one was picked (as in the app).
+            if (taskDay == null && (taskTime != null || event)) taskDay = TaskLogic.todayStr();
             JSONObject due = taskDay != null ? TaskLogic.makeDue(taskDay, taskTime) : null;
+            if (repeat != null) due = Extras.withRepeat(due, repeat);
             int prio = parsed.priority > 0 ? parsed.priority : priority > 0 ? priority : 1;
             JSONObject task = TaskLogic.newTask(TaskLogic.newId(), parsed.content, projectId, prio, due,
                     TaskLogic.nextOrder(data, projectId, sectionId), at);
@@ -1297,6 +1331,15 @@ public class QuickAddActivity extends AppCompatActivity {
             if (!notes.isEmpty()) task.put("description", notes);
             if (!labels.isEmpty()) task.put("labels", new JSONArray(labels));
             if (location != null) task.put("location", location);
+            JSONArray rem = reminders != null ? reminders : Extras.defaults(data, due);
+            if (rem.length() > 0) task.put("reminders", rem);
+            JSONObject partner = data.optJSONObject("partner");
+            boolean isShared = shared && partner != null && store.isFirebase();
+            if (isShared) {
+                task.put("sharedWith", new JSONArray().put(partner.optString("uid")));
+                JSONObject me = data.optJSONObject("meProfile");
+                if (me != null) task.put("sharedBy", me);
+            }
             queue(data, new JSONObject().put("id", "create@" + task.getString("id")).put("op", WidgetStore.OP_CREATE)
                     .put("task", task).put("at", at));
             if (attachment != null) {
@@ -1307,11 +1350,13 @@ public class QuickAddActivity extends AppCompatActivity {
                 attachment = null; // the sync job has it now
                 WidgetSyncJob.schedule(this);
             }
-            resetExtras();
-            buildChips();
-            JSONObject project = TaskLogic.findProject(data, projectId);
+            // Added: the card closes, with a short note of where it went (as in the app).
             String where = targetLabel(data);
-            confirm("✓ " + parsed.content + " → " + where);
+            String first = isShared ? partner.optString("name").split(" ")[0] : null;
+            Toast.makeText(this, first != null
+                    ? L.t("Added to " + where + ", shared with " + first, "Dodano v " + where + ", deljeno z " + first)
+                    : L.t("Added to " + where, "Dodano v " + where), Toast.LENGTH_SHORT).show();
+            finish();
         } catch (JSONException e) {
             Toast.makeText(this, L.t("Couldn't add that task.", "Naloge ni bilo mogoče dodati."), Toast.LENGTH_SHORT).show();
         }

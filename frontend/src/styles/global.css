@@ -4071,14 +4071,6 @@ button.deals-item:hover {
     opacity: 0;
   }
 }
-.qas-added {
-  margin: 0 8px 6px;
-  font-size: 13px;
-  color: var(--color-success);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .qas-title,
 .qas-desc {
   display: block;

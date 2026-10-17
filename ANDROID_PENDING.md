@@ -20,6 +20,7 @@ Build 62: Start page setting, 1-day-before reminders, widget typed time, squares
 - Widget add card has the same icons as the app's: reminders, repeat and share with your partner too; it uses your default reminders, and an event without a date goes on today. / Kartica za dodajanje na pripomočku ima enake ikone kot v aplikaciji: tudi opomnike, ponavljanje in deljenje s partnerjem; uporabi privzete opomnike, dogodek brez datuma pa gre na danes.
 - Widget task window: the date has the same menu as the add card (with a time), and a Reminders row. / Okno naloge na pripomočku: datum ima enak meni kot kartica za dodajanje (z uro), in vrstico Opomniki.
 - Reminders window closes once you pick one; "Day before at 9:00" is among the quick choices. / Okno opomnikov se zapre, ko izbereš opomnik; »Dan prej ob 9:00« je med hitrimi izbirami.
+- Settings regrouped: Look & feel (Appearance, What's shown), Pages (Home page, Calendar), Tasks (Adding & lists, Reminders), Together, Data, App. / Nastavitve na novo urejene: Videz in občutek (Videz, Kaj je prikazano), Strani (Začetna stran, Koledar), Naloge (Dodajanje in seznami, Opomniki), Skupaj, Podatki, Aplikacija.
 
 ## Known gaps
 

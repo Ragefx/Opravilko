@@ -95,12 +95,12 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 ## Where things are
 
 - Now page: `src/pages/Home.tsx`. Its focus card can be switched off:
-  `utils/focusCard.ts`, Settings > Simple (with Weekly review and completed-on-calendar).
+  `utils/focusCard.ts`, Settings > Home page (with Weekly review).
   - Pane names Now / Next / Later or Today / This week / This month
-    (`utils/homeNames.ts`, Settings > Appearance > Home page; "This month" is
+    (`utils/homeNames.ts`, Settings > Home page; "This month" is
     the next 31 days, then "Further ahead").
   - The page the app opens on (and Back returns to): `utils/startPage.ts`,
-    Settings > Appearance > Opens on (Now, Calendar, Shopping, Midva).
+    Settings > Home page > Opens on (Now, Calendar, Shopping, Midva).
 - Add task card: `src/components/QuickAddSheet.tsx`.
   - In the app it has tokens plus one row of icons, which can be reordered by
     dragging (order in `localStorage["opravilko.addTools"]`).
@@ -108,7 +108,10 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
     style.
   - The website shows it as a window.
 - Bottom add button, 5 styles: `src/components/AddDock.tsx`, `utils/addStyle.ts`.
-- Settings: `src/components/SettingsModal.tsx`.
+- Settings: `src/components/SettingsModal.tsx`. Groups: Look & feel
+  (Appearance: theme, look, colours, language; What's shown: Simple), Pages
+  (Home page; Calendar, with subscribed calendars), Tasks (Adding & lists;
+  Reminders), Together (Partner), Data (Storage; Import, backup & Gmail), App.
   - On the phone it's a grouped page with a page per section; on wide screens, a side nav.
   - About (version, history): `AboutSection.tsx` and `data/releases.ts`.
 - Trips: `utils/away.ts`, `components/AwaySheet.tsx`.
@@ -121,7 +124,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   repeating one rolls on) by `useFinishEvents` in Layout, and stay greyed on
   the calendars. Task/Event switch: the corner icon in the add card, and a
   row in the task window.
-- Simple (Settings > Simple, `utils/simple.ts`): one per-device switch that
+- Simple (Settings > What's shown, `utils/simple.ts`): one per-device switch that
   hides extras for the partner (shopping Meal/Shop/reminders/suggestions,
   task deadline/labels/location until set, Midva "from", Now's "pick from
   Next", plus labels/location icons in the add card and Labels/Filters in
@@ -129,10 +132,10 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   from the partner go here (`useHidden("…")`).
 - Calendars: `CalendarView.tsx` (website: month with a day panel on wide
   windows, week view) and `MobileCalendar.tsx` (phone; Dots or Squares,
-  `utils/calendarStyle.ts`, Settings > Appearance > Calendar; Squares write
+  `utils/calendarStyle.ts`, Settings > Calendar; Squares write
   whole names cut at the edge, no "…"; the phone calendar uses Google Sans,
   `@fontsource/google-sans`). Completed tasks
-  (Settings > Simple, `utils/calendarDone.ts`; shopping excluded) and
+  (Settings > Calendar, `utils/calendarDone.ts`; shopping excluded) and
   Slovenian holidays (`utils/holidays.ts`) show on them. The + adds on the
   picked day (`utils/calendarDay.ts`).
 - Widget calendar views: `widget/CalendarWidget.java` (Month; Month + tasks).

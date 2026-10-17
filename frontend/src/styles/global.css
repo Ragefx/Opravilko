@@ -7308,8 +7308,13 @@ button.sidebar-link {
   color: #c2477a;
   background: color-mix(in srgb, #c2477a 13%, transparent);
 }
-.sp-icon-reminders,
+.sp-icon-home,
 .sp-icon-calendars {
+  color: #2b7bd6;
+  background: color-mix(in srgb, #2b7bd6 13%, transparent);
+}
+.sp-icon-adding,
+.sp-icon-reminders {
   color: #7a4fd1;
   background: color-mix(in srgb, #7a4fd1 13%, transparent);
 }

@@ -36,7 +36,7 @@ import PartnerConnect from "./PartnerConnect";
 import CalendarFeedsModal from "./CalendarFeedsModal";
 import ImportModal from "./ImportModal";
 import { useToast } from "./ToastProvider";
-import { BellIcon, CalendarIcon, ChevronIcon, CouchIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, SettingsIcon, ShareIcon, XIcon } from "./icons";
+import { BellIcon, CalendarIcon, ChevronIcon, CouchIcon, ImportIcon, InfoIcon, LogOutIcon, PaperclipIcon, PlusIcon, SettingsIcon, ShareIcon, TodayIcon, XIcon } from "./icons";
 import StorageSettings from "./StorageSettings";
 import { hasGmailKey, makeGmailKey } from "../utils/gmailKey";
 import AboutSection from "./AboutSection";
@@ -45,7 +45,7 @@ import { useNarrowScreen } from "./MobileCalendar";
 import { appUi } from "../utils/appUi";
 
 type ThemeSetting = ThemeChoice | "system";
-type Section = "simple" | "appearance" | "sharing" | "calendars" | "reminders" | "storage" | "data" | "account" | "about";
+type Section = "appearance" | "simple" | "home" | "calendars" | "adding" | "reminders" | "sharing" | "storage" | "data" | "account" | "about";
 
 const LOOKS: { id: Look; name: string; blurb: string }[] = [
   {
@@ -110,31 +110,48 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const partnerName = data?.partner?.name.split(" ")[0];
   const feeds = data?.calendarFeeds?.length ?? 0;
   const simpleState = useSimple();
+  const homeNames = useHomeNames();
+  const startPage = useStartPage();
+  const calStyle = useCalendarStyle();
+  const holidays = useHolidays();
+  const calendarDone = useCalendarDone();
+  const swipe = useSwipeTasks();
   const summaries: Partial<Record<Section, string>> = {
-    simple: [
-      simpleState.on
-        ? `${tr("On", "Vklopljeno")} · ${trn(SIMPLE_ITEMS.length - simpleState.shown.length, ["# thing hidden", "# things hidden"], ["# stvar skrita", "# stvari skriti", "# stvari skrite", "# stvari skritih"])}`
-        : tr("Off · hide the extras for a calmer app", "Izklopljeno · skrij dodatke za mirnejšo aplikacijo"),
-      ...(focusOn ? [] : [tr("no focus task", "brez glavne naloge")]),
-      ...(reviewOn ? [] : [tr("no weekly review", "brez tedenskega pregleda")]),
-    ].join(" · "),
     appearance: [
       LOOKS.find((l) => l.id === look)?.name,
       ...(palette === "soca" ? [] : [PALETTES.find((p) => p.id === palette)?.name]),
       theme === "dark" ? tr("Dark", "Temno") : theme === "light" ? tr("Light", "Svetlo") : tr("Match device", "Kot naprava"),
-      tr(`${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""} add button`, `Gumb za dodajanje: ${ADD_STYLES.find((a) => a.id === addStyle)?.name ?? ""}`),
+      lang === "sl" ? "Slovenščina" : "English",
+    ].join(" · "),
+    simple: simpleState.on
+      ? `${tr("Simple", "Preprosto")} · ${trn(SIMPLE_ITEMS.length - simpleState.shown.length, ["# thing hidden", "# things hidden"], ["# stvar skrita", "# stvari skriti", "# stvari skrite", "# stvari skritih"])}`
+      : tr("Everything shown · or hide the extras", "Vse prikazano · ali skrij dodatke"),
+    home: [
+      tr("Opens on ", "Odpre se na ") + startPageName(startPage, homeNames),
+      ...(focusOn ? [] : [tr("no focus task", "brez glavne naloge")]),
+      ...(reviewOn ? [] : [tr("no weekly review", "brez tedenskega pregleda")]),
+    ].join(" · "),
+    calendars: [
+      ...(appUi ? [calStyle === "dots" ? tr("Dots", "Pike") : tr("Squares", "Kvadratki")] : []),
+      ...(holidays ? [tr("holidays", "prazniki")] : []),
+      ...(calendarDone ? [tr("completed tasks", "opravljene naloge")] : []),
+      ...(feeds ? [trn(feeds, ["# subscribed", "# subscribed"], ["# naročen", "# naročena", "# naročeni", "# naročenih"])] : []),
+    ].join(" · "),
+    adding: [
+      ADD_STYLES.find((a) => a.id === addStyle)?.name,
+      swipe ? tr("swipe on", "poteg vklopljen") : tr("swipe off", "poteg izklopljen"),
     ].join(" · "),
     sharing: partnerName ? tr(`With ${partnerName}`, `Z ${partnerName}`) : tr("Connect with your partner", "Poveži se s partnerjem"),
-    calendars: feeds ? trn(feeds, ["# subscribed", "# subscribed"], ["# naročen", "# naročena", "# naročeni", "# naročenih"]) : tr("Holidays, birthdays, TV…", "Prazniki, rojstni dnevi, TV …"),
-    reminders: tr("Defaults for new tasks", "Privzeto za nove naloge"),
+    reminders: tr("Notifications, defaults for new tasks", "Obvestila, privzeto za nove naloge"),
     storage: tr("Photos and files on tasks", "Fotografije in datoteke na nalogah"),
     data: tr("Todoist import, backup file, Gmail add-on", "Uvoz iz Todoista, varnostna kopija, dodatek za Gmail"),
     about: tr(`Build ${RELEASES[0].build} · what's new`, `Različica ${RELEASES[0].build} · kaj je novega`),
   };
   const groups = ([
-    { title: tr("Look & feel", "Videz in občutek"), ids: ["simple", "appearance"] },
+    { title: tr("Look & feel", "Videz in občutek"), ids: ["appearance", "simple"] },
+    { title: tr("Pages", "Strani"), ids: ["home", "calendars"] },
+    { title: tr("Tasks", "Naloge"), ids: ["adding", "reminders"] },
     { title: tr("Together", "Skupaj"), ids: ["sharing"] },
-    { title: tr("Tasks", "Naloge"), ids: ["reminders", "calendars"] },
     { title: tr("Data", "Podatki"), ids: ["storage", "data"] },
     { title: tr("App", "Aplikacija"), ids: ["about"] },
   ] as { title: string; ids: Section[] }[]).filter((g) => g.ids.some((id) => id !== "sharing" || firebase));
@@ -150,11 +167,13 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     navigate("/connect", { replace: true });
   }
   const sections: { id: Section; label: string; icon: ReactNode }[] = [
-    { id: "simple", label: tr("Simple", "Preprosto"), icon: <CouchIcon width={16} height={16} /> },
     { id: "appearance", label: tr("Appearance", "Videz"), icon: <SettingsIcon width={16} height={16} /> },
-    ...(firebase ? [{ id: "sharing" as const, label: tr("Sharing", "Deljenje"), icon: <ShareIcon width={16} height={16} /> }] : []),
-    { id: "calendars", label: tr("Calendars", "Koledarji"), icon: <CalendarIcon width={16} height={16} /> },
+    { id: "simple", label: tr("What's shown", "Kaj je prikazano"), icon: <CouchIcon width={16} height={16} /> },
+    { id: "home", label: tr("Home page", "Začetna stran"), icon: <TodayIcon width={16} height={16} /> },
+    { id: "calendars", label: tr("Calendar", "Koledar"), icon: <CalendarIcon width={16} height={16} /> },
+    { id: "adding", label: tr("Adding & lists", "Dodajanje in seznami"), icon: <PlusIcon width={16} height={16} /> },
     { id: "reminders", label: tr("Reminders", "Opomniki"), icon: <BellIcon width={16} height={16} /> },
+    ...(firebase ? [{ id: "sharing" as const, label: tr("Partner (Midva)", "Partner (Midva)"), icon: <ShareIcon width={16} height={16} /> }] : []),
     ...(firebase ? [{ id: "storage" as const, label: tr("Storage", "Prostor"), icon: <PaperclipIcon width={16} height={16} /> }] : []),
     { id: "data", label: tr("Import, backup & Gmail", "Uvoz, kopija in Gmail"), icon: <ImportIcon width={16} height={16} /> },
     { id: "account", label: tr("Account", "Račun"), icon: <LogOutIcon width={16} height={16} /> },
@@ -163,15 +182,12 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const content = (id: Section) => (
     <>
-      {id === "simple" && <SimpleSection />}
       {id === "appearance" && <Appearance />}
+      {id === "simple" && <SimpleSection />}
+      {id === "home" && <HomeSection />}
+      {id === "calendars" && <CalendarSection onClose={onClose} />}
+      {id === "adding" && <AddingSection />}
       {id === "sharing" && <Sharing />}
-      {id === "calendars" && (
-        <>
-          {!phone && <h4>{tr("Calendars", "Koledarji")}</h4>}
-          <CalendarFeedsModal embedded onClose={onClose} />
-        </>
-      )}
       {id === "reminders" && <Reminders />}
       {id === "storage" && <StorageSettings />}
       {id === "data" && <DataSection onClose={onClose} />}
@@ -273,22 +289,32 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Settings > Simple: one switch that hides the extras, each can be shown anyway. */
+/** "Now", "Calendar"…: the page the app opens on, by name. */
+function startPageName(p: (typeof START_PAGES)[number], names: ReturnType<typeof useHomeNames>): string {
+  return p === "home" ? homeLabels(names).now : p === "calendar" ? tr("Calendar", "Koledar") : p === "shopping" ? tr("Shopping", "Nakupi") : "Midva";
+}
+
+/** A switch with its name and a line about it. */
+function Switch({ on, onChange, title, children }: { on: boolean; onChange: (on: boolean) => void; title: string; children: ReactNode }) {
+  return (
+    <label className="settings-switch">
+      <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} />
+      <span>
+        <b>{title}</b>
+        <span>{children}</span>
+      </span>
+    </label>
+  );
+}
+
+/** Settings > What's shown: one switch that hides the extras, each can be shown anyway. */
 function SimpleSection() {
   const simple = useSimple();
-  const focusCard = useFocusCard();
-  const weeklyReview = useWeeklyReview();
-  const calendarDone = useCalendarDone();
-  const queryClient = useQueryClient();
   return (
     <>
-      <label className="settings-switch">
-        <input type="checkbox" checked={simple.on} onChange={(e) => setSimple(e.target.checked)} />
-        <span>
-          <b>{tr("Simple", "Preprosto")}</b>
-          <span>{tr("Hides the extras on this device: fewer buttons, a calmer app. Each one can be brought back below.", "Na tej napravi skrije dodatke: manj gumbov, mirnejša aplikacija. Vsakega lahko spodaj vrneš nazaj.")}</span>
-        </span>
-      </label>
+      <Switch on={simple.on} onChange={setSimple} title={tr("Simple", "Preprosto")}>
+        {tr("Hides the extras on this device: fewer buttons, a calmer app. Each one can be brought back below.", "Na tej napravi skrije dodatke: manj gumbov, mirnejša aplikacija. Vsakega lahko spodaj vrneš nazaj.")}
+      </Switch>
       {simple.on && (
         <div className="simple-items" role="group" aria-label={tr("Shown anyway", "Vseeno prikazano")}>
           <span className="simple-items-head">{tr("Show anyway", "Vseeno prikaži")}</span>
@@ -304,50 +330,14 @@ function SimpleSection() {
           ))}
         </div>
       )}
-
-      <h4>{tr("More to switch on or off", "Še več za vklop ali izklop")}</h4>
-      <label className="settings-switch">
-        <input type="checkbox" checked={focusCard} onChange={(e) => setFocusCard(e.target.checked)} />
-        <span>
-          <b>{tr("Focus task", "Glavna naloga")}</b>
-          <span>{tr("Now opens with today's most important task, big, with Tomorrow, Done and Start focus. Off: it's listed with the rest.", "Zdaj se odpre z najpomembnejšo nalogo dneva, veliko, z gumbi Jutri, Opravljeno in Začni fokus. Izklopljeno: je na seznamu z ostalimi.")}</span>
-        </span>
-      </label>
-      <label className="settings-switch">
-        <input type="checkbox" checked={weeklyReview} onChange={(e) => setWeeklyReview(e.target.checked)} />
-        <span>
-          <b>{tr("Weekly review", "Tedenski pregled")}</b>
-          <span>{tr("Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.", "Pojdi skozi zamujene naloge in naloge brez datuma, eno po eno; ponujen na strani Zdaj ob vikendu in v meniju. Izklopljeno: nikjer.")}</span>
-        </span>
-      </label>
-      <label className="settings-switch">
-        <input
-          type="checkbox"
-          checked={calendarDone}
-          onChange={(e) => {
-            setCalendarDoneOn(e.target.checked);
-            queryClient.setQueryData<AppData>(["bootstrap"], (d) => (d ? { ...d } : d));
-          }}
-        />
-        <span>
-          <b>{tr("Completed tasks on the calendar", "Opravljene naloge na koledarju")}</b>
-          <span>{tr("What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).", "Kar je bilo narejeno, sivo s ✓ na dan, ko je bilo odkljukano (spletna stran, aplikacija in pripomoček).")}</span>
-        </span>
-      </label>
     </>
   );
 }
 
+/** Settings > Appearance: how it looks, and its language. */
 function Appearance() {
   const look = useLook();
   const palette = usePalette();
-  const addStyle = useAddStyle();
-  const swipeTasks = useSwipeTasks();
-  const holidays = useHolidays();
-  const calStyle = useCalendarStyle();
-  const homeNames = useHomeNames();
-  const startPage = useStartPage();
-  const queryClient = useQueryClient();
   const pinned = useSidebarPinned(look);
   const [theme, setThemeState] = useState<ThemeSetting>(() => getStoredTheme() ?? "system");
 
@@ -359,11 +349,11 @@ function Appearance() {
 
   return (
     <>
-      <h4>{tr("Language", "Jezik")}</h4>
-      <div className="segmented" role="radiogroup" aria-label={tr("Language", "Jezik")}>
-        {(["en", "sl"] as const).map((l) => (
-          <button key={l} role="radio" aria-checked={lang === l} className={lang === l ? "active" : ""} onClick={() => lang !== l && setLang(l)}>
-            {l === "en" ? "English" : "Slovenščina"}
+      <h4>{tr("Theme", "Tema")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Theme", "Tema")}>
+        {(["system", "light", "dark"] as const).map((t) => (
+          <button key={t} role="radio" aria-checked={theme === t} className={theme === t ? "active" : ""} onClick={() => pickTheme(t)}>
+            {t === "system" ? tr("Match device", "Kot naprava") : t === "light" ? tr("Light", "Svetla") : tr("Dark", "Temna")}
           </button>
         ))}
       </div>
@@ -414,6 +404,130 @@ function Appearance() {
         ))}
       </div>
 
+      <h4>{tr("Language", "Jezik")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Language", "Jezik")}>
+        {(["en", "sl"] as const).map((l) => (
+          <button key={l} role="radio" aria-checked={lang === l} className={lang === l ? "active" : ""} onClick={() => lang !== l && setLang(l)}>
+            {l === "en" ? "English" : "Slovenščina"}
+          </button>
+        ))}
+      </div>
+
+      {/* Pinning the sidebar is for wide screens; the phone always slides it in. */}
+      {!appUi && (
+        <>
+          <h4>{tr("Sidebar", "Stranski meni")}</h4>
+          <Switch on={pinned} onChange={(on) => setSidebarPinned(look, on)} title={tr("Keep the sidebar open", "Stranski meni naj ostane odprt")}>
+            {tr("Or let it slide away and open it from the ☰ button. Same as the pin at the top of the sidebar.", "Ali naj se skrije in ga odpreš z gumbom ☰. Enako kot žebljiček na vrhu menija.")}
+          </Switch>
+        </>
+      )}
+
+      <p className="settings-note">{tr("Settings are saved on this device only, so your phone and computer can differ.", "Nastavitve so shranjene le na tej napravi, zato se telefon in računalnik lahko razlikujeta.")}</p>
+    </>
+  );
+}
+
+/** Settings > Home page: where the app opens, and what Now shows. */
+function HomeSection() {
+  const homeNames = useHomeNames();
+  const startPage = useStartPage();
+  const focusCard = useFocusCard();
+  const weeklyReview = useWeeklyReview();
+  return (
+    <>
+      <h4>{tr("Opens on", "Ob odprtju")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Opens on", "Ob odprtju")}>
+        {START_PAGES.map((p) => (
+          <button key={p} role="radio" aria-checked={startPage === p} className={startPage === p ? "active" : ""} onClick={() => setStartPage(p)}>
+            {startPageName(p, homeNames)}
+          </button>
+        ))}
+      </div>
+      <p className="settings-hint">{tr("The page the app opens on; the phone's back button returns there.", "Stran, na kateri se aplikacija odpre; tipka nazaj na telefonu se vrne nanjo.")}</p>
+
+      <h4>{tr("Names of the three parts", "Imena treh delov")}</h4>
+      <div className="segmented" role="radiogroup" aria-label={tr("Names of the three parts", "Imena treh delov")}>
+        {(["horizon", "calendar"] as const).map((n) => (
+          <button key={n} role="radio" aria-checked={homeNames === n} className={homeNames === n ? "active" : ""} onClick={() => setHomeNames(n)}>
+            {n === "horizon" ? tr("Now · Next · Later", "Zdaj · Naslednje · Pozneje") : tr("Today · This week · This month", "Danes · Ta teden · Ta mesec")}
+          </button>
+        ))}
+      </div>
+
+      <h4>{tr("On the page", "Na strani")}</h4>
+      <Switch on={focusCard} onChange={setFocusCard} title={tr("Focus task", "Glavna naloga")}>
+        {tr("Now opens with today's most important task, big, with Tomorrow, Done and Start focus. Off: it's listed with the rest.", "Zdaj se odpre z najpomembnejšo nalogo dneva, veliko, z gumbi Jutri, Opravljeno in Začni fokus. Izklopljeno: je na seznamu z ostalimi.")}
+      </Switch>
+      <Switch on={weeklyReview} onChange={setWeeklyReview} title={tr("Weekly review", "Tedenski pregled")}>
+        {tr("Go through overdue and undated tasks one at a time; offered on Now at the weekend and in the menu. Off: hidden everywhere.", "Pojdi skozi zamujene naloge in naloge brez datuma, eno po eno; ponujen na strani Zdaj ob vikendu in v meniju. Izklopljeno: nikjer.")}
+      </Switch>
+    </>
+  );
+}
+
+/** Settings > Calendar: how it looks, what's on it, and calendars subscribed to. */
+function CalendarSection({ onClose }: { onClose: () => void }) {
+  const calStyle = useCalendarStyle();
+  const holidays = useHolidays();
+  const calendarDone = useCalendarDone();
+  const queryClient = useQueryClient();
+  // The calendars (and the phone's widget) redraw with or without them.
+  const redraw = () => queryClient.setQueryData<AppData>(["bootstrap"], (d) => (d ? { ...d } : d));
+  return (
+    <>
+      {appUi && (
+        <>
+          <h4>{tr("In the app", "V aplikaciji")}</h4>
+          <div className="segmented" role="radiogroup" aria-label={tr("Calendar in the app", "Koledar v aplikaciji")}>
+            {(["dots", "squares"] as const).map((c) => (
+              <button key={c} role="radio" aria-checked={calStyle === c} className={calStyle === c ? "active" : ""} onClick={() => setCalendarStyle(c)}>
+                {c === "dots" ? tr("Dots", "Pike") : tr("Squares", "Kvadratki")}
+              </button>
+            ))}
+          </div>
+          <p className="settings-hint">
+            {calStyle === "dots"
+              ? tr("Day numbers with a dot per task; the picked day's tasks below.", "Številke dni s piko za vsako nalogo; naloge izbranega dne spodaj.")
+              : tr("The whole month as boxes with the tasks written in them, like the widget.", "Cel mesec kot kvadratki z vpisanimi nalogami, kot na pripomočku.")}
+          </p>
+        </>
+      )}
+
+      <h4>{tr("On the calendar", "Na koledarju")}</h4>
+      <Switch
+        on={holidays}
+        onChange={(on) => {
+          setHolidaysOn(on);
+          redraw();
+        }}
+        title={tr("Slovenian holidays", "Slovenski prazniki")}
+      >
+        {tr("Slovenian holidays and days off on the calendars (days off in red), worked out for every year.", "Prazniki in dela prosti dnevi na koledarjih (prosti dnevi rdeče), izračunani za vsako leto.")}
+      </Switch>
+      <Switch
+        on={calendarDone}
+        onChange={(on) => {
+          setCalendarDoneOn(on);
+          redraw();
+        }}
+        title={tr("Completed tasks", "Opravljene naloge")}
+      >
+        {tr("What got done, greyed with a ✓ on the day it was ticked off (the website, the app and the widget).", "Kar je bilo narejeno, sivo s ✓ na dan, ko je bilo odkljukano (spletna stran, aplikacija in pripomoček).")}
+      </Switch>
+
+      <h4>{tr("Subscribed calendars", "Naročeni koledarji")}</h4>
+      <CalendarFeedsModal embedded onClose={onClose} />
+    </>
+  );
+}
+
+/** Settings > Adding & lists: the add button, and swiping tasks. */
+function AddingSection() {
+  const addStyle = useAddStyle();
+  const swipeTasks = useSwipeTasks();
+  return (
+    <>
       <h4>{tr("Add button on the phone", "Gumb za dodajanje na telefonu")}</h4>
       <div className="look-options add-style-options" role="radiogroup" aria-label={tr("Add button on the phone", "Gumb za dodajanje na telefonu")}>
         {ADD_STYLES.map((a) => (
@@ -435,87 +549,10 @@ function Appearance() {
         ))}
       </div>
 
-      <h4>{tr("Home page", "Začetna stran")}</h4>
-      <div className="segmented" role="radiogroup" aria-label={tr("Home page", "Začetna stran")}>
-        {(["horizon", "calendar"] as const).map((n) => (
-          <button key={n} role="radio" aria-checked={homeNames === n} className={homeNames === n ? "active" : ""} onClick={() => setHomeNames(n)}>
-            {n === "horizon" ? tr("Now · Next · Later", "Zdaj · Naslednje · Pozneje") : tr("Today · This week · This month", "Danes · Ta teden · Ta mesec")}
-          </button>
-        ))}
-      </div>
-
-      <h4>{tr("Opens on", "Ob odprtju")}</h4>
-      <div className="segmented" role="radiogroup" aria-label={tr("Opens on", "Ob odprtju")}>
-        {START_PAGES.map((p) => (
-          <button key={p} role="radio" aria-checked={startPage === p} className={startPage === p ? "active" : ""} onClick={() => setStartPage(p)}>
-            {p === "home" ? homeLabels(homeNames).now : p === "calendar" ? tr("Calendar", "Koledar") : p === "shopping" ? tr("Shopping", "Nakupi") : "Midva"}
-          </button>
-        ))}
-      </div>
-      <p className="settings-hint">{tr("The page the app opens on; the phone's back button returns there.", "Stran, na kateri se aplikacija odpre; tipka nazaj na telefonu se vrne nanjo.")}</p>
-
-      <h4>{tr("Calendar", "Koledar")}</h4>
-      {appUi && (
-        <>
-          <div className="segmented" role="radiogroup" aria-label={tr("Calendar in the app", "Koledar v aplikaciji")}>
-            {(["dots", "squares"] as const).map((c) => (
-              <button key={c} role="radio" aria-checked={calStyle === c} className={calStyle === c ? "active" : ""} onClick={() => setCalendarStyle(c)}>
-                {c === "dots" ? tr("Dots", "Pike") : tr("Squares", "Kvadratki")}
-              </button>
-            ))}
-          </div>
-          <p className="settings-hint">
-            {calStyle === "dots"
-              ? tr("Day numbers with a dot per task; the picked day's tasks below.", "Številke dni s piko za vsako nalogo; naloge izbranega dne spodaj.")
-              : tr("The whole month as boxes with the tasks written in them, like the widget.", "Cel mesec kot kvadratki z vpisanimi nalogami, kot na pripomočku.")}
-          </p>
-        </>
-      )}
-      <label className="settings-switch">
-        <input
-          type="checkbox"
-          checked={holidays}
-          onChange={(e) => {
-            setHolidaysOn(e.target.checked);
-            // The calendars (and the phone's widget) redraw with or without them.
-            queryClient.setQueryData<AppData>(["bootstrap"], (d) => (d ? { ...d } : d));
-          }}
-        />
-        <span>
-          <b>{tr("Slovenian holidays", "Slovenski prazniki")}</b>
-          <span>{tr("Slovenian holidays and days off on the calendars (days off in red), worked out for every year.", "Prazniki in dela prosti dnevi na koledarjih (prosti dnevi rdeče), izračunani za vsako leto.")}</span>
-        </span>
-      </label>
-
-      <h4>{tr("Tasks", "Naloge")}</h4>
-      <label className="settings-switch">
-        <input type="checkbox" checked={swipeTasks} onChange={(e) => setSwipeTasks(e.target.checked)} />
-        <span>
-          <b>{tr("Swipe tasks", "Poteg nalog")}</b>
-          <span>{tr("On a phone, swipe a task or a shopping item right to tick it off or left to delete it. Off: only the circle and the menu do.", "Na telefonu povleci nalogo ali nakup desno, da ga odkljukaš, ali levo, da ga izbrišeš. Izklopljeno: to delata le krogec in meni.")}</span>
-        </span>
-      </label>
-
-      <h4>{tr("Theme", "Tema")}</h4>
-      <div className="segmented" role="radiogroup" aria-label={tr("Theme", "Tema")}>
-        {(["system", "light", "dark"] as const).map((t) => (
-          <button key={t} role="radio" aria-checked={theme === t} className={theme === t ? "active" : ""} onClick={() => pickTheme(t)}>
-            {t === "system" ? tr("Match device", "Kot naprava") : t === "light" ? tr("Light", "Svetla") : tr("Dark", "Temna")}
-          </button>
-        ))}
-      </div>
-
-      {/* Pinning the sidebar is for wide screens; the phone always slides it in. */}
-      {!appUi && <h4>{tr("Sidebar", "Stranski meni")}</h4>}
-      {!appUi && <label className="settings-switch">
-        <input type="checkbox" checked={pinned} onChange={(e) => setSidebarPinned(look, e.target.checked)} />
-        <span>
-          <b>{tr("Keep the sidebar open", "Stranski meni naj ostane odprt")}</b>
-          <span>{tr("Or let it slide away and open it from the ☰ button. Same as the pin at the top of the sidebar.", "Ali naj se skrije in ga odpreš z gumbom ☰. Enako kot žebljiček na vrhu menija.")}</span>
-        </span>
-      </label>}
-
-      <p className="settings-note">{tr("Appearance and language are saved on this device only, so your phone and computer can differ.", "Videz in jezik sta shranjena le na tej napravi, zato se telefon in računalnik lahko razlikujeta.")}</p>
+      <h4>{tr("Lists", "Seznami")}</h4>
+      <Switch on={swipeTasks} onChange={setSwipeTasks} title={tr("Swipe tasks", "Poteg nalog")}>
+        {tr("On a phone, swipe a task or a shopping item right to tick it off or left to delete it. Off: only the circle and the menu do.", "Na telefonu povleci nalogo ali nakup desno, da ga odkljukaš, ali levo, da ga izbrišeš. Izklopljeno: to delata le krogec in meni.")}
+      </Switch>
     </>
   );
 }
@@ -525,7 +562,6 @@ function Sharing() {
   if (!data) return null;
   return (
     <>
-      <h4>{tr("Partner (Midva)", "Partner (Midva)")}</h4>
       <p className="settings-note top">
         {isSl ? (
           <>

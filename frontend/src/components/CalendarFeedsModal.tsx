@@ -9,8 +9,6 @@ import {
 } from "../api/hooks";
 import type { CalendarFeed } from "../api/types";
 import { COLOR_NAMES, colorHex } from "../utils/colors";
-import { CORS_PROXY_NAME } from "../utils/calendarSync";
-import { isNativeApp } from "../dropbox/auth";
 import { RefreshIcon, TrashIcon } from "./icons";
 import { useToast } from "./ToastProvider";
 
@@ -66,20 +64,8 @@ export default function CalendarFeedsModal({ onClose, embedded = false }: { onCl
         {!embedded && <h3>{tr("Calendars", "Koledarji")}</h3>}
         <p className="import-help">
           {tr(
-            'Subscribe to a read-only .ics feed (a TV listing calendar, a Gmail holiday or birthday calendar\'s "Secret address in iCal format", ...). These show up as events alongside your tasks in Today, Upcoming and Calendar view: they\'re never turned into tasks, and there\'s nothing here to check off.',
-            "Naroči se na koledar .ics samo za branje (TV spored, Gmailov koledar praznikov ali rojstnih dni z »Skrivnim naslovom v obliki iCal« ...). Prikažejo se kot dogodki ob tvojih nalogah v Danes, Prihajajoče in Koledarju: nikoli ne postanejo naloge in tu ni ničesar za odkljukati."
-          )}{" "}
-          {isNativeApp ? (
-            <>{tr("The app fetches feeds directly from their source.", "Aplikacija koledarje prenaša neposredno z vira.")}</>
-          ) : (
-            <>
-              {tr("Browsers can't fetch most feeds directly, so the website fetches them through", "Brskalniki večine koledarjev ne morejo prenesti neposredno, zato jih spletna stran prenaša prek")}{" "}
-              <strong>{CORS_PROXY_NAME}</strong>
-              {tr(
-                ", with free public relays only as a backup if it's ever unreachable. The Android app fetches directly.",
-                ", javni posredniki so le rezerva, če ta ni dosegljiv. Aplikacija za Android jih prenaša neposredno."
-              )}
-            </>
+            "Show another calendar next to your tasks: a TV listing, holidays, birthdays… Paste its .ics address (in Google Calendar: the calendar's settings, \"Secret address in iCal format\"). Its events only show; they never become tasks.",
+            "Prikaži še drug koledar ob svojih nalogah: TV spored, praznike, rojstne dni … Prilepi njegov naslov .ics (v Google Koledarju: nastavitve koledarja, »Skrivni naslov v obliki iCal«). Njegovi dogodki se le prikažejo; nikoli ne postanejo naloge."
           )}
         </p>
 

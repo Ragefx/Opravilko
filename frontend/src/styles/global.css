@@ -8481,6 +8481,11 @@ button.sidebar-link {
   overflow: hidden;
   text-overflow: clip;
 }
+/* Holidays that are days off: red, as on the widget (not over today's or the picked day's circle). */
+.mcal-sq-hol.is-off,
+.mcal-day.is-day-off:not(.is-today):not(.is-selected) .mcal-num {
+  color: #d93a2e;
+}
 .mcal-sq-items b {
   font-size: 8px;
   font-weight: 600;

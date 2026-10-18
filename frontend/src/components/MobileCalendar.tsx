@@ -10,6 +10,7 @@ import {
   type DoneEntry,
 } from "../utils/calendarDone";
 import { EVENT_COLOR, eventTimeLabel, isEvent } from "../utils/events";
+import { isDayOff } from "../utils/holidays";
 import { addDays, addMonths, addWeeks, endOfMonth, endOfWeek, isSameDay, isSameMonth, isToday, parseISO, startOfMonth, startOfWeek, subMonths, subWeeks } from "date-fns";
 import { tr, format, trn, isSl, cap } from "../i18n";
 import type { CalendarEvent, Task } from "../api/types";
@@ -255,6 +256,8 @@ export default function MobileCalendar({
             const k = format(d, "yyyy-MM-dd");
             const list = byDate.get(k) ?? [];
             const events = eventsByDate?.get(k) ?? [];
+            // A holiday that's a day off: its number and name in red, as on the widget.
+            const dayOff = events.some(isDayOff);
             const dots = [...list]
               .sort((a, b) => b.priority - a.priority)
               .slice(0, 3)
@@ -282,6 +285,7 @@ export default function MobileCalendar({
                     : "",
                   trip && k === trip.start ? "is-away-start" : "",
                   trip && k === trip.end ? "is-away-end" : "",
+                  dayOff ? "is-day-off" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -291,7 +295,7 @@ export default function MobileCalendar({
                 <span className="mcal-num">{format(d, "d")}</span>
                 {squares ? (
                   <span className="mcal-sq-items">
-                    {events[0] && <i className="mcal-sq-hol">{events[0].title}</i>}
+                    {events[0] && <i className={`mcal-sq-hol ${isDayOff(events[0]) ? "is-off" : ""}`}>{events[0].title}</i>}
                     {[...list]
                       .sort((a, b) => (a.due?.datetime ?? "~").localeCompare(b.due?.datetime ?? "~") || b.priority - a.priority)
                       .slice(0, events[0] ? 2 : 3)

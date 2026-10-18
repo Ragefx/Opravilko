@@ -106,6 +106,14 @@ export function holidaysOf(year: number): Holiday[] {
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/** A day off's red, on the calendars (as the widget's). */
+export const DAY_OFF_COLOR = "#d93a2e";
+
+/** Whether a calendar event is a holiday that's a day off. */
+export function isDayOff(e: CalendarEvent): boolean {
+  return e.feedId === HOLIDAYS_FEED_ID && e.color === DAY_OFF_COLOR;
+}
+
 /** The holidays as calendar events, last year to two years ahead (work-free ones in red). */
 let cached: { year: number; events: CalendarEvent[] } | null = null;
 
@@ -117,7 +125,7 @@ export function holidayEvents(now = new Date()): CalendarEvent[] {
       events.push({
         id: `${HOLIDAYS_FEED_ID}:${h.date}:${h.name}`,
         feedId: HOLIDAYS_FEED_ID,
-        color: h.free ? "#d93a2e" : "#8a8f98",
+        color: h.free ? DAY_OFF_COLOR : "#8a8f98",
         uid: `${HOLIDAYS_FEED_ID}:${h.date}:${h.name}`,
         title: h.name,
         date: h.date,

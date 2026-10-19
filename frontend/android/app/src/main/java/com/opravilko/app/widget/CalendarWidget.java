@@ -294,6 +294,14 @@ final class CalendarWidget {
 
         // Under it: the chosen day (today unless one was tapped), then the next days with tasks.
         views.removeAllViews(R.id.ag_list);
+        // Moved to another month: no tasks listed until a day there is tapped (as in the app).
+        String shownMonth = day.format(m.month.getTime()).substring(0, 7);
+        if (!shownMonth.equals(m.today.substring(0, 7))) {
+            RemoteViews note = new RemoteViews(context.getPackageName(), R.layout.widget_ag_note);
+            note.setTextViewText(R.id.ag_note, L.t("Tap a day to see its tasks.", "Tapni dan, da vidiš njegove naloge."));
+            views.addView(R.id.ag_list, note);
+            return;
+        }
         int budget = listSpace(context, appWidgetId, m.weeks);
         String d = selected;
         for (int i = 0; i < 60 && budget > 0; i++, d = TaskLogic.addDaysStr(d, 1)) {

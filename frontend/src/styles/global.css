@@ -3969,6 +3969,13 @@ button.deals-item:hover {
   border-radius: 2px;
   background: var(--color-border);
 }
+.mcal-pick-day {
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
 .mcal-list-pad {
   height: 4px;
 }

@@ -166,11 +166,14 @@ export default function MobileCalendar({
   }
 
   const key = format(selected, "yyyy-MM-dd");
+  // Moved to another month (or week): the picked day's tasks go until a day
+  // there is tapped.
+  const shown = monthOpen ? isSameMonth(selected, cursor) : days.some((d) => isSameDay(d, selected));
   // The + at the bottom adds on the day picked here.
   useEffect(() => {
-    setCalendarDay(key);
+    setCalendarDay(shown ? key : null);
     return () => setCalendarDay(null);
-  }, [key]);
+  }, [key, shown]);
   const selectedTrips = tripsOn(trips, key);
   // What got done that day (Settings > Appearance), under its trips.
   const showDone = useCalendarDone();
@@ -339,6 +342,9 @@ export default function MobileCalendar({
           onClose={() => setAwayEdit(null)}
         />
       )}
+      {!shown ? (
+        <p className="mcal-pick-day">{tr("Tap a day to see its tasks.", "Tapni dan, da vidiš njegove naloge.")}</p>
+      ) : (
       <TaskListView
         key={key}
         header={
@@ -420,6 +426,7 @@ export default function MobileCalendar({
           { label: dayLabel, date: key, keepEmpty: true },
         ]}
       />
+      )}
     </div>
   );
 }

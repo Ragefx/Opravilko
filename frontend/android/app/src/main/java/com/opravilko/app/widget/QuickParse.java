@@ -56,7 +56,7 @@ final class QuickParse {
             text = text.substring(0, p.start()) + text.substring(p.end());
         }
 
-        Matcher t = Pattern.compile("(?iu)\\s(?:ob\\s+)?(\\d{1,2})(?:[:.](\\d{2}))?\\s?h(?=\\s)|\\s(?:ob\\s+)(\\d{1,2})(?:[:.](\\d{2}))?(?=\\s)|\\s(\\d{1,2})[:.](\\d{2})(?=\\s)").matcher(text);
+        Matcher t = Pattern.compile("(?iu)\\s(?:ob\\s+)?(\\d{1,2})(?:[:.](\\d{2}))?\\s?h(?=\\s)|\\s(?:ob\\s+)(\\d{1,2})(?:[:.](\\d{2}))?(?=\\s)|\\s(\\d{1,2})[:.](\\d{2})(?=\\s)(?!\\s*(?:€|\\$|%|(?:eur|evr|kg|dag|g|ml|dl|l|km|cm|m)(?!\\p{L})))").matcher(text);
         if (t.find()) {
             String h = t.group(1) != null ? t.group(1) : t.group(3) != null ? t.group(3) : t.group(5);
             String m = t.group(1) != null ? t.group(2) : t.group(3) != null ? t.group(4) : t.group(6);

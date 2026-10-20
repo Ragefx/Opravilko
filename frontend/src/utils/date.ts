@@ -224,6 +224,9 @@ export function parseTimeToken(text: string): { hours: number; minutes: number; 
   const tries: RegExp[] = [
     new RegExp(`${B}(?:at |ob )?(\\d{1,2}):(\\d{2})\\s*(am|pm)?${E}`, "iu"),
     new RegExp(`${B}(?:at|ob) (\\d{1,2})[.](\\d{2})${E}`, "iu"),
+    // "13.00" on its own too -- not a date ("13.10." has a dot after it) nor a
+    // price or amount ("12.50 €", "1.25 kg").
+    new RegExp(`${B}(\\d{1,2})[.](\\d{2})(?![\\p{L}\\p{N}.,])(?!\\s*(?:€|\\$|%|(?:eur|evr|kg|dag|g|ml|dl|l|km|cm|m)(?![\\p{L}])))`, "iu"),
     new RegExp(`${B}(?:at |ob )?(\\d{1,2})()\\s*(am|pm)${E}`, "iu"),
     new RegExp(`${B}(?:at|ob) (\\d{1,2})()(?:\\s*(?:h|uri?))?${E}`, "iu"),
   ];

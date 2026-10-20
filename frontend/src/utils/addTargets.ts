@@ -16,7 +16,7 @@ export interface AddTarget {
  * Inbox comes first; the shopping list isn't offered (it takes items).
  */
 export function addTargets(data: AppData | undefined): AddTarget[] {
-  if (!data) return [{ key: "inbox:", projectId: "inbox", sectionId: null, label: tr("Inbox", "Moje naloge") }];
+  if (!data) return [{ key: "inbox:", projectId: "inbox", sectionId: null, label: tr("Inbox", "Opravila") }];
   const shopping = shoppingListOf(data.projects)?.id;
   const projects = data.projects
     .filter((p) => p.id !== shopping)
@@ -27,7 +27,7 @@ export function addTargets(data: AppData | undefined): AddTarget[] {
     if (!sections.length) out.push({ key: `${p.id}:`, projectId: p.id, sectionId: null, label: p.name });
     for (const s of sections) out.push({ key: `${p.id}:${s.id}`, projectId: p.id, sectionId: s.id, label: `${p.name} / ${s.name}` });
   }
-  return out.length ? out : [{ key: "inbox:", projectId: "inbox", sectionId: null, label: tr("Inbox", "Moje naloge") }];
+  return out.length ? out : [{ key: "inbox:", projectId: "inbox", sectionId: null, label: tr("Inbox", "Opravila") }];
 }
 
 /** The first place in a project (its first section, or the project itself). */
@@ -47,7 +47,7 @@ export interface AddPlace extends AddTarget {
  * list left out), each followed by its sections.
  */
 export function addPlaces(data: AppData | undefined): AddPlace[] {
-  const inbox: AddPlace = { key: "inbox:", projectId: "inbox", sectionId: null, label: tr("Inbox", "Moje naloge"), name: tr("Inbox", "Moje naloge"), isInbox: true };
+  const inbox: AddPlace = { key: "inbox:", projectId: "inbox", sectionId: null, label: tr("Inbox", "Opravila"), name: tr("Inbox", "Opravila"), isInbox: true };
   if (!data) return [inbox];
   const shopping = shoppingListOf(data.projects)?.id;
   const projects = data.projects
@@ -56,7 +56,7 @@ export function addPlaces(data: AppData | undefined): AddPlace[] {
   const out: AddPlace[] = [];
   for (const p of projects) {
     const isInbox = !!p.isInboxProject || p.id === "inbox";
-    const name = isInbox ? tr("Inbox", "Moje naloge") : p.name;
+    const name = isInbox ? tr("Inbox", "Opravila") : p.name;
     out.push({ key: `${p.id}:`, projectId: p.id, sectionId: null, label: name, name, isInbox });
     const sections = data.sections.filter((s) => s.projectId === p.id && !s.archived).sort((a, b) => a.order - b.order);
     for (const s of sections) {

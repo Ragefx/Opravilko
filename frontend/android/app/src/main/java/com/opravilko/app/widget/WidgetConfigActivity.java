@@ -74,7 +74,7 @@ public class WidgetConfigActivity extends Activity {
         views.add(new Option(WidgetStore.VIEW_UPCOMING, L.t("Upcoming", "Prihajajoče"), R.drawable.ic_w_calendar));
         views.add(new Option(WidgetStore.VIEW_CALENDAR, L.t("Calendar: month", "Koledar: mesec"), R.drawable.ic_w_calendar));
         views.add(new Option(WidgetStore.VIEW_CALENDAR_TASKS, L.t("Calendar: month + tasks", "Koledar: mesec + naloge"), R.drawable.ic_w_calendar));
-        views.add(new Option(WidgetStore.VIEW_INBOX, L.t("Inbox", "Moje naloge"), R.drawable.ic_w_inbox));
+        views.add(new Option(WidgetStore.VIEW_INBOX, L.t("Inbox", "Opravila"), R.drawable.ic_w_inbox));
 
         JSONObject data = store.getSnapshot();
         JSONArray projects = data != null ? data.optJSONArray("projects") : null;

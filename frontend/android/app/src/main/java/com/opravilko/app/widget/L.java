@@ -59,7 +59,7 @@ public final class L {
     private static final java.util.Map<String, String> SL_RES = new java.util.HashMap<>();
     static {
         SL_RES.put("widget_label", "Opravilko naloge");
-        SL_RES.put("widget_description", "Danes, prihajajoče, moje naloge ali projekt. Odkljukaj naloge kar na začetnem zaslonu.");
+        SL_RES.put("widget_description", "Danes, prihajajoče, opravila ali projekt. Odkljukaj naloge kar na začetnem zaslonu.");
         SL_RES.put("widget_default_title", "Danes");
         SL_RES.put("widget_empty", "Vse opravljeno");
         SL_RES.put("widget_empty_signed_out", "Odpri Opravilko in se prijavi, da vidiš svoje naloge tukaj.");

@@ -551,10 +551,10 @@ public class TaskItemActivity extends WidgetSheetActivity {
     // ---- helpers ----
 
     private static String projectName(JSONObject data, String projectId) {
-        if (projectId == null || projectId.isEmpty() || "inbox".equals(projectId) || projectId.startsWith("inbox")) return L.t("Inbox", "Moje naloge");
+        if (projectId == null || projectId.isEmpty() || "inbox".equals(projectId) || projectId.startsWith("inbox")) return L.t("Inbox", "Opravila");
         JSONObject p = TaskLogic.findProject(data, projectId);
         if (p == null) return "Midva";
-        return p.optBoolean("isInboxProject") ? L.t("Inbox", "Moje naloge") : p.optString("name");
+        return p.optBoolean("isInboxProject") ? L.t("Inbox", "Opravila") : p.optString("name");
     }
 
     /** The app keeps notes as HTML; here they're edited as plain text. */

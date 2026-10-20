@@ -106,7 +106,7 @@ export default function Setup() {
 
           <div className="setup-option">
             <b>{tr("Start fresh", "Začni na novo")}</b>
-            <span>{tr("An empty Inbox. Good if someone has shared projects with you.", "Prazne Moje naloge. Dobro, če je kdo s tabo že delil projekte.")}</span>
+            <span>{tr("An empty Inbox. Good if someone has shared projects with you.", "Prazna Opravila. Dobro, če je kdo s tabo že delil projekte.")}</span>
             <button className="btn btn-text" disabled={busy !== null} onClick={() => void startFresh()}>
               {tr("Start with an empty list", "Začni s praznim seznamom")}
             </button>

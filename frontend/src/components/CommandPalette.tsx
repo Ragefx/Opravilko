@@ -73,7 +73,7 @@ export default function CommandPalette({
       { key: "v-today", group: tr("Go to", "Pojdi na"), label: tr("Today", "Danes"), icon: <TodayIcon width={16} height={16} />, run: go("/app/today") },
       ...(data.me ? [{ key: "v-midva", group: tr("Go to", "Pojdi na"), label: tr("Midva", "Midva"), icon: <ShareIcon width={16} height={16} />, run: go("/app/midva") }] : []),
       { key: "v-upcoming", group: tr("Go to", "Pojdi na"), label: tr("Upcoming", "Prihajajoče"), icon: <UpcomingIcon width={16} height={16} />, run: go("/app/upcoming") },
-      { key: "v-inbox", group: tr("Go to", "Pojdi na"), label: tr("Inbox", "Moje naloge"), hint: String(countIn("inbox")), icon: <InboxIcon width={16} height={16} />, run: go("/app/inbox") },
+      { key: "v-inbox", group: tr("Go to", "Pojdi na"), label: tr("Inbox", "Opravila"), hint: String(countIn("inbox")), icon: <InboxIcon width={16} height={16} />, run: go("/app/inbox") },
       { key: "v-calendar", group: tr("Go to", "Pojdi na"), label: tr("Calendar", "Koledar"), hint: String(openThisMonth(data)), icon: <CalendarIcon width={16} height={16} />, run: go("/app/calendar") },
       { key: "v-shopping", group: tr("Go to", "Pojdi na"), label: tr("Shopping", "Nakupi"), icon: <CartIcon width={16} height={16} />, run: go("/app/shopping") },
       { key: "v-completed", group: tr("Go to", "Pojdi na"), label: tr("Completed", "Opravljeno"), icon: <CheckCircleIcon width={16} height={16} />, run: go("/app/completed") },
@@ -163,7 +163,7 @@ export default function CommandPalette({
           ? data.projects.find((p) => p.name.toLowerCase() === parsed.projectName!.toLowerCase())
           : undefined;
         const share = parsed.shared && data.partner ? data.partner : null;
-        const bits = [project?.name || tr("Inbox", "Moje naloge"), parsed.due ? formatDueLabel(parsed.due) : null, share ? "Midva" : null].filter(Boolean);
+        const bits = [project?.name || tr("Inbox", "Opravila"), parsed.due ? formatDueLabel(parsed.due) : null, share ? "Midva" : null].filter(Boolean);
         add.push({
           key: "add",
           group: tr("New task", "Nova naloga"),
@@ -181,7 +181,7 @@ export default function CommandPalette({
                 ...(parsed.deadline ? { deadline: parsed.deadline } : {}),
                 sharedWith: share ? [share.uid] : undefined,
               },
-              { onSuccess: () => showToast({ message: tr(`Added to ${project?.name || "Inbox"}`, `Dodano v ${project?.name || "Moje naloge"}`) }) }
+              { onSuccess: () => showToast({ message: tr(`Added to ${project?.name || "Inbox"}`, `Dodano v ${project?.name || "Opravila"}`) }) }
             );
             onClose();
           },

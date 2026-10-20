@@ -330,7 +330,11 @@ public final class WidgetStore {
     // ---- per-widget view ----
 
     public String getView(int appWidgetId) {
-        return prefs.getString("view_" + appWidgetId, VIEW_TODAY);
+        String view = prefs.getString("view_" + appWidgetId, VIEW_TODAY);
+        // No longer offered: a widget set to one of these shows the nearest one left.
+        if (VIEW_CALENDAR_TASKS.equals(view)) return VIEW_CALENDAR;
+        if (VIEW_INBOX.equals(view)) return VIEW_TODAY;
+        return view;
     }
 
     public void setView(int appWidgetId, String view) {

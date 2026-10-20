@@ -19,9 +19,10 @@ Build 63: add card closes after adding, widget add card matches the app's, Setti
 - Date picker: today is a filled green circle; the day already picked is a green ring. / Izbirnik datuma: današnji dan je poln zelen krog, že izbrani dan pa zelen obroč.
 - Sidebar projects: just tap to open (no star or menu on a long press), and their task counts line up with Inbox, Calendar and the rest. / Projekti v stranskem meniju: samo tapni za odprtje (brez zvezdice in menija ob dolgem pritisku), število nalog pa je poravnano z Opravili, Koledarjem in ostalimi.
 - App calendar: holidays that are days off show in red (the day's number and, in Squares, the holiday's name), as on the widget. / Koledar v aplikaciji: prazniki, ki so dela prosti dnevi, so rdeči (številka dneva in pri Kvadratkih ime praznika), kot na pripomočku.
-- Calendar (app and widget's Month + tasks): moving to another month no longer keeps showing the old day's tasks; it says "Tap a day to see its tasks". / Koledar (aplikacija in pripomoček Mesec + naloge): ob premiku na drug mesec se naloge prejšnjega dne ne kažejo več; piše »Tapni dan, da vidiš njegove naloge«.
+- App calendar: moving to another month no longer keeps showing the old day's tasks; it says "Tap a day to see its tasks". / Koledar v aplikaciji: ob premiku na drug mesec se naloge prejšnjega dne ne kažejo več; piše »Tapni dan, da vidiš njegove naloge«.
 - A time typed with a dot ("13.00") is read as a time too, in the app; amounts like "12.50 €" or "1.25 kg" are left alone (also on the widget). / Čas, vpisan s piko (»13.00«), se zdaj prebere kot ura tudi v aplikaciji; zneski, kot »12.50 €« ali »1.25 kg«, ostanejo (tudi na pripomočku).
 - Now: "Nothing due today" only shows when the day has no tasks and no events. The setting is now "Now: status message"; switched off, Now shows no message at all. / Zdaj: »Danes ni nič na sporedu« se pokaže le, ko dan nima ne nalog ne dogodkov. Nastavitev je zdaj »Zdaj: sporočilo o stanju«; izklopljena, Zdaj ne kaže nobenega sporočila.
+- Widget: the "Calendar: month + tasks" and "Inbox" views are gone (a widget set to one shows the month calendar or Today instead). / Pripomoček: pogleda »Koledar: mesec + naloge« in »Opravila« sta odstranjena (pripomoček z enim od njiju pokaže mesečni koledar oz. Danes).
 
 ## Known gaps
 

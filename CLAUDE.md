@@ -135,7 +135,7 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
 - Extras (`utils/simple.ts`, list in `localStorage["opravilko.hidden"]`; the
   old Simple switch is read once for migration): shopping
   Meal/Shop/reminders/suggestions/deals, task deadline/labels/location until
-  set, Midva "from", Now's "pick from Next", Completed/Productivity in the
+  set, Midva "from", Now's status message ("Nothing due today"), Completed/Productivity in the
   menu. Settings > What's shown has a Show tick for each. New "please remove
   X" requests from the partner go here (`useHidden("…")`).
 - Calendars: `CalendarView.tsx` (website: month with a day panel on wide

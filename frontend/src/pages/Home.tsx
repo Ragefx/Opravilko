@@ -95,8 +95,8 @@ export default function Home() {
   // just one of today's tasks in the lists below.
   const focusOn = useFocusCard();
   const reviewOn = useWeeklyReview();
-  // Simple (Settings): a free day is just a free day.
-  const plainEmpty = useHidden("nowNext");
+  // Settings > What's shown: no "Nothing due today" note at all.
+  const hideStatus = useHidden("nowNext");
   // Settings: Now / Next / Later, or Today / This week / This month.
   const names = useHomeNames();
   const labels = homeLabels(names);
@@ -249,13 +249,12 @@ export default function Home() {
             </span>
           </div>
         </div>
-      ) : view.nowTasks.length > 0 ? null : (
+      ) : view.nowTasks.length > 0 || view.clock.length > 0 || view.allDay.length > 0 || hideStatus ? null : (
+        // A day with nothing at all on it (no tasks, no events): say so, unless switched off.
         <div className="home-clear">
           <b>{tr("Nothing due today.", "Danes ni nič na sporedu.")}</b>
           <span>
-            {plainEmpty
-              ? tr("Enjoy the free day.", "Uživaj v prostem dnevu.")
-              : names === "calendar"
+            {names === "calendar"
                 ? tr("Pick something from this week, or enjoy the free day.", "Izberi kaj iz tega tedna ali uživaj v prostem dnevu.")
                 : tr("Pick something from Next, or enjoy the free day.", "Izberi kaj iz Naslednje ali uživaj v prostem dnevu.")}
           </span>

@@ -31,7 +31,7 @@ export const SIMPLE_ITEMS: { key: SimpleItem; label: string }[] = [
   { key: "labels", label: tr("Task: labels", "Naloga: oznake") },
   { key: "location", label: tr("Task: location", "Naloga: lokacija") },
   { key: "midvaFrom", label: tr("Midva: who a task is from", "Midva: od koga je naloga") },
-  { key: "nowNext", label: tr("Now: “pick something from Next” when the day is free", "Zdaj: »izberi nekaj iz Naslednje«, ko je dan prost") },
+  { key: "nowNext", label: tr("Now: status message (“Nothing due today…”)", "Zdaj: sporočilo o stanju (»Danes ni nič na sporedu …«)") },
   { key: "completed", label: tr("Menu: Completed", "Meni: Opravljeno") },
   { key: "productivity", label: tr("Menu: Productivity", "Meni: Produktivnost") },
 ];

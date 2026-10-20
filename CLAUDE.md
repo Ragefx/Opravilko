@@ -146,7 +146,8 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   (Settings > Calendar, `utils/calendarDone.ts`; shopping excluded) and
   Slovenian holidays (`utils/holidays.ts`) show on them. The + adds on the
   picked day (`utils/calendarDay.ts`).
-- Widget calendar views: `widget/CalendarWidget.java` (Month; Month + tasks).
+- Widget calendar views: `widget/CalendarWidget.java` (Month; "Month + tasks" and "Inbox" are no longer offered,
+  `WidgetStore.getView` maps old ones to Month / Today).
   - A tapped day's empty space opens the add card on that day
     (`TaskWidgetProvider.quickAddOn`, `QuickAddActivity.EXTRA_DAY`); its
     number opens the app's calendar on it.

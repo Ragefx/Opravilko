@@ -15,7 +15,7 @@ Build 64: "Opravila", today's circle in the date picker, sidebar tidy, red days 
 
 ## In the code, not in the app yet
 
-(nothing yet)
+- Now: a trip's card goes once you're back (its return time has passed), not only the next day. / Zdaj: kartica potovanja izgine, ko si nazaj (ko mine čas vrnitve), ne šele naslednji dan.
 
 ## Known gaps
 

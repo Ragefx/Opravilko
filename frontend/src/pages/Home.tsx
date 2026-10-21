@@ -16,7 +16,7 @@ import { groupEventsByDate } from "../utils/calendarSync";
 import { isDueToday, isOverdue, todayISO } from "../utils/date";
 import { EVENT_COLOR, eventEnd, isEvent } from "../utils/events";
 import { OPEN_WEEKLY_REVIEW, reviewDueToday } from "../components/WeeklyReview";
-import { TRIP_NOW, awayRange, projectRoute, tripsOf, tripWhen, tripIcon } from "../utils/away";
+import { TRIP_NOW, awayRange, projectRoute, tripsOf, tripWhen, tripIcon, tripOver } from "../utils/away";
 import { useNavigate } from "react-router-dom";
 
 type Pane = "now" | "next" | "later";
@@ -186,7 +186,8 @@ export default function Home() {
     const today = todayISO();
     const soon = format(addDays(new Date(), 60), "yyyy-MM-dd");
     const trip = tripsOf(data)
-      .filter((t) => (t.mine || t.period.together) && t.period.end >= today && t.period.start <= soon)
+      // Gone once it's over: after its last day, or on it once back (the return time passed).
+      .filter((t) => (t.mine || t.period.together) && !tripOver(t.period, today) && t.period.start <= soon)
       .sort((a, b) => a.period.start.localeCompare(b.period.start))[0];
     if (!trip) return null;
     const todo = trip.projectId ? data.tasks.filter((t) => t.projectId === trip.projectId && !t.completed).length : 0;

@@ -82,8 +82,16 @@ export function projectRoute(projectId: string): string {
 export const TRIP_NOW = tr("now", "zdaj");
 
 /** "in 12 days", "tomorrow", "today", "now" (under way), or null once it's over. */
+/** Over: its last day has gone, or it's that day and the return time (if set) has passed. */
+export function tripOver(a: TripDates, today: string, now = new Date()): boolean {
+  if (a.end < today) return true;
+  if (a.end > today || !a.endTime) return false;
+  const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  return hm >= a.endTime;
+}
+
 export function tripWhen(a: TripDates, today: string): string | null {
-  if (a.end < today) return null;
+  if (tripOver(a, today)) return null;
   if (a.start <= today) return TRIP_NOW;
   const days = differenceInCalendarDays(parseISO(a.start), parseISO(today));
   return days === 1 ? tr("tomorrow", "jutri") : trn(days, ["in # day", "in # days"], ["čez # dan", "čez # dneva", "čez # dni", "čez # dni"]);

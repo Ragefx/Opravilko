@@ -230,5 +230,9 @@ https://console.firebase.google.com/project/opravilko-bdd45/firestore/rules
   - The owner hasn't decided yet.
 - Settled (don't ask again): shopping-list voice keeps adding items straight
   away; widget icon dragging works; the Gmail add-on works.
+- **Galaxy Watch 7 (Wear OS).** Discussed, on hold. Proposed: a Tile (today's
+  tasks + shopping, tick off) and a complication, data from the phone app over
+  the Wearable Data Layer; sideloading needs developer mode + a helper app
+  (e.g. Wear Installer) while Google Play is on hold.
 - **Google Play.** Discussed and put on hold. The in-app updater covers
   updates for now.

@@ -636,6 +636,16 @@ kbd {
 .task-checkbox:hover {
   transform: scale(1.12);
 }
+/* The circle stays small, but the click area reaches above and below it
+   (and a little to the sides), so it doesn't take a precise click. */
+.task-checkbox {
+  position: relative;
+}
+.task-checkbox::after {
+  content: "";
+  position: absolute;
+  inset: -10px -6px;
+}
 .task-checkbox.checked {
   background: var(--priority-color, #c5c5c5);
 }
